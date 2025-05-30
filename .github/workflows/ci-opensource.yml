@@ -1,0 +1,111 @@
+          # Install Argo CD CLI
+          curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+          
+          # Deploy application
+          argocd app create code-dev \
+            --repo ${{ github.server_url }}/${{ github.repository }}.git \
+            --path infrastructure/kubernetes/overlays/development \
+            --dest-server https://kubernetes.default.svc \
+            --dest-namespace code-dev \
+            --sync-policy automated \
+            --self-heal \
+            --auto-prune
+
+  # Performance benchmarks
+  performance-tests:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run performance tests
+        run: |
+          pytest tests/performance/ --benchmark-only --benchmark-json=benchmark.json
+      
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'pytest'
+          output-file-path: benchmark.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+
+  # Documentation generation
+  docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install documentation tools
+        run: |
+          pip install sphinx sphinx-rtd-theme myst-parser
+      
+      - name: Build documentation
+        run: |
+          cd docs
+          make html
+      
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+
+  # WSL testing
+  wsl-compatibility:
+    name: WSL Compatibility Test
+    runs-on: windows-latest
+    needs: [unit-tests]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Enable WSL
+        run: |
+          wsl --install -d Ubuntu --no-launch
+          wsl --set-default-version 2
+      
+      - name: Run WSL tests
+        run: |
+          wsl -d Ubuntu -e bash -c "cd /mnt/c/Users/runneradmin/work/claude_optimized_deployment/claude_optimized_deployment && ./scripts/setup-wsl.sh --ci-mode"
+
+  # Final deployment decision
+  deploy-decision:
+    name: Deployment Decision
+    runs-on: ubuntu-latest
+    needs: [
+      security-scan,
+      code-quality,
+      unit-tests,
+      integration-tests,
+      build-images,
+      performance-tests,
+      wsl-compatibility
+    ]
+    if: always()
+    
+    steps:
+      - name: Check job statuses
+        run: |
+          echo "All checks completed. Ready for deployment decision."
+      
+      - name: Deploy to environment
+        if: github.event.inputs.deploy_environment != 'none' && github.event.inputs.deploy_environment != ''
+        run: |
+          echo "Deploying to ${{ github.event.inputs.deploy_environment }}"
+          # Trigger deployment workflow

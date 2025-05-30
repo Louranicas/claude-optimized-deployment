@@ -1,0 +1,132 @@
+# Git Attributes for CODE Project
+# Optimize Git handling for different file types
+
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Source code
+*.py text diff=python
+*.rs text diff=rust
+*.js text diff=javascript
+*.ts text diff=typescript
+*.jsx text diff=javascript
+*.tsx text diff=typescript
+*.json text
+*.yaml text
+*.yml text
+*.toml text
+*.md text diff=markdown
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Documentation
+*.rst text
+*.txt text
+CHANGELOG text
+README text
+AUTHORS text
+CONTRIBUTING text
+INSTALL text
+LICENSE text
+NEWS text
+
+# Templates
+*.html text diff=html
+*.css text diff=css
+*.scss text diff=css
+*.sass text
+*.less text
+
+# Config files
+.gitattributes text
+.gitignore text
+.gitconfig text
+.editorconfig text
+Dockerfile text
+docker-compose*.yml text
+Makefile text
+*.mk text
+
+# Windows specific files should use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+
+# Python compiled files
+*.pyc binary
+*.pyo binary
+*.pyd binary
+__pycache__/ binary
+
+# Rust compiled files
+target/ binary
+*.rlib binary
+
+# Model files (use LFS)
+*.pkl filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text
+*.onnx filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+
+# Large data files (use LFS)
+*.csv filter=lfs diff=lfs merge=lfs -text
+*.tsv filter=lfs diff=lfs merge=lfs -text
+*.jsonl filter=lfs diff=lfs merge=lfs -text
+*.parquet filter=lfs diff=lfs merge=lfs -text
+*.db filter=lfs diff=lfs merge=lfs -text
+*.sqlite filter=lfs diff=lfs merge=lfs -text
+
+# Video files (use LFS)
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.avi filter=lfs diff=lfs merge=lfs -text
+*.mov filter=lfs diff=lfs merge=lfs -text
+*.mkv filter=lfs diff=lfs merge=lfs -text
+
+# Linguist overrides for accurate language statistics
+docs/* linguist-documentation
+research/* linguist-documentation
+examples/* linguist-documentation
+*.md linguist-documentation=true
+
+# Ensure Rust is detected
+*.rs linguist-detectable=true
+Cargo.toml linguist-detectable=true
+Cargo.lock linguist-generated=true
+
+# Ensure Python is primary language
+*.py linguist-detectable=true
+requirements*.txt linguist-generated=false
+
+# Mark generated files
+*_pb2.py linguist-generated=true
+*_pb2_grpc.py linguist-generated=true
+*.lock linguist-generated=true
+package-lock.json linguist-generated=true
+
+# Export ignore (files to exclude from archive)
+.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+tests/ export-ignore
+docs/ export-ignore
+examples/ export-ignore
+scripts/test_*.py export-ignore

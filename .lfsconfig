@@ -1,0 +1,55 @@
+[lfs]
+    # Use concurrent uploads for better performance
+    concurrenttransfers = 8
+    
+    # Set transfer timeout (in seconds)
+    dialtimeout = 30
+    tlstimeout = 30
+    keepalive = 30
+    
+    # Enable progress bars
+    setlockablereadonly = true
+    
+    # Skip smudge on clone for faster initial clones
+    # Users can run 'git lfs pull' manually when needed
+    skip-smudge = false
+    
+    # Fetch LFS objects during clone
+    fetchinclude = *
+    
+    # Exclude certain paths from LFS fetch (optional)
+    # fetchexclude = docs/*,test/*
+
+[lfs "transfer"]
+    # Maximum number of retries for failed transfers
+    maxretries = 3
+    
+    # Maximum number of verification retries
+    maxverifies = 3
+    
+    # Enable basic transfer adapter
+    basic = true
+
+[lfs "customtransfer"]
+    # Custom transfer agents can be configured here
+    # Example: concurrent = path/to/concurrent-transfer-agent
+
+[lfs "extension"]
+    # Priority of transfer mechanisms
+    # 0 = default, 1 = highest priority
+    priority = 0
+
+[lfs "https://github.com"]
+    # GitHub-specific LFS settings
+    locksverify = true
+
+[lfs "ssh://git@github.com"]
+    # SSH-specific settings for GitHub
+    locksverify = true
+
+[filter "lfs"]
+    # Core LFS filters (do not modify)
+    process = git-lfs filter-process
+    required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f

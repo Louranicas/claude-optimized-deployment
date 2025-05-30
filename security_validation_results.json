@@ -1,0 +1,134 @@
+{
+  "timestamp": 1748609781.3963673,
+  "total_tests": 14,
+  "passed_tests": 8,
+  "failed_tests": 6,
+  "categories": {
+    "Command Injection Fixes": {
+      "total": 3,
+      "passed": 2,
+      "failed": 1,
+      "details": [
+        {
+          "test": "Shell injection removal",
+          "status": "PASSED",
+          "message": "No dangerous shell=True patterns found"
+        },
+        {
+          "test": "WSL command execution safety",
+          "status": "ERROR",
+          "error": "name 'WSLEnvironment' is not defined"
+        },
+        {
+          "test": "Infrastructure commander validation",
+          "status": "PASSED",
+          "message": "Dangerous command correctly blocked: Command contains dangerous patterns"
+        }
+      ]
+    },
+    "Cryptographic Security": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "details": [
+        {
+          "test": "MD5 usage removal",
+          "status": "PASSED",
+          "message": "No MD5 usage found"
+        },
+        {
+          "test": "SHA-256 usage verification",
+          "status": "PASSED",
+          "message": "Found 5 SHA-256 usage patterns"
+        }
+      ]
+    },
+    "Authentication Middleware": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "details": [
+        {
+          "test": "Token generation and validation",
+          "status": "FAILED",
+          "issue": "Token validation failed"
+        },
+        {
+          "test": "Role-based authorization",
+          "status": "ERROR",
+          "error": "'NoneType' object has no attribute 'tool_whitelist'"
+        },
+        {
+          "test": "Session invalidation",
+          "status": "ERROR",
+          "error": "'NoneType' object has no attribute 'session_id'"
+        }
+      ]
+    },
+    "Dependency Security": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "details": [
+        {
+          "test": "Security scanning tools",
+          "status": "PASSED",
+          "message": "Safety package available for dependency scanning"
+        },
+        {
+          "test": "Critical package versions",
+          "status": "FAILED",
+          "issue": "Issues: ['requests missing']"
+        }
+      ]
+    },
+    "Input Validation": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "test": "Malicious input blocking",
+          "status": "PASSED",
+          "message": "All 7 malicious inputs blocked"
+        }
+      ]
+    },
+    "Rate Limiting": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "test": "Rate limiting enforcement",
+          "status": "PASSED",
+          "message": "Rate limiting working - 0/70 requests allowed"
+        }
+      ]
+    },
+    "Session Management": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "test": "Session cleanup",
+          "status": "PASSED",
+          "message": "Session cleanup working correctly"
+        }
+      ]
+    },
+    "Authorization Controls": {
+      "total": 1,
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "test": "Tool whitelist enforcement",
+          "status": "ERROR",
+          "error": "'NoneType' object has no attribute 'tool_whitelist'"
+        }
+      ]
+    }
+  }
+}

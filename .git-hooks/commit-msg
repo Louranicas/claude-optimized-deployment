@@ -1,0 +1,164 @@
+#!/bin/bash
+# Commit message hook for CODE project
+# Validates commit message format
+
+# Read commit message
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+# Skip merge commits
+if echo "$commit_msg" | head -1 | grep -q "^Merge"; then
+    exit 0
+fi
+
+# Skip revert commits
+if echo "$commit_msg" | head -1 | grep -q "^Revert"; then
+    exit 0
+fi
+
+# Conventional commit regex pattern
+commit_regex='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,50}$'
+
+# Check first line (subject)
+subject_line=$(echo "$commit_msg" | head -1)
+
+echo "🔍 Validating commit message..."
+
+# Validate format
+if ! echo "$subject_line" | grep -qE "$commit_regex"; then
+    echo -e "${RED}❌ Invalid commit message format!${NC}"
+    echo ""
+    echo "Your message:"
+    echo "  $subject_line"
+    echo ""
+    echo "Expected format:"
+    echo "  <type>(<scope>): <subject>"
+    echo ""
+    echo "Allowed types:"
+    echo "  feat     - New feature"
+    echo "  fix      - Bug fix"
+    echo "  docs     - Documentation changes"
+    echo "  style    - Code style changes (formatting, white-space, etc)"
+    echo "  refactor - Code refactoring"
+    echo "  perf     - Performance improvements"
+    echo "  test     - Adding or updating tests"
+    echo "  build    - Build system changes"
+    echo "  ci       - CI/CD changes"
+    echo "  chore    - Other changes (maintenance)"
+    echo "  revert   - Reverting a previous commit"
+    echo ""
+    echo "Scope is optional but recommended:"
+    echo "  Examples: deployment, ai, security, monitoring, api, cli"
+    echo ""
+    echo "Subject rules:"
+    echo "  - Use imperative mood ('add' not 'added')"
+    echo "  - Don't capitalize first letter"
+    echo "  - No period at the end"
+    echo "  - Maximum 50 characters"
+    echo ""
+    echo "Examples:"
+    echo "  feat(deployment): add kubernetes support"
+    echo "  fix(api): resolve timeout issue in health check"
+    echo "  docs: update installation guide"
+    echo ""
+    exit 1
+fi
+
+# Check subject line length
+if [ ${#subject_line} -gt 72 ]; then
+    echo -e "${RED}❌ Subject line too long!${NC}"
+    echo "  Length: ${#subject_line} characters (max 72)"
+    echo "  Subject: $subject_line"
+    exit 1
+fi
+
+# Extract type and scope
+type=$(echo "$subject_line" | sed -E 's/^([a-z]+)(\(.+\))?: .+$/\1/')
+scope=$(echo "$subject_line" | sed -E 's/^[a-z]+\(([^)]+)\): .+$/\1/' | grep -v "$subject_line" || echo "")
+subject=$(echo "$subject_line" | sed -E 's/^[a-z]+(\(.+\))?: (.+)$/\2/')
+
+# Validate subject formatting
+errors=0
+
+# Check for capital first letter
+if echo "$subject" | grep -q '^[A-Z]'; then
+    echo -e "${YELLOW}⚠️  Subject starts with capital letter${NC}"
+    echo "  Use: '$type${scope:+($scope)}: $(echo "$subject" | sed 's/^./\L&/')'"
+    errors=$((errors + 1))
+fi
+
+# Check for period at end
+if echo "$subject" | grep -q '\.$'; then
+    echo -e "${YELLOW}⚠️  Subject ends with period${NC}"
+    echo "  Use: '$type${scope:+($scope)}: $(echo "$subject" | sed 's/\.$//')'"
+    errors=$((errors + 1))
+fi
+
+# Check for imperative mood (basic check)
+if echo "$subject" | grep -qE '^(added|fixed|updated|removed|deleted|created)'; then
+    echo -e "${YELLOW}⚠️  Use imperative mood in subject${NC}"
+    echo "  Instead of 'added', use 'add'"
+    echo "  Instead of 'fixed', use 'fix'"
+    echo "  Instead of 'updated', use 'update'"
+    errors=$((errors + 1))
+fi
+
+# Check body formatting if present
+body_start_line=3  # After subject and blank line
+total_lines=$(echo "$commit_msg" | wc -l)
+
+if [ "$total_lines" -gt 1 ]; then
+    # Check for blank line after subject
+    second_line=$(echo "$commit_msg" | sed -n '2p')
+    if [ -n "$second_line" ]; then
+        echo -e "${RED}❌ Missing blank line after subject${NC}"
+        echo "  Add a blank line between subject and body"
+        exit 1
+    fi
+    
+    # Check body line length (if body exists)
+    if [ "$total_lines" -gt 2 ]; then
+        long_lines=$(echo "$commit_msg" | tail -n +3 | awk 'length > 72 { print NR, length }')
+        if [ -n "$long_lines" ]; then
+            echo -e "${YELLOW}⚠️  Body has lines longer than 72 characters${NC}"
+            echo "$long_lines" | while read -r line_num length; do
+                echo "  Line $((line_num + 2)): $length characters"
+            done
+        fi
+    fi
+fi
+
+# Check for issue references in footer
+if echo "$commit_msg" | grep -qE "(Closes|Fixes|Resolves|Related to) #[0-9]+"; then
+    echo -e "${GREEN}✅ Issue reference found${NC}"
+fi
+
+# Provide warnings but don't block commit
+if [ $errors -gt 0 ]; then
+    echo ""
+    echo -e "${YELLOW}⚠️  Commit message has minor style issues but is valid${NC}"
+    echo "Consider fixing the issues above for consistency"
+fi
+
+echo -e "${GREEN}✅ Commit message validated${NC}"
+
+# Add helpful information to commit message if it's missing body
+if [ "$total_lines" -eq 1 ] && [ -t 1 ]; then
+    echo ""
+    echo "Tip: Add a body to your commit message to explain why this change was made"
+    echo "Example:"
+    echo ""
+    echo "$subject_line"
+    echo ""
+    echo "Explain what changed and why, not how. The code shows how."
+    echo ""
+    echo "Closes #123"
+fi
+
+exit 0

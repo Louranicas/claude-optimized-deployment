@@ -1,0 +1,74 @@
+{
+  "name": "Claude-Optimized Deployment Engine",
+  "type": "infrastructure-automation",
+  "version": "0.1.0",
+  "context": {
+    "primaryLanguage": "python",
+    "frameworks": ["fastapi", "kubernetes", "terraform", "opentofu"],
+    "platforms": ["linux", "wsl", "windows"],
+    "aiModels": ["claude-3.5-sonnet", "gpt-4", "local-ollama"],
+    "openSourceTools": {
+      "orchestration": ["kubernetes", "k3s", "kind"],
+      "iac": ["opentofu", "pulumi", "crossplane"],
+      "cicd": ["argocd", "flux", "tekton"],
+      "monitoring": ["prometheus", "grafana", "loki", "jaeger"],
+      "security": ["falco", "opa", "trivy", "checkov"],
+      "serviceMesh": ["istio", "linkerd", "cilium"]
+    }
+  },
+  "features": {
+    "naturalLanguageDeployment": true,
+    "multiCloudSupport": ["aws", "azure", "gcp"],
+    "openSourceFirst": true,
+    "wslIntegration": true,
+    "parallelExecution": true,
+    "gitOpsNative": true
+  },
+  "commands": {
+    "deploy": {
+      "description": "Natural language deployment command",
+      "examples": [
+        "Deploy a Node.js API with PostgreSQL to staging",
+        "Create a Kubernetes cluster with monitoring",
+        "Set up a serverless function with API gateway"
+      ]
+    },
+    "analyze": {
+      "description": "Analyze infrastructure costs and performance",
+      "subcommands": ["cost", "performance", "security", "compliance"]
+    },
+    "secure": {
+      "description": "Run security audit on infrastructure",
+      "checks": ["vulnerabilities", "compliance", "secrets", "policies"]
+    },
+    "optimize": {
+      "description": "Optimize resource allocation",
+      "targets": ["cost", "performance", "scaling", "availability"]
+    }
+  },
+  "preferences": {
+    "explainComplexity": true,
+    "includeTests": true,
+    "documentationStyle": "comprehensive",
+    "errorHandling": "detailed",
+    "parallelExecution": true,
+    "codeGeneration": {
+      "style": "explicit",
+      "comments": "detailed",
+      "typeHints": "always",
+      "docstrings": "google"
+    }
+  },
+  "development": {
+    "testingStrategy": "tdd",
+    "codeReview": "required",
+    "documentation": "inline",
+    "versionControl": "gitflow"
+  },
+  "integrations": {
+    "ide": ["vscode", "jetbrains", "neovim"],
+    "terminal": ["wsl", "powershell", "bash"],
+    "cloudProviders": ["aws", "azure", "gcp"],
+    "containerRegistries": ["ghcr", "dockerhub", "ecr"]
+  }
+}

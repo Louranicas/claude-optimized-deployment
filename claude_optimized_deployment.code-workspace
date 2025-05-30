@@ -1,0 +1,61 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "CODE Project"
+    }
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.env.windows": {
+      "PYTHONPATH": "${workspaceFolder}"
+    },
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
+    "window.title": "${dirty}${activeEditorShort}${separator}${rootName}${separator}CODE Project"
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ms-python.black-formatter",
+      "eamodio.gitlens",
+      "continue.continue",
+      "yzhang.markdown-all-in-one",
+      "gruntfuggly.todo-tree",
+      "streetsidesoftware.code-spell-checker"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Quick: Circle of Experts",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/examples/circle_of_experts_usage.py",
+        "console": "integratedTerminal"
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Quick: Run Tests",
+        "type": "shell",
+        "command": "pytest",
+        "group": {
+          "kind": "test",
+          "isDefault": true
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+[flake8]
+# Maximum line length
+max-line-length = 88
+
+# Extend default ignores
+extend-ignore = 
+    # E203: whitespace before ':' (conflicts with black)
+    E203,
+    # W503: line break before binary operator (conflicts with black)
+    W503,
+    # E501: line too long (handled by black)
+    E501,
+    # D100-D104: Missing docstrings (too strict for now)
+    D100, D101, D102, D103, D104,
+    # F401: imported but unused (handled by isort)
+    F401
+
+# Exclude directories
+exclude = 
+    .git,
+    __pycache__,
+    venv,
+    build,
+    dist,
+    *.egg-info,
+    .venv,
+    .mypy_cache,
+    .pytest_cache,
+    .tox,
+    migrations,
+    rust_core
+
+# Per file ignores
+per-file-ignores = 
+    # F401: Allow unused imports in __init__ files
+    __init__.py: F401
+    # Allow more complex code in tests
+    tests/*: D100,D101,D102,D103,S101,S106
+    # Allow print statements in examples
+    examples/*: T201
+
+# McCabe complexity
+max-complexity = 10
+
+# Enable additional plugins
+enable-extensions = 
+    # Naming conventions
+    N801, N802, N803, N804, N805, N806,
+    # Docstring checks
+    D200, D201, D202, D204, D205, D206, D207, D208, D209, D210
+
+# Statistics
+statistics = True
+count = True

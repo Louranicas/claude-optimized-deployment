@@ -1,0 +1,62 @@
+/mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/venv_linux/lib/python3.12/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.10, pytest-8.3.5, pluggy-1.6.0
+rootdir: /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment
+configfile: pyproject.toml
+plugins: anyio-4.9.0, asyncio-1.0.0, cov-6.1.1, mock-3.14.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 66 items / 1 error
+
+==================================== ERRORS ====================================
+_________ ERROR collecting tests/circle_of_experts/test_performance.py _________
+ImportError while importing test module '/mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/tests/circle_of_experts/test_performance.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/circle_of_experts/test_performance.py:17: in <module>
+    import matplotlib.pyplot as plt
+E   ModuleNotFoundError: No module named 'matplotlib'
+=============================== warnings summary ===============================
+src/circle_of_experts/models/query.py:67
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/query.py:67: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('deadline')
+
+src/circle_of_experts/models/query.py:75
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/query.py:75: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('tags')
+
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.9/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(
+
+src/circle_of_experts/models/response.py:70
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/response.py:70: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('completed_at')
+
+src/circle_of_experts/models/response.py:78
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/response.py:78: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('processing_time')
+
+src/circle_of_experts/models/response.py:85
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/response.py:85: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('code_snippets')
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/circle_of_experts/test_performance.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+======================== 13 warnings, 1 error in 18.41s ========================

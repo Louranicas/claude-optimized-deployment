@@ -1,0 +1,74 @@
+# Code Owners for Claude-Optimized Deployment Engine
+# These owners will be automatically requested for review
+
+# Global owners
+* @yourusername @claude-code-bot
+
+# Documentation
+*.md @yourusername @doc-team
+/docs/ @yourusername @doc-team
+README.md @yourusername
+
+# Circle of Experts (Working Feature)
+/src/circle_of_experts/ @yourusername @ai-team
+/tests/circle_of_experts/ @yourusername @ai-team
+/examples/*circle_of_experts* @yourusername @ai-team
+
+# Python code
+*.py @python-experts
+/src/ @python-experts @yourusername
+/tests/ @python-experts @qa-team
+
+# Rust code
+*.rs @rust-experts
+/rust_core/ @rust-experts @yourusername
+Cargo.toml @rust-experts
+
+# DevOps and Infrastructure
+/k8s/ @devops-team
+/terraform/ @devops-team @security-team
+/helm/ @devops-team
+Dockerfile @devops-team
+docker-compose*.yml @devops-team
+Makefile @devops-team
+
+# CI/CD
+/.github/workflows/ @devops-team @yourusername
+/.github/actions/ @devops-team
+
+# Security-sensitive files
+*secret* @security-team
+*auth* @security-team
+*crypt* @security-team
+.env* @security-team @yourusername
+
+# Dependencies
+requirements*.txt @python-experts @security-team
+Cargo.lock @rust-experts @security-team
+package*.json @frontend-team @security-team
+
+# API definitions
+*openapi* @api-team
+*swagger* @api-team
+/src/api/ @api-team @yourusername
+
+# Database
+*migration* @database-team
+/alembic/ @database-team
+*schema* @database-team
+
+# Frontend (future)
+/frontend/ @frontend-team
+*.jsx @frontend-team
+*.tsx @frontend-team
+
+# Configuration files
+*.yml @yourusername
+*.yaml @yourusername
+*.toml @yourusername
+*.json @yourusername
+
+# Special files that need careful review
+.gitignore @yourusername
+.env.example @yourusername @security-team
+LICENSE @yourusername

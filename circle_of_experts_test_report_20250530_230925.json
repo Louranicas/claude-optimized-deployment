@@ -1,0 +1,234 @@
+{
+  "timestamp": "2025-05-30T23:09:16.195363",
+  "tests_passed": 23,
+  "tests_failed": 10,
+  "core_functionality": {
+    "ExpertManager initialization": {
+      "success": true,
+      "details": "Manager created successfully",
+      "error": ""
+    },
+    "QueryHandler available": {
+      "success": true,
+      "details": "QueryHandler type: <class 'src.circle_of_experts.core.query_handler.QueryHandler'>",
+      "error": ""
+    },
+    "ResponseCollector available": {
+      "success": true,
+      "details": "ResponseCollector type: <class 'src.circle_of_experts.core.response_collector.ResponseCollector'>",
+      "error": ""
+    },
+    "Get available experts": {
+      "success": false,
+      "details": "",
+      "error": "'EnhancedExpertManager' object has no attribute 'get_available_experts'"
+    },
+    "Create ExpertQuery model": {
+      "success": true,
+      "details": "Query ID: 518778ea-ce14-4fa4-9d56-d9876a267a3a",
+      "error": ""
+    }
+  },
+  "expert_providers": {
+    "Create claude expert": {
+      "success": false,
+      "details": "",
+      "error": "No API key found for claude (ANTHROPIC_API_KEY)"
+    },
+    "Create gpt4 expert": {
+      "success": false,
+      "details": "",
+      "error": "No API key found for gpt4 (OPENAI_API_KEY)"
+    },
+    "Create gemini expert": {
+      "success": false,
+      "details": "",
+      "error": "No API key found for gemini (GOOGLE_GEMINI_API_KEY)"
+    },
+    "Create deepseek expert": {
+      "success": false,
+      "details": "",
+      "error": "No API key found for deepseek (DEEPSEEK_API_KEY)"
+    },
+    "Create llama expert": {
+      "success": false,
+      "details": "",
+      "error": "Unknown expert: llama"
+    },
+    "Create mixtral expert": {
+      "success": false,
+      "details": "",
+      "error": "Unknown expert: mixtral"
+    }
+  },
+  "integration": {
+    "Script validation: examples/circle_of_experts_usage.py": {
+      "success": true,
+      "details": "Script contains circle_of_experts imports",
+      "error": ""
+    },
+    "Script validation: examples/claude_code_circle_of_experts.py": {
+      "success": true,
+      "details": "Script contains circle_of_experts imports",
+      "error": ""
+    },
+    "Script validation: examples/expert_integration_analysis.py": {
+      "success": true,
+      "details": "Script contains circle_of_experts imports",
+      "error": ""
+    },
+    "Basic consultation workflow": {
+      "success": false,
+      "details": "",
+      "error": "'EnhancedExpertManager' object has no attribute 'consult_experts'"
+    }
+  },
+  "error_handling": {
+    "Handle missing API keys": {
+      "success": false,
+      "details": "",
+      "error": "'EnhancedExpertManager' object has no attribute 'get_available_experts'"
+    },
+    "Invalid expert type": {
+      "success": true,
+      "details": "Correctly raised: ValueError",
+      "error": ""
+    },
+    "Retry mechanism setup": {
+      "success": false,
+      "details": "",
+      "error": "with_retry() got an unexpected keyword argument 'max_attempts'"
+    }
+  },
+  "performance": {
+    "Manager initialization time": {
+      "success": true,
+      "details": "0.000 seconds",
+      "error": ""
+    },
+    "Query creation (10 queries)": {
+      "success": true,
+      "details": "0.000 seconds (0.000s per query)",
+      "error": ""
+    },
+    "Concurrent expert checks": {
+      "success": true,
+      "details": "0.000 seconds for 4 checks (0 available)",
+      "error": ""
+    }
+  },
+  "imports": {
+    "Basic imports from circle_of_experts": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Core module imports": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Expert module imports": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Model imports": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Utility imports": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Google Drive imports": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Dependency: Anthropic API": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Dependency: OpenAI API": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Dependency: Google Gemini": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Dependency: HTTP client": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Dependency: Data validation": {
+      "success": true,
+      "details": "",
+      "error": ""
+    },
+    "Dependency: Google authentication": {
+      "success": true,
+      "details": "",
+      "error": ""
+    }
+  },
+  "failures": [
+    {
+      "category": "core_functionality",
+      "test": "Get available experts",
+      "error": "'EnhancedExpertManager' object has no attribute 'get_available_experts'"
+    },
+    {
+      "category": "expert_providers",
+      "test": "Create claude expert",
+      "error": "No API key found for claude (ANTHROPIC_API_KEY)"
+    },
+    {
+      "category": "expert_providers",
+      "test": "Create gpt4 expert",
+      "error": "No API key found for gpt4 (OPENAI_API_KEY)"
+    },
+    {
+      "category": "expert_providers",
+      "test": "Create gemini expert",
+      "error": "No API key found for gemini (GOOGLE_GEMINI_API_KEY)"
+    },
+    {
+      "category": "expert_providers",
+      "test": "Create deepseek expert",
+      "error": "No API key found for deepseek (DEEPSEEK_API_KEY)"
+    },
+    {
+      "category": "expert_providers",
+      "test": "Create llama expert",
+      "error": "Unknown expert: llama"
+    },
+    {
+      "category": "expert_providers",
+      "test": "Create mixtral expert",
+      "error": "Unknown expert: mixtral"
+    },
+    {
+      "category": "integration",
+      "test": "Basic consultation workflow",
+      "error": "'EnhancedExpertManager' object has no attribute 'consult_experts'"
+    },
+    {
+      "category": "error_handling",
+      "test": "Handle missing API keys",
+      "error": "'EnhancedExpertManager' object has no attribute 'get_available_experts'"
+    },
+    {
+      "category": "error_handling",
+      "test": "Retry mechanism setup",
+      "error": "with_retry() got an unexpected keyword argument 'max_attempts'"
+    }
+  ]
+}

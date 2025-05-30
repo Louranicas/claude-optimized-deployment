@@ -1,0 +1,165 @@
+{
+  "commands": [
+    {
+      "name": "deploy",
+      "description": "Deploy infrastructure using natural language",
+      "usage": "claude-code deploy <description>",
+      "examples": [
+        {
+          "command": "claude-code deploy 'web app with postgres on k8s'",
+          "result": "Creates Kubernetes deployment with web app and PostgreSQL"
+        },
+        {
+          "command": "claude-code deploy 'staging environment with monitoring'",
+          "result": "Sets up complete staging environment with Prometheus/Grafana"
+        }
+      ],
+      "workflow": [
+        "Parse natural language input",
+        "Generate deployment specification",
+        "Validate security and compliance",
+        "Execute parallel deployment tasks",
+        "Set up monitoring and alerts",
+        "Report deployment status"
+      ]
+    },
+    {
+      "name": "wsl-setup",
+      "description": "Configure WSL environment for CODE",
+      "script": "scripts/setup-wsl.sh",
+      "platforms": ["wsl", "linux"],
+      "requirements": {
+        "wsl_version": "2",
+        "ubuntu_version": "20.04+",
+        "systemd": "recommended"
+      }
+    },
+    {
+      "name": "init",
+      "description": "Initialize CODE development environment",
+      "steps": [
+        "Check system requirements",
+        "Install dependencies",
+        "Configure cloud credentials",
+        "Set up local Kubernetes",
+        "Install Ollama for local LLM",
+        "Create workspace structure"
+      ]
+    },
+    {
+      "name": "analyze",
+      "description": "Analyze infrastructure",
+      "subcommands": {
+        "cost": {
+          "description": "Analyze cloud costs",
+          "providers": ["aws", "azure", "gcp"],
+          "output": ["report", "recommendations", "forecast"]
+        },
+        "performance": {
+          "description": "Analyze performance metrics",
+          "metrics": ["latency", "throughput", "availability"],
+          "tools": ["prometheus", "grafana", "jaeger"]
+        },
+        "security": {
+          "description": "Security analysis",
+          "scanners": ["trivy", "checkov", "falco"],
+          "reports": ["vulnerabilities", "compliance", "risks"]
+        }
+      }
+    },
+    {
+      "name": "secure",
+      "description": "Run comprehensive security audit",
+      "checks": [
+        {
+          "name": "vulnerability-scan",
+          "tools": ["trivy", "grype"],
+          "targets": ["containers", "dependencies", "infrastructure"]
+        },
+        {
+          "name": "compliance-check",
+          "frameworks": ["cis", "nist", "pci-dss"],
+          "tool": "opa"
+        },
+        {
+          "name": "secret-scan",
+          "tools": ["trufflehog", "gitleaks"],
+          "remediation": "automatic"
+        }
+      ]
+    },
+    {
+      "name": "optimize",
+      "description": "Optimize infrastructure resources",
+      "strategies": {
+        "cost": {
+          "actions": ["right-sizing", "spot-instances", "reserved-capacity"],
+          "savings": "30-50%"
+        },
+        "performance": {
+          "actions": ["auto-scaling", "caching", "cdn"],
+          "improvement": "2-5x"
+        },
+        "reliability": {
+          "actions": ["multi-region", "failover", "backup"],
+          "target": "99.99%"
+        }
+      }
+    },
+    {
+      "name": "rollback",
+      "description": "Rollback to previous deployment",
+      "options": {
+        "automatic": "On failure detection",
+        "manual": "User-triggered",
+        "partial": "Component-level rollback"
+      }
+    },
+    {
+      "name": "scale",
+      "description": "Scale infrastructure components",
+      "usage": "claude-code scale <component> <target>",
+      "examples": [
+        "claude-code scale api replicas=5",
+        "claude-code scale database storage=100GB",
+        "claude-code scale cluster nodes=10"
+      ]
+    },
+    {
+      "name": "monitor",
+      "description": "Set up monitoring and observability",
+      "components": {
+        "metrics": "Prometheus",
+        "visualization": "Grafana",
+        "logs": "Loki",
+        "traces": "Jaeger",
+        "alerts": "AlertManager"
+      }
+    },
+    {
+      "name": "test",
+      "description": "Run infrastructure tests",
+      "types": {
+        "unit": "Component-level tests",
+        "integration": "End-to-end tests",
+        "chaos": "Chaos engineering tests",
+        "load": "Performance tests"
+      }
+    }
+  ],
+  "aliases": {
+    "d": "deploy",
+    "a": "analyze",
+    "s": "secure",
+    "o": "optimize",
+    "r": "rollback",
+    "m": "monitor"
+  },
+  "globalOptions": {
+    "--environment": "Target environment (dev/staging/prod)",
+    "--dry-run": "Show what would be done without executing",
+    "--parallel": "Enable parallel execution (default: true)",
+    "--verbose": "Enable verbose output",
+    "--format": "Output format (json/yaml/table)"
+  }
+}

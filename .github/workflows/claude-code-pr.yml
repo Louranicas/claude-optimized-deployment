@@ -1,0 +1,175 @@
+name: Claude Code PR Assistant
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude-code-review:
+    name: Claude Code Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for better analysis
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Analyze PR with Claude Code
+      id: analyze
+      run: |
+        # Get PR diff
+        git diff origin/${{ github.base_ref }}...${{ github.head_ref }} > pr_diff.txt
+        
+        # Analyze changes
+        python scripts/claude_code_analyzer.py \
+          --diff pr_diff.txt \
+          --pr-number ${{ github.event.pull_request.number }} \
+          --output analysis.md
+    
+    - name: Comment PR Analysis
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const analysis = fs.readFileSync('analysis.md', 'utf8');
+          
+          // Find existing Claude Code comment
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number
+          });
+          
+          const claudeComment = comments.data.find(comment => 
+            comment.user.login === 'github-actions[bot]' && 
+            comment.body.includes('🤖 Claude Code Analysis')
+          );
+          
+          const body = `## 🤖 Claude Code Analysis
+          
+          ${analysis}
+          
+          ---
+          <details>
+          <summary>Claude Code Commands</summary>
+          
+          - \`@claude-code review\` - Request detailed review
+          - \`@claude-code suggest\` - Get improvement suggestions
+          - \`@claude-code security\` - Security-focused review
+          - \`@claude-code performance\` - Performance analysis
+          </details>`;
+          
+          if (claudeComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: claudeComment.id,
+              body: body
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+          }
+    
+    - name: Add Labels
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const labels = [];
+          
+          // Add labels based on files changed
+          const files = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+          
+          const hasCircleOfExperts = files.data.some(file => 
+            file.filename.includes('circle_of_experts')
+          );
+          
+          const hasTests = files.data.some(file => 
+            file.filename.includes('test')
+          );
+          
+          const hasDocs = files.data.some(file => 
+            file.filename.endsWith('.md')
+          );
+          
+          if (hasCircleOfExperts) labels.push('circle-of-experts');
+          if (hasTests) labels.push('has-tests');
+          if (hasDocs) labels.push('documentation');
+          
+          labels.push('claude-reviewed');
+          
+          await github.rest.issues.addLabels({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            labels: labels
+          });
+
+  handle-claude-commands:
+    name: Handle Claude Commands
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'issue_comment' && 
+      contains(github.event.comment.body, '@claude-code')
+    
+    steps:
+    - name: Parse Command
+      id: parse
+      run: |
+        COMMENT="${{ github.event.comment.body }}"
+        
+        if [[ "$COMMENT" == *"@claude-code review"* ]]; then
+          echo "command=review" >> $GITHUB_OUTPUT
+        elif [[ "$COMMENT" == *"@claude-code suggest"* ]]; then
+          echo "command=suggest" >> $GITHUB_OUTPUT
+        elif [[ "$COMMENT" == *"@claude-code security"* ]]; then
+          echo "command=security" >> $GITHUB_OUTPUT
+        elif [[ "$COMMENT" == *"@claude-code performance"* ]]; then
+          echo "command=performance" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: React to Comment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.reactions.createForIssueComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            comment_id: context.payload.comment.id,
+            content: 'eyes'
+          });
+    
+    - name: Execute Command
+      run: |
+        echo "Executing Claude Code command: ${{ steps.parse.outputs.command }}"
+        # Implementation would go here
+    
+    - name: Respond to Command
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: `✅ Claude Code ${{ steps.parse.outputs.command }} completed!`
+          });

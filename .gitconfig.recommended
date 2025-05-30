@@ -1,0 +1,171 @@
+# Global Git configuration for CODE project team
+# Place in ~/.gitconfig or use as reference
+
+[user]
+    # Configure your personal details
+    name = Your Name
+    email = your.email@example.com
+    signingkey = YOUR_GPG_KEY_ID
+
+[core]
+    editor = code --wait
+    autocrlf = input
+    whitespace = fix,trailing-space,space-before-tab
+    excludesfile = ~/.gitignore_global
+    compression = 9
+    preloadindex = true
+    fscache = true
+    longpaths = true
+    untrackedCache = true
+    commitGraph = true
+    splitIndex = true
+
+[commit]
+    gpgsign = true
+    template = .gitmessage
+    verbose = true
+
+[push]
+    default = current
+    followTags = true
+    autoSetupRemote = true
+
+[pull]
+    rebase = true
+    ff = only
+
+[fetch]
+    prune = true
+    pruneTags = true
+    parallel = 0
+    writeCommitGraph = true
+
+[merge]
+    ff = false
+    tool = vscode
+    conflictstyle = zdiff3
+
+[rebase]
+    autoStash = true
+    instructionFormat = "(%an) %s"
+
+[diff]
+    algorithm = histogram
+    colorMoved = zebra
+    tool = vscode
+
+[rerere]
+    enabled = true
+
+[color]
+    ui = auto
+    diff = auto
+    status = auto
+    branch = auto
+
+[help]
+    autocorrect = 10
+
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+
+[init]
+    defaultBranch = main
+
+[feature]
+    manyFiles = true
+    experimental = true
+
+[protocol]
+    version = 2
+
+[pack]
+    threads = 0
+    windowMemory = 256m
+    packSizeLimit = 2g
+
+[gc]
+    auto = 256
+    autoPackLimit = 50
+    writeCommitGraph = true
+
+[index]
+    threads = true
+    version = 4
+
+[maintenance]
+    auto = true
+    strategy = incremental
+
+[alias]
+    # Basic shortcuts
+    co = checkout
+    br = branch
+    ci = commit
+    st = status -sb
+    cp = cherry-pick
+    
+    # Enhanced operations
+    amend = commit --amend --no-edit
+    undo = reset --soft HEAD~1
+    wip = !git add -A && git commit -m "WIP: $(date +%Y-%m-%d_%H:%M:%S)"
+    save = !git add -A && git commit -m "SAVEPOINT: $(date +%Y-%m-%d_%H:%M:%S)"
+    
+    # Semantic commits
+    feat = "!f() { git commit -m \"feat: $1\"; }; f"
+    fix = "!f() { git commit -m \"fix: $1\"; }; f"
+    docs = "!f() { git commit -m \"docs: $1\"; }; f"
+    style = "!f() { git commit -m \"style: $1\"; }; f"
+    refactor = "!f() { git commit -m \"refactor: $1\"; }; f"
+    test = "!f() { git commit -m \"test: $1\"; }; f"
+    chore = "!f() { git commit -m \"chore: $1\"; }; f"
+    
+    # Branch management
+    cleanup = !git branch --merged | grep -v '\\*\\|main\\|develop' | xargs -n 1 git branch -d
+    recent = for-each-ref --sort=-committerdate --format='%(refname:short)' refs/heads/ --count=10
+    branches = for-each-ref --sort=-committerdate refs/heads/ --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))'
+    
+    # History viewing
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    history = log --oneline --graph --decorate --all
+    today = log --since=midnight --oneline --graph --decorate
+    
+    # Code statistics
+    stats = shortlog -sn --all --no-merges
+    contributors = !git log --format='%aN' | sort -u
+    
+    # Workflow helpers
+    start = "!f() { git checkout -b $1 develop; }; f"
+    finish = "!f() { git checkout develop && git merge --no-ff $1 && git branch -d $1; }; f"
+    sync-fork = "!f() { git fetch upstream && git checkout main && git merge upstream/main && git push origin main; }; f"
+    
+    # Stash helpers
+    stash-all = stash save --include-untracked
+    stash-list = stash list --pretty=format:'%C(yellow)%gd%C(reset): %C(green)%s%C(reset)'
+    
+    # Better diff
+    d = diff --word-diff --color-words
+    dc = diff --cached --word-diff --color-words
+    
+    # Find operations
+    find = "!f() { git log --pretty=format:'%C(yellow)%h%C(reset) %s' --grep=$1; }; f"
+    find-file = "!f() { git log --all --full-history -- '*/$1'; }; f"
+    
+    # File operations
+    file-history = "!f() { git log --follow -p -- $1; }; f"
+    unstage = reset HEAD --
+    uncommit = reset --soft HEAD~1
+    
+    # Interactive operations
+    ri = rebase -i
+    rc = rebase --continue
+    ra = rebase --abort
+    
+    # List aliases
+    la = !git config --list | grep '^alias\\.' | sed 's/alias\\.\\([^=]*\\)=\\(.*\\)/\\1\\t=> \\2/' | sort

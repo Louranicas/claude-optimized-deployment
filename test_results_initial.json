@@ -1,0 +1,179 @@
+{
+  "test_run_timestamp": "2025-05-30T14:47:00",
+  "test_environment": {
+    "python_version": "3.12.10",
+    "platform": "linux",
+    "rust_modules_available": false,
+    "rust_build_status": "not_built",
+    "rust_build_error": "Missing dependencies: pkg-config, libssl-dev"
+  },
+  "test_summary": {
+    "total_tests": 66,
+    "passed": 20,
+    "failed": 15,
+    "skipped": 31,
+    "errors": 0
+  },
+  "test_categories": {
+    "rust_modules": {
+      "total": 18,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 18,
+      "skip_reason": "Rust modules not built"
+    },
+    "hybrid_integration": {
+      "total": 13,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 13,
+      "skip_reason": "Rust modules not available"
+    },
+    "backwards_compatibility": {
+      "total": 18,
+      "passed": 3,
+      "failed": 15,
+      "failures": [
+        {
+          "test": "test_manager_initialization",
+          "reason": "Missing 'submit_query' method on EnhancedExpertManager"
+        },
+        {
+          "test": "test_submit_query_interface",
+          "reason": "ExpertType enum values changed (TECHNICAL vs technical)"
+        },
+        {
+          "test": "test_query_parameters_compatibility",
+          "reason": "Missing '_collect_expert_responses' method"
+        },
+        {
+          "test": "test_response_structure_compatibility",
+          "reason": "ExpertType enum values issue"
+        },
+        {
+          "test": "test_expert_health_compatibility",
+          "reason": "Missing 'get_expert_health' method"
+        },
+        {
+          "test": "test_consensus_building_compatibility",
+          "reason": "ExpertType enum values issue"
+        },
+        {
+          "test": "test_error_handling_compatibility",
+          "reason": "Pydantic validation differences"
+        },
+        {
+          "test": "test_retry_behavior_compatibility",
+          "reason": "RetryPolicy parameter name change"
+        },
+        {
+          "test": "test_query_serialization_compatibility",
+          "reason": "Missing 'to_dict' method on ExpertQuery"
+        },
+        {
+          "test": "test_response_serialization_compatibility",
+          "reason": "ExpertType enum values issue"
+        },
+        {
+          "test": "test_consensus_serialization_compatibility",
+          "reason": "ExpertType enum values issue"
+        },
+        {
+          "test": "test_environment_variables",
+          "reason": "Missing 'log_level' attribute"
+        },
+        {
+          "test": "test_initialization_parameters",
+          "reason": "Missing 'log_level' attribute"
+        },
+        {
+          "test": "test_drop_in_replacement",
+          "reason": "Missing '_collect_expert_responses' method"
+        },
+        {
+          "test": "test_existing_integration_patterns",
+          "reason": "ExpertType enum values issue"
+        }
+      ]
+    },
+    "circle_of_experts": {
+      "total": 17,
+      "passed": 10,
+      "failed": 7,
+      "failures": [
+        {
+          "test": "test_expert_query_to_markdown",
+          "reason": "Tag ordering in markdown output"
+        },
+        {
+          "test": "test_ensure_responses_folder",
+          "reason": "DriveManager attribute naming issue"
+        },
+        {
+          "test": "test_upload_query",
+          "reason": "File not found - temp file creation issue"
+        },
+        {
+          "test": "test_submit_batch",
+          "reason": "Query content minimum length validation"
+        },
+        {
+          "test": "test_aggregate_responses",
+          "reason": "Case sensitivity in recommendation comparison"
+        },
+        {
+          "test": "test_consult_experts",
+          "reason": "Pydantic validation for constraints and tags"
+        }
+      ]
+    }
+  },
+  "rust_module_analysis": {
+    "rust_analyzer_tests": 8,
+    "query_validator_tests": 6,
+    "integration_tests": 4,
+    "all_skipped": true,
+    "required_to_pass": [
+      "test_analyzer_creation",
+      "test_analyze_responses_empty",
+      "test_analyze_single_response",
+      "test_analyze_multiple_responses",
+      "test_validator_creation",
+      "test_validate_single_query",
+      "test_validate_batch"
+    ]
+  },
+  "backwards_compatibility_issues": {
+    "api_changes": [
+      "ExpertType enum values changed from TECHNICAL to technical",
+      "Missing methods: submit_query, get_expert_health, _collect_expert_responses",
+      "Missing attributes: log_level",
+      "Missing to_dict() method on models",
+      "RetryPolicy parameter renamed from initial_delay"
+    ],
+    "pydantic_v2_issues": [
+      "Validation errors more strict",
+      "Validator decorators deprecated",
+      "Config class deprecated"
+    ]
+  },
+  "recommendations": {
+    "immediate_fixes": [
+      "Add submit_query method to EnhancedExpertManager or inherit properly",
+      "Fix ExpertType enum values to use uppercase",
+      "Add to_dict() methods to Pydantic models",
+      "Add missing methods for backwards compatibility",
+      "Fix DriveManager attribute naming"
+    ],
+    "rust_build": [
+      "Install system dependencies: sudo apt-get install pkg-config libssl-dev",
+      "Run 'make rust-build' to build Rust modules",
+      "Rerun tests after Rust build to verify acceleration"
+    ],
+    "long_term": [
+      "Migrate to Pydantic v2 field validators",
+      "Update documentation for API changes",
+      "Add compatibility layer for legacy code"
+    ]
+  }
+}

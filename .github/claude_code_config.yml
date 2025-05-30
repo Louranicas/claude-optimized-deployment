@@ -1,0 +1,120 @@
+# Claude Code GitHub Configuration
+# Optimized settings for AI-assisted development
+
+# Project metadata for Claude Code understanding
+project:
+  name: Claude-Optimized Deployment Engine (CODE)
+  type: infrastructure-automation
+  primary_language: python
+  secondary_language: rust
+  
+# Claude Code integration settings
+claude_code:
+  # Enable Claude Code features
+  enabled: true
+  
+  # Automatic features
+  auto_features:
+    - commit_message_generation
+    - pr_description_generation
+    - code_review_assistance
+    - issue_triage
+    - documentation_updates
+  
+  # Context for Claude Code
+  context:
+    working_features:
+      - circle_of_experts
+    planned_features:
+      - deployment_engine
+      - multi_cloud_support
+      - natural_language_interface
+    
+  # Claude Code triggers
+  triggers:
+    # Automatically suggest improvements
+    on_pr_open: true
+    on_issue_create: true
+    on_commit: false  # Too noisy
+    
+  # Code review preferences
+  code_review:
+    focus_areas:
+      - security
+      - performance
+      - best_practices
+      - documentation
+    ignore_paths:
+      - "*.min.js"
+      - "*.lock"
+      - "vendor/*"
+      - "dist/*"
+
+# Semantic version configuration
+semantic_release:
+  branches:
+    - main
+    - name: beta
+      prerelease: true
+  plugins:
+    - "@semantic-release/commit-analyzer"
+    - "@semantic-release/release-notes-generator"
+    - "@semantic-release/changelog"
+    - "@semantic-release/github"
+    - "@semantic-release/git"
+
+# Branch protection rules
+branch_protection:
+  main:
+    required_reviews: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+    required_status_checks:
+      - "ci/lint"
+      - "ci/test"
+      - "ci/security"
+      - "ci/build"
+    enforce_admins: false
+    restrictions:
+      users: []
+      teams: ["maintainers"]
+
+# Auto-labeling configuration
+labels:
+  - name: "claude-reviewed"
+    color: "7057ff"
+    description: "Reviewed by Claude Code"
+  - name: "needs-deployment-engine"
+    color: "d73a4a"
+    description: "Blocked by missing deployment engine"
+  - name: "circle-of-experts"
+    color: "0075ca"
+    description: "Related to Circle of Experts feature"
+  - name: "ai-enhanced"
+    color: "a2eeef"
+    description: "Enhanced with AI assistance"
+
+# Automation rules
+automation:
+  # Auto-assign reviewers based on code
+  auto_assign:
+    python: ["@python-experts"]
+    rust: ["@rust-experts"]
+    devops: ["@devops-team"]
+    
+  # Auto-close stale issues
+  stale:
+    days_until_stale: 60
+    days_until_close: 7
+    exempt_labels:
+      - "pinned"
+      - "security"
+      - "in-progress"
+    stale_label: "stale"
+    
+  # Auto-merge dependabot PRs
+  auto_merge:
+    dependabot:
+      patch: true
+      minor: true
+      major: false

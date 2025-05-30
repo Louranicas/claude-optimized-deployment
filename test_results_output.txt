@@ -1,0 +1,294 @@
+/mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/venv_linux/lib/python3.12/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.10, pytest-8.3.5, pluggy-1.6.0
+rootdir: /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment
+configfile: pyproject.toml
+plugins: anyio-4.9.0, asyncio-1.0.0, cov-6.1.1, mock-3.14.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 66 items
+
+tests/circle_of_experts/test_backwards_compat.py FFFFFFFFFFFFFF...F      [ 27%]
+tests/circle_of_experts/test_circle_of_experts.py ..F..FF...F..FF..      [ 53%]
+tests/circle_of_experts/test_hybrid_integration.py sssssssssssss         [ 72%]
+tests/circle_of_experts/test_rust_modules.py ssssssssssssssssss          [100%]
+
+=================================== FAILURES ===================================
+_______________ TestAPICompatibility.test_manager_initialization _______________
+tests/circle_of_experts/test_backwards_compat.py:73: in test_manager_initialization
+    assert hasattr(standard_manager, 'submit_query')
+E   AssertionError: assert False
+E    +  where False = hasattr(<src.circle_of_experts.core.enhanced_expert_manager.EnhancedExpertManager object at 0x7f9362aa41d0>, 'submit_query')
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2025-05-30T14:47:00.845045", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:00.845109", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+{"timestamp": "2025-05-30T14:47:00.845278", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:00.845303", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+_______________ TestAPICompatibility.test_submit_query_interface _______________
+tests/circle_of_experts/test_backwards_compat.py:97: in test_submit_query_interface
+    expert_type=ExpertType.TECHNICAL,
+E   AttributeError: type object 'ExpertType' has no attribute 'TECHNICAL'
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2025-05-30T14:47:08.744240", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:08.744296", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+{"timestamp": "2025-05-30T14:47:08.744464", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:08.744489", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+___________ TestAPICompatibility.test_query_parameters_compatibility ___________
+tests/circle_of_experts/test_backwards_compat.py:157: in test_query_parameters_compatibility
+    with patch.object(enhanced_manager, '_collect_expert_responses', return_value=[]):
+/usr/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+/usr/lib/python3.12/unittest/mock.py:1437: in get_original
+    raise AttributeError(
+E   AttributeError: <src.circle_of_experts.core.enhanced_expert_manager.EnhancedExpertManager object at 0x7f9362a2afc0> does not have the attribute '_collect_expert_responses'
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2025-05-30T14:47:08.781650", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:08.781687", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+__________ TestAPICompatibility.test_response_structure_compatibility __________
+tests/circle_of_experts/test_backwards_compat.py:166: in test_response_structure_compatibility
+    expert_type=ExpertType.TECHNICAL,
+E   AttributeError: type object 'ExpertType' has no attribute 'TECHNICAL'
+____________ TestAPICompatibility.test_expert_health_compatibility _____________
+tests/circle_of_experts/test_backwards_compat.py:201: in test_expert_health_compatibility
+    standard_health = await standard_manager.get_expert_health()
+E   AttributeError: 'EnhancedExpertManager' object has no attribute 'get_expert_health'
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2025-05-30T14:47:08.874329", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:08.874382", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+{"timestamp": "2025-05-30T14:47:08.874530", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:08.874552", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+_______ TestBehaviorCompatibility.test_consensus_building_compatibility ________
+tests/circle_of_experts/test_backwards_compat.py:245: in test_consensus_building_compatibility
+    expert_type=ExpertType.TECHNICAL,
+E   AttributeError: type object 'ExpertType' has no attribute 'TECHNICAL'
+_________ TestBehaviorCompatibility.test_error_handling_compatibility __________
+tests/circle_of_experts/test_backwards_compat.py:297: in test_error_handling_compatibility
+    invalid_query = ExpertQuery(
+E   pydantic_core._pydantic_core.ValidationError: 2 validation errors for ExpertQuery
+E   title
+E     String should have at least 1 character [type=string_too_short, input_value='', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.9/v/string_too_short
+E   content
+E     String should have at most 10000 characters [type=string_too_long, input_value='xxxxxxxxxxxxxxxxxxxxxxxx...xxxxxxxxxxxxxxxxxxxxxxx', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.9/v/string_too_long
+_________ TestBehaviorCompatibility.test_retry_behavior_compatibility __________
+tests/circle_of_experts/test_backwards_compat.py:317: in test_retry_behavior_compatibility
+    retry_policy = RetryPolicy(max_attempts=3, initial_delay=0.1)
+E   TypeError: RetryPolicy.__init__() got an unexpected keyword argument 'initial_delay'
+_________ TestDataCompatibility.test_query_serialization_compatibility _________
+tests/circle_of_experts/test_backwards_compat.py:349: in test_query_serialization_compatibility
+    standard_dict = query.to_dict()
+venv_linux/lib/python3.12/site-packages/pydantic/main.py:856: in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E   AttributeError: 'ExpertQuery' object has no attribute 'to_dict'
+_______ TestDataCompatibility.test_response_serialization_compatibility ________
+tests/circle_of_experts/test_backwards_compat.py:371: in test_response_serialization_compatibility
+    expert_type=ExpertType.TECHNICAL,
+E   AttributeError: type object 'ExpertType' has no attribute 'TECHNICAL'
+_______ TestDataCompatibility.test_consensus_serialization_compatibility _______
+tests/circle_of_experts/test_backwards_compat.py:399: in test_consensus_serialization_compatibility
+    participating_experts=[ExpertType.TECHNICAL, ExpertType.RESEARCH],
+E   AttributeError: type object 'ExpertType' has no attribute 'TECHNICAL'
+__________ TestConfigurationCompatibility.test_environment_variables ___________
+tests/circle_of_experts/test_backwards_compat.py:439: in test_environment_variables
+    assert standard_manager.log_level == enhanced_manager.log_level
+E   AttributeError: 'EnhancedExpertManager' object has no attribute 'log_level'
+----------------------------- Captured stdout call -----------------------------
+{"timestamp": "2025-05-30T14:47:09.118130", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:09.118191", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+{"timestamp": "2025-05-30T14:47:09.118238", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:09.118256", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+________ TestConfigurationCompatibility.test_initialization_parameters _________
+tests/circle_of_experts/test_backwards_compat.py:454: in test_initialization_parameters
+    assert standard_manager.log_level == "WARNING"
+E   AttributeError: 'EnhancedExpertManager' object has no attribute 'log_level'
+__________________ TestMigrationPath.test_drop_in_replacement __________________
+tests/circle_of_experts/test_backwards_compat.py:499: in test_drop_in_replacement
+    original_result = await original_code()
+tests/circle_of_experts/test_backwards_compat.py:481: in original_code
+    with patch.object(manager, '_collect_expert_responses', return_value=[]):
+/usr/lib/python3.12/unittest/mock.py:1467: in __enter__
+    original, local = self.get_original()
+/usr/lib/python3.12/unittest/mock.py:1437: in get_original
+    raise AttributeError(
+E   AttributeError: <src.circle_of_experts.core.enhanced_expert_manager.EnhancedExpertManager object at 0x7f9362ac0440> does not have the attribute '_collect_expert_responses'
+----------------------------- Captured stdout call -----------------------------
+{"timestamp": "2025-05-30T14:47:09.181019", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:09.181062", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+_______ TestExistingTestCompatibility.test_existing_integration_patterns _______
+tests/circle_of_experts/test_backwards_compat.py:553: in test_existing_integration_patterns
+    "type": ExpertType.TECHNICAL,
+E   AttributeError: type object 'ExpertType' has no attribute 'TECHNICAL'
+___________________ TestModels.test_expert_query_to_markdown ___________________
+c:\Users\luke_\Desktop\My Programming\claude_optimized_deployment\tests\circle_of_experts\test_circle_of_experts.py:74: in test_expert_query_to_markdown
+    ???
+E   AssertionError: assert 'python, optimization' in '# Test Query\n\n**Query ID:** cd61f371-a7e3-4de6-ba78-92109150285f\n**Type:** general\n**Priority:** medium\n**Reques...\n**Tags:** optimization, python\n\n## Query\n\nThis is the query content\n\n## Expected Response Format\n\nmarkdown\n'
+________________ TestDriveManager.test_ensure_responses_folder _________________
+c:\Users\luke_\Desktop\My Programming\claude_optimized_deployment\tests\circle_of_experts\test_circle_of_experts.py:130: in test_ensure_responses_folder
+    ???
+src/circle_of_experts/utils/retry.py:97: in wrapper
+    raise last_exception
+src/circle_of_experts/utils/retry.py:78: in wrapper
+    return await func(*args, **kwargs)
+src/circle_of_experts/drive/manager.py:91: in ensure_responses_folder
+    if self._responses_folder_id:
+E   AttributeError: 'DriveManager' object has no attribute '_responses_folder_id'. Did you mean: 'responses_folder_id'?
+----------------------------- Captured stdout call -----------------------------
+{"timestamp": "2025-05-30T14:47:09.345774", "level": "WARNING", "logger": "src.circle_of_experts.utils.retry", "message": "Attempt 1/3 failed for ensure_responses_folder: 'DriveManager' object has no attribute '_responses_folder_id'. Retrying in 1.04s...", "module": "retry", "function": "wrapper", "line": 85}
+{"timestamp": "2025-05-30T14:47:10.387122", "level": "WARNING", "logger": "src.circle_of_experts.utils.retry", "message": "Attempt 2/3 failed for ensure_responses_folder: 'DriveManager' object has no attribute '_responses_folder_id'. Retrying in 2.39s...", "module": "retry", "function": "wrapper", "line": 85}
+{"timestamp": "2025-05-30T14:47:12.782814", "level": "ERROR", "logger": "src.circle_of_experts.utils.retry", "message": "All 3 attempts failed for ensure_responses_folder: 'DriveManager' object has no attribute '_responses_folder_id'", "module": "retry", "function": "wrapper", "line": 91}
+------------------------------ Captured log call -------------------------------
+WARNING  src.circle_of_experts.utils.retry:retry.py:85 Attempt 1/3 failed for ensure_responses_folder: 'DriveManager' object has no attribute '_responses_folder_id'. Retrying in 1.04s...
+WARNING  src.circle_of_experts.utils.retry:retry.py:85 Attempt 2/3 failed for ensure_responses_folder: 'DriveManager' object has no attribute '_responses_folder_id'. Retrying in 2.39s...
+ERROR    src.circle_of_experts.utils.retry:retry.py:91 All 3 attempts failed for ensure_responses_folder: 'DriveManager' object has no attribute '_responses_folder_id'
+______________________ TestDriveManager.test_upload_query ______________________
+c:\Users\luke_\Desktop\My Programming\claude_optimized_deployment\tests\circle_of_experts\test_circle_of_experts.py:152: in test_upload_query
+    ???
+src/circle_of_experts/utils/retry.py:97: in wrapper
+    raise last_exception
+src/circle_of_experts/utils/retry.py:78: in wrapper
+    return await func(*args, **kwargs)
+src/circle_of_experts/drive/manager.py:153: in upload_query
+    media = MediaFileUpload(
+venv_linux/lib/python3.12/site-packages/googleapiclient/_helpers.py:130: in positional_wrapper
+    return wrapped(*args, **kwargs)
+venv_linux/lib/python3.12/site-packages/googleapiclient/http.py:594: in __init__
+    self._fd = open(self._filename, "rb")
+E   FileNotFoundError: [Errno 2] No such file or directory: '/tmp/query_c962c864-72e7-43b2-a65e-e836b90b3ab1_20250530_144716.md'
+----------------------------- Captured stdout call -----------------------------
+{"timestamp": "2025-05-30T14:47:12.838532", "level": "WARNING", "logger": "src.circle_of_experts.utils.retry", "message": "Attempt 1/3 failed for upload_query: [Errno 2] No such file or directory: '/tmp/query_c962c864-72e7-43b2-a65e-e836b90b3ab1_20250530_144712.md'. Retrying in 1.22s...", "module": "retry", "function": "wrapper", "line": 85}
+{"timestamp": "2025-05-30T14:47:14.063309", "level": "WARNING", "logger": "src.circle_of_experts.utils.retry", "message": "Attempt 2/3 failed for upload_query: [Errno 2] No such file or directory: '/tmp/query_c962c864-72e7-43b2-a65e-e836b90b3ab1_20250530_144714.md'. Retrying in 2.13s...", "module": "retry", "function": "wrapper", "line": 85}
+{"timestamp": "2025-05-30T14:47:16.201840", "level": "ERROR", "logger": "src.circle_of_experts.utils.retry", "message": "All 3 attempts failed for upload_query: [Errno 2] No such file or directory: '/tmp/query_c962c864-72e7-43b2-a65e-e836b90b3ab1_20250530_144716.md'", "module": "retry", "function": "wrapper", "line": 91}
+------------------------------ Captured log call -------------------------------
+WARNING  src.circle_of_experts.utils.retry:retry.py:85 Attempt 1/3 failed for upload_query: [Errno 2] No such file or directory: '/tmp/query_c962c864-72e7-43b2-a65e-e836b90b3ab1_20250530_144712.md'. Retrying in 1.22s...
+WARNING  src.circle_of_experts.utils.retry:retry.py:85 Attempt 2/3 failed for upload_query: [Errno 2] No such file or directory: '/tmp/query_c962c864-72e7-43b2-a65e-e836b90b3ab1_20250530_144714.md'. Retrying in 2.13s...
+ERROR    src.circle_of_experts.utils.retry:retry.py:91 All 3 attempts failed for upload_query: [Errno 2] No such file or directory: '/tmp/query_c962c864-72e7-43b2-a65e-e836b90b3ab1_20250530_144716.md'
+______________________ TestQueryHandler.test_submit_batch ______________________
+c:\Users\luke_\Desktop\My Programming\claude_optimized_deployment\tests\circle_of_experts\test_circle_of_experts.py:227: in test_submit_batch
+    ???
+src/circle_of_experts/core/query_handler.py:72: in create_query
+    query = ExpertQuery(
+E   pydantic_core._pydantic_core.ValidationError: 1 validation error for ExpertQuery
+E   content
+E     String should have at least 10 characters [type=string_too_short, input_value='Content 0', input_type=str]
+E       For further information visit https://errors.pydantic.dev/2.9/v/string_too_short
+________________ TestResponseCollector.test_aggregate_responses ________________
+c:\Users\luke_\Desktop\My Programming\claude_optimized_deployment\tests\circle_of_experts\test_circle_of_experts.py:339: in test_aggregate_responses
+    ???
+E   AssertionError: assert 'Use async' in ['use async', 'add tests', 'add documentation']
+____________________ TestExpertManager.test_consult_experts ____________________
+c:\Users\luke_\Desktop\My Programming\claude_optimized_deployment\tests\circle_of_experts\test_circle_of_experts.py:399: in test_consult_experts
+    ???
+src/circle_of_experts/core/expert_manager.py:124: in consult_experts
+    query = ExpertQuery(
+E   pydantic_core._pydantic_core.ValidationError: 2 validation errors for ExpertQuery
+E   constraints
+E     Input should be a valid list [type=list_type, input_value=None, input_type=NoneType]
+E       For further information visit https://errors.pydantic.dev/2.9/v/list_type
+E   tags
+E     Input should be a valid list [type=list_type, input_value=None, input_type=NoneType]
+E       For further information visit https://errors.pydantic.dev/2.9/v/list_type
+---------------------------- Captured stdout setup -----------------------------
+{"timestamp": "2025-05-30T14:47:16.330880", "level": "INFO", "logger": "src.circle_of_experts.core.expert_manager", "message": "Expert Manager initialized", "module": "expert_manager", "function": "__init__", "line": 78}
+{"timestamp": "2025-05-30T14:47:16.330918", "level": "INFO", "logger": "src.circle_of_experts.core.enhanced_expert_manager", "message": "Enhanced Expert Manager initialized (Python-only mode)", "module": "enhanced_expert_manager", "function": "__init__", "line": 87}
+=============================== warnings summary ===============================
+src/circle_of_experts/models/query.py:67
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/query.py:67: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('deadline')
+
+src/circle_of_experts/models/query.py:75
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/query.py:75: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('tags')
+
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/venv_linux/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/venv_linux/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:312: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.9/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(
+
+src/circle_of_experts/models/response.py:70
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/response.py:70: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('completed_at')
+
+src/circle_of_experts/models/response.py:78
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/response.py:78: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('processing_time')
+
+src/circle_of_experts/models/response.py:85
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/response.py:85: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    @validator('code_snippets')
+
+tests/circle_of_experts/test_performance.py:157
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/tests/circle_of_experts/test_performance.py:157: PytestCollectionWarning: cannot collect test class 'TestResponseAnalysisPerformance' because it has a __init__ constructor (from: tests/circle_of_experts/test_performance.py)
+    @pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust modules not available")
+
+tests/circle_of_experts/test_performance.py:283
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/tests/circle_of_experts/test_performance.py:283: PytestCollectionWarning: cannot collect test class 'TestQueryValidationPerformance' because it has a __init__ constructor (from: tests/circle_of_experts/test_performance.py)
+    @pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust modules not available")
+
+tests/circle_of_experts/test_performance.py:378
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/tests/circle_of_experts/test_performance.py:378: PytestCollectionWarning: cannot collect test class 'TestConcurrentPerformance' because it has a __init__ constructor (from: tests/circle_of_experts/test_performance.py)
+    @pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust modules not available")
+
+tests/circle_of_experts/test_performance.py:433
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/tests/circle_of_experts/test_performance.py:433: PytestCollectionWarning: cannot collect test class 'TestRealWorldScenarios' because it has a __init__ constructor (from: tests/circle_of_experts/test_performance.py)
+    @pytest.mark.skipif(not RUST_AVAILABLE, reason="Rust modules not available")
+
+tests/circle_of_experts/test_backwards_compat.py: 24 warnings
+tests/circle_of_experts/test_circle_of_experts.py: 18 warnings
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/utils/logging.py:23: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    "timestamp": datetime.utcnow().isoformat(),
+
+tests/circle_of_experts/test_backwards_compat.py: 11 warnings
+tests/circle_of_experts/test_circle_of_experts.py: 17 warnings
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/venv_linux/lib/python3.12/site-packages/pydantic/main.py:212: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+
+tests/circle_of_experts/test_backwards_compat.py::TestExistingTestCompatibility::test_existing_unit_tests_pass
+tests/circle_of_experts/test_circle_of_experts.py::TestModels::test_expert_query_validation
+  c:\Users\luke_\Desktop\My Programming\claude_optimized_deployment\tests\circle_of_experts\test_circle_of_experts.py:57: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/circle_of_experts/test_circle_of_experts.py::TestModels::test_expert_response_completion
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/models/response.py:195: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.completed_at = datetime.utcnow()
+
+tests/circle_of_experts/test_circle_of_experts.py::TestDriveManager::test_upload_query
+tests/circle_of_experts/test_circle_of_experts.py::TestDriveManager::test_upload_query
+tests/circle_of_experts/test_circle_of_experts.py::TestDriveManager::test_upload_query
+  /mnt/c/Users/luke_/Desktop/My Programming/claude_optimized_deployment/src/circle_of_experts/drive/manager.py:139: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    filename = f"query_{query.id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.md"
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestAPICompatibility::test_manager_initialization
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestAPICompatibility::test_submit_query_interface
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestAPICompatibility::test_query_parameters_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestAPICompatibility::test_response_structure_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestAPICompatibility::test_expert_health_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestBehaviorCompatibility::test_consensus_building_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestBehaviorCompatibility::test_error_handling_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestBehaviorCompatibility::test_retry_behavior_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestDataCompatibility::test_query_serialization_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestDataCompatibility::test_response_serialization_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestDataCompatibility::test_consensus_serialization_compatibility
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestConfigurationCompatibility::test_environment_variables
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestConfigurationCompatibility::test_initialization_parameters
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestMigrationPath::test_drop_in_replacement
+FAILED tests/circle_of_experts/test_backwards_compat.py::TestExistingTestCompatibility::test_existing_integration_patterns
+FAILED tests/circle_of_experts/test_circle_of_experts.py::TestModels::test_expert_query_to_markdown
+FAILED tests/circle_of_experts/test_circle_of_experts.py::TestDriveManager::test_ensure_responses_folder
+FAILED tests/circle_of_experts/test_circle_of_experts.py::TestDriveManager::test_upload_query
+FAILED tests/circle_of_experts/test_circle_of_experts.py::TestQueryHandler::test_submit_batch
+FAILED tests/circle_of_experts/test_circle_of_experts.py::TestResponseCollector::test_aggregate_responses
+FAILED tests/circle_of_experts/test_circle_of_experts.py::TestExpertManager::test_consult_experts
+=========== 21 failed, 14 passed, 31 skipped, 93 warnings in 28.44s ============
