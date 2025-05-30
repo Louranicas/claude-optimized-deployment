@@ -1,71 +1,41 @@
 ---
-name: "🐛 Bug Report"
-about: "Report a bug in CODE"
-title: "[BUG] "
-labels: ["bug", "needs-triage"]
-assignees: ""
----
-
-## 🐛 Bug Description
-<!-- Claude Code: Clear and concise description of the bug -->
-
-## 📍 Component Affected
-<!-- Which part of CODE is affected? -->
-- [ ] Circle of Experts (working feature)
-- [ ] Deployment Engine (not implemented)
-- [ ] API
-- [ ] CLI
-- [ ] Documentation
-- [ ] DevOps/Infrastructure
-- [ ] Other: 
-
-## 🔄 Steps to Reproduce
-<!-- Claude Code: Detailed steps to reproduce the issue -->
-1. 
-2. 
-3. 
-4. 
-
-## 🎯 Expected Behavior
-<!-- What should happen? -->
-
-## 😕 Actual Behavior
-<!-- What actually happens? -->
-
-## 📸 Screenshots/Logs
-<!-- Add screenshots or relevant logs -->
-<details>
-<summary>Click to expand logs</summary>
-
-```
-[Paste logs here]
-```
-
-</details>
-
-## 🌍 Environment
-<!-- Claude Code: Fill in your environment details -->
-- **OS**: [e.g., Ubuntu 22.04, Windows 11 + WSL2]
-- **Python Version**: [e.g., 3.10.8]
-- **CODE Version**: [e.g., 0.1.0]
-- **Installation Method**: [pip/docker/source]
-
-## 🔍 Additional Context
-<!-- Any additional information that might help -->
-
-## 💡 Possible Solution
-<!-- If you have ideas on how to fix this -->
+name: Bug report
+about: Create a report to help us improve
+title: '[BUG] '
+labels: bug
+assignees: ''
 
 ---
 
-## 🤖 Claude Code Triage
-<!-- This section will be auto-filled by Claude Code -->
+**Describe the bug**
+A clear and concise description of what the bug is.
+
+**To Reproduce**
+Steps to reproduce the behavior:
+1. Install/setup '...'
+2. Run command '....'
+3. See error
+
+**Expected behavior**
+A clear and concise description of what you expected to happen.
+
+**Actual behavior**
+What actually happened instead.
+
+**Error messages**
 ```
-[Claude Code will analyze and categorize this issue]
+Paste any error messages or logs here
 ```
 
-## ✅ Checklist
-- [ ] I've searched existing issues
-- [ ] I've checked the documentation
-- [ ] I've provided reproduction steps
-- [ ] I've included relevant logs/screenshots
+**Environment (please complete the following information):**
+ - OS: [e.g. Ubuntu 22.04, Windows 11 WSL2]
+ - Python version: [e.g. 3.11.0]
+ - Rust version: [e.g. 1.70.0]
+ - Project version: [e.g. v0.9.0]
+ - Installation method: [pip, git clone, etc.]
+
+**Additional context**
+Add any other context about the problem here.
+
+**Possible solution**
+If you have an idea how to fix this issue, please describe it here.

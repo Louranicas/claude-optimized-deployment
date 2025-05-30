@@ -1,153 +1,47 @@
----
-name: "🤖 Claude Code Pull Request"
-about: AI-enhanced pull request template optimized for Claude Code
-title: ""
-labels: ["claude-reviewed"]
-assignees: ""
----
+## Description
+Brief description of what this PR does.
 
-## 🎯 Purpose
-<!-- Claude Code: Describe the main goal of this PR in one sentence -->
+## Type of Change
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Performance improvement
+- [ ] Code refactoring
 
-## 📝 Description
-<!-- Claude Code: Provide detailed context about what changed and why -->
+## Related Issues
+Closes #(issue number)
 
-### What changed?
-- 
+## Changes Made
+- List the specific changes made in this PR
+- Be as detailed as necessary
+- Include any architectural decisions
 
-### Why was this change needed?
-- 
+## Testing
+- [ ] Unit tests pass locally
+- [ ] Integration tests pass locally
+- [ ] Rust tests pass (`cargo test`)
+- [ ] Python tests pass (`pytest`)
+- [ ] Manual testing completed
 
-### How does this improve CODE?
-- 
+## Performance Impact
+Describe any performance implications of these changes.
 
-## 🔗 Related Issues
-<!-- Claude Code: Link related issues, discussions, or documentation -->
-- Closes #
-- Related to #
-- Implements RFC #
+## Security Considerations
+Have you checked for any security implications? If yes, describe them.
 
-## 📊 Type of Change
-<!-- Claude Code: Check all that apply -->
-- [ ] 🐛 Bug fix (non-breaking change fixing an issue)
-- [ ] ✨ New feature (non-breaking change adding functionality)
-- [ ] 💥 Breaking change (fix or feature causing existing functionality to break)
-- [ ] 📚 Documentation update
-- [ ] 🎨 Style/UI update
-- [ ] ♻️ Code refactoring
-- [ ] ⚡ Performance improvement
-- [ ] ✅ Test update
-- [ ] 🔧 Configuration change
-- [ ] 🏗️ Infrastructure change
+## Checklist
+- [ ] My code follows the project's style guidelines
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
 
-## 🧪 Testing
-<!-- Claude Code: Describe testing approach and results -->
+## Screenshots (if applicable)
+Add screenshots to help explain your changes.
 
-### Test Coverage
-- [ ] Unit tests pass
-- [ ] Integration tests pass
-- [ ] E2E tests pass (if applicable)
-- [ ] New tests added for changes
-- [ ] Test coverage maintained/improved
-
-### Manual Testing
-<!-- Steps to manually test this change -->
-1. 
-2. 
-3. 
-
-### Performance Impact
-<!-- Any performance implications? -->
-- [ ] No performance impact
-- [ ] Performance improved (provide metrics)
-- [ ] Performance degraded (justify why acceptable)
-
-## 📸 Screenshots/Demos
-<!-- Claude Code: Add screenshots, GIFs, or videos if applicable -->
-
-## 🔍 Code Review Checklist
-<!-- Claude Code: Ensure all items are addressed -->
-
-### Code Quality
-- [ ] Code follows project style guidelines
-- [ ] Self-review completed
-- [ ] Comments added for complex logic
-- [ ] No commented-out code
-- [ ] No debug print statements
-
-### Documentation
-- [ ] Public APIs documented
-- [ ] README updated (if needed)
-- [ ] CHANGELOG updated
-- [ ] Example usage provided (if new feature)
-
-### Security
-- [ ] No hardcoded secrets
-- [ ] Input validation added
-- [ ] Security best practices followed
-- [ ] Dependencies checked for vulnerabilities
-
-### Circle of Experts Specific
-<!-- If this PR affects Circle of Experts -->
-- [ ] All expert clients tested
-- [ ] Cost implications documented
-- [ ] Error handling for API failures
-- [ ] Rate limiting considered
-
-## 🚀 Deployment Notes
-<!-- Claude Code: Any special deployment considerations -->
-
-### Pre-deployment Steps
-- [ ] Database migrations required
-- [ ] Environment variables added/changed
-- [ ] Infrastructure changes needed
-
-### Post-deployment Steps
-- [ ] Feature flags to enable
-- [ ] Monitoring alerts to add
-- [ ] Documentation to publish
-
-## 🤝 Reviewer Guide
-<!-- Claude Code: Help reviewers understand what to focus on -->
-
-### Key Areas to Review
-1. 
-2. 
-3. 
-
-### Questions for Reviewers
-- 
-- 
-
-## 📝 Additional Context
-<!-- Claude Code: Any other context, decisions, or trade-offs -->
-
----
-
-## 🤖 Claude Code Analysis
-<!-- This section will be auto-filled by Claude Code -->
-```
-[Claude Code will add analysis here]
-```
-
-## 📊 Automated Checks
-<!-- Status of automated checks -->
-- [ ] Linting passed
-- [ ] Type checking passed
-- [ ] Security scan passed
-- [ ] Build successful
-- [ ] All CI checks green
-
----
-
-**PR Readiness**: 
-- [ ] This PR is ready for review
-- [ ] This PR is a draft (WIP)
-
-**Merge Strategy**:
-- [ ] Squash and merge (default)
-- [ ] Merge commit
-- [ ] Rebase and merge
-
-/cc @yourusername
-<!-- Claude Code: Auto-tag relevant reviewers based on changes -->
+## Additional Notes
+Any additional information that reviewers should know.
