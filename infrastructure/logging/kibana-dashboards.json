@@ -1,0 +1,332 @@
+{
+  "version": "8.11.0",
+  "dashboards": [
+    {
+      "id": "code-overview",
+      "title": "CODE System Overview",
+      "description": "Overall system health and performance metrics",
+      "panels": [
+        {
+          "title": "Log Volume Over Time",
+          "type": "line",
+          "query": {
+            "index": "code-logs-*",
+            "aggregation": "count",
+            "group_by": "@timestamp",
+            "interval": "5m"
+          }
+        },
+        {
+          "title": "Log Level Distribution",
+          "type": "pie",
+          "query": {
+            "index": "code-logs-*",
+            "aggregation": "terms",
+            "field": "level.keyword",
+            "size": 5
+          }
+        },
+        {
+          "title": "Top Error Types",
+          "type": "bar",
+          "query": {
+            "index": "code-errors-*",
+            "aggregation": "terms",
+            "field": "error_type.keyword",
+            "size": 10
+          }
+        },
+        {
+          "title": "Service Health",
+          "type": "metric",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "level:ERROR OR level:CRITICAL",
+            "time_range": "5m"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mcp-operations",
+      "title": "MCP Operations Dashboard",
+      "description": "Monitor MCP server operations and performance",
+      "panels": [
+        {
+          "title": "MCP Tool Calls",
+          "type": "line",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "logger:mcp.operations",
+            "aggregation": "count",
+            "group_by": "@timestamp",
+            "interval": "1m"
+          }
+        },
+        {
+          "title": "Tool Performance (p95)",
+          "type": "line",
+          "query": {
+            "index": "code-metrics-*",
+            "filter": "performance.duration_ms:*",
+            "aggregation": "percentiles",
+            "field": "performance.duration_ms",
+            "percentiles": [50, 95, 99]
+          }
+        },
+        {
+          "title": "Most Used Tools",
+          "type": "horizontal_bar",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "logger:mcp.operations",
+            "aggregation": "terms",
+            "field": "data.tool.keyword",
+            "size": 20
+          }
+        },
+        {
+          "title": "Failed Tool Calls",
+          "type": "data_table",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "logger:mcp.operations AND data.success:false",
+            "fields": ["@timestamp", "data.server", "data.tool", "data.error"],
+            "sort": "@timestamp:desc",
+            "size": 50
+          }
+        }
+      ]
+    },
+    {
+      "id": "ai-operations",
+      "title": "AI Operations Dashboard",
+      "description": "Monitor AI provider usage and performance",
+      "panels": [
+        {
+          "title": "AI Requests by Provider",
+          "type": "pie",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "logger:ai.requests",
+            "aggregation": "terms",
+            "field": "data.provider.keyword"
+          }
+        },
+        {
+          "title": "Token Usage Over Time",
+          "type": "area",
+          "query": {
+            "index": "code-metrics-*",
+            "filter": "data.total_tokens:*",
+            "aggregation": "sum",
+            "field": "data.total_tokens",
+            "group_by": "@timestamp",
+            "interval": "5m"
+          }
+        },
+        {
+          "title": "AI Response Times",
+          "type": "line",
+          "query": {
+            "index": "code-metrics-*",
+            "filter": "logger:ai.performance",
+            "aggregation": "avg",
+            "field": "data.duration_ms",
+            "group_by": "data.provider.keyword"
+          }
+        },
+        {
+          "title": "Estimated Costs",
+          "type": "metric",
+          "query": {
+            "index": "code-metrics-*",
+            "filter": "data.cost:*",
+            "aggregation": "sum",
+            "field": "data.cost",
+            "time_range": "24h"
+          }
+        }
+      ]
+    },
+    {
+      "id": "security-audit",
+      "title": "Security Audit Dashboard",
+      "description": "Security events and access logs",
+      "panels": [
+        {
+          "title": "Authentication Attempts",
+          "type": "line",
+          "query": {
+            "index": "code-security-audit-*",
+            "filter": "security_audit.event_type:authentication",
+            "aggregation": "count",
+            "group_by": "security_audit.success",
+            "interval": "5m"
+          }
+        },
+        {
+          "title": "Access by Resource",
+          "type": "pie",
+          "query": {
+            "index": "code-security-audit-*",
+            "filter": "security_audit.event_type:access",
+            "aggregation": "terms",
+            "field": "security_audit.resource.keyword",
+            "size": 10
+          }
+        },
+        {
+          "title": "Failed Access Attempts",
+          "type": "data_table",
+          "query": {
+            "index": "code-security-audit-*",
+            "filter": "security_audit.result:failure",
+            "fields": ["@timestamp", "security_audit.user", "security_audit.resource", "security_audit.action"],
+            "sort": "@timestamp:desc"
+          }
+        },
+        {
+          "title": "Geographic Access Map",
+          "type": "map",
+          "query": {
+            "index": "code-security-audit-*",
+            "filter": "security_audit.geo.location:*",
+            "aggregation": "geohash_grid",
+            "field": "security_audit.geo.location"
+          }
+        }
+      ]
+    },
+    {
+      "id": "infrastructure-changes",
+      "title": "Infrastructure Changes",
+      "description": "Deployments and infrastructure modifications",
+      "panels": [
+        {
+          "title": "Deployments Timeline",
+          "type": "timeline",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "logger:infrastructure.changes",
+            "fields": ["@timestamp", "data.service", "data.version", "data.environment", "data.success"]
+          }
+        },
+        {
+          "title": "Deployment Success Rate",
+          "type": "gauge",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "logger:infrastructure.changes",
+            "aggregation": "percentage",
+            "success_field": "data.success"
+          }
+        },
+        {
+          "title": "Services by Environment",
+          "type": "heatmap",
+          "query": {
+            "index": "code-logs-*",
+            "filter": "logger:infrastructure.changes",
+            "x_field": "data.service.keyword",
+            "y_field": "data.environment.keyword",
+            "value": "count"
+          }
+        }
+      ]
+    },
+    {
+      "id": "performance-monitoring",
+      "title": "Performance Monitoring",
+      "description": "System performance metrics and bottlenecks",
+      "panels": [
+        {
+          "title": "Operation Duration Distribution",
+          "type": "histogram",
+          "query": {
+            "index": "code-metrics-*",
+            "filter": "performance.duration_ms:*",
+            "field": "performance.duration_ms",
+            "interval": 100
+          }
+        },
+        {
+          "title": "Slow Operations",
+          "type": "data_table",
+          "query": {
+            "index": "code-metrics-*",
+            "filter": "performance.speed_category:slow",
+            "fields": ["@timestamp", "performance.operation", "performance.duration_ms", "logger"],
+            "sort": "performance.duration_ms:desc",
+            "size": 100
+          }
+        },
+        {
+          "title": "Performance Trends",
+          "type": "line",
+          "query": {
+            "index": "code-metrics-*",
+            "aggregation": "percentiles",
+            "field": "performance.duration_ms",
+            "percentiles": [50, 90, 95, 99],
+            "group_by": "@timestamp",
+            "interval": "10m"
+          }
+        }
+      ]
+    }
+  ],
+  "index_patterns": [
+    {
+      "title": "code-logs-*",
+      "time_field": "@timestamp"
+    },
+    {
+      "title": "code-errors-*",
+      "time_field": "@timestamp"
+    },
+    {
+      "title": "code-metrics-*",
+      "time_field": "@timestamp"
+    },
+    {
+      "title": "code-security-audit-*",
+      "time_field": "@timestamp"
+    }
+  ],
+  "saved_searches": [
+    {
+      "title": "Critical Errors",
+      "query": "level:CRITICAL"
+    },
+    {
+      "title": "Failed Deployments",
+      "query": "logger:infrastructure.changes AND data.success:false"
+    },
+    {
+      "title": "Security Violations",
+      "query": "security_audit.result:failure AND security_audit.event_type:access"
+    },
+    {
+      "title": "Slow MCP Operations",
+      "query": "performance.duration_ms:>5000 AND logger:mcp.*"
+    }
+  ],
+  "alerts": [
+    {
+      "name": "High Error Rate",
+      "condition": "count of level:ERROR > 100 in 5m",
+      "action": "webhook"
+    },
+    {
+      "name": "Deployment Failure",
+      "condition": "logger:infrastructure.changes AND data.success:false",
+      "action": "email"
+    },
+    {
+      "name": "Security Breach Attempt",
+      "condition": "count of security_audit.result:failure > 10 in 1m",
+      "action": "pagerduty"
+    }
+  ]
+}

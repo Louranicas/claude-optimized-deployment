@@ -1,0 +1,184 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@claude-deployment-engine.local'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      repeat_interval: 30m
+    
+    - match:
+        severity: high
+      receiver: 'high-priority-alerts'
+      group_wait: 10s
+      repeat_interval: 1h
+    
+    - match:
+        component: sla
+      receiver: 'sla-alerts'
+      group_wait: 5s
+      repeat_interval: 15m
+    
+    - match:
+        component: security
+      receiver: 'security-alerts'
+      group_wait: 1s
+      repeat_interval: 15m
+    
+    - match:
+        cost_category: high
+      receiver: 'cost-alerts'
+      group_wait: 30s
+      repeat_interval: 4h
+
+receivers:
+  - name: 'default'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#monitoring'
+        title: 'Claude Deployment Engine Alert'
+        text: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          {{ end }}
+
+  - name: 'critical-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#critical-alerts'
+        title: '🚨 CRITICAL ALERT - Claude Deployment Engine'
+        text: |
+          {{ range .Alerts }}
+          🚨 **CRITICAL ALERT**
+          
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Severity:** {{ .Labels.severity }}
+          **Component:** {{ .Labels.component }}
+          **Started:** {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          {{ if .Annotations.runbook_url }}**Runbook:** {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+        send_resolved: true
+    
+    email_configs:
+      - to: 'oncall@claude-deployment-engine.local'
+        subject: 'CRITICAL: {{ .GroupLabels.alertname }} - {{ .GroupLabels.cluster }}'
+        body: |
+          Critical alert fired in Claude Deployment Engine:
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Started: {{ .StartsAt }}
+          {{ if .Annotations.runbook_url }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+          {{ end }}
+
+  - name: 'high-priority-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#alerts'
+        title: '⚠️ High Priority Alert - Claude Deployment Engine'
+        text: |
+          {{ range .Alerts }}
+          ⚠️ **High Priority Alert**
+          
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Severity:** {{ .Labels.severity }}
+          **Component:** {{ .Labels.component }}
+          
+          {{ if .Annotations.runbook_url }}**Runbook:** {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+
+  - name: 'sla-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#sla-monitoring'
+        title: '📊 SLA Alert - Claude Deployment Engine'
+        text: |
+          {{ range .Alerts }}
+          📊 **SLA Alert**
+          
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **SLA:** {{ .Labels.sla_name }}
+          **Current Value:** {{ .Value }}%
+          
+          {{ if .Annotations.runbook_url }}**Runbook:** {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+
+  - name: 'security-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#security-alerts'
+        title: '🔒 Security Alert - Claude Deployment Engine'
+        text: |
+          {{ range .Alerts }}
+          🔒 **Security Alert**
+          
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Severity:** {{ .Labels.severity }}
+          **Immediate Action Required**
+          
+          {{ if .Annotations.runbook_url }}**Runbook:** {{ .Annotations.runbook_url }}{{ end }}
+          {{ end }}
+    
+    email_configs:
+      - to: 'security@claude-deployment-engine.local'
+        subject: 'SECURITY ALERT: {{ .GroupLabels.alertname }}'
+        body: |
+          Security alert in Claude Deployment Engine:
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+
+  - name: 'cost-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#cost-monitoring'
+        title: '💰 Cost Alert - Claude Deployment Engine'
+        text: |
+          {{ range .Alerts }}
+          💰 **Cost Alert**
+          
+          **Alert:** {{ .Annotations.summary }}
+          **Description:** {{ .Annotations.description }}
+          **Provider:** {{ .Labels.provider }}
+          **Current Rate:** ${{ .Value }}/hour
+          {{ end }}
+
+inhibit_rules:
+  # Inhibit any warning-level alerts when the same alertname has a critical alert
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # Inhibit SLA alerts when the underlying service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      component: 'sla'
+    equal: ['cluster', 'service']
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

@@ -16,7 +16,7 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 
-from .models import Response
+from src.circle_of_experts.models import Response
 
 # Try to import Rust acceleration
 try:

@@ -19,9 +19,9 @@ from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from googleapiclient.errors import HttpError
 import io
 
-from ..models.query import ExpertQuery
-from ..models.response import ExpertResponse, ExpertType
-from ..utils.retry import RetryPolicy, with_retry
+from src.circle_of_experts.models.query import ExpertQuery
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType
+from src.circle_of_experts.utils.retry import RetryPolicy, with_retry
 
 logger = logging.getLogger(__name__)
 

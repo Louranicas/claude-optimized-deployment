@@ -1,0 +1,79 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "test-app",
+    "namespace": "default",
+    "labels": {
+      "app": "test-app",
+      "version": "1.0.0",
+      "environment": "test"
+    }
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "test-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "test-app",
+          "version": "1.0.0"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "app",
+            "image": "test-app:1.0.0",
+            "ports": [
+              {
+                "containerPort": 8080,
+                "protocol": "TCP"
+              }
+            ],
+            "env": [
+              {
+                "name": "ENVIRONMENT",
+                "value": "test"
+              },
+              {
+                "name": "LOG_LEVEL",
+                "value": "debug"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "memory": "256Mi",
+                "cpu": "250m"
+              },
+              "limits": {
+                "memory": "512Mi",
+                "cpu": "500m"
+              }
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": 8080
+              },
+              "initialDelaySeconds": 30,
+              "periodSeconds": 10
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/ready",
+                "port": 8080
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 5
+            }
+          }
+        ]
+      }
+    }
+  }
+}

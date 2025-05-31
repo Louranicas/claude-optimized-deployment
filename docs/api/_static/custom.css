@@ -1,0 +1,258 @@
+/* Custom CSS for CODE API Documentation */
+
+/* Improve code block styling */
+.highlight {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    margin: 1em 0;
+}
+
+.highlight pre {
+    padding: 1em;
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* Style API endpoint badges */
+.method-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: white;
+    margin-right: 8px;
+}
+
+.method-get { background-color: #28a745; }
+.method-post { background-color: #007bff; }
+.method-put { background-color: #ffc107; color: #212529; }
+.method-delete { background-color: #dc3545; }
+
+/* Improve table styling */
+.rst-content table.docutils {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.rst-content table.docutils th,
+.rst-content table.docutils td {
+    border: 1px solid #e1e4e5;
+    padding: 8px 12px;
+}
+
+.rst-content table.docutils th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.status-active { background-color: #d4edda; color: #155724; }
+.status-planned { background-color: #fff3cd; color: #856404; }
+.status-experimental { background-color: #d1ecf1; color: #0c5460; }
+
+/* Improve admonition styling */
+.admonition.note {
+    background-color: #e7f3ff;
+    border-left: 4px solid #2196F3;
+}
+
+.admonition.warning {
+    background-color: #fff8e1;
+    border-left: 4px solid #ff9800;
+}
+
+.admonition.tip {
+    background-color: #e8f5e8;
+    border-left: 4px solid #4caf50;
+}
+
+/* API response examples */
+.response-example {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 1em;
+    margin: 1em 0;
+}
+
+.response-example h4 {
+    margin-top: 0;
+    color: #495057;
+}
+
+/* Code tabs styling */
+.sphinx-tabs {
+    margin: 1em 0;
+}
+
+.sphinx-tabs-tab {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: inline-block;
+    border-bottom: none;
+}
+
+.sphinx-tabs-tab[aria-selected="true"] {
+    background: #007bff;
+    color: white;
+}
+
+.sphinx-tabs-panel {
+    border: 1px solid #dee2e6;
+    padding: 1em;
+    background: white;
+}
+
+/* Grid cards styling */
+.sd-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.sd-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Improve navigation */
+.wy-nav-content {
+    max-width: 1200px;
+}
+
+/* Custom styling for API sections */
+.api-section {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin: 2em 0;
+    overflow: hidden;
+}
+
+.api-section-header {
+    background: #f8f9fa;
+    padding: 1em;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.api-section-content {
+    padding: 1em;
+}
+
+/* Parameter tables */
+.param-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+.param-table th,
+.param-table td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.param-table th {
+    background: #f8f9fa;
+    font-weight: bold;
+}
+
+.param-required {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.param-optional {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Tool cards for MCP tools */
+.tool-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1em;
+    margin: 1em 0;
+    background: #fdfdfd;
+}
+
+.tool-card h4 {
+    margin-top: 0;
+    color: #343a40;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 0.5em;
+}
+
+.tool-description {
+    color: #6c757d;
+    margin: 0.5em 0;
+}
+
+.tool-server {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-bottom: 0.5em;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+    .wy-nav-content {
+        margin-left: 0;
+    }
+    
+    .api-section {
+        margin: 1em 0;
+    }
+    
+    .param-table {
+        font-size: 0.9em;
+    }
+    
+    .method-badge {
+        display: block;
+        margin: 0.5em 0;
+        text-align: center;
+    }
+}
+
+/* Print styles */
+@media print {
+    .wy-nav-side,
+    .wy-nav-top,
+    .rst-footer-buttons {
+        display: none;
+    }
+    
+    .wy-nav-content-wrap {
+        margin-left: 0;
+    }
+    
+    .highlight {
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+    }
+    
+    .api-section {
+        page-break-inside: avoid;
+        border: 1px solid #ccc;
+    }
+}

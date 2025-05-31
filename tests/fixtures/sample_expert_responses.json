@@ -1,0 +1,72 @@
+{
+  "infrastructure_optimization": {
+    "query_id": "test-query-001",
+    "expert_id": "claude-3.5",
+    "expert_type": "claude",
+    "content": "Based on my analysis of your infrastructure requirements, I recommend implementing a multi-layered optimization strategy focusing on caching, connection pooling, and horizontal scaling.",
+    "confidence": 0.92,
+    "reasoning": "The current architecture shows signs of bottlenecks in the data layer and API gateway. By implementing caching at multiple levels and enabling connection pooling, we can reduce latency by approximately 40%. Horizontal scaling will provide better resilience and handle traffic spikes more effectively.",
+    "recommendations": [
+      "Implement Redis caching for frequently accessed data with a 5-minute TTL",
+      "Enable database connection pooling with a pool size of 20-50 connections",
+      "Deploy applications using Kubernetes HPA with CPU threshold at 70%",
+      "Implement API rate limiting to prevent abuse and ensure fair usage",
+      "Add distributed tracing with OpenTelemetry for better observability"
+    ],
+    "status": "completed",
+    "response_time": 2.3,
+    "cost": 0.045,
+    "metadata": {
+      "model_version": "claude-3.5-sonnet",
+      "tokens_used": 450,
+      "cache_hit": false
+    }
+  },
+  "security_assessment": {
+    "query_id": "test-query-002",
+    "expert_id": "gpt-4",
+    "expert_type": "openai",
+    "content": "Your security posture requires immediate attention in several areas. I've identified critical vulnerabilities that need to be addressed to ensure compliance and protect against common attack vectors.",
+    "confidence": 0.88,
+    "reasoning": "The security scan reveals outdated dependencies, missing authentication headers, and insufficient input validation. These issues expose the system to potential SQL injection, XSS attacks, and unauthorized access.",
+    "recommendations": [
+      "Update all npm packages to latest secure versions",
+      "Implement OAuth 2.0 with JWT tokens for API authentication",
+      "Add input validation and sanitization middleware",
+      "Enable HTTPS everywhere with proper certificate management",
+      "Implement security headers (CSP, HSTS, X-Frame-Options)",
+      "Set up automated security scanning in CI/CD pipeline"
+    ],
+    "status": "completed",
+    "response_time": 3.1,
+    "cost": 0.093,
+    "metadata": {
+      "model_version": "gpt-4-turbo",
+      "tokens_used": 620,
+      "security_score": 65
+    }
+  },
+  "performance_tuning": {
+    "query_id": "test-query-003",
+    "expert_id": "gemini-pro",
+    "expert_type": "gemini",
+    "content": "Performance analysis indicates several opportunities for optimization. The proposed changes should reduce response times by 50% and increase throughput by 3x.",
+    "confidence": 0.85,
+    "reasoning": "Profiling data shows that database queries account for 60% of response time, with N+1 query patterns detected. Additionally, the lack of CDN usage for static assets creates unnecessary load on application servers.",
+    "recommendations": [
+      "Implement query optimization with proper indexing strategy",
+      "Use DataLoader pattern to batch database queries",
+      "Deploy static assets to CloudFront CDN",
+      "Enable HTTP/2 and compression for all endpoints",
+      "Implement request coalescing for duplicate API calls"
+    ],
+    "status": "completed",
+    "response_time": 1.8,
+    "cost": 0.018,
+    "metadata": {
+      "model_version": "gemini-1.5-pro",
+      "tokens_used": 380,
+      "performance_impact": "high"
+    }
+  }
+}

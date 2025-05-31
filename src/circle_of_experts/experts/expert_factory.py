@@ -12,9 +12,15 @@ from enum import Enum
 from dataclasses import dataclass
 import logging
 
-from ..models.response import ExpertResponse, ExpertType
-from ..models.query import ExpertQuery
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType
+from src.circle_of_experts.models.query import ExpertQuery
 from .claude_expert import BaseExpertClient, ClaudeExpertClient
+from src.core.exceptions import (
+    AIError,
+    ConfigurationError,
+    MissingConfigError,
+    handle_error
+)
 from .commercial_experts import (
     GPT4ExpertClient,
     GeminiExpertClient,
@@ -155,14 +161,24 @@ class ExpertFactory:
         # Get configuration
         config = EXPERT_REGISTRY.get(expert_name)
         if not config:
-            logger.error(f"Unknown expert: {expert_name}")
+            error = ConfigurationError(
+                f"Unknown expert: {expert_name}",
+                config_key=expert_name,
+                context={"available_experts": list(EXPERT_REGISTRY.keys())}
+            )
+            handle_error(error, logger, reraise=False)
             return None
         
         # Get API key if required
         if config.requires_api_key:
             api_key = os.getenv(config.env_var_name)
             if not api_key:
-                logger.warning(f"No API key found for {expert_name} ({config.env_var_name})")
+                error = MissingConfigError(
+                    config.env_var_name,
+                    config_source="environment",
+                    context={"expert": expert_name}
+                )
+                handle_error(error, logger, reraise=False)
                 return None
         else:
             api_key = None
@@ -181,7 +197,12 @@ class ExpertFactory:
                 return None
                 
         except Exception as e:
-            logger.error(f"Failed to create {expert_name} client: {e}")
+            error = AIError(
+                f"Failed to create {expert_name} client",
+                expert_type=expert_name,
+                cause=e
+            )
+            handle_error(error, logger, reraise=False)
             return None
     
     async def select_experts_for_query(
@@ -420,13 +441,21 @@ def get_expert(expert_name: str) -> BaseExpertClient:
     """
     config = EXPERT_REGISTRY.get(expert_name)
     if not config:
-        raise ValueError(f"Unknown expert: {expert_name}")
+        raise ConfigurationError(
+            f"Unknown expert: {expert_name}",
+            config_key=expert_name,
+            context={"available_experts": list(EXPERT_REGISTRY.keys())}
+        )
     
     # Get API key if required
     if config.requires_api_key:
         api_key = os.getenv(config.env_var_name)
         if not api_key:
-            raise ValueError(f"No API key found for {expert_name} ({config.env_var_name})")
+            raise MissingConfigError(
+                config.env_var_name,
+                config_source="environment",
+                context={"expert": expert_name}
+            )
     else:
         api_key = None
     
@@ -462,12 +491,19 @@ def create_expert(expert_type: ExpertType, config: Optional[Dict[str, Any]] = No
     
     expert_name = type_mapping.get(expert_type)
     if not expert_name:
-        raise ValueError(f"Unknown expert type: {expert_type}")
+        raise ConfigurationError(
+            f"Unknown expert type: {expert_type}",
+            config_key=str(expert_type),
+            context={"valid_types": list(type_mapping.keys())}
+        )
     
     # Get expert configuration
     expert_config = EXPERT_REGISTRY.get(expert_name)
     if not expert_config:
-        raise ValueError(f"No configuration found for expert: {expert_name}")
+        raise ConfigurationError(
+            f"No configuration found for expert: {expert_name}",
+            config_key=expert_name
+        )
     
     # Use config if provided, otherwise use environment
     if config and "api_key" in config:
@@ -475,7 +511,11 @@ def create_expert(expert_type: ExpertType, config: Optional[Dict[str, Any]] = No
     elif expert_config.requires_api_key:
         api_key = os.getenv(expert_config.env_var_name)
         if not api_key:
-            raise ValueError(f"No API key found for {expert_name} ({expert_config.env_var_name})")
+            raise MissingConfigError(
+                expert_config.env_var_name,
+                config_source="environment",
+                context={"expert": expert_name}
+            )
     else:
         api_key = None
     
@@ -545,7 +585,12 @@ class ExpertOrchestrator:
             except asyncio.TimeoutError:
                 logger.warning(f"Expert {type(expert).__name__} timed out")
             except Exception as e:
-                logger.error(f"Expert {type(expert).__name__} failed: {e}")
+                error = AIError(
+                    f"Expert {type(expert).__name__} failed",
+                    expert_type=type(expert).__name__,
+                    cause=e
+                )
+                handle_error(error, logger, reraise=False)
         
         # Ensure minimum responses
         if len(responses) < min_experts:
@@ -569,5 +614,9 @@ class ExpertOrchestrator:
                 timeout=timeout
             )
         except asyncio.TimeoutError:
-            logger.error(f"Expert {type(expert).__name__} timed out after {timeout}s")
-            raise
+            from src.core.exceptions import AITimeoutError
+            raise AITimeoutError(
+                f"Expert {type(expert).__name__} timed out",
+                timeout_seconds=timeout,
+                context={"expert": type(expert).__name__, "query_id": query.id}
+            )

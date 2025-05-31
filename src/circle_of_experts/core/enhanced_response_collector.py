@@ -10,9 +10,9 @@ from typing import List, Dict, Any, Optional
 import logging
 
 from .response_collector import ResponseCollector
-from ..models.response import ExpertResponse, ConsensusResponse
-from ..drive.manager import DriveManager
-from ..utils.rust_integration import get_rust_integration
+from src.circle_of_experts.models.response import ExpertResponse, ConsensusResponse
+from src.circle_of_experts.drive.manager import DriveManager
+from src.circle_of_experts.utils.rust_integration import get_rust_integration
 
 logger = logging.getLogger(__name__)
 

@@ -41,13 +41,13 @@ def test_deepseek_client():
         sys.path.insert(0, str(current_dir / 'src' / 'circle_of_experts' / 'utils'))
         
         # Import base dependencies first
-        from response import ExpertResponse, ExpertType, ResponseStatus
-        from query import ExpertQuery
+        from src.circle_of_experts.models.response import ExpertResponse, ExpertType, ResponseStatus
+        from src.circle_of_experts.models.query import ExpertQuery
         
         print("✅ Base models imported")
         
         # Import the base expert client
-        from claude_expert import BaseExpertClient
+        from src.circle_of_experts.experts.claude_expert import BaseExpertClient
         print("✅ Base expert client imported")
         
         # Now try to import DeepSeek directly

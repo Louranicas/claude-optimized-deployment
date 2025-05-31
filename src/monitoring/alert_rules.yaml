@@ -1,0 +1,317 @@
+groups:
+  - name: claude_deployment_engine_sla
+    interval: 30s
+    rules:
+      # SLA Compliance Alerts
+      - alert: SLAViolationCritical
+        expr: sla_compliance_percent < 99.9
+        for: 5m
+        labels:
+          severity: critical
+          component: sla
+        annotations:
+          summary: "Critical SLA violation detected"
+          description: "SLA compliance for {{ $labels.sla_name }} has fallen below 99.9% (current: {{ $value }}%)"
+          runbook_url: "https://docs.example.com/runbooks/sla-violation"
+
+      - alert: ErrorBudgetExhausted
+        expr: error_budget_consumed_percent > 90
+        for: 10m
+        labels:
+          severity: high
+          component: sla
+        annotations:
+          summary: "Error budget nearly exhausted"
+          description: "Error budget for {{ $labels.sla_name }} is {{ $value }}% consumed"
+          runbook_url: "https://docs.example.com/runbooks/error-budget"
+
+  - name: claude_deployment_engine_api
+    interval: 30s
+    rules:
+      # API Performance
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: high
+          component: api
+        annotations:
+          summary: "API latency is high"
+          description: "95th percentile API latency is {{ $value }}s (threshold: 2s)"
+          runbook_url: "https://docs.example.com/runbooks/high-latency"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: high
+          component: api
+        annotations:
+          summary: "High API error rate"
+          description: "API error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook_url: "https://docs.example.com/runbooks/high-error-rate"
+
+      - alert: APIAvailabilityLow
+        expr: rate(http_requests_total{status!~"5.."}[5m]) / rate(http_requests_total[5m]) < 0.999
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API availability is low"
+          description: "API availability is {{ $value | humanizePercentage }} (target: 99.9%)"
+          runbook_url: "https://docs.example.com/runbooks/low-availability"
+
+  - name: claude_deployment_engine_resources
+    interval: 30s
+    rules:
+      # Resource Usage
+      - alert: HighCPUUsage
+        expr: cpu_usage_percent > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% (threshold: 85%)"
+          runbook_url: "https://docs.example.com/runbooks/high-cpu"
+
+      - alert: CriticalCPUUsage
+        expr: cpu_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://docs.example.com/runbooks/critical-cpu"
+
+      - alert: HighMemoryUsage
+        expr: memory_usage_bytes{type="percent"} > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% (threshold: 85%)"
+          runbook_url: "https://docs.example.com/runbooks/high-memory"
+
+      - alert: CriticalMemoryUsage
+        expr: memory_usage_bytes{type="percent"} > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://docs.example.com/runbooks/critical-memory"
+
+      - alert: DiskSpaceLow
+        expr: (disk_usage_bytes{path="/",type="used"} / disk_usage_bytes{path="/",type="total"}) * 100 > 85
+        for: 30m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Disk space is running low"
+          description: "Disk usage is {{ $value }}% (threshold: 85%)"
+          runbook_url: "https://docs.example.com/runbooks/low-disk"
+
+      - alert: DiskSpaceCritical
+        expr: (disk_usage_bytes{path="/",type="used"} / disk_usage_bytes{path="/",type="total"}) * 100 > 95
+        for: 10m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Disk space is critically low"
+          description: "Disk usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://docs.example.com/runbooks/critical-disk"
+
+  - name: claude_deployment_engine_ai
+    interval: 30s
+    rules:
+      # AI/ML Specific
+      - alert: HighAILatency
+        expr: histogram_quantile(0.95, sum(rate(ai_request_duration_seconds_bucket[5m])) by (le)) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: ai
+        annotations:
+          summary: "AI request latency is high"
+          description: "95th percentile AI latency is {{ $value }}s (threshold: 30s)"
+          runbook_url: "https://docs.example.com/runbooks/ai-latency"
+
+      - alert: AIProviderErrors
+        expr: rate(ai_requests_total{status="error"}[5m]) / rate(ai_requests_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          component: ai
+        annotations:
+          summary: "AI provider error rate is high"
+          description: "AI error rate is {{ $value | humanizePercentage }} for provider {{ $labels.provider }}"
+          runbook_url: "https://docs.example.com/runbooks/ai-errors"
+
+      - alert: HighAICosts
+        expr: rate(ai_cost_dollars[1h]) * 3600 > 10
+        for: 15m
+        labels:
+          severity: warning
+          component: ai
+          cost_category: high
+        annotations:
+          summary: "AI costs are high"
+          description: "AI costs are ${{ $value }}/hour for provider {{ $labels.provider }}"
+          runbook_url: "https://docs.example.com/runbooks/ai-costs"
+
+      - alert: AIProviderDown
+        expr: up{job="ai_providers"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: ai
+        annotations:
+          summary: "AI provider is down"
+          description: "AI provider {{ $labels.provider }} is not responding"
+          runbook_url: "https://docs.example.com/runbooks/ai-provider-down"
+
+  - name: claude_deployment_engine_mcp
+    interval: 30s
+    rules:
+      # MCP Specific
+      - alert: MCPToolFailures
+        expr: rate(mcp_tool_calls_total{status="error"}[5m]) / rate(mcp_tool_calls_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          component: mcp
+        annotations:
+          summary: "MCP tool failure rate is high"
+          description: "MCP tool {{ $labels.tool }} on server {{ $labels.server }} has {{ $value | humanizePercentage }} error rate"
+          runbook_url: "https://docs.example.com/runbooks/mcp-failures"
+
+      - alert: MCPServerDown
+        expr: up{job="mcp_servers"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: mcp
+        annotations:
+          summary: "MCP server is down"
+          description: "MCP server {{ $labels.server }} is not responding"
+          runbook_url: "https://docs.example.com/runbooks/mcp-server-down"
+
+      - alert: MCPToolLatencyHigh
+        expr: histogram_quantile(0.95, sum(rate(mcp_tool_duration_seconds_bucket[5m])) by (le, server)) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: mcp
+        annotations:
+          summary: "MCP tool latency is high"
+          description: "MCP server {{ $labels.server }} has p95 latency of {{ $value }}s"
+          runbook_url: "https://docs.example.com/runbooks/mcp-latency"
+
+  - name: claude_deployment_engine_business
+    interval: 30s
+    rules:
+      # Business Metrics
+      - alert: LowActiveUsers
+        expr: active_users < 5
+        for: 30m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Low active user count"
+          description: "Only {{ $value }} active users currently"
+
+      - alert: DeploymentFailureRate
+        expr: rate(business_operations_total{operation="deployment",status="error"}[10m]) / rate(business_operations_total{operation="deployment"}[10m]) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          component: business
+        annotations:
+          summary: "High deployment failure rate"
+          description: "Deployment failure rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.example.com/runbooks/deployment-failures"
+
+      - alert: QueueBacklog
+        expr: queue_size > 100
+        for: 15m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Queue backlog is high"
+          description: "Queue {{ $labels.queue_name }} has {{ $value }} items"
+          runbook_url: "https://docs.example.com/runbooks/queue-backlog"
+
+  - name: claude_deployment_engine_security
+    interval: 30s
+    rules:
+      # Security Alerts
+      - alert: UnauthorizedAccess
+        expr: rate(http_requests_total{status="401"}[5m]) > 1
+        for: 2m
+        labels:
+          severity: high
+          component: security
+        annotations:
+          summary: "Elevated unauthorized access attempts"
+          description: "{{ $value }} unauthorized requests per second"
+          runbook_url: "https://docs.example.com/runbooks/unauthorized-access"
+
+      - alert: TooManyErrors
+        expr: rate(errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High error rate"
+          description: "{{ $value }} errors per second in component {{ $labels.component }}"
+
+      - alert: UnhandledExceptions
+        expr: rate(unhandled_exceptions_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Unhandled exceptions detected"
+          description: "{{ $value }} unhandled {{ $labels.exception_type }} exceptions per second"
+          runbook_url: "https://docs.example.com/runbooks/unhandled-exceptions"
+
+  - name: claude_deployment_engine_heartbeat
+    interval: 30s
+    rules:
+      # Heartbeat / Watchdog
+      - alert: ServiceDown
+        expr: up{job="claude-deployment-engine"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: service
+        annotations:
+          summary: "Claude Deployment Engine is down"
+          description: "The main service has been down for more than 1 minute"
+          runbook_url: "https://docs.example.com/runbooks/service-down"
+
+      - alert: HealthCheckFailing
+        expr: http_requests_total{endpoint="/monitoring/health/ready",status!~"2.."} > 0
+        for: 2m
+        labels:
+          severity: critical
+          component: health
+        annotations:
+          summary: "Health check is failing"
+          description: "Readiness probe is failing"
+          runbook_url: "https://docs.example.com/runbooks/health-check-failing"

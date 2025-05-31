@@ -9,10 +9,10 @@ import logging
 from typing import Dict, Any, List, Optional
 import asyncio
 
-from ..mcp.manager import get_mcp_manager, MCPContext
-from ..models.query import ExpertQuery
-from ..models.response import ExpertResponse
-from ..core.expert_manager import EnhancedExpertManager
+from src.mcp.manager import get_mcp_manager, MCPContext
+from src.circle_of_experts.models.query import ExpertQuery
+from src.circle_of_experts.models.response import ExpertResponse
+from src.circle_of_experts.core.expert_manager import EnhancedExpertManager
 
 logger = logging.getLogger(__name__)
 

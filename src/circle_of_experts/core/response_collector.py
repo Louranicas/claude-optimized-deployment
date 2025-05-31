@@ -11,11 +11,15 @@ from datetime import datetime
 import logging
 from collections import defaultdict
 
-from ..models.response import ExpertResponse, ExpertType, ResponseStatus, ConsensusResponse
-from ..models.query import ExpertQuery
-from ..drive.manager import DriveManager
-from ..utils.logging import LogContext
-from ..utils.rust_integration import get_rust_integration
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType, ResponseStatus, ConsensusResponse
+from src.circle_of_experts.models.query import ExpertQuery
+from src.circle_of_experts.drive.manager import DriveManager
+from src.circle_of_experts.utils.logging import LogContext
+from src.circle_of_experts.utils.rust_integration import get_rust_integration
+from src.circle_of_experts.utils.validation import (
+    validate_string, validate_list, validate_number,
+    ValidationError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +39,8 @@ class ResponseCollector:
         Args:
             drive_manager: DriveManager instance for Google Drive operations
         """
+        if drive_manager is None:
+            raise ValidationError("drive_manager", None, "DriveManager cannot be None")
         self.drive_manager = drive_manager
         self._responses: Dict[str, List[ExpertResponse]] = defaultdict(list)
         self._response_files: Dict[str, str] = {}  # response_id -> file_id mapping
@@ -61,6 +67,12 @@ class ResponseCollector:
         Returns:
             List of collected responses
         """
+        # Validate parameters
+        query_id = validate_string(query_id, "query_id", required=True)
+        timeout = validate_number(timeout, "timeout", min_value=1.0, max_value=3600.0)
+        min_responses = validate_number(min_responses, "min_responses", min_value=0, max_value=20, allow_float=False)
+        required_experts = validate_list(required_experts, "required_experts", item_type=ExpertType)
+        
         with LogContext(query_id=query_id, action="collect_responses"):
             logger.info(
                 f"Starting response collection for query {query_id} "
@@ -107,6 +119,9 @@ class ResponseCollector:
         Returns:
             List of responses for the query
         """
+        # Validate parameter
+        query_id = validate_string(query_id, "query_id", required=True)
+        
         return self._responses.get(query_id, [])
     
     async def aggregate_responses(self, query_id: str) -> Dict[str, Any]:
@@ -120,6 +135,9 @@ class ResponseCollector:
         Returns:
             Aggregated analysis of responses
         """
+        # Validate parameter
+        query_id = validate_string(query_id, "query_id", required=True)
+        
         responses = await self.get_responses(query_id)
         
         if not responses:
@@ -298,6 +316,13 @@ class ResponseCollector:
         Returns:
             Markdown-formatted consensus report
         """
+        # Validate parameters
+        if query is None:
+            raise ValidationError("query", None, "Query cannot be None")
+        if not isinstance(query, ExpertQuery):
+            raise ValidationError("query", query, f"Expected ExpertQuery, got {type(query).__name__}")
+        responses = validate_list(responses, "responses", min_items=0)
+        
         aggregation = await self.aggregate_responses(query.id)
         
         report_lines = [
@@ -372,6 +397,13 @@ class ResponseCollector:
         Returns:
             File ID of the saved report
         """
+        # Validate parameters - consensus report creation will validate these too
+        if query is None:
+            raise ValidationError("query", None, "Query cannot be None")
+        if not isinstance(query, ExpertQuery):
+            raise ValidationError("query", query, f"Expected ExpertQuery, got {type(query).__name__}")
+        responses = validate_list(responses, "responses", min_items=0)
+        
         report_content = await self.create_consensus_report(query, responses)
         
         # Create a special response object for the consensus
@@ -400,8 +432,11 @@ class ResponseCollector:
         Returns:
             ConsensusResponse object
         """
-        if not responses:
-            raise ValueError("Cannot build consensus from empty responses")
+        # Validate parameters
+        responses = validate_list(responses, "responses", min_items=1)
+        for i, response in enumerate(responses):
+            if not isinstance(response, ExpertResponse):
+                raise ValidationError(f"responses[{i}]", response, f"Expected ExpertResponse, got {type(response).__name__}")
         
         # Calculate average confidence
         avg_confidence = sum(r.confidence for r in responses) / len(responses)

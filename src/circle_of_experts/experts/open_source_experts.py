@@ -13,10 +13,12 @@ import json
 import logging
 from datetime import datetime
 
-from ..models.response import ExpertResponse, ExpertType, ResponseStatus
-from ..models.query import ExpertQuery
-from ..utils.retry import with_retry, RetryPolicy
-from .claude_expert import BaseExpertClient
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType, ResponseStatus
+from src.circle_of_experts.models.query import ExpertQuery
+from src.core.retry import retry_network, RetryConfig, RetryStrategy
+from src.circle_of_experts.experts.claude_expert import BaseExpertClient
+from src.core.connections import get_connection_manager
+from src.core.circuit_breaker import circuit_breaker, CircuitBreakerConfig, get_circuit_breaker_manager
 
 logger = logging.getLogger(__name__)
 
@@ -59,11 +61,12 @@ class OllamaExpertClient(BaseExpertClient):
     async def ensure_model_pulled(self) -> bool:
         """Ensure the model is downloaded."""
         try:
-            async with aiohttp.ClientSession() as session:
+            # Use connection pool
+            connection_manager = await get_connection_manager()
+            async with connection_manager.http_pool.get_session(self.host) as session:
                 # Check if model exists
                 async with session.get(
-                    f"{self.host}/api/tags",
-                    timeout=aiohttp.ClientTimeout(total=10)
+                    f"{self.host}/api/tags"
                 ) as resp:
                     if resp.status == 200:
                         data = await resp.json()
@@ -74,8 +77,7 @@ class OllamaExpertClient(BaseExpertClient):
                             # Pull model
                             async with session.post(
                                 f"{self.host}/api/pull",
-                                json={"name": self.model},
-                                timeout=aiohttp.ClientTimeout(total=3600)  # 1 hour for download
+                                json={"name": self.model}
                             ) as pull_resp:
                                 return pull_resp.status == 200
             return True
@@ -119,7 +121,6 @@ Format your response with clear sections and include code examples where relevan
         
         return prompt
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using Ollama."""
         start_time = datetime.utcnow()
@@ -139,42 +140,32 @@ Format your response with clear sections and include code examples where relevan
             model = self._select_model_for_query(query)
             logger.info(f"Using Ollama model: {model}")
             
-            async with aiohttp.ClientSession() as session:
-                # Generate response
-                async with session.post(
-                    f"{self.host}/api/generate",
-                    json={
-                        "model": model,
-                        "prompt": self._create_prompt(query),
-                        "stream": False,
-                        "options": {
-                            "temperature": 0.7,
-                            "top_p": 0.9,
-                            "num_predict": 4096
-                        }
-                    },
-                    timeout=aiohttp.ClientTimeout(total=self.timeout)
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        content = data.get("response", "")
-                        
-                        response.content = content
-                        response.confidence = self._calculate_confidence(content)
-                        response.recommendations = self._extract_recommendations(content)
-                        response.code_snippets = self._extract_code_snippets(content)
-                        
-                        # Add Ollama metadata
-                        response.metadata.update({
-                            "model": model,
-                            "eval_count": data.get("eval_count"),
-                            "eval_duration": data.get("eval_duration"),
-                            "total_duration": data.get("total_duration")
-                        })
-                        
-                        response.mark_completed()
-                    else:
-                        raise RuntimeError(f"Ollama API error: {resp.status}")
+            # Get circuit breaker for this expert
+            manager = get_circuit_breaker_manager()
+            breaker = await manager.get_or_create(
+                f"ollama_expert_{model}",
+                CircuitBreakerConfig(
+                    failure_threshold=5,
+                    timeout=120,
+                    failure_rate_threshold=0.6,
+                    minimum_calls=3,
+                    fallback=lambda: self._create_fallback_response(query)
+                )
+            )
+            
+            # Generate response with circuit breaker protection
+            result = await breaker.call(
+                self._ollama_api_call,
+                model,
+                query
+            )
+            
+            response.content = result['content']
+            response.confidence = result['confidence']
+            response.recommendations = result['recommendations']
+            response.code_snippets = result['code_snippets']
+            response.metadata = result['metadata']
+            response.mark_completed()
                         
         except Exception as e:
             logger.error(f"Ollama generation failed: {e}")
@@ -185,10 +176,11 @@ Format your response with clear sections and include code examples where relevan
     async def health_check(self) -> bool:
         """Check if Ollama is running."""
         try:
-            async with aiohttp.ClientSession() as session:
+            # Use connection pool
+            connection_manager = await get_connection_manager()
+            async with connection_manager.http_pool.get_session(self.host) as session:
                 async with session.get(
-                    f"{self.host}/api/version",
-                    timeout=aiohttp.ClientTimeout(total=5)
+                    f"{self.host}/api/version"
                 ) as resp:
                     return resp.status == 200
         except Exception:
@@ -244,6 +236,58 @@ Format your response with clear sections and include code examples where relevan
                     })
         
         return snippets
+    
+    @retry_network(max_attempts=3, timeout=60)
+    async def _ollama_api_call(self, model: str, query: ExpertQuery) -> Dict[str, Any]:
+        """Make Ollama API call with retry logic."""
+        # Use connection pool
+        connection_manager = await get_connection_manager()
+        async with connection_manager.http_pool.get_session(self.host) as session:
+            # Generate response
+            async with session.post(
+                f"{self.host}/api/generate",
+                json={
+                    "model": model,
+                    "prompt": self._create_prompt(query),
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.7,
+                        "top_p": 0.9,
+                        "num_predict": 4096
+                    }
+                }
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    content = data.get("response", "")
+                    
+                    return {
+                        'content': content,
+                        'confidence': self._calculate_confidence(content),
+                        'recommendations': self._extract_recommendations(content),
+                        'code_snippets': self._extract_code_snippets(content),
+                        'metadata': {
+                            "model": model,
+                            "eval_count": data.get("eval_count"),
+                            "eval_duration": data.get("eval_duration"),
+                            "total_duration": data.get("total_duration")
+                        }
+                    }
+                else:
+                    raise RuntimeError(f"Ollama API error: {resp.status}")
+    
+    def _create_fallback_response(self, query: ExpertQuery) -> Dict[str, Any]:
+        """Create fallback response when circuit is open."""
+        return {
+            'content': "Ollama service is currently unavailable. The circuit breaker has been triggered due to repeated failures. Please check if Ollama is running locally.",
+            'confidence': 0.0,
+            'recommendations': [],
+            'code_snippets': [],
+            'metadata': {
+                "fallback": True,
+                "reason": "circuit_breaker_open"
+            }
+        }
 
 
 class LocalAIExpertClient(BaseExpertClient):
@@ -343,7 +387,6 @@ class HuggingFaceExpertClient(BaseExpertClient):
         self.model = model
         self.api_url = f"https://api-inference.huggingface.co/models/{model}"
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using HuggingFace."""
         response = ExpertResponse(
@@ -354,46 +397,29 @@ class HuggingFaceExpertClient(BaseExpertClient):
         )
         
         try:
-            headers = {}
-            if self.api_key:
-                headers["Authorization"] = f"Bearer {self.api_key}"
+            # Get circuit breaker for this expert
+            manager = get_circuit_breaker_manager()
+            breaker = await manager.get_or_create(
+                f"huggingface_expert_{self.model.replace('/', '_')}",
+                CircuitBreakerConfig(
+                    failure_threshold=5,
+                    timeout=90,
+                    failure_rate_threshold=0.6,
+                    minimum_calls=3,
+                    fallback=lambda: self._create_fallback_response(query)
+                )
+            )
             
-            prompt = f"""<|system|>You are an expert technical consultant.</s>
-<|user|>{query.content}</s>
-<|assistant|>"""
+            # Generate response with circuit breaker protection
+            result = await breaker.call(
+                self._huggingface_api_call,
+                query
+            )
             
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    self.api_url,
-                    headers=headers,
-                    json={
-                        "inputs": prompt,
-                        "parameters": {
-                            "max_new_tokens": 2048,
-                            "temperature": 0.7,
-                            "top_p": 0.95,
-                            "do_sample": True
-                        }
-                    },
-                    timeout=aiohttp.ClientTimeout(total=60)
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        
-                        # Extract generated text
-                        if isinstance(data, list) and data:
-                            content = data[0].get("generated_text", "")
-                            # Remove the prompt from response
-                            content = content.replace(prompt, "").strip()
-                        else:
-                            content = str(data)
-                        
-                        response.content = content
-                        response.confidence = 0.75
-                        response.mark_completed()
-                    else:
-                        error_data = await resp.text()
-                        raise RuntimeError(f"HuggingFace error {resp.status}: {error_data}")
+            response.content = result['content']
+            response.confidence = result['confidence']
+            response.metadata = result['metadata']
+            response.mark_completed()
                         
         except Exception as e:
             logger.error(f"HuggingFace generation failed: {e}")
@@ -418,3 +444,64 @@ class HuggingFaceExpertClient(BaseExpertClient):
                     return resp.status in [200, 503]  # 503 = model loading
         except Exception:
             return False
+    
+    @retry_network(max_attempts=3, timeout=60)
+    async def _huggingface_api_call(self, query: ExpertQuery) -> Dict[str, Any]:
+        """Make HuggingFace API call with retry logic."""
+        headers = {}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        
+        prompt = f"""<|system|>You are an expert technical consultant.</s>
+<|user|>{query.content}</s>
+<|assistant|>"""
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                self.api_url,
+                headers=headers,
+                json={
+                    "inputs": prompt,
+                    "parameters": {
+                        "max_new_tokens": 2048,
+                        "temperature": 0.7,
+                        "top_p": 0.95,
+                        "do_sample": True
+                    }
+                },
+                timeout=aiohttp.ClientTimeout(total=60)
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    
+                    # Extract generated text
+                    if isinstance(data, list) and data:
+                        content = data[0].get("generated_text", "")
+                        # Remove the prompt from response
+                        content = content.replace(prompt, "").strip()
+                    else:
+                        content = str(data)
+                    
+                    return {
+                        'content': content,
+                        'confidence': 0.75,
+                        'metadata': {
+                            "model": self.model,
+                            "api_url": self.api_url
+                        }
+                    }
+                else:
+                    error_data = await resp.text()
+                    raise RuntimeError(f"HuggingFace error {resp.status}: {error_data}")
+    
+    def _create_fallback_response(self, query: ExpertQuery) -> Dict[str, Any]:
+        """Create fallback response when circuit is open."""
+        return {
+            'content': "HuggingFace Inference API is currently unavailable. The circuit breaker has been triggered due to repeated failures. Please try again later or check API status.",
+            'confidence': 0.0,
+            'metadata': {
+                "fallback": True,
+                "reason": "circuit_breaker_open",
+                "model": self.model
+            }
+        }

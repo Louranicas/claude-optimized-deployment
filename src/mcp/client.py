@@ -10,10 +10,11 @@ from typing import Dict, Any, Optional, List, Callable
 import aiohttp
 from abc import ABC, abstractmethod
 
-from .protocols import (
+from src.mcp.protocols import (
     MCPRequest, MCPResponse, MCPNotification, MCPError,
     MCPMethod, MCPServerInfo, MCPCapabilities
 )
+from src.core.retry import retry_network, RetryConfig
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,11 @@ class HTTPTransport(MCPTransport):
     
     async def send_request(self, request: MCPRequest) -> MCPResponse:
         """Send HTTP request to MCP server."""
+        return await self._send_request_with_retry(request)
+    
+    @retry_network(max_attempts=3, timeout=30)
+    async def _send_request_with_retry(self, request: MCPRequest) -> MCPResponse:
+        """Send HTTP request with retry logic."""
         if not self.session:
             await self.connect()
         
@@ -81,6 +87,11 @@ class HTTPTransport(MCPTransport):
     
     async def send_notification(self, notification: MCPNotification) -> None:
         """Send notification via HTTP POST."""
+        await self._send_notification_with_retry(notification)
+    
+    @retry_network(max_attempts=3, timeout=30)
+    async def _send_notification_with_retry(self, notification: MCPNotification) -> None:
+        """Send notification with retry logic."""
         if not self.session:
             await self.connect()
         
@@ -105,6 +116,11 @@ class WebSocketTransport(MCPTransport):
     
     async def connect(self) -> None:
         """Establish WebSocket connection."""
+        await self._connect_with_retry()
+    
+    @retry_network(max_attempts=3, timeout=30)
+    async def _connect_with_retry(self) -> None:
+        """Establish WebSocket connection with retry logic."""
         if not self.session:
             self.session = aiohttp.ClientSession()
         

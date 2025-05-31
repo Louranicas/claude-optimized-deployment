@@ -9,14 +9,33 @@ import asyncio
 import logging
 from typing import Dict, Any, List, Optional, Set
 from dataclasses import dataclass, field
+import time
 
-from .servers import MCPServerRegistry, MCPServer, BraveMCPServer
-from .protocols import MCPTool, MCPError, MCPServerInfo
+from src.mcp.servers import MCPServerRegistry, MCPServer, BraveMCPServer
+from src.mcp.protocols import MCPTool, MCPError, MCPServerInfo
+from src.core.exceptions import (
+    MCPError as MCPException,
+    MCPServerNotFoundError,
+    MCPToolNotFoundError,
+    MCPToolExecutionError,
+    MCPInitializationError,
+    handle_error
+)
+from src.core.logging_config import (
+    get_logger, 
+    mcp_logger,
+    correlation_context
+)
+from src.core.circuit_breaker import (
+    CircuitBreakerConfig,
+    get_circuit_breaker_manager,
+    CircuitOpenError
+)
 
 # Optional Circle of Experts integration
 try:
-    from ..circle_of_experts.models.query import ExpertQuery
-    from ..circle_of_experts.models.response import ExpertResponse
+    from src.circle_of_experts.models.query import ExpertQuery
+    from src.circle_of_experts.models.response import ExpertResponse
     CIRCLE_OF_EXPERTS_AVAILABLE = True
 except ImportError:
     # Define minimal placeholders if Circle of Experts not available
@@ -32,7 +51,7 @@ except ImportError:
     
     CIRCLE_OF_EXPERTS_AVAILABLE = False
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -101,7 +120,12 @@ class MCPManager:
                     await server.initialize()
                 logger.info(f"Initialized MCP server: {server_name}")
             except Exception as e:
-                logger.error(f"Failed to initialize {server_name}: {e}")
+                error = MCPInitializationError(
+                    f"Failed to initialize {server_name}",
+                    server_name=server_name,
+                    cause=e
+                )
+                handle_error(error, logger, reraise=False)
     
     def create_context(self, context_id: str, query: Optional[ExpertQuery] = None) -> MCPContext:
         """
@@ -204,34 +228,100 @@ class MCPManager:
         Returns:
             Tool execution result
         """
-        import time
         start_time = time.time()
         
-        # Parse tool name
-        if "." in tool_name:
-            server_name, actual_tool_name = tool_name.split(".", 1)
-        else:
-            # Try to find tool in any server
-            server_name, actual_tool_name = self._find_tool_server(tool_name)
-            if not server_name:
-                raise MCPError(-32601, f"Tool not found: {tool_name}")
+        # Use correlation context for request tracking
+        with correlation_context(context_id):
+        
+            # Parse tool name
+            if "." in tool_name:
+                server_name, actual_tool_name = tool_name.split(".", 1)
+            else:
+                # Try to find tool in any server
+                server_name, actual_tool_name = self._find_tool_server(tool_name)
+                if not server_name:
+                    available_tools = []
+                    for srv_name, srv in self.registry.servers.items():
+                        available_tools.extend([f"{srv_name}.{t.name}" for t in srv.get_tools()])
+                    raise MCPToolNotFoundError(
+                        tool_name, 
+                        "any", 
+                        available_tools=available_tools[:10]  # Show first 10
+                    )
+            
+            # Log tool call with MCP logger
+            mcp_logger.log_tool_call(server_name, actual_tool_name, arguments, context_id)
         
         # Check if server is enabled for context
         if context_id:
             context = self.get_context(context_id)
             if context and server_name not in context.enabled_servers:
-                raise MCPError(-32603, f"Server {server_name} is not enabled for this context")
+                raise MCPToolExecutionError(
+                    f"Server {server_name} is not enabled for this context",
+                    tool_name=actual_tool_name,
+                    server_name=server_name,
+                    context={"enabled_servers": list(context.enabled_servers)}
+                )
         
         # Get server and call tool
         server = self.registry.get(server_name)
         if not server:
-            raise MCPError(-32601, f"Server not found: {server_name}")
+            raise MCPServerNotFoundError(
+                server_name,
+                available_servers=self.registry.list_servers()
+            )
+        
+        # Get circuit breaker for this server/tool combination
+        breaker_manager = get_circuit_breaker_manager()
+        breaker = await breaker_manager.get_or_create(
+            f"mcp_{server_name}_{actual_tool_name}",
+            CircuitBreakerConfig(
+                failure_threshold=3,
+                timeout=60,
+                failure_rate_threshold=0.5,
+                minimum_calls=5,
+                excluded_exceptions=[MCPToolNotFoundError, MCPServerNotFoundError],
+                fallback=lambda: self._create_tool_fallback_response(
+                    server_name, actual_tool_name, arguments
+                )
+            )
+        )
         
         try:
-            result = await server.call_tool(actual_tool_name, arguments)
+            # Call tool with circuit breaker protection
+            result = await breaker.call(
+                server.call_tool,
+                actual_tool_name,
+                arguments
+            )
+                duration_ms = (time.time() - start_time) * 1000
+                
+                # Log successful tool result
+                mcp_logger.log_tool_result(server_name, actual_tool_name, True, duration_ms)
+                
+                # Record in context if provided
+                if context_id:
+                    context = self.get_context(context_id)
+                    if context:
+                        context.add_tool_call(MCPToolCall(
+                            server_name=server_name,
+                            tool_name=actual_tool_name,
+                            arguments=arguments,
+                            result=result,
+                            duration_ms=duration_ms,
+                            success=True
+                        ))
+                
+                return result
+            
+        except CircuitOpenError as e:
+            # Circuit breaker is open - return fallback
             duration_ms = (time.time() - start_time) * 1000
             
-            # Record in context if provided
+            # Log circuit breaker open
+            mcp_logger.log_tool_result(server_name, actual_tool_name, False, duration_ms, "Circuit breaker open")
+            
+            # Record in context
             if context_id:
                 context = self.get_context(context_id)
                 if context:
@@ -239,14 +329,18 @@ class MCPManager:
                         server_name=server_name,
                         tool_name=actual_tool_name,
                         arguments=arguments,
-                        result=result,
+                        result=None,
                         duration_ms=duration_ms,
-                        success=True
+                        success=False,
+                        error="Circuit breaker open"
                     ))
             
-            logger.info(f"Tool {tool_name} completed in {duration_ms:.1f}ms")
-            return result
-            
+            # Return fallback response
+            return self._create_tool_fallback_response(server_name, actual_tool_name, arguments)
+        
+        except MCPException:
+            # Re-raise MCP exceptions as-is
+            raise
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000
             
@@ -264,8 +358,19 @@ class MCPManager:
                         error=str(e)
                     ))
             
-            logger.error(f"Tool {tool_name} failed: {e}")
-            raise
+            # Log tool failure
+            mcp_logger.log_tool_result(server_name, actual_tool_name, False, duration_ms, str(e))
+            
+            # Wrap in MCPToolExecutionError
+            error = MCPToolExecutionError(
+                f"Tool execution failed: {str(e)}",
+                tool_name=actual_tool_name,
+                server_name=server_name,
+                arguments=arguments,
+                cause=e
+            )
+            handle_error(error, logger)
+            raise error
     
     def _find_tool_server(self, tool_name: str) -> tuple[Optional[str], str]:
         """Find which server provides a tool."""
@@ -394,6 +499,22 @@ class MCPManager:
         queries.extend([p.strip() for p in search_patterns])
         
         return queries[:3]  # Limit to 3 queries
+    
+    def _create_tool_fallback_response(
+        self,
+        server_name: str,
+        tool_name: str,
+        arguments: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Create fallback response when circuit breaker is open."""
+        return {
+            "error": "Service temporarily unavailable",
+            "details": f"The {server_name}.{tool_name} tool is currently unavailable due to repeated failures. Circuit breaker is open.",
+            "server": server_name,
+            "tool": tool_name,
+            "fallback": True,
+            "suggestion": "Please try again later or use an alternative tool."
+        }
     
     async def cleanup(self):
         """Clean up all MCP servers."""

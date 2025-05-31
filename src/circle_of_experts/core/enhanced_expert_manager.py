@@ -14,9 +14,9 @@ import time
 from contextlib import asynccontextmanager
 
 from .expert_manager import ExpertManager
-from ..models.query import ExpertQuery, QueryPriority, QueryType
-from ..models.response import ExpertResponse, ExpertType
-from ..utils.rust_integration import get_rust_integration
+from src.circle_of_experts.models.query import ExpertQuery, QueryPriority, QueryType
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType
+from src.circle_of_experts.utils.rust_integration import get_rust_integration
 
 logger = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from mcp.manager import get_mcp_manager, MCPManager
+from src.mcp.manager import get_mcp_manager, MCPManager
 
 
 async def test_mcp_servers():
@@ -171,7 +171,7 @@ async def test_circle_of_experts_mcp_integration():
     print("=" * 50)
     
     try:
-        from circle_of_experts.core.enhanced_expert_manager import EnhancedExpertManager
+        from src.circle_of_experts.core.enhanced_expert_manager import EnhancedExpertManager
         
         # Initialize expert manager
         expert_manager = EnhancedExpertManager()

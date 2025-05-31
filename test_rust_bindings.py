@@ -23,7 +23,7 @@ try:
     print(f"✓ Rust-accelerated module imported successfully")
     print(f"✓ Rust extensions available: {RUST_AVAILABLE}")
 except ImportError as e:
-    print(f"✗ Failed to import rust_accelerated module: {e}")
+    print(f"✗ Failed to import src.circle_of_experts.core.rust_accelerated module: {e}")
     exit(1)
 
 def generate_mock_responses(count: int) -> List[Dict[str, Any]]:

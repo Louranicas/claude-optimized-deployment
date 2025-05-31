@@ -14,8 +14,8 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from circle_of_experts import ExpertManager, ExpertQuery
-from circle_of_experts.models.query import QueryType, QueryPriority
+from src.circle_of_experts import ExpertManager, ExpertQuery
+from src.circle_of_experts.models.query import QueryType, QueryPriority
 
 
 async def security_consultation():

@@ -15,8 +15,18 @@ import logging
 from typing import Dict, Any, List, Optional, Union
 from pathlib import Path
 
-from .protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from .servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.core.circuit_breaker import CircuitBreakerConfig, get_circuit_breaker_manager
+from src.mcp.servers import MCPServer
+from src.core.exceptions import (
+    InfrastructureError,
+    CommandExecutionError,
+    DockerError,
+    KubernetesError,
+    TimeoutError as DeploymentTimeoutError,
+    ValidationError,
+    handle_error
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +43,7 @@ class DesktopCommanderMCPServer(MCPServer):
         """Initialize Desktop Commander MCP Server."""
         self.working_directory = Path.cwd()
         self.command_history: List[Dict[str, Any]] = []
+        self._circuit_breaker_manager = None
     
     def get_server_info(self) -> MCPServerInfo:
         """Get Desktop Commander server information."""
@@ -164,8 +175,32 @@ class DesktopCommanderMCPServer(MCPServer):
             )
         ]
     
+    async def _get_circuit_breaker_manager(self):
+        """Get or create circuit breaker manager."""
+        if self._circuit_breaker_manager is None:
+            self._circuit_breaker_manager = get_circuit_breaker_manager()
+        return self._circuit_breaker_manager
+    
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """Execute a Desktop Commander tool."""
+        """Execute Desktop Commander tool with circuit breaker protection."""
+        # Get circuit breaker for this tool
+        manager = await self._get_circuit_breaker_manager()
+        breaker = await manager.get_or_create(
+            f"desktop_commander_{tool_name}",
+            CircuitBreakerConfig(
+                failure_threshold=5,
+                timeout=120,
+                failure_rate_threshold=0.6,
+                minimum_calls=3,
+                fallback=lambda: self._create_fallback_response(tool_name, arguments)
+            )
+        )
+        
+        # Execute tool with circuit breaker protection
+        return await breaker.call(self._execute_tool, tool_name, arguments)
+    
+    async def _execute_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
+        """Internal tool execution method."""
         try:
             if tool_name == "execute_command":
                 return await self._execute_command(**arguments)
@@ -182,6 +217,16 @@ class DesktopCommanderMCPServer(MCPServer):
         except Exception as e:
             logger.error(f"Error calling Desktop Commander tool {tool_name}: {e}")
             raise
+    
+    def _create_fallback_response(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Create fallback response when circuit is open."""
+        return {
+            "status": "error",
+            "message": f"Desktop Commander service is temporarily unavailable. Tool '{tool_name}' cannot be executed right now due to circuit breaker protection.",
+            "tool": tool_name,
+            "fallback": True,
+            "retry_after": "Please try again in a few minutes"
+        }
     
     async def _execute_command(
         self,
@@ -222,16 +267,30 @@ class DesktopCommanderMCPServer(MCPServer):
             return result
             
         except asyncio.TimeoutError:
-            raise MCPError(-32000, f"Command timed out after {timeout} seconds")
+            raise DeploymentTimeoutError(
+                f"Command timed out after {timeout} seconds",
+                timeout_seconds=timeout,
+                operation="execute_command",
+                context={"command": command, "working_directory": str(work_dir)}
+            )
         except Exception as e:
-            raise MCPError(-32000, f"Command execution failed: {str(e)}")
+            raise CommandExecutionError(
+                f"Command execution failed: {str(e)}",
+                command=command,
+                exit_code=process.returncode if 'process' in locals() else None,
+                stderr=stderr.decode('utf-8') if 'stderr' in locals() else None,
+                cause=e
+            )
     
     async def _read_file(self, file_path: str, encoding: str = "utf-8") -> Dict[str, Any]:
         """Read file contents."""
         try:
             path = Path(file_path)
             if not path.exists():
-                raise MCPError(-32000, f"File not found: {file_path}")
+                raise InfrastructureError(
+                    f"File not found: {file_path}",
+                    context={"file_path": file_path, "operation": "read_file"}
+                )
             
             content = path.read_text(encoding=encoding)
             
@@ -241,8 +300,14 @@ class DesktopCommanderMCPServer(MCPServer):
                 "size": len(content),
                 "encoding": encoding
             }
+        except InfrastructureError:
+            raise
         except Exception as e:
-            raise MCPError(-32000, f"Failed to read file: {str(e)}")
+            raise InfrastructureError(
+                f"Failed to read file: {str(e)}",
+                context={"file_path": file_path},
+                cause=e
+            )
     
     async def _write_file(
         self,
@@ -265,7 +330,11 @@ class DesktopCommanderMCPServer(MCPServer):
                 "created_dirs": create_dirs and not path.parent.exists()
             }
         except Exception as e:
-            raise MCPError(-32000, f"Failed to write file: {str(e)}")
+            raise InfrastructureError(
+                f"Failed to write file: {str(e)}",
+                context={"file_path": file_path, "content_size": len(content)},
+                cause=e
+            )
     
     async def _list_directory(
         self,
@@ -276,10 +345,17 @@ class DesktopCommanderMCPServer(MCPServer):
         try:
             path = Path(directory_path)
             if not path.exists():
-                raise MCPError(-32000, f"Directory not found: {directory_path}")
+                raise InfrastructureError(
+                    f"Directory not found: {directory_path}",
+                    context={"directory_path": directory_path}
+                )
             
             if not path.is_dir():
-                raise MCPError(-32000, f"Path is not a directory: {directory_path}")
+                raise ValidationError(
+                    f"Path is not a directory: {directory_path}",
+                    field="directory_path",
+                    value=directory_path
+                )
             
             items = []
             for item in path.iterdir():
@@ -298,8 +374,14 @@ class DesktopCommanderMCPServer(MCPServer):
                 "items": sorted(items, key=lambda x: (x["type"], x["name"])),
                 "total_items": len(items)
             }
+        except (InfrastructureError, ValidationError):
+            raise
         except Exception as e:
-            raise MCPError(-32000, f"Failed to list directory: {str(e)}")
+            raise InfrastructureError(
+                f"Failed to list directory: {str(e)}",
+                context={"directory_path": directory_path},
+                cause=e
+            )
     
     async def _make_command(self, target: str, args: Optional[str] = None) -> Dict[str, Any]:
         """Execute Make commands for CODE project."""
@@ -464,7 +546,10 @@ class DockerMCPServer(MCPServer):
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
         """Execute a Docker tool."""
         if not await self._check_docker():
-            raise MCPError(-32000, "Docker is not available on this system")
+            raise DockerError(
+                "Docker is not available on this system",
+                context={"tool_name": tool_name}
+            )
         
         try:
             if tool_name == "docker_run":
@@ -476,10 +561,22 @@ class DockerMCPServer(MCPServer):
             elif tool_name == "docker_ps":
                 return await self._docker_ps(**arguments)
             else:
-                raise MCPError(-32601, f"Unknown tool: {tool_name}")
-        except Exception as e:
-            logger.error(f"Error calling Docker tool {tool_name}: {e}")
+                from src.core.exceptions import MCPToolNotFoundError
+                raise MCPToolNotFoundError(
+                    tool_name,
+                    "docker",
+                    available_tools=["docker_run", "docker_build", "docker_compose", "docker_ps"]
+                )
+        except DockerError:
             raise
+        except Exception as e:
+            error = DockerError(
+                f"Error calling Docker tool {tool_name}",
+                context={"tool_name": tool_name, "arguments": arguments},
+                cause=e
+            )
+            handle_error(error, logger)
+            raise error
     
     async def _docker_run(
         self,
@@ -533,7 +630,16 @@ class DockerMCPServer(MCPServer):
                 "success": process.returncode == 0
             }
         except Exception as e:
-            raise MCPError(-32000, f"Docker run failed: {str(e)}")
+            raise DockerError(
+                f"Docker run failed: {str(e)}",
+                image=image,
+                context={
+                    "command": cmd,
+                    "exit_code": process.returncode if 'process' in locals() else None,
+                    "stderr": stderr.decode('utf-8') if 'stderr' in locals() else None
+                },
+                cause=e
+            )
     
     async def _docker_build(
         self,
@@ -562,7 +668,17 @@ class DockerMCPServer(MCPServer):
                 "success": process.returncode == 0
             }
         except Exception as e:
-            raise MCPError(-32000, f"Docker build failed: {str(e)}")
+            raise DockerError(
+                f"Docker build failed: {str(e)}",
+                image=image_tag,
+                context={
+                    "dockerfile_path": dockerfile_path,
+                    "build_context": build_context,
+                    "exit_code": process.returncode if 'process' in locals() else None,
+                    "stderr": stderr.decode('utf-8') if 'stderr' in locals() else None
+                },
+                cause=e
+            )
     
     async def _docker_compose(
         self,
@@ -597,7 +713,17 @@ class DockerMCPServer(MCPServer):
                 "success": process.returncode == 0
             }
         except Exception as e:
-            raise MCPError(-32000, f"Docker compose failed: {str(e)}")
+            raise DockerError(
+                f"Docker compose {action} failed: {str(e)}",
+                context={
+                    "action": action,
+                    "compose_file": compose_file,
+                    "services": services,
+                    "exit_code": process.returncode if 'process' in locals() else None,
+                    "stderr": stderr.decode('utf-8') if 'stderr' in locals() else None
+                },
+                cause=e
+            )
     
     async def _docker_ps(self, all: bool = False) -> Dict[str, Any]:
         """List Docker containers."""
@@ -615,7 +741,10 @@ class DockerMCPServer(MCPServer):
             stdout, stderr = await process.communicate()
             
             if process.returncode != 0:
-                raise MCPError(-32000, f"Docker ps failed: {stderr.decode('utf-8')}")
+                raise DockerError(
+                    f"Docker ps failed: {stderr.decode('utf-8')}",
+                    context={"exit_code": process.returncode}
+                )
             
             # Parse JSON output
             containers = []
@@ -627,8 +756,13 @@ class DockerMCPServer(MCPServer):
                 "containers": containers,
                 "total": len(containers)
             }
+        except DockerError:
+            raise
         except Exception as e:
-            raise MCPError(-32000, f"Docker ps failed: {str(e)}")
+            raise DockerError(
+                f"Docker ps failed: {str(e)}",
+                cause=e
+            )
 
 
 class KubernetesMCPServer(MCPServer):
@@ -811,7 +945,10 @@ class KubernetesMCPServer(MCPServer):
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
         """Execute a Kubernetes tool."""
         if not await self._check_kubectl():
-            raise MCPError(-32000, "kubectl is not available on this system")
+            raise KubernetesError(
+                "kubectl is not available on this system",
+                context={"tool_name": tool_name}
+            )
         
         try:
             if tool_name == "kubectl_apply":
@@ -825,10 +962,22 @@ class KubernetesMCPServer(MCPServer):
             elif tool_name == "kubectl_describe":
                 return await self._kubectl_describe(**arguments)
             else:
-                raise MCPError(-32601, f"Unknown tool: {tool_name}")
-        except Exception as e:
-            logger.error(f"Error calling Kubernetes tool {tool_name}: {e}")
+                from src.core.exceptions import MCPToolNotFoundError
+                raise MCPToolNotFoundError(
+                    tool_name,
+                    "kubernetes",
+                    available_tools=["kubectl_apply", "kubectl_get", "kubectl_delete", "kubectl_logs", "kubectl_describe"]
+                )
+        except KubernetesError:
             raise
+        except Exception as e:
+            error = KubernetesError(
+                f"Error calling Kubernetes tool {tool_name}",
+                context={"tool_name": tool_name, "arguments": arguments},
+                cause=e
+            )
+            handle_error(error, logger)
+            raise error
     
     async def _kubectl_apply(
         self,
@@ -857,7 +1006,17 @@ class KubernetesMCPServer(MCPServer):
                 "success": process.returncode == 0
             }
         except Exception as e:
-            raise MCPError(-32000, f"kubectl apply failed: {str(e)}")
+            raise KubernetesError(
+                f"kubectl apply failed: {str(e)}",
+                namespace=namespace,
+                resource=manifest_path,
+                context={
+                    "command": cmd,
+                    "exit_code": process.returncode if 'process' in locals() else None,
+                    "stderr": stderr.decode('utf-8') if 'stderr' in locals() else None
+                },
+                cause=e
+            )
     
     async def _kubectl_get(
         self,

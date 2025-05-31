@@ -12,8 +12,10 @@ from typing import Optional, Dict, Any, List, Tuple
 import logging
 from functools import lru_cache
 
+from src.core.logging_config import get_logger
+
 # Configure logging for Claude context
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class WSLEnvironment:
@@ -445,21 +447,21 @@ if __name__ == "__main__":
     
     env = WSLEnvironment()
     
-    print(f"Running in WSL: {env.is_wsl}")
+    logger.info(f"Running in WSL: {env.is_wsl}")
     if env.is_wsl:
-        print(f"WSL Version: {env.wsl_version}")
-        print(f"Distribution: {env.distro_name}")
-        print(f"Windows Home: {env.windows_home}")
+        logger.info(f"WSL Version: {env.wsl_version}")
+        logger.info(f"Distribution: {env.distro_name}")
+        logger.info(f"Windows Home: {env.windows_home}")
         
         # Path conversion examples
         wsl_path = "/mnt/c/Users/test/project"
         windows_path = env.wsl_to_windows_path(wsl_path)
-        print(f"WSL Path: {wsl_path} -> Windows: {windows_path}")
+        logger.info(f"WSL Path: {wsl_path} -> Windows: {windows_path}")
         
         # Get optimizations
         optimizations = env.optimize_for_wsl()
-        print(f"Optimizations: {json.dumps(optimizations, indent=2)}")
+        logger.info(f"Optimizations: {json.dumps(optimizations, indent=2)}")
         
         # Setup development environment
         setup_results = env.setup_development_environment()
-        print(f"Setup Results: {json.dumps(setup_results, indent=2)}")
+        logger.info(f"Setup Results: {json.dumps(setup_results, indent=2)}")

@@ -18,9 +18,10 @@ from anthropic import AsyncAnthropic
 from openai import AsyncOpenAI
 import google.generativeai as genai
 
-from ..models.response import ExpertResponse, ExpertType, ResponseStatus
-from ..models.query import ExpertQuery
-from ..utils.retry import with_retry, RetryPolicy
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType, ResponseStatus
+from src.circle_of_experts.models.query import ExpertQuery
+from src.core.retry import retry_api_call, RetryConfig, RetryStrategy
+from src.core.circuit_breaker import circuit_breaker, CircuitBreakerConfig, get_circuit_breaker_manager
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +132,6 @@ Response format:
         
         return base_prompt
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using Claude."""
         if not self.client:
@@ -157,15 +157,25 @@ Response format:
                 }
             ]
             
-            # Generate response with optimized parameters
-            claude_response = await self.client.messages.create(
-                model=model,
-                messages=messages,
-                system=self._create_system_prompt(query),
-                max_tokens=4096,
-                temperature=0.7,  # Balanced creativity/consistency
-                top_p=0.95,
-                stop_sequences=["<END_RESPONSE>"]
+            # Create circuit breaker for this expert if not exists
+            manager = get_circuit_breaker_manager()
+            breaker = await manager.get_or_create(
+                f"claude_expert_{self.model}",
+                CircuitBreakerConfig(
+                    failure_threshold=3,
+                    timeout=60,
+                    failure_rate_threshold=0.5,
+                    minimum_calls=5,
+                    fallback=lambda: self._create_fallback_response(query)
+                )
+            )
+            
+            # Generate response with circuit breaker protection
+            claude_response = await breaker.call(
+                self._api_call_with_retry,
+                model,
+                messages,
+                self._create_system_prompt(query)
             )
             
             # Extract content
@@ -310,3 +320,31 @@ Response format:
                     limitations.append(limitation)
         
         return limitations[:5]  # Limit to top 5
+    
+    @retry_api_call(max_attempts=5, timeout=120)
+    async def _api_call_with_retry(self, model: str, messages: List[Dict], system_prompt: str):
+        """Make API call with retry logic."""
+        return await self.client.messages.create(
+            model=model,
+            messages=messages,
+            system=system_prompt,
+            max_tokens=4096,
+            temperature=0.7,
+            top_p=0.95,
+            stop_sequences=["<END_RESPONSE>"]
+        )
+    
+    def _create_fallback_response(self, query: ExpertQuery) -> ExpertResponse:
+        """Create fallback response when circuit is open."""
+        response = ExpertResponse(
+            query_id=query.id,
+            expert_type=ExpertType.CLAUDE,
+            status=ResponseStatus.FAILED
+        )
+        response.content = "Claude API is currently unavailable. The circuit breaker has been triggered due to repeated failures. Please try again later."
+        response.confidence = 0.0
+        response.metadata = {
+            "fallback": True,
+            "reason": "circuit_breaker_open"
+        }
+        return response

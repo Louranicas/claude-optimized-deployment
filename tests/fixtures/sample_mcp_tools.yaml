@@ -1,0 +1,122 @@
+# Sample MCP tool definitions for testing
+
+docker:
+  - name: docker_build
+    description: Build a Docker image from a Dockerfile
+    parameters:
+      - name: dockerfile_path
+        type: string
+        description: Path to the Dockerfile
+        required: true
+      - name: image_tag
+        type: string
+        description: Tag for the built image
+        required: true
+      - name: build_args
+        type: object
+        description: Build arguments to pass to Docker
+        required: false
+  
+  - name: docker_run
+    description: Run a Docker container
+    parameters:
+      - name: image
+        type: string
+        description: Docker image to run
+        required: true
+      - name: command
+        type: string
+        description: Command to execute in container
+        required: false
+      - name: environment
+        type: object
+        description: Environment variables
+        required: false
+
+kubernetes:
+  - name: kubectl_apply
+    description: Apply a Kubernetes manifest
+    parameters:
+      - name: manifest_path
+        type: string
+        description: Path to the Kubernetes manifest
+        required: true
+      - name: namespace
+        type: string
+        description: Kubernetes namespace
+        required: false
+        default: default
+  
+  - name: kubectl_get
+    description: Get Kubernetes resources
+    parameters:
+      - name: resource_type
+        type: string
+        description: Type of resource (pod, service, deployment)
+        required: true
+      - name: namespace
+        type: string
+        description: Kubernetes namespace
+        required: false
+        default: default
+
+prometheus:
+  - name: prometheus_query
+    description: Execute a Prometheus query
+    parameters:
+      - name: query
+        type: string
+        description: PromQL query to execute
+        required: true
+      - name: time
+        type: string
+        description: Evaluation timestamp
+        required: false
+  
+  - name: prometheus_query_range
+    description: Execute a Prometheus range query
+    parameters:
+      - name: query
+        type: string
+        description: PromQL query to execute
+        required: true
+      - name: start
+        type: string
+        description: Start timestamp
+        required: true
+      - name: end
+        type: string
+        description: End timestamp
+        required: true
+      - name: step
+        type: string
+        description: Query resolution step
+        required: false
+        default: 60s
+
+security_scanner:
+  - name: npm_audit
+    description: Run npm security audit
+    parameters:
+      - name: package_json_path
+        type: string
+        description: Path to package.json
+        required: true
+      - name: severity
+        type: string
+        description: Minimum severity level
+        required: false
+        default: moderate
+  
+  - name: docker_security_scan
+    description: Scan Docker image for vulnerabilities
+    parameters:
+      - name: image
+        type: string
+        description: Docker image to scan
+        required: true
+      - name: threshold
+        type: string
+        description: Severity threshold
+        required: false
+        default: high

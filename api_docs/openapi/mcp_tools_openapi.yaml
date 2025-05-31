@@ -1,0 +1,621 @@
+openapi: 3.1.0
+info:
+  title: Claude-Optimized Deployment Engine (CODE) MCP API
+  description: |
+    The CODE project provides infrastructure automation through Model Context Protocol (MCP) tools.
+    This API documentation covers all available MCP servers and their tools for deployment automation,
+    monitoring, security scanning, and team communication.
+    
+    ## Overview
+    
+    The MCP API provides programmatic access to:
+    - Infrastructure automation (Docker, Kubernetes, cloud services)
+    - DevOps integration (Azure DevOps, CI/CD pipelines)
+    - Security scanning and vulnerability assessment
+    - Real-time monitoring and observability
+    - Team communication and notifications
+    - Cloud storage management
+    
+    ## Authentication
+    
+    Different MCP servers require different authentication methods:
+    - **Brave Search**: API key via `BRAVE_API_KEY` environment variable
+    - **Slack**: Bot token via `SLACK_BOT_TOKEN`
+    - **AWS S3**: Access keys via `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+    - **Azure DevOps**: Personal access token via `AZURE_DEVOPS_TOKEN`
+    - **Prometheus**: URL configuration via `PROMETHEUS_URL`
+    
+  version: 1.0.0
+  contact:
+    name: CODE Project Team
+    url: https://github.com/claude-optimized-deployment
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.code-deployment.com
+    description: Production server
+
+tags:
+  - name: Infrastructure
+    description: Core infrastructure automation tools
+  - name: DevOps
+    description: CI/CD and DevOps integration tools
+  - name: Security
+    description: Security scanning and vulnerability assessment
+  - name: Monitoring
+    description: Observability and metrics collection
+  - name: Communication
+    description: Team notifications and alerts
+  - name: Storage
+    description: Cloud storage management
+  - name: Search
+    description: Web and research capabilities
+
+paths:
+  /mcp/tools/list:
+    get:
+      summary: List all available MCP tools
+      description: Returns a comprehensive list of all MCP tools across all registered servers
+      operationId: listMCPTools
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  servers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPServer'
+                  total_tools:
+                    type: integer
+                    description: Total number of available tools
+              example:
+                servers:
+                  - name: "desktop-commander"
+                    description: "Terminal command execution and file management"
+                    tools_count: 5
+                  - name: "docker"
+                    description: "Docker container management"
+                    tools_count: 10
+                total_tools: 51
+
+  /mcp/tools/{server}/{tool}/call:
+    post:
+      summary: Execute an MCP tool
+      description: Calls a specific tool from an MCP server with provided arguments
+      operationId: callMCPTool
+      tags:
+        - Infrastructure
+        - DevOps
+        - Security
+        - Monitoring
+        - Communication
+        - Storage
+        - Search
+      parameters:
+        - name: server
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - desktop-commander
+              - docker
+              - kubernetes
+              - azure-devops
+              - windows-system
+              - prometheus-monitoring
+              - security-scanner
+              - slack-notifications
+              - s3-storage
+              - cloud-storage
+              - brave
+          description: MCP server name
+        - name: tool
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Tool name within the server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                arguments:
+                  type: object
+                  description: Tool-specific arguments
+              required:
+                - arguments
+      responses:
+        '200':
+          description: Tool executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    description: Tool execution result
+                  metadata:
+                    type: object
+                    properties:
+                      execution_time:
+                        type: number
+                        description: Execution time in seconds
+                      server:
+                        type: string
+                      tool:
+                        type: string
+        '400':
+          description: Invalid arguments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Server or tool not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Tool execution failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /mcp/servers/{server}/info:
+    get:
+      summary: Get MCP server information
+      description: Returns detailed information about a specific MCP server
+      operationId: getMCPServerInfo
+      parameters:
+        - name: server
+          in: path
+          required: true
+          schema:
+            type: string
+          description: MCP server name
+      responses:
+        '200':
+          description: Server information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPServerInfo'
+
+  # Infrastructure Tools
+  /mcp/infrastructure/desktop-commander/execute:
+    post:
+      summary: Execute terminal command
+      description: Execute shell commands for infrastructure automation
+      operationId: executeCommand
+      tags:
+        - Infrastructure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteCommandRequest'
+      responses:
+        '200':
+          description: Command executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResult'
+
+  /mcp/infrastructure/docker/build:
+    post:
+      summary: Build Docker image
+      description: Build a Docker image from a Dockerfile
+      operationId: dockerBuild
+      tags:
+        - Infrastructure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DockerBuildRequest'
+      responses:
+        '200':
+          description: Image built successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DockerBuildResult'
+
+  /mcp/infrastructure/kubernetes/apply:
+    post:
+      summary: Apply Kubernetes manifest
+      description: Deploy resources to Kubernetes cluster
+      operationId: kubernetesApply
+      tags:
+        - Infrastructure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KubernetesApplyRequest'
+      responses:
+        '200':
+          description: Resources applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KubernetesApplyResult'
+
+  # Security Tools
+  /mcp/security/scan:
+    post:
+      summary: Run security scan
+      description: Perform comprehensive security scanning on code and dependencies
+      operationId: securityScan
+      tags:
+        - Security
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityScanRequest'
+      responses:
+        '200':
+          description: Scan completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScanResult'
+
+  # Monitoring Tools
+  /mcp/monitoring/prometheus/query:
+    post:
+      summary: Execute Prometheus query
+      description: Run PromQL queries for metrics analysis
+      operationId: prometheusQuery
+      tags:
+        - Monitoring
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrometheusQueryRequest'
+      responses:
+        '200':
+          description: Query executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrometheusQueryResult'
+
+  # Communication Tools
+  /mcp/communication/slack/notify:
+    post:
+      summary: Send Slack notification
+      description: Send deployment notifications to Slack channels
+      operationId: slackNotify
+      tags:
+        - Communication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlackNotificationRequest'
+      responses:
+        '200':
+          description: Notification sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlackNotificationResult'
+
+components:
+  schemas:
+    MCPServer:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Server identifier
+        description:
+          type: string
+          description: Server description
+        version:
+          type: string
+          description: Server version
+        tools_count:
+          type: integer
+          description: Number of available tools
+        capabilities:
+          $ref: '#/components/schemas/MCPCapabilities'
+
+    MCPServerInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        capabilities:
+          $ref: '#/components/schemas/MCPCapabilities'
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/MCPTool'
+
+    MCPCapabilities:
+      type: object
+      properties:
+        tools:
+          type: boolean
+        resources:
+          type: boolean
+        prompts:
+          type: boolean
+        experimental:
+          type: object
+          additionalProperties: true
+
+    MCPTool:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/MCPToolParameter'
+        examples:
+          type: array
+          items:
+            type: object
+
+    MCPToolParameter:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [string, integer, boolean, number, array, object]
+        description:
+          type: string
+        required:
+          type: boolean
+        default:
+          type: any
+        enum:
+          type: array
+          items:
+            type: string
+
+    ExecuteCommandRequest:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          type: string
+          description: Shell command to execute
+        working_directory:
+          type: string
+          description: Working directory path
+        timeout:
+          type: integer
+          description: Timeout in seconds
+          default: 300
+
+    CommandResult:
+      type: object
+      properties:
+        command:
+          type: string
+        working_directory:
+          type: string
+        exit_code:
+          type: integer
+        stdout:
+          type: string
+        stderr:
+          type: string
+        success:
+          type: boolean
+
+    DockerBuildRequest:
+      type: object
+      required:
+        - dockerfile_path
+        - image_tag
+      properties:
+        dockerfile_path:
+          type: string
+          description: Path to Dockerfile
+        image_tag:
+          type: string
+          description: Tag for the built image
+        build_args:
+          type: object
+          additionalProperties:
+            type: string
+        no_cache:
+          type: boolean
+          default: false
+
+    DockerBuildResult:
+      type: object
+      properties:
+        image_id:
+          type: string
+        image_tag:
+          type: string
+        build_time:
+          type: number
+        size:
+          type: integer
+
+    KubernetesApplyRequest:
+      type: object
+      required:
+        - manifest_path
+      properties:
+        manifest_path:
+          type: string
+          description: Path to Kubernetes manifest
+        namespace:
+          type: string
+          default: default
+        dry_run:
+          type: boolean
+          default: false
+
+    KubernetesApplyResult:
+      type: object
+      properties:
+        applied_resources:
+          type: array
+          items:
+            type: object
+            properties:
+              kind:
+                type: string
+              name:
+                type: string
+              namespace:
+                type: string
+        status:
+          type: string
+
+    SecurityScanRequest:
+      type: object
+      required:
+        - scan_type
+      properties:
+        scan_type:
+          type: string
+          enum: [npm_audit, python_safety, docker_scan, file_scan]
+        target_path:
+          type: string
+        severity_threshold:
+          type: string
+          enum: [low, moderate, high, critical]
+          default: high
+
+    SecurityScanResult:
+      type: object
+      properties:
+        scan_type:
+          type: string
+        vulnerabilities:
+          type: array
+          items:
+            type: object
+            properties:
+              severity:
+                type: string
+              package:
+                type: string
+              vulnerability:
+                type: string
+              recommendation:
+                type: string
+        total_vulnerabilities:
+          type: integer
+        scan_time:
+          type: number
+
+    PrometheusQueryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: PromQL query
+        time:
+          type: string
+          format: date-time
+        timeout:
+          type: string
+          default: "30s"
+
+    PrometheusQueryResult:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            resultType:
+              type: string
+            result:
+              type: array
+
+    SlackNotificationRequest:
+      type: object
+      required:
+        - channel
+        - message
+      properties:
+        channel:
+          type: string
+          description: Slack channel ID or name
+        message:
+          type: string
+        notification_type:
+          type: string
+          enum: [deployment_start, deployment_success, deployment_failure, security_alert]
+
+    SlackNotificationResult:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        ts:
+          type: string
+        channel:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        details:
+          type: object
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []

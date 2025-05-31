@@ -20,6 +20,16 @@ class ExpertType(str, Enum):
     SUPERGROK = "supergrok"
     DEEPSEEK = "deepseek"
     HUMAN = "human"  # For manual expert responses
+    
+    # Backwards compatibility aliases
+    TECHNICAL = "claude"  # Maps to Claude for technical expertise
+    DOMAIN = "gpt4"  # Maps to GPT-4 for domain knowledge
+    INTEGRATION = "gemini"  # Maps to Gemini for integration
+    PERFORMANCE = "deepseek"  # Maps to DeepSeek for performance optimization
+    RESEARCH = "supergrok"  # Maps to SuperGrok for research
+    INFRASTRUCTURE = "claude"  # Maps to Claude for infrastructure
+    SECURITY = "gpt4"  # Maps to GPT-4 for security
+    ARCHITECTURAL = "gemini"  # Maps to Gemini for architecture
 
 
 class ResponseStatus(str, Enum):

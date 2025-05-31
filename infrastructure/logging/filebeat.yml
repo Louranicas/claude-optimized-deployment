@@ -1,0 +1,157 @@
+# Filebeat configuration for Claude-Optimized Deployment Engine
+# This configuration ships logs to Elasticsearch for aggregation
+
+filebeat.inputs:
+  # Application logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/claude-optimized-deployment/*.log
+      - /app/logs/*.log
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.message_key: message
+    
+    # Multiline configuration for stack traces
+    multiline.pattern: '^\s'
+    multiline.negate: false
+    multiline.match: after
+    
+    # Add metadata
+    fields:
+      service: claude-optimized-deployment
+      environment: ${ENVIRONMENT:development}
+    fields_under_root: true
+    
+    # Processors for data enrichment
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+      - add_kubernetes_metadata:
+          host: ${NODE_NAME}
+          matchers:
+            - logs_path:
+                logs_path: "/var/log/containers/"
+
+  # MCP operation logs (high-priority)
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/claude-optimized-deployment/mcp-operations.log
+    json.keys_under_root: true
+    tags: ["mcp", "operations"]
+    fields:
+      log_type: mcp_operations
+      priority: high
+    
+  # Security audit logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/claude-optimized-deployment/security-audit.log
+    json.keys_under_root: true
+    tags: ["security", "audit"]
+    fields:
+      log_type: security_audit
+      compliance: required
+
+# Processors for all inputs
+processors:
+  # Parse timestamp
+  - timestamp:
+      field: timestamp
+      layouts:
+        - '2006-01-02T15:04:05.000Z'
+        - '2006-01-02T15:04:05Z'
+      test:
+        - '2024-01-15T10:30:45.123Z'
+  
+  # Add host metadata
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  
+  # Drop debug logs in production
+  - drop_event:
+      when:
+        and:
+          - equals:
+              fields.environment: production
+          - equals:
+              level: DEBUG
+  
+  # Redact sensitive fields (backup to application-level redaction)
+  - script:
+      lang: javascript
+      id: redact_sensitive
+      source: >
+        function process(event) {
+          var sensitive_patterns = ['password', 'token', 'key', 'secret', 'credential'];
+          var data = event.Get("data");
+          if (data) {
+            for (var key in data) {
+              for (var i = 0; i < sensitive_patterns.length; i++) {
+                if (key.toLowerCase().indexOf(sensitive_patterns[i]) !== -1) {
+                  data[key] = "***REDACTED***";
+                }
+              }
+            }
+            event.Put("data", data);
+          }
+        }
+
+# Output configuration
+output.elasticsearch:
+  hosts: ["${ELASTICSEARCH_HOST:localhost:9200}"]
+  protocol: "https"
+  username: "${ELASTICSEARCH_USER:elastic}"
+  password: "${ELASTICSEARCH_PASSWORD:}"
+  
+  # Index configuration
+  index: "code-logs-%{[fields.environment]}-%{+yyyy.MM.dd}"
+  
+  # Template configuration
+  template.name: "code-logs"
+  template.pattern: "code-logs-*"
+  template.settings:
+    index.number_of_shards: 2
+    index.number_of_replicas: 1
+    index.refresh_interval: "5s"
+  
+  # ILM policy
+  ilm.enabled: true
+  ilm.rollover_alias: "code-logs"
+  ilm.pattern: "{now/d}-000001"
+  ilm.policy: "code-logs-policy"
+
+# Kibana dashboards
+setup.dashboards.enabled: true
+setup.kibana:
+  host: "${KIBANA_HOST:localhost:5601}"
+  protocol: "https"
+  username: "${KIBANA_USER:elastic}"
+  password: "${KIBANA_PASSWORD:}"
+
+# Logging configuration for Filebeat itself
+logging.level: warning
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat.log
+  keepfiles: 3
+  permissions: 0644
+
+# Monitoring
+monitoring.enabled: true
+monitoring.elasticsearch:
+  hosts: ["${ELASTICSEARCH_HOST:localhost:9200}"]
+  username: "${MONITORING_USER:elastic}"
+  password: "${MONITORING_PASSWORD:}"
+
+# Performance tuning
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 5s
+
+bulk_max_size: 2048
+max_procs: 2

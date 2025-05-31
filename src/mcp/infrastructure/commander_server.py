@@ -23,8 +23,8 @@ from functools import wraps
 from collections import defaultdict
 import logging
 
-from ..protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from ..servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.mcp.servers import MCPServer
 
 logger = logging.getLogger(__name__)
 

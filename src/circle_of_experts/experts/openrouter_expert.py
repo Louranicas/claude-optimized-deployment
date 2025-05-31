@@ -12,10 +12,10 @@ from datetime import datetime
 
 from openai import AsyncOpenAI
 
-from ..models.response import ExpertResponse, ExpertType, ResponseStatus
-from ..models.query import ExpertQuery
-from ..utils.retry import with_retry, RetryPolicy
-from .claude_expert import BaseExpertClient
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType, ResponseStatus
+from src.circle_of_experts.models.query import ExpertQuery
+from src.core.retry import retry_api_call, RetryConfig, RetryStrategy
+from src.circle_of_experts.experts.claude_expert import BaseExpertClient
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ class OpenRouterExpertClient(BaseExpertClient):
         }
         return fallback_chains.get(primary_model, [self.model_options["llama_70b"], self.model_options["llama_8b"]])
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
+    @retry_api_call(max_attempts=5, timeout=120)
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using OpenRouter model selection."""
         if not self.client:

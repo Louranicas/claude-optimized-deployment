@@ -22,9 +22,9 @@ import time
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 try:
-    from mcp.security.auth_middleware import MCPAuthMiddleware, UserRole, Permission
-    from mcp.infrastructure.commander_server import InfrastructureCommanderMCP
-    from platform.wsl_integration import WSLEnvironment
+    from src.mcp.security.auth_middleware import MCPAuthMiddleware, UserRole, Permission
+    from src.mcp.infrastructure.commander_server import InfrastructureCommanderMCP
+    from src.platform.wsl_integration import WSLEnvironment
 except ImportError as e:
     print(f"❌ Import error: {e}")
     print("Some security modules may not be available for testing")

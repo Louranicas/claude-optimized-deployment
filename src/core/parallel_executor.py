@@ -13,8 +13,11 @@ import multiprocessing as mp
 from functools import wraps
 import time
 
+from src.core.logging_config import get_logger, get_performance_logger, performance_logged
+
 # Configure logging for Claude context
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+perf_logger = get_performance_logger(__name__)
 
 
 class TaskType(Enum):
@@ -141,32 +144,33 @@ class ParallelExecutor:
         """Execute a stage of independent tasks in parallel"""
         logger.info(f"Executing stage with {len(tasks)} tasks")
         
-        # Group tasks by type for optimal execution
-        grouped = self._group_tasks_by_type(tasks)
-        
-        # Execute each group with appropriate strategy
-        all_futures = []
-        
-        for task_type, task_list in grouped.items():
-            if task_type == TaskType.ASYNC:
-                futures = [self._execute_async_task(task) for task in task_list]
-            elif task_type == TaskType.IO_BOUND:
-                futures = [self._execute_thread_task(task) for task in task_list]
-            elif task_type == TaskType.CPU_BOUND:
-                futures = [self._execute_process_task(task) for task in task_list]
-            else:  # MIXED
-                futures = [self._execute_mixed_task(task) for task in task_list]
+        with perf_logger.track_operation("stage_execution", task_count=len(tasks)):
+            # Group tasks by type for optimal execution
+            grouped = self._group_tasks_by_type(tasks)
             
-            all_futures.extend(futures)
-        
-        # Wait for all tasks to complete
-        results = await asyncio.gather(*all_futures, return_exceptions=True)
-        
-        # Map results back to task names
-        return {
-            task.name: result 
-            for task, result in zip(tasks, results)
-        }
+            # Execute each group with appropriate strategy
+            all_futures = []
+            
+            for task_type, task_list in grouped.items():
+                if task_type == TaskType.ASYNC:
+                    futures = [self._execute_async_task(task) for task in task_list]
+                elif task_type == TaskType.IO_BOUND:
+                    futures = [self._execute_thread_task(task) for task in task_list]
+                elif task_type == TaskType.CPU_BOUND:
+                    futures = [self._execute_process_task(task) for task in task_list]
+                else:  # MIXED
+                    futures = [self._execute_mixed_task(task) for task in task_list]
+                
+                all_futures.extend(futures)
+            
+            # Wait for all tasks to complete
+            results = await asyncio.gather(*all_futures, return_exceptions=True)
+            
+            # Map results back to task names
+            return {
+                task.name: result 
+                for task, result in zip(tasks, results)
+            }
     
     async def _execute_async_task(self, task: Task) -> TaskResult:
         """Execute pure async task"""
@@ -371,11 +375,11 @@ if __name__ == "__main__":
             results = await executor.execute_tasks(tasks)
             report = executor.get_execution_report()
             
-            print(f"Deployment completed: {report['successful']}/{report['total_tasks']} tasks successful")
-            print(f"Total duration: {report['total_duration']:.2f}s")
+            logger.info(f"Deployment completed: {report['successful']}/{report['total_tasks']} tasks successful")
+            logger.info(f"Total duration: {report['total_duration']:.2f}s")
             
             if report['failed'] > 0:
-                print(f"Failures: {report['failures']}")
+                logger.error(f"Failures: {report['failures']}")
     
     # Run example
     asyncio.run(example_deployment())

@@ -20,8 +20,8 @@ import time
 from dataclasses import dataclass, field
 from asyncio import Queue, QueueFull
 
-from ..protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from ..servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.mcp.servers import MCPServer
 
 logger = logging.getLogger(__name__)
 

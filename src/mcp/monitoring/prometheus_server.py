@@ -23,13 +23,15 @@ from urllib.parse import quote
 
 import aiohttp
 from aiohttp import ClientTimeout, TCPConnector
+from src.core.retry import retry_network, RetryConfig
+from src.core.connections import get_connection_manager
 
-from ..protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from ..servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.mcp.servers import MCPServer
 
 # Try to import enhanced logging, fallback to standard logging
 try:
-    from ...circle_of_experts.utils.logging import get_logger, LogContext
+    from src.circle_of_experts.utils.logging import get_logger, LogContext
     logger = get_logger(__name__)
 except ImportError:
     logger = logging.getLogger(__name__)
@@ -141,11 +143,11 @@ class PrometheusMonitoringMCP(MCPServer):
         """Initialize with security and monitoring features."""
         self.prometheus_url = prometheus_url or os.getenv("PROMETHEUS_URL", "http://localhost:9090")
         self.api_key = api_key or os.getenv("PROMETHEUS_API_KEY")
-        self.session: Optional[aiohttp.ClientSession] = None
         self.rate_limiter = RateLimiter()
         self.circuit_breaker = CircuitBreaker()
         self._metrics = defaultdict(int)
         self._start_time = time.time()
+        self._connection_manager = None
     
     def get_server_info(self) -> MCPServerInfo:
         """Get Prometheus server information."""
@@ -295,18 +297,12 @@ class PrometheusMonitoringMCP(MCPServer):
         if self.circuit_breaker.is_open():
             raise MCPError(-32000, "Service temporarily unavailable (circuit open)")
         
-        # Initialize session if needed
-        if not self.session:
-            connector = TCPConnector(limit=10, limit_per_host=5)
-            timeout = ClientTimeout(total=30, connect=5)
-            headers = {"User-Agent": "PrometheusMonitoringMCP/1.0"}
-            if self.api_key:
-                headers["Authorization"] = f"Bearer {self.api_key}"
-            self.session = aiohttp.ClientSession(
-                connector=connector,
-                timeout=timeout,
-                headers=headers
-            )
+        # Use connection pool instead of creating new session
+        connection_manager = await get_connection_manager()
+        
+        # Store connection manager if not already stored
+        if not hasattr(self, '_connection_manager'):
+            self._connection_manager = connection_manager
         
         # Track metrics
         self._metrics["total_requests"] += 1
@@ -346,6 +342,7 @@ class PrometheusMonitoringMCP(MCPServer):
         finally:
             self._metrics[f"latency_{tool_name}"] = time.time() - start_time
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _prometheus_query(self, query: str, time: Optional[str] = None) -> Dict[str, Any]:
         """Execute instant PromQL query with validation."""
         validate_promql(query)
@@ -357,11 +354,17 @@ class PrometheusMonitoringMCP(MCPServer):
             params["time"] = time
         
         try:
-            async with self.session.get(
-                f"{self.prometheus_url}/api/v1/query",
-                params=params,
-                ssl=True
-            ) as response:
+            headers = {"User-Agent": "PrometheusMonitoringMCP/1.0"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            
+            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
+                async with session.get(
+                    f"{self.prometheus_url}/api/v1/query",
+                    params=params,
+                    headers=headers,
+                    ssl=True
+                ) as response:
                 text = await response.text()
                 if response.status != 200:
                     logger.error(f"Query failed: {response.status} - {text}")
@@ -381,6 +384,7 @@ class PrometheusMonitoringMCP(MCPServer):
             logger.error(f"HTTP error: {e}")
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _prometheus_query_range(
         self, query: str, start: str, end: str, step: str = "15s"
     ) -> Dict[str, Any]:
@@ -396,11 +400,17 @@ class PrometheusMonitoringMCP(MCPServer):
         params = {"query": query, "start": start, "end": end, "step": step}
         
         try:
-            async with self.session.get(
-                f"{self.prometheus_url}/api/v1/query_range",
-                params=params,
-                ssl=True
-            ) as response:
+            headers = {"User-Agent": "PrometheusMonitoringMCP/1.0"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            
+            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
+                async with session.get(
+                    f"{self.prometheus_url}/api/v1/query_range",
+                    params=params,
+                    headers=headers,
+                    ssl=True
+                ) as response:
                 text = await response.text()
                 if response.status != 200:
                     raise MCPError(-32000, f"Range query failed: {response.status}")
@@ -421,6 +431,7 @@ class PrometheusMonitoringMCP(MCPServer):
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _prometheus_series(
         self, match: List[str], start: Optional[str] = None, end: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -441,11 +452,17 @@ class PrometheusMonitoringMCP(MCPServer):
             params["end"] = end
         
         try:
-            async with self.session.get(
-                f"{self.prometheus_url}/api/v1/series",
-                params=params,
-                ssl=True
-            ) as response:
+            headers = {"User-Agent": "PrometheusMonitoringMCP/1.0"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            
+            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
+                async with session.get(
+                    f"{self.prometheus_url}/api/v1/series",
+                    params=params,
+                    headers=headers,
+                    ssl=True
+                ) as response:
                 if response.status != 200:
                     raise MCPError(-32000, f"Series query failed: {response.status}")
                 
@@ -459,6 +476,7 @@ class PrometheusMonitoringMCP(MCPServer):
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _prometheus_labels(self, label: Optional[str] = None) -> Dict[str, Any]:
         """Get labels with validation."""
         if label:
@@ -471,7 +489,12 @@ class PrometheusMonitoringMCP(MCPServer):
             url = f"{self.prometheus_url}/api/v1/labels"
         
         try:
-            async with self.session.get(url, ssl=True) as response:
+            headers = {"User-Agent": "PrometheusMonitoringMCP/1.0"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            
+            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
+                async with session.get(url, headers=headers, ssl=True) as response:
                 if response.status != 200:
                     raise MCPError(-32000, f"Labels query failed: {response.status}")
                 
@@ -485,6 +508,7 @@ class PrometheusMonitoringMCP(MCPServer):
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _prometheus_targets(self, state: Optional[str] = None) -> Dict[str, Any]:
         """Get targets with health summary."""
         params = {}
@@ -492,11 +516,17 @@ class PrometheusMonitoringMCP(MCPServer):
             params["state"] = state
         
         try:
-            async with self.session.get(
-                f"{self.prometheus_url}/api/v1/targets",
-                params=params,
-                ssl=True
-            ) as response:
+            headers = {"User-Agent": "PrometheusMonitoringMCP/1.0"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            
+            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
+                async with session.get(
+                    f"{self.prometheus_url}/api/v1/targets",
+                    params=params,
+                    headers=headers,
+                    ssl=True
+                ) as response:
                 if response.status != 200:
                     raise MCPError(-32000, f"Targets query failed: {response.status}")
                 
@@ -523,6 +553,7 @@ class PrometheusMonitoringMCP(MCPServer):
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _prometheus_alerts(self, state: Optional[str] = None) -> Dict[str, Any]:
         """Get active alerts."""
         params = {}
@@ -530,11 +561,17 @@ class PrometheusMonitoringMCP(MCPServer):
             params["state"] = state
         
         try:
-            async with self.session.get(
-                f"{self.prometheus_url}/api/v1/alerts",
-                params=params,
-                ssl=True
-            ) as response:
+            headers = {"User-Agent": "PrometheusMonitoringMCP/1.0"}
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            
+            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
+                async with session.get(
+                    f"{self.prometheus_url}/api/v1/alerts",
+                    params=params,
+                    headers=headers,
+                    ssl=True
+                ) as response:
                 if response.status != 200:
                     raise MCPError(-32000, f"Alerts query failed: {response.status}")
                 

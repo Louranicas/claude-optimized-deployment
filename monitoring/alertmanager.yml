@@ -1,0 +1,109 @@
+global:
+  resolve_timeout: 5m
+  # Slack webhook URL (if using Slack)
+  slack_api_url: 'YOUR_SLACK_WEBHOOK_URL'
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  
+  routes:
+    # Critical alerts go to pagerduty
+    - match:
+        severity: critical
+      receiver: critical-alerts
+      continue: true
+    
+    # High severity alerts
+    - match:
+        severity: high
+      receiver: high-alerts
+      group_wait: 30s
+    
+    # Medium/Low alerts
+    - match_re:
+        severity: ^(medium|low)$
+      receiver: low-alerts
+      group_wait: 5m
+      group_interval: 5m
+      repeat_interval: 24h
+    
+    # AI/Cost related alerts
+    - match_re:
+        alertname: ^(HighAICosts|AIProviderErrors)$
+      receiver: ai-alerts
+      group_by: ['provider', 'model']
+
+# Inhibition rules
+inhibit_rules:
+  # Inhibit low priority alerts if critical alerts are firing
+  - source_match:
+      severity: 'critical'
+    target_match_re:
+      severity: '^(high|medium|low)$'
+    equal: ['alertname', 'cluster', 'service']
+  
+  # Inhibit medium/low if high is firing
+  - source_match:
+      severity: 'high'
+    target_match_re:
+      severity: '^(medium|low)$'
+    equal: ['alertname', 'cluster', 'service']
+
+# Receivers
+receivers:
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/webhooks/alerts'
+        send_resolved: true
+
+  - name: 'critical-alerts'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_SERVICE_KEY'
+        description: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+    slack_configs:
+      - channel: '#critical-alerts'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  - name: 'high-alerts'
+    slack_configs:
+      - channel: '#alerts'
+        title: '⚠️ {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+    email_configs:
+      - to: 'alerts@example.com'
+        from: 'alertmanager@example.com'
+        smarthost: 'smtp.example.com:587'
+        auth_username: 'alertmanager@example.com'
+        auth_password: 'password'
+        headers:
+          Subject: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
+
+  - name: 'low-alerts'
+    slack_configs:
+      - channel: '#alerts-low'
+        title: 'ℹ️ {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: false
+
+  - name: 'ai-alerts'
+    slack_configs:
+      - channel: '#ai-costs'
+        title: '💰 AI Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          Provider: {{ .GroupLabels.provider }}
+          Model: {{ .GroupLabels.model }}
+          {{ range .Alerts }}{{ .Annotations.description }}{{ end }}
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/webhooks/ai-alerts'

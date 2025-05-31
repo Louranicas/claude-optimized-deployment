@@ -19,8 +19,8 @@ from dataclasses import dataclass
 from enum import Enum
 import base64
 
-from ..protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from ..servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.mcp.servers import MCPServer
 
 logger = logging.getLogger(__name__)
 

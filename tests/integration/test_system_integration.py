@@ -19,16 +19,16 @@ import time
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from mcp.manager import get_mcp_manager
-from circle_of_experts.mcp_integration import MCPEnhancedExpertManager
-from circle_of_experts.models.query import ExpertQuery
-from circle_of_experts.models.response import ExpertResponse
+from src.mcp.manager import get_mcp_manager
+from src.circle_of_experts.mcp_integration import MCPEnhancedExpertManager
+from src.circle_of_experts.models.query import ExpertQuery
+from src.circle_of_experts.models.response import ExpertResponse
 
 # Import AI provider configurations
 try:
-    from circle_of_experts.experts.claude_expert import ClaudeExpert
-    from circle_of_experts.experts.open_source_experts import OllamaExpert
-    from circle_of_experts.experts.commercial_experts import OpenAIExpert, GoogleExpert
+    from src.circle_of_experts.experts.claude_expert import ClaudeExpert
+    from src.circle_of_experts.experts.open_source_experts import OllamaExpert
+    from src.circle_of_experts.experts.commercial_experts import OpenAIExpert, GoogleExpert
     AI_EXPERTS_AVAILABLE = True
 except ImportError:
     AI_EXPERTS_AVAILABLE = False

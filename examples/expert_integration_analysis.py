@@ -17,7 +17,7 @@ from typing import Dict, Any, List
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from circle_of_experts.mcp_integration import MCPEnhancedExpertManager
+from src.circle_of_experts.mcp_integration import MCPEnhancedExpertManager
 
 
 class ExpertIntegrationAnalysis:

@@ -10,11 +10,11 @@ from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
 import logging
 
-from .protocols import (
+from src.mcp.protocols import (
     MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities,
     BraveSearchResult, BraveSearchResponse, MCPError
 )
-from .client import MCPClient, HTTPTransport
+from src.mcp.client import MCPClient, HTTPTransport
 
 logger = logging.getLogger(__name__)
 
@@ -441,24 +441,24 @@ class MCPServerRegistry:
         self.register("brave", BraveMCPServer())
         
         # Add infrastructure servers
-        from .infrastructure_servers import (
+        from src.mcp.infrastructure_servers import (
             DesktopCommanderMCPServer,
             DockerMCPServer,
             KubernetesMCPServer
         )
         
         # Add DevOps servers
-        from .devops_servers import (
+        from src.mcp.devops_servers import (
             AzureDevOpsMCPServer,
             WindowsSystemMCPServer
         )
         
         # Add advanced research-based servers
-        from .monitoring.prometheus_server import PrometheusMonitoringMCPServer
-        from .security.scanner_server import SecurityScannerMCPServer
-        from .communication.slack_server import SlackNotificationMCPServer
-        from .storage.s3_server import S3StorageMCPServer
-        from .storage.cloud_storage_server import CloudStorageMCP
+        from src.mcp.monitoring.prometheus_server import PrometheusMonitoringMCPServer
+        from src.mcp.security.scanner_server import SecurityScannerMCPServer
+        from src.mcp.communication.slack_server import SlackNotificationMCPServer
+        from src.mcp.storage.s3_server import S3StorageMCPServer
+        from src.mcp.storage.cloud_storage_server import CloudStorageMCP
         
         self.register("desktop-commander", DesktopCommanderMCPServer())
         self.register("docker", DockerMCPServer())

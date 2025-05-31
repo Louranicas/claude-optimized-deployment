@@ -1,0 +1,1818 @@
+openapi: 3.0.3
+info:
+  title: Claude-Optimized Deployment Engine (CODE) API
+  description: |
+    The CODE API provides comprehensive infrastructure automation capabilities through REST endpoints 
+    and MCP (Model Context Protocol) tools. This API enables AI-powered deployment automation, 
+    multi-provider AI consultation, and infrastructure management.
+    
+    ## Key Features
+    - **Circuit Breaker Management**: Resilient service communication with automatic failure recovery
+    - **MCP Tool Integration**: 51+ tools across 11 servers for complete infrastructure automation
+    - **AI Consultation**: Circle of Experts system for intelligent decision making
+    - **Security Scanning**: Automated vulnerability assessment for dependencies and containers
+    - **Multi-Platform Support**: Docker, Kubernetes, AWS, Azure, and more
+    
+    ## Authentication
+    The API supports multiple authentication methods:
+    - API Key authentication for service-to-service communication
+    - JWT tokens for user authentication
+    - MCP server-specific credentials for external services
+    
+    ## Rate Limiting
+    - Default: 100 requests per minute per API key
+    - Burst: Up to 500 requests with exponential backoff
+    - WebSocket connections: 10 concurrent per client
+  version: 1.0.0
+  contact:
+    name: CODE API Support
+    email: support@code-engine.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.code-engine.io
+    description: Production server
+  - url: https://staging-api.code-engine.io
+    description: Staging server
+
+tags:
+  - name: Circuit Breakers
+    description: Service resilience and failure management
+  - name: MCP Tools
+    description: Model Context Protocol tool execution
+  - name: Experts
+    description: AI consultation and decision making
+  - name: Monitoring
+    description: System health and metrics
+  - name: Deployment
+    description: Application deployment automation
+  - name: Security
+    description: Vulnerability scanning and security checks
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+paths:
+  # Circuit Breaker Endpoints
+  /api/circuit-breakers/status:
+    get:
+      tags:
+        - Circuit Breakers
+      summary: Get circuit breaker system status
+      description: Returns overall system health and circuit breaker states
+      operationId: getCircuitBreakerStatus
+      responses:
+        '200':
+          description: Circuit breaker system status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircuitBreakerStatus'
+              example:
+                timestamp: "2025-05-31T10:00:00.000Z"
+                monitoring:
+                  active: true
+                  check_interval: 10
+                  alert_count: 3
+                summary:
+                  total_breakers: 15
+                  open_circuits: ["auth-service", "payment-service"]
+                  closed_circuits: ["user-service", "inventory-service"]
+                  half_open_circuits: ["notification-service"]
+                  overall_failure_rate: 0.15
+                health: "warning"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/circuit-breakers/breakers:
+    get:
+      tags:
+        - Circuit Breakers
+      summary: List all circuit breakers
+      description: Get detailed information about all circuit breakers with optional state filtering
+      operationId: getAllCircuitBreakers
+      parameters:
+        - name: state
+          in: query
+          description: Filter by circuit breaker state
+          required: false
+          schema:
+            type: string
+            enum: [open, closed, half_open]
+      responses:
+        '200':
+          description: List of circuit breakers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircuitBreakerList'
+
+  /api/circuit-breakers/breakers/{breaker_name}:
+    get:
+      tags:
+        - Circuit Breakers
+      summary: Get specific circuit breaker details
+      description: Returns detailed metrics for a specific circuit breaker
+      operationId: getCircuitBreaker
+      parameters:
+        - name: breaker_name
+          in: path
+          description: Name of the circuit breaker
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Circuit breaker details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircuitBreakerDetail'
+        '404':
+          description: Circuit breaker not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/circuit-breakers/breakers/{breaker_name}/reset:
+    post:
+      tags:
+        - Circuit Breakers
+      summary: Reset circuit breaker
+      description: Manually reset a circuit breaker to closed state
+      operationId: resetCircuitBreaker
+      parameters:
+        - name: breaker_name
+          in: path
+          description: Name of the circuit breaker to reset
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Circuit breaker reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetResponse'
+        '404':
+          description: Circuit breaker not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/circuit-breakers/breakers/reset-all:
+    post:
+      tags:
+        - Circuit Breakers
+      summary: Reset all circuit breakers
+      description: Reset all circuit breakers to closed state
+      operationId: resetAllCircuitBreakers
+      responses:
+        '200':
+          description: All circuit breakers reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetAllResponse'
+
+  /api/circuit-breakers/alerts:
+    get:
+      tags:
+        - Circuit Breakers
+      summary: Get circuit breaker alerts
+      description: Retrieve recent circuit breaker state change alerts
+      operationId: getCircuitBreakerAlerts
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of alerts to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertList'
+
+  /api/circuit-breakers/monitoring/start:
+    post:
+      tags:
+        - Circuit Breakers
+        - Monitoring
+      summary: Start circuit breaker monitoring
+      description: Start automatic monitoring of circuit breaker states
+      operationId: startMonitoring
+      parameters:
+        - name: check_interval
+          in: query
+          description: Seconds between checks
+          required: false
+          schema:
+            type: number
+            default: 10.0
+        - name: alert_on_open
+          in: query
+          description: Alert when circuit opens
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: alert_on_half_open
+          in: query
+          description: Alert when circuit goes to half-open
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - name: alert_on_close
+          in: query
+          description: Alert when circuit closes
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Monitoring started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoringStatus'
+
+  /api/circuit-breakers/monitoring/stop:
+    post:
+      tags:
+        - Circuit Breakers
+        - Monitoring
+      summary: Stop circuit breaker monitoring
+      description: Stop automatic monitoring of circuit breaker states
+      operationId: stopMonitoring
+      responses:
+        '200':
+          description: Monitoring stopped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+                    enum: [stopped]
+
+  /api/circuit-breakers/health:
+    get:
+      tags:
+        - Circuit Breakers
+        - Monitoring
+      summary: Get system health
+      description: Get overall system health based on circuit breaker states
+      operationId: getSystemHealth
+      responses:
+        '200':
+          description: System health assessment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemHealth'
+
+  # MCP Tool Endpoints
+  /api/mcp/servers:
+    get:
+      tags:
+        - MCP Tools
+      summary: List available MCP servers
+      description: Get list of all registered MCP servers and their capabilities
+      operationId: listMCPServers
+      responses:
+        '200':
+          description: List of MCP servers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPServerList'
+
+  /api/mcp/servers/{server_name}/tools:
+    get:
+      tags:
+        - MCP Tools
+      summary: Get server tools
+      description: List all tools available from a specific MCP server
+      operationId: getServerTools
+      parameters:
+        - name: server_name
+          in: path
+          description: Name of the MCP server
+          required: true
+          schema:
+            type: string
+            enum:
+              - brave
+              - desktop-commander
+              - docker
+              - kubernetes
+              - azure-devops
+              - windows-system
+              - prometheus-monitoring
+              - security-scanner
+              - slack-notifications
+              - s3-storage
+              - cloud-storage
+      responses:
+        '200':
+          description: List of tools
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolList'
+        '404':
+          description: Server not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/mcp/execute:
+    post:
+      tags:
+        - MCP Tools
+      summary: Execute MCP tool
+      description: Execute a tool from any registered MCP server
+      operationId: executeMCPTool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolExecutionRequest'
+            examples:
+              docker_build:
+                summary: Build Docker image
+                value:
+                  server: "docker"
+                  tool: "docker_build"
+                  arguments:
+                    dockerfile_path: "./Dockerfile"
+                    image_tag: "my-app:latest"
+                    build_args:
+                      NODE_VERSION: "18"
+              kubernetes_deploy:
+                summary: Deploy to Kubernetes
+                value:
+                  server: "kubernetes"
+                  tool: "kubectl_apply"
+                  arguments:
+                    manifest_path: "./k8s/deployment.yaml"
+                    namespace: "production"
+              security_scan:
+                summary: Run security scan
+                value:
+                  server: "security-scanner"
+                  tool: "npm_audit"
+                  arguments:
+                    package_json_path: "./package.json"
+                    severity_threshold: "high"
+      responses:
+        '200':
+          description: Tool execution result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolExecutionResult'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Server or tool not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Tool execution failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Expert Consultation Endpoints
+  /api/experts/consult:
+    post:
+      tags:
+        - Experts
+      summary: Consult AI experts
+      description: Submit a query to the Circle of Experts for AI-powered consultation
+      operationId: consultExperts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpertConsultationRequest'
+            example:
+              query: "What's the best deployment strategy for a microservices application?"
+              expert_types: ["deployment", "architecture", "security"]
+              context:
+                application_type: "microservices"
+                cloud_provider: "aws"
+                team_size: 10
+      responses:
+        '200':
+          description: Expert consultation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpertConsultationResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/experts/health:
+    get:
+      tags:
+        - Experts
+      summary: Check expert availability
+      description: Get health status of all AI expert providers
+      operationId: getExpertHealth
+      responses:
+        '200':
+          description: Expert health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpertHealthStatus'
+
+  # Deployment Endpoints
+  /api/deployments:
+    post:
+      tags:
+        - Deployment
+      summary: Create deployment
+      description: Initiate a new deployment workflow
+      operationId: createDeployment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentRequest'
+      responses:
+        '201':
+          description: Deployment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentResponse'
+        '400':
+          description: Invalid deployment configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/deployments/{deployment_id}:
+    get:
+      tags:
+        - Deployment
+      summary: Get deployment status
+      description: Get current status and details of a deployment
+      operationId: getDeployment
+      parameters:
+        - name: deployment_id
+          in: path
+          description: Unique deployment identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deployment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentDetail'
+        '404':
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/deployments/{deployment_id}/logs:
+    get:
+      tags:
+        - Deployment
+      summary: Get deployment logs
+      description: Stream deployment logs in real-time
+      operationId: getDeploymentLogs
+      parameters:
+        - name: deployment_id
+          in: path
+          description: Unique deployment identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: follow
+          in: query
+          description: Follow log stream
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: tail
+          in: query
+          description: Number of lines from the end
+          required: false
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Deployment logs
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/x-ndjson:
+              schema:
+                type: string
+                description: Newline-delimited JSON stream
+        '404':
+          description: Deployment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Security Endpoints
+  /api/security/scan:
+    post:
+      tags:
+        - Security
+      summary: Run security scan
+      description: Perform comprehensive security scanning on code, dependencies, or containers
+      operationId: runSecurityScan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityScanRequest'
+      responses:
+        '200':
+          description: Security scan results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScanResult'
+        '400':
+          description: Invalid scan configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/security/vulnerabilities:
+    get:
+      tags:
+        - Security
+      summary: List known vulnerabilities
+      description: Get list of known vulnerabilities in the system
+      operationId: listVulnerabilities
+      parameters:
+        - name: severity
+          in: query
+          description: Filter by severity level
+          required: false
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+        - name: fixed
+          in: query
+          description: Filter by fix status
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of vulnerabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VulnerabilityList'
+
+  # Monitoring Endpoints
+  /api/monitoring/metrics:
+    get:
+      tags:
+        - Monitoring
+      summary: Get system metrics
+      description: Retrieve current system performance metrics
+      operationId: getMetrics
+      parameters:
+        - name: metric_names
+          in: query
+          description: Comma-separated list of metric names
+          required: false
+          schema:
+            type: string
+          example: "cpu_usage,memory_usage,request_rate"
+      responses:
+        '200':
+          description: System metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  /api/monitoring/alerts:
+    get:
+      tags:
+        - Monitoring
+      summary: Get active alerts
+      description: Retrieve all active monitoring alerts
+      operationId: getAlerts
+      parameters:
+        - name: severity
+          in: query
+          description: Filter by alert severity
+          required: false
+          schema:
+            type: string
+            enum: [critical, warning, info]
+        - name: acknowledged
+          in: query
+          description: Filter by acknowledgment status
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of active alerts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertResponse'
+
+  # Webhook Endpoints
+  /api/webhooks:
+    post:
+      tags:
+        - Webhooks
+      summary: Register webhook
+      description: Register a new webhook for event notifications
+      operationId: registerWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '201':
+          description: Webhook registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        '400':
+          description: Invalid webhook configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/webhooks/{webhook_id}:
+    delete:
+      tags:
+        - Webhooks
+      summary: Delete webhook
+      description: Remove a registered webhook
+      operationId: deleteWebhook
+      parameters:
+        - name: webhook_id
+          in: path
+          description: Webhook identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Webhook deleted successfully
+        '404':
+          description: Webhook not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service authentication
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for user authentication
+
+  schemas:
+    # Circuit Breaker Schemas
+    CircuitBreakerStatus:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        monitoring:
+          type: object
+          properties:
+            active:
+              type: boolean
+            check_interval:
+              type: number
+            alert_count:
+              type: integer
+        summary:
+          type: object
+          properties:
+            total_breakers:
+              type: integer
+            open_circuits:
+              type: array
+              items:
+                type: string
+            closed_circuits:
+              type: array
+              items:
+                type: string
+            half_open_circuits:
+              type: array
+              items:
+                type: string
+            overall_failure_rate:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+        health:
+          type: string
+          enum: [healthy, warning, degraded, critical, unknown]
+      required:
+        - timestamp
+        - summary
+        - health
+
+    CircuitBreakerList:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        total:
+          type: integer
+        breakers:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/CircuitBreakerMetrics'
+      required:
+        - timestamp
+        - total
+        - breakers
+
+    CircuitBreakerDetail:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        breaker:
+          $ref: '#/components/schemas/CircuitBreakerMetrics'
+      required:
+        - timestamp
+        - breaker
+
+    CircuitBreakerMetrics:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [open, closed, half_open]
+        failure_count:
+          type: integer
+        success_count:
+          type: integer
+        failure_rate:
+          type: number
+          format: float
+        last_failure_time:
+          type: string
+          format: date-time
+        last_success_time:
+          type: string
+          format: date-time
+        consecutive_failures:
+          type: integer
+        half_open_attempts:
+          type: integer
+      required:
+        - state
+        - failure_count
+        - success_count
+        - failure_rate
+
+    ResetResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        breaker_name:
+          type: string
+        previous_state:
+          type: string
+          enum: [open, closed, half_open]
+        current_state:
+          type: string
+          enum: [open, closed, half_open]
+        message:
+          type: string
+      required:
+        - timestamp
+        - breaker_name
+        - previous_state
+        - current_state
+        - message
+
+    ResetAllResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        message:
+          type: string
+        before:
+          type: object
+          properties:
+            open_circuits:
+              type: integer
+            half_open_circuits:
+              type: integer
+        after:
+          type: object
+          properties:
+            open_circuits:
+              type: integer
+            half_open_circuits:
+              type: integer
+      required:
+        - timestamp
+        - message
+        - before
+        - after
+
+    AlertList:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        total:
+          type: integer
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+        note:
+          type: string
+      required:
+        - timestamp
+        - total
+        - alerts
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        breaker_name:
+          type: string
+        state_change:
+          type: object
+          properties:
+            from:
+              type: string
+              enum: [open, closed, half_open]
+            to:
+              type: string
+              enum: [open, closed, half_open]
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [info, warning, critical]
+      required:
+        - id
+        - timestamp
+        - breaker_name
+        - state_change
+        - message
+        - severity
+
+    MonitoringStatus:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [started, stopped]
+        config:
+          type: object
+          properties:
+            check_interval:
+              type: number
+            alert_on_open:
+              type: boolean
+            alert_on_half_open:
+              type: boolean
+            alert_on_close:
+              type: boolean
+      required:
+        - timestamp
+        - status
+
+    SystemHealth:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        health:
+          type: string
+          enum: [healthy, warning, degraded, critical, unknown]
+        details:
+          type: object
+          properties:
+            total_breakers:
+              type: integer
+            healthy_breakers:
+              type: integer
+            degraded_breakers:
+              type: integer
+            failed_breakers:
+              type: integer
+            overall_failure_rate:
+              type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+      required:
+        - timestamp
+        - health
+        - details
+        - recommendations
+
+    # MCP Tool Schemas
+    MCPServerList:
+      type: object
+      properties:
+        servers:
+          type: array
+          items:
+            $ref: '#/components/schemas/MCPServerInfo'
+        total:
+          type: integer
+      required:
+        - servers
+        - total
+
+    MCPServerInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        capabilities:
+          type: object
+          properties:
+            tools:
+              type: boolean
+            resources:
+              type: boolean
+            prompts:
+              type: boolean
+            experimental:
+              type: object
+              additionalProperties:
+                type: boolean
+        tool_count:
+          type: integer
+      required:
+        - name
+        - version
+        - description
+        - capabilities
+
+    ToolList:
+      type: object
+      properties:
+        server:
+          type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/MCPTool'
+        total:
+          type: integer
+      required:
+        - server
+        - tools
+        - total
+
+    MCPTool:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/MCPToolParameter'
+      required:
+        - name
+        - description
+        - parameters
+
+    MCPToolParameter:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [string, integer, number, boolean, object, array]
+        description:
+          type: string
+        required:
+          type: boolean
+        default:
+          type: any
+        enum:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - type
+        - description
+        - required
+
+    ToolExecutionRequest:
+      type: object
+      properties:
+        server:
+          type: string
+          description: Name of the MCP server
+        tool:
+          type: string
+          description: Name of the tool to execute
+        arguments:
+          type: object
+          description: Tool-specific arguments
+          additionalProperties: true
+      required:
+        - server
+        - tool
+        - arguments
+
+    ToolExecutionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        result:
+          type: any
+          description: Tool execution result (format depends on tool)
+        execution_time:
+          type: number
+          description: Execution time in seconds
+        metadata:
+          type: object
+          additionalProperties: true
+      required:
+        - success
+        - result
+
+    # Expert Consultation Schemas
+    ExpertConsultationRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Question or task for the experts
+        expert_types:
+          type: array
+          items:
+            type: string
+            enum: [deployment, architecture, security, performance, testing, documentation]
+          description: Types of experts to consult
+        context:
+          type: object
+          description: Additional context for the consultation
+          additionalProperties: true
+        max_tokens:
+          type: integer
+          description: Maximum tokens per expert response
+          default: 1000
+        temperature:
+          type: number
+          description: Response creativity (0.0-1.0)
+          default: 0.7
+      required:
+        - query
+
+    ExpertConsultationResponse:
+      type: object
+      properties:
+        query_id:
+          type: string
+          format: uuid
+        query:
+          type: string
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExpertResponse'
+        consensus:
+          type: string
+          description: Synthesized consensus from all experts
+        confidence:
+          type: number
+          description: Confidence score (0.0-1.0)
+        execution_time:
+          type: number
+          description: Total execution time in seconds
+        cost_estimate:
+          type: object
+          properties:
+            total:
+              type: number
+            breakdown:
+              type: object
+              additionalProperties:
+                type: number
+      required:
+        - query_id
+        - query
+        - responses
+        - consensus
+        - confidence
+
+    ExpertResponse:
+      type: object
+      properties:
+        expert:
+          type: string
+        type:
+          type: string
+        response:
+          type: string
+        confidence:
+          type: number
+        reasoning:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+      required:
+        - expert
+        - type
+        - response
+        - confidence
+
+    ExpertHealthStatus:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        experts:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              available:
+                type: boolean
+              response_time:
+                type: number
+              last_check:
+                type: string
+                format: date-time
+              error:
+                type: string
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            available:
+              type: integer
+            unavailable:
+              type: integer
+            average_response_time:
+              type: number
+      required:
+        - timestamp
+        - experts
+        - summary
+
+    # Deployment Schemas
+    DeploymentRequest:
+      type: object
+      properties:
+        application_name:
+          type: string
+        environment:
+          type: string
+          enum: [development, staging, production]
+        deployment_type:
+          type: string
+          enum: [docker, kubernetes, serverless, vm]
+        source:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [git, docker_image, s3, artifact]
+            location:
+              type: string
+            branch:
+              type: string
+            tag:
+              type: string
+        configuration:
+          type: object
+          additionalProperties: true
+        pre_deployment_checks:
+          type: array
+          items:
+            type: string
+            enum: [security_scan, dependency_check, integration_tests, load_tests]
+        notifications:
+          type: object
+          properties:
+            slack_channel:
+              type: string
+            email_recipients:
+              type: array
+              items:
+                type: string
+                format: email
+      required:
+        - application_name
+        - environment
+        - deployment_type
+        - source
+
+    DeploymentResponse:
+      type: object
+      properties:
+        deployment_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, succeeded, failed, cancelled]
+        created_at:
+          type: string
+          format: date-time
+        estimated_completion:
+          type: string
+          format: date-time
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+            logs:
+              type: string
+              format: uri
+            cancel:
+              type: string
+              format: uri
+      required:
+        - deployment_id
+        - status
+        - created_at
+        - links
+
+    DeploymentDetail:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/DeploymentResponse'
+        - type: object
+          properties:
+            application_name:
+              type: string
+            environment:
+              type: string
+            deployment_type:
+              type: string
+            started_at:
+              type: string
+              format: date-time
+            completed_at:
+              type: string
+              format: date-time
+            stages:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeploymentStage'
+            artifacts:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  url:
+                    type: string
+                    format: uri
+            metrics:
+              type: object
+              properties:
+                duration_seconds:
+                  type: number
+                resources_created:
+                  type: integer
+                resources_updated:
+                  type: integer
+                resources_deleted:
+                  type: integer
+
+    DeploymentStage:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, succeeded, failed, skipped]
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        duration_seconds:
+          type: number
+        error:
+          type: string
+      required:
+        - name
+        - status
+
+    # Security Schemas
+    SecurityScanRequest:
+      type: object
+      properties:
+        scan_type:
+          type: string
+          enum: [dependency, container, code, infrastructure]
+        target:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [file, directory, image, url]
+            path:
+              type: string
+            tag:
+              type: string
+        options:
+          type: object
+          properties:
+            severity_threshold:
+              type: string
+              enum: [critical, high, medium, low]
+            include_dev_dependencies:
+              type: boolean
+            scan_depth:
+              type: string
+              enum: [shallow, normal, deep]
+            custom_rules:
+              type: array
+              items:
+                type: string
+      required:
+        - scan_type
+        - target
+
+    SecurityScanResult:
+      type: object
+      properties:
+        scan_id:
+          type: string
+          format: uuid
+        scan_type:
+          type: string
+        status:
+          type: string
+          enum: [completed, failed]
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        summary:
+          type: object
+          properties:
+            total_issues:
+              type: integer
+            critical:
+              type: integer
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+            fixed_available:
+              type: integer
+        vulnerabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vulnerability'
+        recommendations:
+          type: array
+          items:
+            type: string
+      required:
+        - scan_id
+        - scan_type
+        - status
+        - summary
+
+    Vulnerability:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        component:
+          type: string
+        version:
+          type: string
+        fixed_version:
+          type: string
+        cve:
+          type: string
+        cvss_score:
+          type: number
+        published_date:
+          type: string
+          format: date-time
+        references:
+          type: array
+          items:
+            type: string
+            format: uri
+      required:
+        - id
+        - title
+        - severity
+        - component
+
+    VulnerabilityList:
+      type: object
+      properties:
+        total:
+          type: integer
+        vulnerabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vulnerability'
+        filters:
+          type: object
+          properties:
+            severity:
+              type: string
+            fixed:
+              type: boolean
+      required:
+        - total
+        - vulnerabilities
+
+    # Monitoring Schemas
+    MetricsResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        metrics:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              value:
+                type: number
+              unit:
+                type: string
+              description:
+                type: string
+              trend:
+                type: string
+                enum: [up, down, stable]
+      required:
+        - timestamp
+        - metrics
+
+    AlertResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        alerts:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              description:
+                type: string
+              severity:
+                type: string
+                enum: [critical, warning, info]
+              source:
+                type: string
+              triggered_at:
+                type: string
+                format: date-time
+              acknowledged:
+                type: boolean
+              acknowledged_by:
+                type: string
+              acknowledged_at:
+                type: string
+                format: date-time
+              metadata:
+                type: object
+                additionalProperties: true
+      required:
+        - total
+        - alerts
+
+    # Webhook Schemas
+    WebhookRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+            enum:
+              - deployment.started
+              - deployment.completed
+              - deployment.failed
+              - security.vulnerability_found
+              - security.scan_completed
+              - circuit_breaker.opened
+              - circuit_breaker.closed
+              - alert.triggered
+              - alert.resolved
+        secret:
+          type: string
+          description: Secret for webhook signature validation
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        retry_policy:
+          type: object
+          properties:
+            max_retries:
+              type: integer
+              default: 3
+            backoff_seconds:
+              type: integer
+              default: 60
+      required:
+        - url
+        - events
+
+    WebhookResponse:
+      type: object
+      properties:
+        webhook_id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, inactive, failed]
+        last_triggered:
+          type: string
+          format: date-time
+        trigger_count:
+          type: integer
+      required:
+        - webhook_id
+        - url
+        - events
+        - created_at
+        - status
+
+    # Common Schemas
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+            timestamp:
+              type: string
+              format: date-time
+            request_id:
+              type: string
+              format: uuid
+      required:
+        - error
+
+  responses:
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "INTERNAL_ERROR"
+              message: "An unexpected error occurred"
+              timestamp: "2025-05-31T10:00:00.000Z"
+              request_id: "123e4567-e89b-12d3-a456-426614174000"
+
+# Webhook Events Documentation
+webhooks:
+  deploymentStarted:
+    post:
+      requestBody:
+        description: Deployment started event
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  enum: [deployment.started]
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  $ref: '#/components/schemas/DeploymentResponse'
+
+  deploymentCompleted:
+    post:
+      requestBody:
+        description: Deployment completed event
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  enum: [deployment.completed]
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  $ref: '#/components/schemas/DeploymentDetail'
+
+  securityVulnerabilityFound:
+    post:
+      requestBody:
+        description: Security vulnerability detected
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  enum: [security.vulnerability_found]
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  $ref: '#/components/schemas/Vulnerability'
+
+  circuitBreakerStateChange:
+    post:
+      requestBody:
+        description: Circuit breaker state changed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  enum: [circuit_breaker.opened, circuit_breaker.closed]
+                timestamp:
+                  type: string
+                  format: date-time
+                data:
+                  type: object
+                  properties:
+                    breaker_name:
+                      type: string
+                    previous_state:
+                      type: string
+                    current_state:
+                      type: string
+                    metrics:
+                      $ref: '#/components/schemas/CircuitBreakerMetrics'

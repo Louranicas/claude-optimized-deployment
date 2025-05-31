@@ -22,8 +22,9 @@ from collections import defaultdict, deque
 from enum import Enum
 from dataclasses import dataclass
 
-from ..protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from ..servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.mcp.servers import MCPServer
+from src.core.retry import retry_network, RetryConfig
 
 logger = logging.getLogger(__name__)
 
@@ -525,6 +526,7 @@ class SlackNotificationMCPServer(MCPServer):
         }
         return policies.get(severity, {"levels": []})
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _send_slack_message(self, message: str, priority: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """Send message via Slack."""
         if not self.slack_token:
@@ -549,6 +551,7 @@ class SlackNotificationMCPServer(MCPServer):
         except Exception as e:
             return {"success": False, "error": str(e)}
     
+    @retry_network(max_attempts=3, timeout=30)
     async def _send_teams_message(self, message: str, priority: str, metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """Send message via Microsoft Teams."""
         if not self.teams_webhook:

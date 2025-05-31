@@ -17,8 +17,8 @@ import logging
 from asyncio import Semaphore
 import secrets
 
-from ..protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from ..servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.mcp.servers import MCPServer
 
 logger = logging.getLogger(__name__)
 

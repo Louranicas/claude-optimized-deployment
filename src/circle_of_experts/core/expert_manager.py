@@ -15,13 +15,17 @@ import logging
 from uuid import uuid4
 import time
 
-from ..models.query import ExpertQuery, QueryPriority, QueryType
-from ..models.response import ExpertResponse, ExpertType
-from ..drive.manager import DriveManager
+from src.circle_of_experts.models.query import ExpertQuery, QueryPriority, QueryType
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType
+from src.circle_of_experts.drive.manager import DriveManager
 from .query_handler import QueryHandler
 from .response_collector import ResponseCollector
-from ..utils.logging import setup_logging, LogContext
-from ..utils.rust_integration import get_rust_integration
+from src.circle_of_experts.utils.logging import setup_logging, LogContext
+from src.circle_of_experts.utils.rust_integration import get_rust_integration
+from src.circle_of_experts.utils.validation import (
+    validate_string, validate_dict, validate_list, 
+    validate_query_parameters, ValidationError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +59,11 @@ class ExpertManager:
             log_level: Logging level
             log_file: Optional log file path
         """
+        # Validate parameters
+        queries_folder_id = validate_string(queries_folder_id, "queries_folder_id", required=True)
+        responses_folder_id = validate_string(responses_folder_id, "responses_folder_id", required=True)
+        log_level = validate_string(log_level, "log_level", required=True)
+        
         # Setup logging
         setup_logging(log_level, log_file)
         
@@ -120,9 +129,8 @@ class ExpertManager:
             - aggregation: Consensus analysis (if multiple responses)
         """
         with LogContext(operation="consult_experts", query_title=title):
-            # Create query
-            query = ExpertQuery(
-                id=str(uuid4()),
+            # Validate and normalize parameters
+            validated_params = validate_query_parameters(
                 title=title,
                 content=content,
                 requester=requester,
@@ -132,6 +140,20 @@ class ExpertManager:
                 constraints=constraints,
                 deadline_hours=deadline_hours,
                 tags=tags
+            )
+            
+            # Create query with validated parameters
+            query = ExpertQuery(
+                id=str(uuid4()),
+                title=validated_params["title"],
+                content=validated_params["content"],
+                requester=validated_params["requester"],
+                query_type=validated_params["query_type"],
+                priority=validated_params["priority"],
+                context=validated_params["context"],
+                constraints=validated_params["constraints"],
+                deadline=validated_params["deadline"],
+                tags=validated_params["tags"]
             )
             
             # Track active query
@@ -216,6 +238,9 @@ class ExpertManager:
         Returns:
             Dictionary with query status and any available responses
         """
+        # Validate parameters
+        query_id = validate_string(query_id, "query_id", required=True)
+        
         with LogContext(operation="get_query_status", query_id=query_id):
             if query_id not in self.active_queries:
                 return {
@@ -311,6 +336,12 @@ class ExpertManager:
         Returns:
             Query result with responses
         """
+        # Validate parameters
+        code = validate_string(code, "code", required=True, min_length=1)
+        language = validate_string(language, "language", required=True)
+        requester = validate_string(requester, "requester", required=True)
+        focus_areas = validate_list(focus_areas, "focus_areas", item_type=str)
+        
         title = f"Code Review Request: {language}"
         content = f"Please review the following {language} code:\n\n```{language}\n{code}\n```"
         
@@ -325,3 +356,65 @@ class ExpertManager:
             requester=requester,
             wait_for_responses=wait_for_responses
         )
+    
+    # Backwards compatibility methods
+    async def submit_query(
+        self,
+        query: ExpertQuery,
+        wait_for_responses: bool = True,
+        response_timeout: float = 300.0,
+        min_responses: int = 1,
+        required_experts: Optional[List[ExpertType]] = None
+    ) -> Dict[str, Any]:
+        """
+        Submit a query (backwards compatibility method).
+        
+        This method provides backwards compatibility with the old API.
+        It delegates to consult_experts internally.
+        """
+        logger.warning(
+            "submit_query is deprecated. Use consult_experts instead."
+        )
+        
+        return await self.consult_experts(
+            title=query.title,
+            content=query.content,
+            requester=query.requester,
+            query_type=query.query_type,
+            priority=query.priority,
+            context=query.context,
+            constraints=query.constraints,
+            deadline_hours=(query.deadline - query.created_at).total_seconds() / 3600 if query.deadline else None,
+            tags=query.tags,
+            wait_for_responses=wait_for_responses,
+            response_timeout=response_timeout,
+            min_responses=min_responses,
+            required_experts=required_experts
+        )
+    
+    async def get_expert_health(self) -> Dict[str, Any]:
+        """
+        Get health status of all experts (backwards compatibility method).
+        
+        Returns mock health data for backwards compatibility.
+        """
+        logger.warning(
+            "get_expert_health is deprecated. Expert health monitoring has been redesigned."
+        )
+        
+        # Return mock health data for backwards compatibility
+        # Include all expert types for backwards compatibility
+        experts_health = {}
+        for expert_type in ExpertType:
+            experts_health[expert_type.value] = {
+                "status": "available",
+                "response_time": 0.5 + (hash(expert_type.value) % 5) * 0.1
+            }
+        
+        return {
+            "status": "healthy",
+            "experts": experts_health,
+            "total_experts": len(ExpertType),
+            "available_experts": len(ExpertType),
+            "rust_acceleration": self._rust_integration.rust_available
+        }

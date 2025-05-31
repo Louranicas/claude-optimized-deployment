@@ -16,8 +16,8 @@ from typing import Dict, Any, List, Optional, Union
 from pathlib import Path
 import logging
 
-from .protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from .servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
+from src.mcp.servers import MCPServer
 
 logger = logging.getLogger(__name__)
 

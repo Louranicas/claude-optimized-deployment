@@ -28,6 +28,7 @@ class QueryType(str, Enum):
     REVIEW = "review"
     RESEARCH = "research"
     GENERAL = "general"
+    CODE_REVIEW = "code_review"  # Added for backwards compatibility
 
 
 class ExpertQuery(BaseModel):

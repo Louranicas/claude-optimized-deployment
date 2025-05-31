@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from mcp.protocols import (
+from src.mcp.protocols import (
     MCPRequest, MCPResponse, MCPTool, MCPToolParameter,
     MCPServerInfo, MCPMethod, MCPError
 )
-from mcp.manager import get_mcp_manager
-from mcp.servers import MCPServerRegistry
+from src.mcp.manager import get_mcp_manager
+from src.mcp.servers import MCPServerRegistry
 
 # Try to import Circle of Experts - graceful fallback if not available
 try:

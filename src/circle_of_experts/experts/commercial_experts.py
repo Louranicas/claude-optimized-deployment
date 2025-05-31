@@ -14,10 +14,12 @@ from openai import AsyncOpenAI
 import google.generativeai as genai
 import aiohttp
 
-from ..models.response import ExpertResponse, ExpertType, ResponseStatus
-from ..models.query import ExpertQuery
-from ..utils.retry import with_retry, RetryPolicy
-from .claude_expert import BaseExpertClient
+from src.circle_of_experts.models.response import ExpertResponse, ExpertType, ResponseStatus
+from src.circle_of_experts.models.query import ExpertQuery
+from src.core.retry import retry_api_call, RetryConfig, RetryStrategy
+from src.circle_of_experts.experts.claude_expert import BaseExpertClient
+from src.core.connections import get_connection_manager, ConnectionPoolConfig
+from src.core.circuit_breaker import CircuitBreakerConfig, get_circuit_breaker_manager
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +97,6 @@ Format your response with clear sections and use markdown for structure."""
             {"role": "user", "content": user_message}
         ]
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using GPT-4."""
         if not self.client:
@@ -112,15 +113,24 @@ Format your response with clear sections and use markdown for structure."""
             model = self._select_model_for_query(query)
             logger.info(f"Using GPT model: {model}")
             
-            # Generate response
-            completion = await self.client.chat.completions.create(
-                model=model,
-                messages=self._create_messages(query),
-                temperature=0.7,
-                max_tokens=4096,
-                top_p=0.95,
-                presence_penalty=0.1,
-                frequency_penalty=0.1
+            # Get circuit breaker for this expert
+            manager = get_circuit_breaker_manager()
+            breaker = await manager.get_or_create(
+                f"gpt4_expert_{model}",
+                CircuitBreakerConfig(
+                    failure_threshold=3,
+                    timeout=60,
+                    failure_rate_threshold=0.5,
+                    minimum_calls=5,
+                    fallback=lambda: self._create_fallback_response(query)
+                )
+            )
+            
+            # Generate response with circuit breaker protection
+            completion = await breaker.call(
+                self._api_call_with_retry,
+                model,
+                self._create_messages(query)
             )
             
             # Extract content
@@ -224,6 +234,34 @@ Format your response with clear sections and use markdown for structure."""
                     })
         
         return snippets
+    
+    @retry_api_call(max_attempts=5, timeout=120)
+    async def _api_call_with_retry(self, model: str, messages: List[Dict[str, str]]):
+        """Make API call with retry logic."""
+        return await self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=4096,
+            top_p=0.95,
+            presence_penalty=0.1,
+            frequency_penalty=0.1
+        )
+    
+    def _create_fallback_response(self, query: ExpertQuery) -> ExpertResponse:
+        """Create fallback response when circuit is open."""
+        response = ExpertResponse(
+            query_id=query.id,
+            expert_type=ExpertType.GPT4,
+            status=ResponseStatus.FAILED
+        )
+        response.content = "OpenAI API is currently unavailable. The circuit breaker has been triggered due to repeated failures. Please try again later."
+        response.confidence = 0.0
+        response.metadata = {
+            "fallback": True,
+            "reason": "circuit_breaker_open"
+        }
+        return response
 
 
 class GeminiExpertClient(BaseExpertClient):
@@ -309,7 +347,7 @@ class GeminiExpertClient(BaseExpertClient):
         }
         return fallback_chains.get(primary_model, ["gemini-1.5-flash"])
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
+    @retry_api_call(max_attempts=5, timeout=120)
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using advanced Gemini model selection."""
         if not self.api_key:
@@ -513,7 +551,6 @@ class GroqExpertClient(BaseExpertClient):
         self.model = model
         self.base_url = "https://api.groq.com/openai/v1"
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using Groq."""
         if not self.api_key:
@@ -526,48 +563,29 @@ class GroqExpertClient(BaseExpertClient):
         )
         
         try:
-            headers = {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
-            }
+            # Get circuit breaker for this expert
+            manager = get_circuit_breaker_manager()
+            breaker = await manager.get_or_create(
+                f"groq_expert_{self.model}",
+                CircuitBreakerConfig(
+                    failure_threshold=3,
+                    timeout=60,
+                    failure_rate_threshold=0.5,
+                    minimum_calls=5,
+                    fallback=lambda: self._create_fallback_response(query)
+                )
+            )
             
-            messages = [
-                {
-                    "role": "system",
-                    "content": "You are an expert technical consultant providing detailed analysis."
-                },
-                {
-                    "role": "user",
-                    "content": query.content
-                }
-            ]
+            # Generate response with circuit breaker protection
+            result = await breaker.call(
+                self._groq_api_call,
+                query
+            )
             
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/chat/completions",
-                    headers=headers,
-                    json={
-                        "model": self.model,
-                        "messages": messages,
-                        "temperature": 0.7,
-                        "max_tokens": 4096
-                    }
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        content = data["choices"][0]["message"]["content"]
-                        
-                        response.content = content
-                        response.confidence = 0.88  # High confidence for Groq
-                        response.metadata = {
-                            "model": self.model,
-                            "usage": data.get("usage", {})
-                        }
-                        
-                        response.mark_completed()
-                    else:
-                        error = await resp.text()
-                        raise RuntimeError(f"Groq API error: {error}")
+            response.content = result['content']
+            response.confidence = result['confidence']
+            response.metadata = result['metadata']
+            response.mark_completed()
                         
         except Exception as e:
             logger.error(f"Groq generation failed: {e}")
@@ -595,6 +613,66 @@ class GroqExpertClient(BaseExpertClient):
                     return resp.status == 200
         except Exception:
             return False
+    
+    @retry_api_call(max_attempts=5, timeout=120)
+    async def _groq_api_call(self, query: ExpertQuery) -> Dict[str, Any]:
+        """Make Groq API call with retry logic."""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an expert technical consultant providing detailed analysis."
+            },
+            {
+                "role": "user",
+                "content": query.content
+            }
+        ]
+        
+        # Use connection pool for better resource management
+        connection_manager = await get_connection_manager()
+        async with connection_manager.http_pool.get_session(self.base_url) as session:
+            async with session.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "temperature": 0.7,
+                    "max_tokens": 4096
+                }
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    content = data["choices"][0]["message"]["content"]
+                    
+                    return {
+                        'content': content,
+                        'confidence': 0.88,  # High confidence for Groq
+                        'metadata': {
+                            "model": self.model,
+                            "usage": data.get("usage", {})
+                        }
+                    }
+                else:
+                    error = await resp.text()
+                    raise RuntimeError(f"Groq API error: {error}")
+    
+    def _create_fallback_response(self, query: ExpertQuery) -> Dict[str, Any]:
+        """Create fallback response when circuit is open."""
+        return {
+            'content': "Groq API is currently unavailable. The circuit breaker has been triggered due to repeated failures. Please try again later.",
+            'confidence': 0.0,
+            'metadata': {
+                "fallback": True,
+                "reason": "circuit_breaker_open",
+                "model": self.model
+            }
+        }
 
 
 class DeepSeekExpertClient(BaseExpertClient):
@@ -661,7 +739,6 @@ Use clear structure with headings and markdown formatting."""
             {"role": "user", "content": user_message}
         ]
     
-    @with_retry(RetryPolicy(max_attempts=3, backoff_factor=2.0))
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
         """Generate response using DeepSeek."""
         if not self.api_key:
@@ -678,45 +755,32 @@ Use clear structure with headings and markdown formatting."""
             model = self._select_model_for_query(query)
             logger.info(f"Using DeepSeek model: {model}")
             
-            headers = {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
-            }
+            # Get circuit breaker for this expert
+            manager = get_circuit_breaker_manager()
+            breaker = await manager.get_or_create(
+                f"deepseek_expert_{model}",
+                CircuitBreakerConfig(
+                    failure_threshold=3,
+                    timeout=90,
+                    failure_rate_threshold=0.5,
+                    minimum_calls=5,
+                    fallback=lambda: self._create_fallback_response(query, model)
+                )
+            )
             
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/chat/completions",
-                    headers=headers,
-                    json={
-                        "model": model,
-                        "messages": self._create_messages(query),
-                        "temperature": 0.7,
-                        "max_tokens": 4096,
-                        "top_p": 0.95,
-                        "stream": False
-                    },
-                    timeout=aiohttp.ClientTimeout(total=300)
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        content = data["choices"][0]["message"]["content"]
-                        
-                        response.content = content
-                        response.confidence = self._calculate_confidence(content, data)
-                        response.recommendations = self._extract_recommendations(content)
-                        response.code_snippets = self._extract_code_snippets(content)
-                        
-                        # Add metadata
-                        response.metadata = {
-                            "model": model,
-                            "usage": data.get("usage", {}),
-                            "finish_reason": data["choices"][0].get("finish_reason")
-                        }
-                        
-                        response.mark_completed()
-                    else:
-                        error_text = await resp.text()
-                        raise RuntimeError(f"DeepSeek API error ({resp.status}): {error_text}")
+            # Generate response with circuit breaker protection
+            result = await breaker.call(
+                self._deepseek_api_call,
+                model,
+                query
+            )
+            
+            response.content = result['content']
+            response.confidence = result['confidence']
+            response.recommendations = result['recommendations']
+            response.code_snippets = result['code_snippets']
+            response.metadata = result['metadata']
+            response.mark_completed()
                         
         except Exception as e:
             logger.error(f"DeepSeek generation failed: {e}")
@@ -735,7 +799,9 @@ Use clear structure with headings and markdown formatting."""
                 "Content-Type": "application/json"
             }
             
-            async with aiohttp.ClientSession() as session:
+            # Use connection pool for health check
+            connection_manager = await get_connection_manager()
+            async with connection_manager.http_pool.get_session(self.base_url) as session:
                 async with session.post(
                     f"{self.base_url}/chat/completions",
                     headers=headers,
@@ -743,8 +809,7 @@ Use clear structure with headings and markdown formatting."""
                         "model": "deepseek-chat",
                         "messages": [{"role": "user", "content": "Hi"}],
                         "max_tokens": 5
-                    },
-                    timeout=aiohttp.ClientTimeout(total=10)
+                    }
                 ) as resp:
                     return resp.status == 200
         except Exception as e:
@@ -819,3 +884,59 @@ Use clear structure with headings and markdown formatting."""
                     })
         
         return snippets
+    
+    @retry_api_call(max_attempts=5, timeout=120)
+    async def _deepseek_api_call(self, model: str, query: ExpertQuery) -> Dict[str, Any]:
+        """Make DeepSeek API call with retry logic."""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        # Use connection pool for better resource management
+        connection_manager = await get_connection_manager()
+        async with connection_manager.http_pool.get_session(self.base_url) as session:
+            async with session.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json={
+                    "model": model,
+                    "messages": self._create_messages(query),
+                    "temperature": 0.7,
+                    "max_tokens": 4096,
+                    "top_p": 0.95,
+                    "stream": False
+                }
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    content = data["choices"][0]["message"]["content"]
+                    
+                    return {
+                        'content': content,
+                        'confidence': self._calculate_confidence(content, data),
+                        'recommendations': self._extract_recommendations(content),
+                        'code_snippets': self._extract_code_snippets(content),
+                        'metadata': {
+                            "model": model,
+                            "usage": data.get("usage", {}),
+                            "finish_reason": data["choices"][0].get("finish_reason")
+                        }
+                    }
+                else:
+                    error_text = await resp.text()
+                    raise RuntimeError(f"DeepSeek API error ({resp.status}): {error_text}")
+    
+    def _create_fallback_response(self, query: ExpertQuery, model: str) -> Dict[str, Any]:
+        """Create fallback response when circuit is open."""
+        return {
+            'content': "DeepSeek API is currently unavailable. The circuit breaker has been triggered due to repeated failures. Please try again later.",
+            'confidence': 0.0,
+            'recommendations': [],
+            'code_snippets': [],
+            'metadata': {
+                "fallback": True,
+                "reason": "circuit_breaker_open",
+                "model": model
+            }
+        }

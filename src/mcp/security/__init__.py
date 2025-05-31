@@ -5,8 +5,8 @@ Military-grade security scanning with zero-trust architecture and
 comprehensive authentication middleware.
 """
 
-from .scanner_server import SecurityScannerMCPServer
-from .auth_middleware import (
+from src.mcp.security.scanner_server import SecurityScannerMCPServer
+from src.mcp.security.auth_middleware import (
     MCPAuthMiddleware,
     UserRole,
     Permission,
