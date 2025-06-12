@@ -20,6 +20,7 @@ from auth import (
     PermissionChecker, UserManager, AuditLogger, AuditEventType,
     create_auth_system, UserCreationRequest
 )
+from auth.test_utils import get_test_audit_logger
 
 
 class MockUserStore:
@@ -276,7 +277,7 @@ async def test_audit_logging():
     """Test audit logging system."""
     print("\n📋 Testing Audit Logging...")
     
-    audit_logger = AuditLogger()
+    audit_logger = get_test_audit_logger()
     
     # Test basic event logging
     event_id = await audit_logger.log_event(

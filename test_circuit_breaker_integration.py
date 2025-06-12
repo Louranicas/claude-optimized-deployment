@@ -85,7 +85,9 @@ async def test_ai_provider_circuit_breakers():
     
     # Create a test query
     test_query = ExpertQuery(
-        content="Test query for circuit breaker integration",
+        title="Circuit Breaker Integration Test",
+        content="Test query for circuit breaker integration testing",
+        requester="test_circuit_breaker",
         query_type="general",
         priority="low"
     )

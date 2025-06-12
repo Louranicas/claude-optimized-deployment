@@ -11,6 +11,10 @@ from datetime import datetime
 import logging
 from collections import defaultdict
 
+from src.core.object_pool import DictPool, ListPool, pooled
+from src.core.memory_monitor import with_memory_monitoring
+from src.core.stream_processor import MemoryEfficientBuffer
+
 from src.circle_of_experts.models.response import ExpertResponse, ExpertType, ResponseStatus, ConsensusResponse
 from src.circle_of_experts.models.query import ExpertQuery
 from src.circle_of_experts.drive.manager import DriveManager
@@ -20,6 +24,8 @@ from src.circle_of_experts.utils.validation import (
     validate_string, validate_list, validate_number,
     ValidationError
 )
+from src.core.lru_cache import create_ttl_dict
+from src.core.cleanup_scheduler import get_cleanup_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -42,12 +48,46 @@ class ResponseCollector:
         if drive_manager is None:
             raise ValidationError("drive_manager", None, "DriveManager cannot be None")
         self.drive_manager = drive_manager
-        self._responses: Dict[str, List[ExpertResponse]] = defaultdict(list)
-        self._response_files: Dict[str, str] = {}  # response_id -> file_id mapping
+        
+        # Use bounded TTL dicts for responses (TTL: 4 hours, max: 500 queries)
+        self._responses = create_ttl_dict(
+            max_size=500,
+            ttl=14400.0,  # 4 hours
+            cleanup_interval=600.0  # 10 minutes
+        )
+        
+        # Response file mapping with TTL (TTL: 4 hours, max: 2000 entries)
+        self._response_files = create_ttl_dict(
+            max_size=2000,
+            ttl=14400.0,  # 4 hours
+            cleanup_interval=600.0  # 10 minutes
+        )
+        
+        # Memory-efficient buffer for response aggregation
+        self._response_buffer = MemoryEfficientBuffer(
+            max_size=1000,
+            flush_threshold=0.8,
+            auto_flush_handler=self._process_buffered_responses
+        )
         
         # Get Rust integration manager
         self._rust_integration = get_rust_integration()
+        
+        # Register cleanup with scheduler
+        try:
+            cleanup_scheduler = get_cleanup_scheduler()
+            cleanup_scheduler.register_cleanable_object(self._responses)
+            cleanup_scheduler.register_cleanable_object(self._response_files)
+            cleanup_scheduler.register_task(
+                name=f"response_collector_{id(self)}_cleanup",
+                callback=self._cleanup_expired_responses,
+                interval_seconds=600.0,  # 10 minutes
+                priority=cleanup_scheduler.TaskPriority.MEDIUM
+            )
+        except Exception as e:
+            logger.warning(f"Could not register with cleanup scheduler: {e}")
     
+    @with_memory_monitoring
     async def collect_responses(
         self,
         query_id: str,
@@ -86,8 +126,11 @@ class ResponseCollector:
                 poll_interval=10.0
             )
             
-            # Store collected responses
-            self._responses[query_id].extend(responses)
+            # Store collected responses using memory-efficient buffer
+            self._response_buffer.add_batch(responses)
+            existing = self._responses.get(query_id, [])
+            existing.extend(responses)
+            self._responses[query_id] = existing
             
             # Check if we have minimum responses
             if len(responses) < min_responses:
@@ -490,3 +533,93 @@ class ResponseCollector:
             consensus_level=consensus_level,
             consensus_analysis=consensus_analysis
         )
+    
+    def _cleanup_expired_responses(self) -> int:
+        """
+        Clean up expired responses and file mappings.
+        
+        Returns:
+            Number of expired entries removed
+        """
+        try:
+            response_cleanup = self._responses.cleanup()
+            file_cleanup = self._response_files.cleanup()
+            total_cleanup = response_cleanup + file_cleanup
+            
+            if total_cleanup > 0:
+                logger.info(f"Cleaned up {response_cleanup} response entries and {file_cleanup} file mappings")
+            
+            return total_cleanup
+        except Exception as e:
+            logger.error(f"Error during response cleanup: {e}")
+            return 0
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for monitoring."""
+        try:
+            response_stats = self._responses.get_stats()
+            file_stats = self._response_files.get_stats()
+            
+            return {
+                "responses_cache": response_stats.to_dict(),
+                "response_files_cache": file_stats.to_dict(),
+                "response_cache_size": len(self._responses),
+                "file_cache_size": len(self._response_files),
+                "buffer_size": self._response_buffer.size(),
+                "cache_type": "TTLDict with LRU eviction"
+            }
+        except Exception as e:
+            logger.error(f"Error getting cache stats: {e}")
+            return {}
+            
+    def _process_buffered_responses(self, buffered_responses: List[ExpertResponse]):
+        """
+        Process buffered responses efficiently using object pools.
+        
+        Args:
+            buffered_responses: List of responses to process
+        """
+        if not buffered_responses:
+            return
+            
+        # Use pooled objects for processing
+        with pooled(DictPool) as analysis_results:
+            for response in buffered_responses:
+                # Process response efficiently
+                query_id = response.query_id
+                
+                # Aggregate buffered data
+                if query_id not in analysis_results:
+                    analysis_results[query_id] = {
+                        "count": 0,
+                        "total_confidence": 0.0,
+                        "expert_types": set()
+                    }
+                    
+                analysis_results[query_id]["count"] += 1
+                analysis_results[query_id]["total_confidence"] += response.confidence
+                analysis_results[query_id]["expert_types"].add(response.expert_type)
+                
+            # Log aggregated results
+            for query_id, results in analysis_results.items():
+                avg_confidence = results["total_confidence"] / results["count"]
+                logger.debug(
+                    f"Processed {results['count']} buffered responses for query {query_id}, "
+                    f"avg confidence: {avg_confidence:.2f}"
+                )
+                
+    def optimize_memory_usage(self):
+        """
+        Optimize memory usage by clearing caches and triggering GC.
+        """
+        # Flush buffer
+        self._response_buffer.flush()
+        
+        # Clear expired entries
+        self._cleanup_expired_responses()
+        
+        # Force garbage collection if we have integration
+        from src.core.gc_optimization import gc_optimizer
+        gc_optimizer.trigger_gc(force=True)
+        
+        logger.info("Optimized response collector memory usage")

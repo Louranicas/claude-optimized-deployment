@@ -10,6 +10,16 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from datetime import datetime
 import uuid
+import logging
+from functools import wraps
+
+# Import authentication components
+from src.auth.middleware import require_auth, require_permission
+from src.auth.models import User
+from src.auth.permissions import PermissionChecker, ResourceType
+from src.core.exceptions import AuthenticationError, PermissionDeniedError
+
+logger = logging.getLogger(__name__)
 
 
 class MCPMessageType(str, Enum):
@@ -187,3 +197,296 @@ class BraveSearchResponse(BaseModel):
                 }
             }
         )
+
+
+class MCPServer:
+    """Base class for MCP servers with built-in authentication."""
+    
+    def __init__(self, name: str, version: str = "1.0.0", 
+                 permission_checker: Optional[PermissionChecker] = None):
+        self.name = name
+        self.version = version
+        self.capabilities = MCPCapabilities()
+        self.permission_checker = permission_checker
+        
+        # Default permissions required for this server
+        self.required_permissions = {
+            "list_tools": f"mcp.{name}:list",
+            "call_tool": f"mcp.{name}:execute",
+            "get_info": f"mcp.{name}:read"
+        }
+        
+        # Tool-specific permissions (can be overridden by subclasses)
+        self.tool_permissions: Dict[str, str] = {}
+    
+    def get_server_info(self, user: User) -> MCPServerInfo:
+        """
+        Get server information.
+        
+        Args:
+            user: User for permission checking (REQUIRED)
+            
+        Returns:
+            Server information
+            
+        Raises:
+            AuthenticationError: If no user provided
+            PermissionDeniedError: If user lacks permission
+        """
+        # SECURITY FIX: User parameter is now required (not Optional)
+        if not user:
+            raise AuthenticationError("Authentication required to get server info")
+            
+        # Check read permission (always required now)
+        if not self._check_permission(user, self.required_permissions["get_info"]):
+            raise PermissionDeniedError(
+                f"Permission denied: {self.required_permissions['get_info']}"
+            )
+        
+        return MCPServerInfo(
+            name=self.name,
+            version=self.version,
+            capabilities=self.capabilities
+        )
+    
+    def get_tools(self, user: User) -> List[MCPTool]:
+        """
+        Get available tools.
+        
+        Args:
+            user: User for permission checking (REQUIRED)
+            
+        Returns:
+            List of available tools (filtered by permissions)
+            
+        Raises:
+            AuthenticationError: If no user provided
+            PermissionDeniedError: If user lacks permission to list tools
+        """
+        # SECURITY FIX: User parameter is now required (not Optional)
+        if not user:
+            raise AuthenticationError("Authentication required to list tools")
+            
+        # Check list permission (always required now)
+        if not self._check_permission(user, self.required_permissions["list_tools"]):
+            raise PermissionDeniedError(
+                f"Permission denied: {self.required_permissions['list_tools']}"
+            )
+        
+        # Get all tools from implementation
+        all_tools = self._get_all_tools()
+        
+        # Filter tools based on user permissions (always required now)
+        filtered_tools = []
+        for tool in all_tools:
+            # Check if user has permission for this specific tool
+            tool_permission = self.tool_permissions.get(
+                tool.name, 
+                f"mcp.{self.name}.{tool.name}:execute"
+            )
+            if self._check_permission(user, tool_permission):
+                filtered_tools.append(tool)
+        return filtered_tools
+    
+    def _get_all_tools(self) -> List[MCPTool]:
+        """Get all available tools. Must be implemented by subclasses."""
+        raise NotImplementedError
+    
+    @require_auth
+    async def call_tool(self, tool_name: str, arguments: Dict[str, Any], 
+                       user: User, context: Optional[Dict[str, Any]] = None) -> Any:
+        """
+        Call a tool with authentication and permission checking.
+        
+        Args:
+            tool_name: Name of the tool to call
+            arguments: Tool arguments
+            user: User making the request (REQUIRED - no longer optional)
+            context: Additional context for permission checking (user_context)
+            
+        Returns:
+            Tool execution result
+            
+        Raises:
+            AuthenticationError: If no user provided or invalid user
+            PermissionDeniedError: If user lacks permission
+            MCPError: If tool execution fails
+        """
+        # SECURITY FIX: User parameter is now required (not Optional)
+        # This prevents authentication bypass when user is None
+        if not user or not hasattr(user, 'id') or not hasattr(user, 'username'):
+            raise AuthenticationError("Valid authenticated user required to call tools")
+        
+        # Check general execution permission
+        if self.permission_checker:
+            if not self._check_permission(user, self.required_permissions["call_tool"], context):
+                raise PermissionDeniedError(
+                    f"Permission denied: {self.required_permissions['call_tool']}"
+                )
+            
+            # Check tool-specific permission
+            tool_permission = self.tool_permissions.get(
+                tool_name,
+                f"mcp.{self.name}.{tool_name}:execute"
+            )
+            if not self._check_permission(user, tool_permission, context):
+                raise PermissionDeniedError(
+                    f"Permission denied for tool {tool_name}: {tool_permission}"
+                )
+        
+        # Build user_context for auditing and permission checking
+        user_context = context or {}
+        user_context["user_id"] = user.id
+        user_context["username"] = user.username
+        
+        # Log the tool call for auditing
+        logger.info(
+            f"User {user.username} calling tool {tool_name} on server {self.name}",
+            extra={
+                "user_id": user.id,
+                "server": self.name,
+                "tool": tool_name,
+                "user_context": user_context
+            }
+        )
+        
+        try:
+            # Call the actual tool implementation with user_context
+            result = await self._call_tool_impl(tool_name, arguments, user, user_context)
+            
+            # Log successful execution
+            logger.info(
+                f"Tool {tool_name} executed successfully by user {user.username}",
+                extra={
+                    "user_id": user.id,
+                    "server": self.name,
+                    "tool": tool_name,
+                    "success": True
+                }
+            )
+            
+            return result
+            
+        except Exception as e:
+            # Log failed execution
+            logger.error(
+                f"Tool {tool_name} execution failed for user {user.username}: {str(e)}",
+                extra={
+                    "user_id": user.id,
+                    "server": self.name,
+                    "tool": tool_name,
+                    "success": False,
+                    "error": str(e)
+                }
+            )
+            raise
+    
+    async def _call_tool_impl(self, tool_name: str, arguments: Dict[str, Any], 
+                             user: User, context: Optional[Dict[str, Any]] = None) -> Any:
+        """
+        Actual tool implementation. Must be implemented by subclasses.
+        
+        Args:
+            tool_name: Name of the tool to call
+            arguments: Tool arguments
+            user: Authenticated user
+            context: Additional context
+            
+        Returns:
+            Tool execution result
+        """
+        raise NotImplementedError
+    
+    def _check_permission(self, user: User, permission: str, 
+                         context: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Check if user has permission.
+        
+        Args:
+            user: User to check
+            permission: Permission string (e.g., "mcp.docker:execute")
+            context: Additional context for permission checking
+            
+        Returns:
+            True if permission granted, False otherwise
+            
+        Raises:
+            PermissionDeniedError: If no permission checker is configured (security hardening)
+        """
+        if not self.permission_checker:
+            # SECURITY FIX: No permission checker configured should be a hard failure
+            # This prevents authentication bypass when permission checker is missing
+            logger.error(
+                f"SECURITY VIOLATION: No permission checker configured for MCP server {self.name}, "
+                "denying access for security"
+            )
+            raise PermissionDeniedError(
+                f"Authentication system not properly configured for MCP server {self.name}"
+            )
+        
+        # Parse resource and action from permission string
+        if ":" in permission:
+            resource, action = permission.rsplit(":", 1)
+        else:
+            resource = permission
+            action = "*"
+        
+        return self.permission_checker.check_permission(
+            user_id=user.id,
+            user_roles=user.roles,
+            resource=resource,
+            action=action,
+            context=context
+        )
+    
+    def set_tool_permission(self, tool_name: str, permission: str) -> None:
+        """
+        Set custom permission requirement for a specific tool.
+        
+        Args:
+            tool_name: Name of the tool
+            permission: Permission string required
+        """
+        self.tool_permissions[tool_name] = permission
+    
+    def register_resource_permissions(self) -> None:
+        """
+        Register this MCP server's resource permissions.
+        Should be called during server initialization.
+        """
+        if not self.permission_checker:
+            return
+        
+        # Register the server as a resource
+        self.permission_checker.register_resource_permission(
+            resource_type=ResourceType.MCP_SERVER,
+            resource_id=self.name,
+            initial_permissions={
+                # Default permissions for admin role
+                "role:admin": {
+                    "*": True  # Full access
+                },
+                # Default permissions for user role
+                "role:user": {
+                    "list": True,
+                    "read": True,
+                    "execute": False  # Must be explicitly granted
+                }
+            }
+        )
+        
+        # Register each tool as a resource
+        try:
+            tools = self._get_all_tools()
+            for tool in tools:
+                self.permission_checker.register_resource_permission(
+                    resource_type=ResourceType.MCP_TOOL,
+                    resource_id=f"{self.name}.{tool.name}",
+                    initial_permissions={
+                        "role:admin": {"*": True},
+                        "role:user": {"execute": False}
+                    }
+                )
+        except NotImplementedError:
+            # Subclass hasn't implemented _get_all_tools yet
+            pass

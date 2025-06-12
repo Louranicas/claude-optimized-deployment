@@ -9,8 +9,19 @@
  * 
  * Usage:
  *   const client = new CODEClient('http://localhost:8000', 'your-api-key');
- *   const result = await client.mcp.execute('docker', 'docker_ps', {});
- *   console.log(result);
+ *   try {
+ *     const result = await client.mcp.execute('docker', 'docker_ps', {});
+ *     console.log(result);
+ *   } finally {
+ *     // Always clean up to prevent memory leaks
+ *     client.destroy();
+ *   }
+ * 
+ * Memory Management:
+ *   - Always call client.destroy() when done to prevent memory leaks
+ *   - Event listeners are automatically cleaned up on destroy
+ *   - Timers and intervals are tracked and cleared automatically
+ *   - Process/window cleanup handlers are registered automatically
  */
 
 const axios = require('axios');
@@ -59,6 +70,7 @@ class RateLimitHandler {
         this.maxDelay = maxDelay;
         this.currentDelay = baseDelay;
         this.requestTimes = [];
+        this.timers = new Set(); // Track all timers for cleanup
     }
 
     resetDelay() {
@@ -85,7 +97,22 @@ class RateLimitHandler {
     }
 
     sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise(resolve => {
+            const timerId = setTimeout(() => {
+                this.timers.delete(timerId);
+                resolve();
+            }, ms);
+            this.timers.add(timerId);
+        });
+    }
+    
+    /**
+     * Clean up all pending timers
+     */
+    cleanup() {
+        this.timers.forEach(timerId => clearTimeout(timerId));
+        this.timers.clear();
+        this.requestTimes = [];
     }
 }
 
@@ -152,68 +179,68 @@ class MCPAPI {
         return await this.client._request('GET', `/api/mcp/servers/${serverName}/tools`);
     }
 
-    async execute(server, tool, arguments) {
-        const payload = { server, tool, arguments };
+    async execute(server, tool, args) {
+        const payload = { server, tool, arguments: args };
         return await this.client._request('POST', '/api/mcp/execute', { data: payload });
     }
 
     // Convenience methods for common operations
     async dockerBuild(dockerfilePath, imageTag, options = {}) {
-        const arguments = {
+        const args = {
             dockerfile_path: dockerfilePath,
             image_tag: imageTag,
             ...options
         };
-        return await this.execute('docker', 'docker_build', arguments);
+        return await this.execute('docker', 'docker_build', args);
     }
 
     async dockerRun(image, containerName = null, options = {}) {
-        const arguments = { image, ...options };
-        if (containerName) arguments.container_name = containerName;
-        return await this.execute('docker', 'docker_run', arguments);
+        const args = { image, ...options };
+        if (containerName) args.container_name = containerName;
+        return await this.execute('docker', 'docker_run', args);
     }
 
     async dockerPs(allContainers = false, options = {}) {
-        const arguments = { all: allContainers, ...options };
-        return await this.execute('docker', 'docker_ps', arguments);
+        const args = { all: allContainers, ...options };
+        return await this.execute('docker', 'docker_ps', args);
     }
 
     async kubectlApply(manifestPath, namespace = null, options = {}) {
-        const arguments = { manifest_path: manifestPath, ...options };
-        if (namespace) arguments.namespace = namespace;
-        return await this.execute('kubernetes', 'kubectl_apply', arguments);
+        const args = { manifest_path: manifestPath, ...options };
+        if (namespace) args.namespace = namespace;
+        return await this.execute('kubernetes', 'kubectl_apply', args);
     }
 
     async kubectlGet(resource, name = null, namespace = null, options = {}) {
-        const arguments = { resource, ...options };
-        if (name) arguments.name = name;
-        if (namespace) arguments.namespace = namespace;
-        return await this.execute('kubernetes', 'kubectl_get', arguments);
+        const args = { resource, ...options };
+        if (name) args.name = name;
+        if (namespace) args.namespace = namespace;
+        return await this.execute('kubernetes', 'kubectl_get', args);
     }
 
     async securityScanNpm(packageJsonPath, options = {}) {
-        const arguments = { package_json_path: packageJsonPath, ...options };
-        return await this.execute('security-scanner', 'npm_audit', arguments);
+        const args = { package_json_path: packageJsonPath, ...options };
+        return await this.execute('security-scanner', 'npm_audit', args);
     }
 
     async securityScanDocker(imageName, options = {}) {
-        const arguments = { image_name: imageName, ...options };
-        return await this.execute('security-scanner', 'docker_security_scan', arguments);
+        const args = { image_name: imageName, ...options };
+        return await this.execute('security-scanner', 'docker_security_scan', args);
     }
 
     async slackNotify(channel, message, options = {}) {
-        const arguments = { channel, message, ...options };
-        return await this.execute('slack-notifications', 'send_notification', arguments);
+        const args = { channel, message, ...options };
+        return await this.execute('slack-notifications', 'send_notification', args);
     }
 
     async prometheusQuery(query, options = {}) {
-        const arguments = { query, ...options };
-        return await this.execute('prometheus-monitoring', 'prometheus_query', arguments);
+        const args = { query, ...options };
+        return await this.execute('prometheus-monitoring', 'prometheus_query', args);
     }
 
     async s3Upload(localPath, bucket, key, options = {}) {
-        const arguments = { local_path: localPath, bucket, key, ...options };
-        return await this.execute('s3-storage', 's3_upload_file', arguments);
+        const args = { local_path: localPath, bucket, key, ...options };
+        return await this.execute('s3-storage', 's3_upload_file', args);
     }
 }
 
@@ -365,26 +392,32 @@ class WebhooksAPI {
  * - Comprehensive error handling
  * - Event emitter for monitoring
  * - Built-in logging
+ * - Automatic memory management and cleanup
  * 
  * Example:
  *   const client = new CODEClient('http://localhost:8000', 'your-api-key');
  *   
- *   // Get system health
- *   const health = await client.circuitBreakers.getHealth();
- *   
- *   // Execute MCP tools
- *   const containers = await client.mcp.dockerPs();
- *   
- *   // Deploy application
- *   const deployment = await client.deployments.create({
- *     application_name: 'my-app',
- *     environment: 'production',
- *     deployment_type: 'kubernetes',
- *     source: {
- *       type: 'git',
- *       repository: 'https://github.com/me/my-app.git'
- *     }
- *   });
+ *   try {
+ *     // Get system health
+ *     const health = await client.circuitBreakers.getHealth();
+ *     
+ *     // Execute MCP tools
+ *     const containers = await client.mcp.dockerPs();
+ *     
+ *     // Deploy application
+ *     const deployment = await client.deployments.create({
+ *       application_name: 'my-app',
+ *       environment: 'production',
+ *       deployment_type: 'kubernetes',
+ *       source: {
+ *         type: 'git',
+ *         repository: 'https://github.com/me/my-app.git'
+ *       }
+ *     });
+ *   } finally {
+ *     // Always clean up to prevent memory leaks
+ *     client.destroy();
+ *   }
  */
 class CODEClient extends EventEmitter {
     constructor(
@@ -403,6 +436,11 @@ class CODEClient extends EventEmitter {
 
         // Rate limiting
         this.rateLimiter = new RateLimitHandler(this.retryBackoff);
+        
+        // Memory management
+        this.isDestroyed = false;
+        this.timers = new Set();
+        this.intervals = new Set();
 
         // HTTP client
         this.httpClient = axios.create({
@@ -431,39 +469,77 @@ class CODEClient extends EventEmitter {
         if (this.debug) {
             this._setupLogging();
         }
+        
+        // Setup cleanup on process termination
+        this._setupProcessCleanup();
     }
 
     _setupLogging() {
         this.httpClient.interceptors.request.use(
             (config) => {
-                console.log(`[CODE Client] ${config.method.toUpperCase()} ${config.url}`);
+                if (!this.isDestroyed) {
+                    console.log(`[CODE Client] ${config.method.toUpperCase()} ${config.url}`);
+                }
                 return config;
             },
             (error) => {
-                console.error('[CODE Client] Request error:', error);
+                if (!this.isDestroyed) {
+                    console.error('[CODE Client] Request error:', error);
+                }
                 return Promise.reject(error);
             }
         );
 
         this.httpClient.interceptors.response.use(
             (response) => {
-                console.log(`[CODE Client] ${response.status} ${response.config.url}`);
+                if (!this.isDestroyed) {
+                    console.log(`[CODE Client] ${response.status} ${response.config.url}`);
+                }
                 return response;
             },
             (error) => {
-                console.error('[CODE Client] Response error:', error.response?.status, error.message);
+                if (!this.isDestroyed) {
+                    console.error('[CODE Client] Response error:', error.response?.status, error.message);
+                }
                 return Promise.reject(error);
             }
         );
+    }
+    
+    /**
+     * Setup process cleanup handlers
+     * @private
+     */
+    _setupProcessCleanup() {
+        const cleanup = () => this.destroy();
+        
+        // Node.js process events
+        if (typeof process !== 'undefined') {
+            process.on('exit', cleanup);
+            process.on('SIGINT', cleanup);
+            process.on('SIGTERM', cleanup);
+            process.on('uncaughtException', cleanup);
+        }
+        
+        // Browser events
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', cleanup);
+            window.addEventListener('pagehide', cleanup);
+        }
     }
 
     async _request(method, path, config = {}) {
         const url = `${this.baseUrl}${path}`;
 
+        // Check if client is destroyed
+        if (this.isDestroyed) {
+            throw new CODEError('Client has been destroyed');
+        }
+        
         // Check rate limiting
         const waitTime = this.rateLimiter.shouldWait();
         if (waitTime > 0) {
-            if (this.debug) console.log(`[CODE Client] Rate limiting: waiting ${waitTime}ms`);
+            if (this.debug && !this.isDestroyed) console.log(`[CODE Client] Rate limiting: waiting ${waitTime}ms`);
             await this.rateLimiter.sleep(waitTime);
         }
 
@@ -483,7 +559,9 @@ class CODEClient extends EventEmitter {
 
                 if (response.status === 200 || response.status === 201) {
                     this.rateLimiter.resetDelay();
-                    this.emit('response', { method, path, status: response.status, attempt });
+                    if (!this.isDestroyed) {
+                        this.emit('response', { method, path, status: response.status, attempt });
+                    }
                     return response.data;
                 }
 
@@ -497,12 +575,14 @@ class CODEClient extends EventEmitter {
                     // Rate limit exceeded
                     const retryAfter = parseInt(error.response.headers['retry-after'] || this.rateLimiter.currentDelay / 1000);
 
-                    if (attempt < this.maxRetries) {
+                    if (attempt < this.maxRetries && !this.isDestroyed) {
                         const waitMs = retryAfter * 1000;
-                        if (this.debug) console.log(`[CODE Client] Rate limited. Retrying in ${retryAfter}s (attempt ${attempt + 1})`);
+                        if (this.debug && !this.isDestroyed) console.log(`[CODE Client] Rate limited. Retrying in ${retryAfter}s (attempt ${attempt + 1})`);
                         await this.rateLimiter.sleep(waitMs);
                         this.rateLimiter.increaseDelay();
-                        this.emit('retry', { method, path, attempt, reason: 'rate_limit', waitMs });
+                        if (!this.isDestroyed) {
+                            this.emit('retry', { method, path, attempt, reason: 'rate_limit', waitMs });
+                        }
                         continue;
                     } else {
                         const errorData = error.response?.data || {};
@@ -514,11 +594,13 @@ class CODEClient extends EventEmitter {
                     // Service unavailable
                     const retryAfter = parseInt(error.response.headers['retry-after'] || '60');
 
-                    if (attempt < this.maxRetries) {
+                    if (attempt < this.maxRetries && !this.isDestroyed) {
                         const waitMs = retryAfter * 1000;
-                        if (this.debug) console.log(`[CODE Client] Service unavailable. Retrying in ${retryAfter}s (attempt ${attempt + 1})`);
+                        if (this.debug && !this.isDestroyed) console.log(`[CODE Client] Service unavailable. Retrying in ${retryAfter}s (attempt ${attempt + 1})`);
                         await this.rateLimiter.sleep(waitMs);
-                        this.emit('retry', { method, path, attempt, reason: 'service_unavailable', waitMs });
+                        if (!this.isDestroyed) {
+                            this.emit('retry', { method, path, attempt, reason: 'service_unavailable', waitMs });
+                        }
                         continue;
                     } else {
                         const errorData = error.response?.data || {};
@@ -534,12 +616,14 @@ class CODEClient extends EventEmitter {
                 }
 
                 // Network or other errors
-                if (attempt < this.maxRetries) {
+                if (attempt < this.maxRetries && !this.isDestroyed) {
                     const waitMs = this.rateLimiter.currentDelay;
-                    if (this.debug) console.log(`[CODE Client] Request failed: ${error.message}. Retrying in ${waitMs}ms (attempt ${attempt + 1})`);
+                    if (this.debug && !this.isDestroyed) console.log(`[CODE Client] Request failed: ${error.message}. Retrying in ${waitMs}ms (attempt ${attempt + 1})`);
                     await this.rateLimiter.sleep(waitMs);
                     this.rateLimiter.increaseDelay();
-                    this.emit('retry', { method, path, attempt, reason: 'network_error', waitMs });
+                    if (!this.isDestroyed) {
+                        this.emit('retry', { method, path, attempt, reason: 'network_error', waitMs });
+                    }
                     continue;
                 } else {
                     throw new CODEError(`Request failed after ${this.maxRetries} retries: ${error.message}`);
@@ -626,6 +710,108 @@ class CODEClient extends EventEmitter {
 
         return results;
     }
+    
+    /**
+     * Properly destroy the client and clean up all resources
+     * This prevents memory leaks by removing all event listeners and clearing timers
+     */
+    destroy() {
+        if (this.isDestroyed) {
+            return;
+        }
+        
+        this.isDestroyed = true;
+        
+        // Clean up rate limiter
+        if (this.rateLimiter) {
+            this.rateLimiter.cleanup();
+        }
+        
+        // Clear all timers
+        this.timers.forEach(timerId => clearTimeout(timerId));
+        this.timers.clear();
+        
+        // Clear all intervals
+        this.intervals.forEach(intervalId => clearInterval(intervalId));
+        this.intervals.clear();
+        
+        // Remove all event listeners
+        this.removeAllListeners();
+        
+        // Clear HTTP client
+        if (this.httpClient) {
+            // Cancel any pending requests
+            this.httpClient.defaults.timeout = 1;
+        }
+        
+        if (this.debug) {
+            console.log('[CODE Client] Client destroyed and resources cleaned up');
+        }
+    }
+    
+    /**
+     * Set a timeout that will be automatically cleaned up when the client is destroyed
+     * @param {Function} callback - The callback function
+     * @param {number} delay - Delay in milliseconds
+     * @returns {number} Timer ID
+     */
+    setTimeout(callback, delay) {
+        if (this.isDestroyed) {
+            throw new CODEError('Cannot set timeout on destroyed client');
+        }
+        
+        const timerId = setTimeout(() => {
+            this.timers.delete(timerId);
+            if (!this.isDestroyed) {
+                callback();
+            }
+        }, delay);
+        
+        this.timers.add(timerId);
+        return timerId;
+    }
+    
+    /**
+     * Set an interval that will be automatically cleaned up when the client is destroyed
+     * @param {Function} callback - The callback function
+     * @param {number} delay - Delay in milliseconds
+     * @returns {number} Interval ID
+     */
+    setInterval(callback, delay) {
+        if (this.isDestroyed) {
+            throw new CODEError('Cannot set interval on destroyed client');
+        }
+        
+        const intervalId = setInterval(() => {
+            if (!this.isDestroyed) {
+                callback();
+            } else {
+                clearInterval(intervalId);
+                this.intervals.delete(intervalId);
+            }
+        }, delay);
+        
+        this.intervals.add(intervalId);
+        return intervalId;
+    }
+    
+    /**
+     * Clear a timeout managed by this client
+     * @param {number} timerId - The timer ID to clear
+     */
+    clearTimeout(timerId) {
+        clearTimeout(timerId);
+        this.timers.delete(timerId);
+    }
+    
+    /**
+     * Clear an interval managed by this client
+     * @param {number} intervalId - The interval ID to clear
+     */
+    clearInterval(intervalId) {
+        clearInterval(intervalId);
+        this.intervals.delete(intervalId);
+    }
 }
 
 // Export classes and enums
@@ -664,13 +850,16 @@ async function exampleBasicUsage() {
 
     } catch (error) {
         console.error('API call failed:', error.message);
+    } finally {
+        // Always clean up resources
+        client.destroy();
     }
 }
 
 async function exampleDeploymentWorkflow() {
     const client = new CODEClient('http://localhost:8000', 'your-api-key', { debug: true });
 
-    // Listen for events
+    // Listen for events (these will be automatically cleaned up when client is destroyed)
     client.on('retry', (data) => {
         console.log(`Retrying ${data.method} ${data.path} due to ${data.reason}`);
     });
@@ -721,6 +910,9 @@ async function exampleDeploymentWorkflow() {
         } catch (notificationError) {
             console.error('Failed to send notification:', notificationError.message);
         }
+    } finally {
+        // Always clean up resources
+        client.destroy();
     }
 }
 
@@ -753,6 +945,10 @@ async function exampleMonitoringSetup() {
 
     } catch (error) {
         console.error('Monitoring setup failed:', error.message);
+    } finally {
+        // Note: In monitoring setup, you might want to keep the client alive
+        // Only destroy when shutting down the monitoring system
+        // client.destroy();
     }
 }
 

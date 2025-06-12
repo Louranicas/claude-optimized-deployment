@@ -1,0 +1,281 @@
+groups:
+  - name: memory.alerts
+    rules:
+      # System Memory Threshold Alerts
+      - alert: MemoryUsageWarning
+        expr: memory_usage_percent{component="system"} >= 70
+        for: 2m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: system
+        annotations:
+          summary: "System memory usage is high"
+          description: "System memory usage is {{ $value }}% (threshold: 70%)"
+          current_usage: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-warning"
+          
+      - alert: MemoryUsageHigh
+        expr: memory_usage_percent{component="system"} >= 80
+        for: 1m
+        labels:
+          severity: high
+          alert_level: high
+          component: system
+        annotations:
+          summary: "System memory usage is critically high"
+          description: "System memory usage is {{ $value }}% (threshold: 80%). Automated cleanup may be triggered."
+          current_usage: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-high"
+          
+      - alert: MemoryUsageCritical
+        expr: memory_usage_percent{component="system"} >= 90
+        for: 30s
+        labels:
+          severity: critical
+          alert_level: critical
+          component: system
+        annotations:
+          summary: "System memory usage is critical"
+          description: "System memory usage is {{ $value }}% (threshold: 90%). Immediate action required."
+          current_usage: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-critical"
+          
+      - alert: MemoryUsageEmergency
+        expr: memory_usage_percent{component="system"} >= 95
+        for: 10s
+        labels:
+          severity: critical
+          alert_level: emergency
+          component: system
+        annotations:
+          summary: "EMERGENCY: System memory exhaustion imminent"
+          description: "System memory usage is {{ $value }}% (threshold: 95%). System may become unresponsive."
+          current_usage: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-emergency"
+
+      # Memory Pressure Alerts
+      - alert: MemoryPressureHigh
+        expr: memory_pressure_level{component="system"} >= 2
+        for: 1m
+        labels:
+          severity: high
+          alert_level: high
+          component: system
+        annotations:
+          summary: "High memory pressure detected"
+          description: "Memory pressure level is {{ $value }} (High). System performance may be degraded."
+          current_pressure: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-pressure"
+          
+      - alert: MemoryPressureCritical
+        expr: memory_pressure_level{component="system"} >= 3
+        for: 30s
+        labels:
+          severity: critical
+          alert_level: critical
+          component: system
+        annotations:
+          summary: "Critical memory pressure detected"
+          description: "Memory pressure level is {{ $value }} (Critical). Aggressive cleanup required."
+          current_pressure: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-pressure-critical"
+
+      # Trend-Based Alerts
+      - alert: MemoryIncreasingRapidly
+        expr: memory:usage_rate:5m >= 1.0
+        for: 3m
+        labels:
+          severity: high
+          alert_level: high
+          component: system
+        annotations:
+          summary: "Memory usage increasing rapidly"
+          description: "Memory usage is increasing at {{ $value }} MB/s. May reach threshold soon."
+          rate_of_change: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-trend"
+
+      - alert: MemoryExhaustionPredicted
+        expr: memory:time_to_exhaustion:estimated <= 900 and memory:time_to_exhaustion:estimated > 0
+        for: 1m
+        labels:
+          severity: critical
+          alert_level: critical
+          component: system
+        annotations:
+          summary: "Memory exhaustion predicted"
+          description: "System may run out of memory in {{ $value }} seconds ({{ $value | humanizeDuration }})."
+          time_to_threshold: "{{ $value }}"
+          predicted_usage: "{{ with query \"memory:trend_prediction:15m\" }}{{ . | first | value }}{{ end }}"
+          runbook_url: "https://runbooks.example.com/memory-prediction"
+
+      # Component-Specific Alerts
+      - alert: CircleOfExpertsMemoryHigh
+        expr: memory_usage_bytes{component="circle_of_experts"} >= 1073741824
+        for: 2m
+        labels:
+          severity: high
+          alert_level: high
+          component: circle_of_experts
+        annotations:
+          summary: "Circle of Experts memory usage high"
+          description: "Circle of Experts is using {{ $value | humanizeBytes }} of memory (threshold: 1GB)."
+          current_usage_bytes: "{{ $value }}"
+          current_usage_percent: "{{ with query \"memory:component_usage_percent:circle_of_experts\" }}{{ . | first | value }}{{ end }}"
+          runbook_url: "https://runbooks.example.com/circle-of-experts-memory"
+
+      - alert: MCPServersMemoryHigh
+        expr: memory_usage_bytes{component="mcp_servers"} >= 536870912
+        for: 2m
+        labels:
+          severity: high
+          alert_level: high
+          component: mcp_servers
+        annotations:
+          summary: "MCP Servers memory usage high"
+          description: "MCP Servers are using {{ $value | humanizeBytes }} of memory (threshold: 512MB)."
+          current_usage_bytes: "{{ $value }}"
+          current_usage_percent: "{{ with query \"memory:component_usage_percent:mcp_servers\" }}{{ . | first | value }}{{ end }}"
+          runbook_url: "https://runbooks.example.com/mcp-servers-memory"
+
+      # Response System Alerts
+      - alert: MemoryResponseSystemFailing
+        expr: memory:response_success_rate:5m < 0.8
+        for: 2m
+        labels:
+          severity: high
+          alert_level: high
+          component: memory_response
+        annotations:
+          summary: "Memory response system failure rate high"
+          description: "Memory response success rate is {{ $value | humanizePercentage }} (threshold: 80%)."
+          success_rate: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-response-system"
+
+      - alert: MemoryCleanupIneffective
+        expr: memory:cleanup_effectiveness:ratio < 0.1 and memory:cleanup_bytes_freed:rate_5m > 0
+        for: 5m
+        labels:
+          severity: medium
+          alert_level: medium
+          component: memory_cleanup
+        annotations:
+          summary: "Memory cleanup operations are ineffective"
+          description: "Memory cleanup effectiveness is {{ $value | humanizePercentage }} (threshold: 10%)."
+          effectiveness: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-cleanup"
+
+      # Garbage Collection Alerts
+      - alert: ExcessiveGarbageCollection
+        expr: gc:collection_rate:5m > 5
+        for: 2m
+        labels:
+          severity: medium
+          alert_level: medium
+          component: garbage_collection
+        annotations:
+          summary: "Excessive garbage collection activity"
+          description: "Garbage collection rate is {{ $value }} collections/second (threshold: 5/s)."
+          collection_rate: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/garbage-collection"
+
+      # Memory Leak Detection
+      - alert: PossibleMemoryLeak
+        expr: increase(memory_usage_percent{component="system"}[1h]) > 20 and memory:usage_rate:15m > 0.1
+        for: 5m
+        labels:
+          severity: high
+          alert_level: high
+          component: system
+        annotations:
+          summary: "Possible memory leak detected"
+          description: "Memory usage increased by {{ $value }}% in the last hour with consistent growth rate."
+          hourly_increase: "{{ $value }}"
+          growth_rate: "{{ with query \"memory:usage_rate:15m\" }}{{ . | first | value }}{{ end }}"
+          runbook_url: "https://runbooks.example.com/memory-leak"
+
+      # Recovery Alerts
+      - alert: MemoryUsageRecovered
+        expr: memory_usage_percent{component="system"} < 60
+        for: 5m
+        labels:
+          severity: info
+          alert_level: info
+          component: system
+        annotations:
+          summary: "Memory usage returned to normal levels"
+          description: "System memory usage is {{ $value }}% (normal threshold: <60%)."
+          current_usage: "{{ $value }}"
+
+  - name: memory.sla
+    rules:
+      # SLA Breach Alerts
+      - alert: MemoryAvailabilitySLABreach
+        expr: memory:sla:availability:24h < 95
+        for: 5m
+        labels:
+          severity: high
+          alert_level: high
+          component: sla
+        annotations:
+          summary: "Memory availability SLA breach"
+          description: "24-hour memory availability is {{ $value }}% (SLA: 95%)."
+          availability: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/sla-breach"
+
+      - alert: MemoryPerformanceSLABreach
+        expr: memory:sla:p95_usage:24h > 85
+        for: 10m
+        labels:
+          severity: medium
+          alert_level: medium
+          component: sla
+        annotations:
+          summary: "Memory performance SLA breach"
+          description: "24-hour P95 memory usage is {{ $value }}% (SLA: <85%)."
+          p95_usage: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/performance-sla"
+
+      - alert: MemoryResponseTimeSLABreach
+        expr: memory:sla:response_time:p95 > 5
+        for: 5m
+        labels:
+          severity: medium
+          alert_level: medium
+          component: memory_response
+        annotations:
+          summary: "Memory response time SLA breach"
+          description: "P95 memory response time is {{ $value }}s (SLA: <5s)."
+          response_time: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/response-time-sla"
+
+  - name: memory.health
+    rules:
+      # Health Score Alerts
+      - alert: MemoryHealthScoreLow
+        expr: memory:health_score:weighted < 50
+        for: 5m
+        labels:
+          severity: high
+          alert_level: high
+          component: system
+        annotations:
+          summary: "Memory health score is low"
+          description: "Overall memory health score is {{ $value }}% (threshold: 50%)."
+          health_score: "{{ $value }}"
+          efficiency: "{{ with query \"memory:performance:efficiency\" }}{{ . | first | value }}{{ end }}"
+          stability: "{{ with query \"memory:performance:stability\" }}{{ . | first | value }}{{ end }}"
+          runbook_url: "https://runbooks.example.com/memory-health"
+
+      - alert: MemorySystemUnstable
+        expr: memory:performance:stability < 0.7
+        for: 10m
+        labels:
+          severity: medium
+          alert_level: medium
+          component: system
+        annotations:
+          summary: "Memory system is unstable"
+          description: "Memory system stability score is {{ $value }} (threshold: 0.7)."
+          stability: "{{ $value }}"
+          runbook_url: "https://runbooks.example.com/memory-stability"

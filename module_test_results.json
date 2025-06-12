@@ -1,0 +1,103 @@
+{
+  "timestamp": "2025-06-06T07:56:50.280462",
+  "modules": {
+    "Circle of Experts": {
+      "module": "circle_of_experts",
+      "tests": {
+        "import": "pass",
+        "manager_creation": "pass",
+        "available_experts": "No API keys configured",
+        "query_creation": "fail: 2 validation errors for ExpertQuery\ntitle\n  Field required [type=missing, input_value={'content': 'Test query',...tadata': {'test': True}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.9/v/missing\nrequester\n  Field required [type=missing, input_value={'content': 'Test query',...tadata': {'test': True}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.9/v/missing",
+        "rust_acceleration": "fail: cannot import name 'Response' from 'src.circle_of_experts.models' (/home/louranicas/projects/claude-optimized-deployment/src/circle_of_experts/models/__init__.py)"
+      }
+    },
+    "MCP Servers": {
+      "module": "mcp_servers",
+      "tests": {
+        "import": "pass",
+        "manager_init": "fail: expected an indented block after 'with' statement on line 408 (prometheus_server.py, line 414)"
+      },
+      "servers": {}
+    },
+    "Database Layer": {
+      "module": "database",
+      "tests": {
+        "import": "fail: cannot import name 'DatabaseManager' from 'src.database.connection' (/home/louranicas/projects/claude-optimized-deployment/src/database/connection.py)"
+      }
+    },
+    "Authentication System": {
+      "module": "authentication",
+      "tests": {
+        "import": "fail: cannot import name 'Permission' from 'src.auth.permissions' (/home/louranicas/projects/claude-optimized-deployment/src/auth/permissions.py)"
+      }
+    },
+    "Monitoring System": {
+      "module": "monitoring",
+      "tests": {
+        "import": "fail: name 'Union' is not defined"
+      }
+    },
+    "Core Utilities": {
+      "module": "core_utilities",
+      "tests": {
+        "circuit_breaker": "fail: CircuitBreakerConfig.__init__() got an unexpected keyword argument 'threshold'",
+        "retry_logic": "pass",
+        "exceptions": "pass",
+        "connection_pooling": "pass",
+        "logging": "pass"
+      }
+    },
+    "API Layer": {
+      "module": "api",
+      "tests": {
+        "import": "pass",
+        "fastapi_app": "pass",
+        "router_inclusion": "pass",
+        "api_instance": "pass"
+      }
+    }
+  },
+  "errors": [
+    {
+      "module": "Circle of Experts",
+      "test": "query_creation",
+      "error": "fail: 2 validation errors for ExpertQuery\ntitle\n  Field required [type=missing, input_value={'content': 'Test query',...tadata': {'test': True}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.9/v/missing\nrequester\n  Field required [type=missing, input_value={'content': 'Test query',...tadata': {'test': True}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.9/v/missing"
+    },
+    {
+      "module": "Circle of Experts",
+      "test": "rust_acceleration",
+      "error": "fail: cannot import name 'Response' from 'src.circle_of_experts.models' (/home/louranicas/projects/claude-optimized-deployment/src/circle_of_experts/models/__init__.py)"
+    },
+    {
+      "module": "MCP Servers",
+      "test": "manager_init",
+      "error": "fail: expected an indented block after 'with' statement on line 408 (prometheus_server.py, line 414)"
+    },
+    {
+      "module": "Database Layer",
+      "test": "import",
+      "error": "fail: cannot import name 'DatabaseManager' from 'src.database.connection' (/home/louranicas/projects/claude-optimized-deployment/src/database/connection.py)"
+    },
+    {
+      "module": "Authentication System",
+      "test": "import",
+      "error": "fail: cannot import name 'Permission' from 'src.auth.permissions' (/home/louranicas/projects/claude-optimized-deployment/src/auth/permissions.py)"
+    },
+    {
+      "module": "Monitoring System",
+      "test": "import",
+      "error": "fail: name 'Union' is not defined"
+    },
+    {
+      "module": "Core Utilities",
+      "test": "circuit_breaker",
+      "error": "fail: CircuitBreakerConfig.__init__() got an unexpected keyword argument 'threshold'"
+    }
+  ],
+  "security_issues": [],
+  "performance_issues": [],
+  "total_tests": 19,
+  "passed_tests": 11,
+  "failed_tests": 8,
+  "success_rate": 57.89473684210527
+}

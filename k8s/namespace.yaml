@@ -1,0 +1,69 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: claude-deployment
+  labels:
+    name: claude-deployment
+    security.kubernetes.io/enforce: restricted
+    security.kubernetes.io/audit: restricted
+    security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    scheduler.alpha.kubernetes.io/node-selector: "kubernetes.io/os=linux"
+    security.alpha.kubernetes.io/sysctls: "net.core.somaxconn"
+    security.alpha.kubernetes.io/unsafe-sysctls: ""
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: claude-deployment-limits
+  namespace: claude-deployment
+spec:
+  limits:
+  - default:
+      cpu: "1000m"
+      memory: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    max:
+      cpu: "4000m"
+      memory: "8Gi"
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+    type: Container
+  - default:
+      storage: "10Gi"
+    max:
+      storage: "100Gi"
+    min:
+      storage: "1Gi"
+    type: PersistentVolumeClaim
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: claude-deployment-quota
+  namespace: claude-deployment
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    requests.storage: 100Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    persistentvolumeclaims: "10"
+    pods: "20"
+    services: "10"
+    secrets: "20"
+    configmaps: "20"
+    count/deployments.apps: "10"
+    count/replicasets.apps: "20"
+    count/jobs.batch: "10"
+    count/cronjobs.batch: "5"

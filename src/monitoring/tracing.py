@@ -35,8 +35,8 @@ from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 from opentelemetry.sdk.trace.sampling import (
     TraceIdRatioBased,
-    AlwaysOn,
-    AlwaysOff,
+    ALWAYS_ON,
+    ALWAYS_OFF,
     ParentBased,
 )
 
@@ -91,9 +91,9 @@ class TracingManager:
     def _create_sampler(self, sample_rate: float):
         """Create appropriate sampler based on rate."""
         if sample_rate >= 1.0:
-            return AlwaysOn()
+            return ALWAYS_ON
         elif sample_rate <= 0.0:
-            return AlwaysOff()
+            return ALWAYS_OFF
         else:
             return ParentBased(root=TraceIdRatioBased(sample_rate))
     

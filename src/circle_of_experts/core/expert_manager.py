@@ -26,6 +26,8 @@ from src.circle_of_experts.utils.validation import (
     validate_string, validate_dict, validate_list, 
     validate_query_parameters, ValidationError
 )
+from src.core.lru_cache import create_ttl_dict
+from src.core.cleanup_scheduler import get_cleanup_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +83,25 @@ class ExpertManager:
         # Get Rust integration manager
         self._rust_integration = get_rust_integration()
         
-        # Track active queries
-        self.active_queries: Dict[str, ExpertQuery] = {}
+        # Track active queries with LRU cache (TTL: 2 hours, max: 1000 queries)
+        self.active_queries = create_ttl_dict(
+            max_size=1000,
+            ttl=7200.0,  # 2 hours
+            cleanup_interval=300.0  # 5 minutes
+        )
+        
+        # Register cleanup with scheduler
+        try:
+            cleanup_scheduler = get_cleanup_scheduler()
+            cleanup_scheduler.register_cleanable_object(self.active_queries)
+            cleanup_scheduler.register_task(
+                name=f"expert_manager_{id(self)}_query_cleanup",
+                callback=self._cleanup_expired_queries,
+                interval_seconds=300.0,  # 5 minutes
+                priority=cleanup_scheduler.TaskPriority.MEDIUM
+            )
+        except Exception as e:
+            logger.warning(f"Could not register with cleanup scheduler: {e}")
         
         logger.info("Expert Manager initialized")
     
@@ -298,6 +317,35 @@ class ExpertManager:
             })
         
         return queries
+    
+    def _cleanup_expired_queries(self) -> int:
+        """
+        Clean up expired queries from active_queries cache.
+        
+        Returns:
+            Number of expired queries removed
+        """
+        try:
+            removed_count = self.active_queries.cleanup()
+            if removed_count > 0:
+                logger.info(f"Cleaned up {removed_count} expired queries")
+            return removed_count
+        except Exception as e:
+            logger.error(f"Error during query cleanup: {e}")
+            return 0
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for monitoring."""
+        try:
+            stats = self.active_queries.get_stats()
+            return {
+                "active_queries_cache": stats.to_dict(),
+                "cache_size": len(self.active_queries),
+                "cache_type": "TTLDict with LRU eviction"
+            }
+        except Exception as e:
+            logger.error(f"Error getting cache stats: {e}")
+            return {}
     
     async def check_for_new_responses(self) -> Dict[str, List[ExpertResponse]]:
         """

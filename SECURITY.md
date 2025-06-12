@@ -40,9 +40,27 @@ This project implements several security measures:
 1. **Input Validation**: All user inputs are validated
 2. **Rate Limiting**: API endpoints are rate-limited
 3. **Authentication**: MCP servers use token-based auth
-4. **Dependency Scanning**: Regular vulnerability scans
-5. **Code Analysis**: Static security analysis with Bandit
-6. **Memory Safety**: Rust components for critical operations
+4. **SSRF Protection**: Comprehensive Server-Side Request Forgery protection
+5. **Dependency Scanning**: Regular vulnerability scans
+6. **Code Analysis**: Static security analysis with Bandit
+7. **Memory Safety**: Rust components for critical operations
+
+### SSRF Protection
+
+The system includes comprehensive SSRF (Server-Side Request Forgery) protection to prevent attacks against internal networks and cloud metadata services. See [SSRF Security Guide](docs/SSRF_SECURITY_GUIDE.md) for detailed information on:
+
+- Protection mechanisms and architecture
+- Configuration options and presets
+- Usage guidelines and best practices
+- Testing and validation procedures
+- Troubleshooting common issues
+
+**Key SSRF protections include:**
+- Blocking access to private networks (RFC 1918)
+- Preventing cloud metadata endpoint access
+- Validating URL schemes and ports
+- DNS rebinding attack prevention
+- Pattern-based suspicious URL detection
 
 ### Security Best Practices
 

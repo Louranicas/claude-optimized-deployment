@@ -22,17 +22,22 @@ from src.circle_of_experts.models.response import ExpertResponse, ExpertType, Re
 from src.circle_of_experts.models.query import ExpertQuery
 from src.core.retry import retry_api_call, RetryConfig, RetryStrategy
 from src.core.circuit_breaker import circuit_breaker, CircuitBreakerConfig, get_circuit_breaker_manager
+from src.core.ssrf_protection import SSRFProtectedSession, get_ssrf_protector, STRICT_SSRF_CONFIG
 
 logger = logging.getLogger(__name__)
 
 
 class BaseExpertClient(ABC):
-    """Base class for all expert AI clients."""
+    """Base class for all expert AI clients with SSRF protection."""
     
     def __init__(self, api_key: Optional[str] = None):
         """Initialize the expert client."""
         self.api_key = api_key
         self._session: Optional[aiohttp.ClientSession] = None
+        self._ssrf_session: Optional[SSRFProtectedSession] = None
+        # Initialize SSRF protector with strict config for AI APIs
+        from src.core.ssrf_protection import SSRFProtector
+        self._ssrf_protector = SSRFProtector(**STRICT_SSRF_CONFIG)
     
     @abstractmethod
     async def generate_response(self, query: ExpertQuery) -> ExpertResponse:
@@ -45,14 +50,37 @@ class BaseExpertClient(ABC):
         pass
     
     async def __aenter__(self):
-        """Enter async context."""
-        self._session = aiohttp.ClientSession()
+        """Enter async context with SSRF-protected session."""
+        self._ssrf_session = SSRFProtectedSession(self._ssrf_protector)
+        await self._ssrf_session.__aenter__()
+        # Keep regular session for backward compatibility
+        self._session = self._ssrf_session.session
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Exit async context."""
-        if self._session:
-            await self._session.close()
+        if self._ssrf_session:
+            await self._ssrf_session.__aexit__(exc_type, exc_val, exc_tb)
+            self._ssrf_session = None
+            self._session = None
+    
+    async def _make_safe_request(self, method: str, url: str, **kwargs):
+        """Make HTTP request with SSRF protection."""
+        if not self._ssrf_session:
+            raise RuntimeError("Session not initialized. Use async context manager.")
+        
+        # Validate URL before making request
+        validation = self._ssrf_protector.validate_url(url)
+        if not validation.is_safe:
+            logger.error(f"SSRF protection blocked request to {url}: {validation.reason}")
+            raise Exception(f"SSRF protection: {validation.reason}")
+        
+        # Log suspicious URLs
+        if validation.threat_level.value == "suspicious":
+            logger.warning(f"Suspicious URL detected: {url} - {validation.reason}")
+        
+        # Make the request
+        return await self._ssrf_session._validate_and_request(method, url, **kwargs)
 
 
 class ClaudeExpertClient(BaseExpertClient):

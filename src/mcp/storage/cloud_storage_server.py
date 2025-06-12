@@ -21,6 +21,7 @@ import base64
 
 from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
 from src.mcp.servers import MCPServer
+from src.core.path_validation import validate_file_path, sanitize_filename
 
 logger = logging.getLogger(__name__)
 
@@ -293,12 +294,25 @@ class CloudStorageMCP(MCPServer):
         """Upload file with enterprise features."""
         start_time = datetime.now()
         
-        # Validate file and calculate checksum
-        if not Path(file_path).exists():
+        # Validate file path to prevent directory traversal
+        try:
+            validated_path = validate_file_path(
+                file_path,
+                allow_absolute=True,
+                allow_symlinks=False
+            )
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid file path: {str(e)}")
+        
+        # Validate and sanitize remote path
+        remote_path = sanitize_filename(remote_path)
+        
+        # Validate file exists and calculate checksum
+        if not validated_path.exists():
             raise MCPError(-32000, f"File not found: {file_path}")
         
-        file_size = Path(file_path).stat().st_size
-        checksum = await self._calculate_checksum(file_path)
+        file_size = validated_path.stat().st_size
+        checksum = await self._calculate_checksum(str(validated_path))
         
         # Determine optimal upload strategy
         use_multipart = file_size > self.multipart_threshold
@@ -314,13 +328,13 @@ class CloudStorageMCP(MCPServer):
         
         # Provider-specific upload
         if provider == StorageProvider.AWS_S3.value:
-            result = await self._s3_upload(container, file_path, remote_path, 
+            result = await self._s3_upload(container, str(validated_path), remote_path, 
                                          encryption, storage_class, upload_metadata, use_multipart)
         elif provider == StorageProvider.AZURE_BLOB.value:
-            result = await self._azure_upload(container, file_path, remote_path,
+            result = await self._azure_upload(container, str(validated_path), remote_path,
                                             encryption, storage_class, upload_metadata)
         elif provider == StorageProvider.GOOGLE_CLOUD.value:
-            result = await self._gcs_upload(container, file_path, remote_path,
+            result = await self._gcs_upload(container, str(validated_path), remote_path,
                                           encryption, storage_class, upload_metadata)
         else:
             raise MCPError(-32000, f"Unsupported provider: {provider}")
@@ -348,21 +362,33 @@ class CloudStorageMCP(MCPServer):
                            provider: str = "s3", compression: bool = True,
                            encryption: bool = True, retention_days: int = 30) -> Dict[str, Any]:
         """Create automated backup with verification."""
+        # Validate source path to prevent directory traversal
+        try:
+            validated_source_path = validate_file_path(
+                source_path,
+                allow_absolute=True,
+                allow_symlinks=False
+            )
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid source path: {str(e)}")
+        
+        # Sanitize backup name to prevent path injection
+        backup_name = sanitize_filename(backup_name)
         backup_id = f"{backup_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
         # Create backup manifest
-        manifest = await self._create_backup_manifest(source_path, backup_id)
+        manifest = await self._create_backup_manifest(str(validated_source_path), backup_id)
         
         # Compress if requested
         if compression:
-            archive_path = await self._compress_backup(source_path, backup_id)
+            archive_path = await self._compress_backup(str(validated_source_path), backup_id)
         else:
-            archive_path = source_path
+            archive_path = str(validated_source_path)
         
         # Upload backup with metadata
         backup_metadata = {
             "backup_id": backup_id,
-            "source_path": source_path,
+            "source_path": str(validated_source_path),
             "compression": str(compression),
             "retention_days": str(retention_days),
             "manifest": json.dumps(manifest)
@@ -385,7 +411,7 @@ class CloudStorageMCP(MCPServer):
         
         return {
             "backup_id": backup_id,
-            "source_path": source_path,
+            "source_path": str(validated_source_path),
             "compressed": compression,
             "encrypted": encryption,
             "retention_days": retention_days,
@@ -594,9 +620,23 @@ class CloudStorageMCP(MCPServer):
     
     async def _compress_backup(self, source_path: str, backup_id: str) -> str:
         """Compress backup data."""
-        archive_path = f"/tmp/{backup_id}.tar.gz"
+        # Sanitize backup_id to ensure it's safe for use in filename
+        safe_backup_id = sanitize_filename(backup_id)
+        archive_path = f"/tmp/{safe_backup_id}.tar.gz"
         
-        cmd = f"tar -czf {archive_path} -C {Path(source_path).parent} {Path(source_path).name}"
+        # Validate archive path
+        try:
+            validated_archive_path = validate_file_path(
+                archive_path,
+                base_directory="/tmp",
+                allow_absolute=True,
+                allow_symlinks=False
+            )
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid archive path: {str(e)}")
+        
+        source_path_obj = Path(source_path)
+        cmd = f"tar -czf {validated_archive_path} -C {source_path_obj.parent} {source_path_obj.name}"
         
         process = await asyncio.create_subprocess_shell(
             cmd,
@@ -609,7 +649,7 @@ class CloudStorageMCP(MCPServer):
         if process.returncode != 0:
             raise MCPError(-32000, f"Backup compression failed: {stderr.decode('utf-8')}")
         
-        return archive_path
+        return str(validated_archive_path)
     
     async def _analyze_costs(self, objects: List[Dict[str, Any]], provider: str) -> Dict[str, Any]:
         """Analyze storage costs and optimization opportunities."""

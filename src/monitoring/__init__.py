@@ -21,6 +21,7 @@ from .metrics import (
 from .health import (
     HealthChecker,
     HealthStatus,
+    HealthCheckResult,
     get_health_checker,
     register_health_check,
     health_check,
@@ -66,6 +67,7 @@ __all__ = [
     # Health
     "HealthChecker",
     "HealthStatus",
+    "HealthCheckResult",
     "get_health_checker",
     "register_health_check",
     "health_check",

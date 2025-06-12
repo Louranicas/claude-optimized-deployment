@@ -9,6 +9,9 @@ import logging
 from typing import Dict, Any, Optional, List, Callable
 import aiohttp
 from abc import ABC, abstractmethod
+from datetime import datetime, timedelta
+import weakref
+from collections import defaultdict
 
 from src.mcp.protocols import (
     MCPRequest, MCPResponse, MCPNotification, MCPError,
@@ -105,14 +108,76 @@ class HTTPTransport(MCPTransport):
 class WebSocketTransport(MCPTransport):
     """WebSocket transport for MCP."""
     
-    def __init__(self, ws_url: str, headers: Optional[Dict[str, str]] = None):
+    def __init__(self, ws_url: str, headers: Optional[Dict[str, str]] = None,
+                 handler_timeout_seconds: int = 300,
+                 max_response_handlers: int = 1000):
         self.ws_url = ws_url
         self.headers = headers or {}
         self.ws: Optional[aiohttp.ClientWebSocketResponse] = None
         self.session: Optional[aiohttp.ClientSession] = None
+        
+        # Response handlers with timeout-based cleanup
         self._response_handlers: Dict[str, asyncio.Future] = {}
-        self._notification_handler: Optional[Callable] = None
+        self._handler_timestamps: Dict[str, datetime] = {}
+        self.handler_timeout_seconds = handler_timeout_seconds
+        self.max_response_handlers = max_response_handlers
+        
+        # Notification handler with weak reference
+        self._notification_handler: Optional[weakref.ref] = None
         self._receive_task: Optional[asyncio.Task] = None
+        self._cleanup_task: Optional[asyncio.Task] = None
+        self._is_connected = False
+    
+    async def _cleanup_expired_handlers(self) -> None:
+        """Clean up expired response handlers to prevent memory leaks."""
+        current_time = datetime.now()
+        cutoff_time = current_time - timedelta(seconds=self.handler_timeout_seconds)
+        
+        expired_ids = [
+            request_id for request_id, timestamp in self._handler_timestamps.items()
+            if timestamp < cutoff_time
+        ]
+        
+        for request_id in expired_ids:
+            future = self._response_handlers.pop(request_id, None)
+            if future and not future.done():
+                future.cancel()
+            self._handler_timestamps.pop(request_id, None)
+        
+        if expired_ids:
+            logger.warning(f"Cleaned up {len(expired_ids)} expired response handlers")
+    
+    async def _force_cleanup_handlers(self) -> None:
+        """Force cleanup of oldest handlers when limit is reached."""
+        if len(self._response_handlers) >= self.max_response_handlers:
+            # Sort by timestamp and remove oldest 25%
+            sorted_handlers = sorted(
+                self._handler_timestamps.items(),
+                key=lambda x: x[1]
+            )
+            cleanup_count = len(sorted_handlers) // 4
+            
+            for request_id, _ in sorted_handlers[:cleanup_count]:
+                future = self._response_handlers.pop(request_id, None)
+                if future and not future.done():
+                    future.cancel()
+                self._handler_timestamps.pop(request_id, None)
+            
+            logger.warning(f"Force cleaned up {cleanup_count} response handlers due to limit")
+    
+    async def _start_periodic_cleanup(self) -> None:
+        """Start periodic cleanup of expired handlers."""
+        async def cleanup_loop():
+            while self._is_connected:
+                try:
+                    await asyncio.sleep(60)  # Clean up every minute
+                    await self._cleanup_expired_handlers()
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.error(f"Handler cleanup error: {e}")
+        
+        self._cleanup_task = asyncio.create_task(cleanup_loop())
     
     async def connect(self) -> None:
         """Establish WebSocket connection."""
@@ -126,12 +191,35 @@ class WebSocketTransport(MCPTransport):
         
         self.ws = await self.session.ws_connect(self.ws_url, headers=self.headers)
         self._receive_task = asyncio.create_task(self._receive_loop())
+        await self._start_periodic_cleanup()
     
     async def disconnect(self) -> None:
-        """Close WebSocket connection."""
+        """Close WebSocket connection and clean up handlers."""
+        self._is_connected = False
+        
+        # Cancel background tasks
         if self._receive_task:
             self._receive_task.cancel()
+            try:
+                await self._receive_task
+            except asyncio.CancelledError:
+                pass
         
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            try:
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
+        
+        # Clean up all pending handlers
+        for future in self._response_handlers.values():
+            if not future.done():
+                future.cancel()
+        self._response_handlers.clear()
+        self._handler_timestamps.clear()
+        
+        # Close connections
         if self.ws:
             await self.ws.close()
         
@@ -139,13 +227,23 @@ class WebSocketTransport(MCPTransport):
             await self.session.close()
     
     async def send_request(self, request: MCPRequest) -> MCPResponse:
-        """Send request via WebSocket."""
+        """Send request via WebSocket with handler cleanup."""
         if not self.ws:
             raise MCPError(-32000, "WebSocket not connected")
         
+        # Clean up expired handlers before adding new one
+        await self._cleanup_expired_handlers()
+        
+        # Check if we have too many handlers
+        if len(self._response_handlers) >= self.max_response_handlers:
+            # Force cleanup of oldest handlers
+            await self._force_cleanup_handlers()
+        
         # Create future for response
         future = asyncio.Future()
-        self._response_handlers[str(request.id)] = future
+        request_id = str(request.id)
+        self._response_handlers[request_id] = future
+        self._handler_timestamps[request_id] = datetime.now()
         
         # Send request
         await self.ws.send_str(json.dumps(request.dict()))
@@ -155,8 +253,14 @@ class WebSocketTransport(MCPTransport):
             response_data = await asyncio.wait_for(future, timeout=30.0)
             return MCPResponse(**response_data)
         except asyncio.TimeoutError:
-            del self._response_handlers[str(request.id)]
+            # Clean up on timeout
+            self._response_handlers.pop(request_id, None)
+            self._handler_timestamps.pop(request_id, None)
             raise MCPError(-32000, "Request timeout")
+        finally:
+            # Always clean up after response
+            self._response_handlers.pop(request_id, None)
+            self._handler_timestamps.pop(request_id, None)
     
     async def send_notification(self, notification: MCPNotification) -> None:
         """Send notification via WebSocket."""
@@ -166,8 +270,9 @@ class WebSocketTransport(MCPTransport):
         await self.ws.send_str(json.dumps(notification.dict()))
     
     async def _receive_loop(self) -> None:
-        """Receive messages from WebSocket."""
-        while self.ws and not self.ws.closed:
+        """Receive messages from WebSocket with memory management."""
+        self._is_connected = True
+        while self._is_connected and self.ws and not self.ws.closed:
             try:
                 msg = await self.ws.receive()
                 
@@ -176,13 +281,21 @@ class WebSocketTransport(MCPTransport):
                     
                     # Handle response
                     if "id" in data and str(data["id"]) in self._response_handlers:
-                        future = self._response_handlers.pop(str(data["id"]))
-                        future.set_result(data)
+                        request_id = str(data["id"])
+                        future = self._response_handlers.pop(request_id, None)
+                        self._handler_timestamps.pop(request_id, None)
+                        if future and not future.done():
+                            future.set_result(data)
                     
                     # Handle notification
                     elif "method" in data and not "id" in data:
                         if self._notification_handler:
-                            await self._notification_handler(MCPNotification(**data))
+                            handler = self._notification_handler()
+                            if handler:
+                                await handler(MCPNotification(**data))
+                            else:
+                                # Clean up dead weak reference
+                                self._notification_handler = None
                 
                 elif msg.type == aiohttp.WSMsgType.ERROR:
                     logger.error(f"WebSocket error: {msg.data}")
@@ -194,10 +307,16 @@ class WebSocketTransport(MCPTransport):
             except Exception as e:
                 logger.error(f"Error in receive loop: {e}")
                 break
+        
+        self._is_connected = False
     
     def set_notification_handler(self, handler: Callable) -> None:
-        """Set handler for notifications."""
-        self._notification_handler = handler
+        """Set handler for notifications using weak reference."""
+        if hasattr(handler, '__self__'):
+            self._notification_handler = weakref.ref(handler)
+        else:
+            # For functions without self, store directly
+            self._notification_handler = lambda: handler
 
 
 class MCPClient:

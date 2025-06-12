@@ -1,0 +1,415 @@
+name: Dependency Monitoring and Optimization
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - 'package*.json'
+      - '.github/workflows/dependency-monitoring.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - 'package*.json'
+  schedule:
+    # Run weekly dependency checks
+    - cron: '0 8 * * 1'  # Monday 8 AM UTC
+  workflow_dispatch:
+    inputs:
+      memory_limit_mb:
+        description: 'Memory limit for dependency bloat check (MB)'
+        required: false
+        default: '500'
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  DEFAULT_MEMORY_LIMIT: 500
+
+jobs:
+  dependency-security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit safety
+
+      - name: Run pip-audit for security vulnerabilities
+        run: |
+          pip-audit --desc --format=json --output=security-vulnerabilities.json || true
+          
+      - name: Run safety check
+        run: |
+          safety check --json --output=safety-report.json || true
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-scan-results
+          path: |
+            security-vulnerabilities.json
+            safety-report.json
+
+  dependency-bloat-check:
+    name: Dependency Bloat Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install core dependencies only
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .  # Install core dependencies only
+
+      - name: Set memory limit
+        run: |
+          if [ "${{ github.event.inputs.memory_limit_mb }}" != "" ]; then
+            echo "MEMORY_LIMIT=${{ github.event.inputs.memory_limit_mb }}" >> $GITHUB_ENV
+          else
+            echo "MEMORY_LIMIT=${{ env.DEFAULT_MEMORY_LIMIT }}" >> $GITHUB_ENV
+          fi
+
+      - name: Run dependency bloat check
+        run: |
+          python scripts/analyze_memory_usage.py --ci-check --memory-limit ${{ env.MEMORY_LIMIT }} --output bloat-check-results.json
+
+      - name: Upload bloat check results
+        uses: actions/upload-artifact@v3
+        with:
+          name: bloat-check-results
+          path: bloat-check-results.json
+
+      - name: Comment on PR (if bloat detected)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'bloat-check-results.json';
+            
+            if (fs.existsSync(path)) {
+              const results = JSON.parse(fs.readFileSync(path, 'utf8'));
+              
+              const comment = `
+              ## 🚨 Dependency Bloat Detected
+              
+              The dependency bloat check failed:
+              - **Total Size**: ${results.total_size_mb.toFixed(1)}MB
+              - **Limit**: ${results.memory_limit_mb}MB
+              - **Packages**: ${results.package_count}
+              
+              ### Recommendations:
+              ${results.recommendations.map(rec => `- ${rec}`).join('\n')}
+              
+              ### Largest Packages:
+              ${results.large_packages.slice(0, 5).map(pkg => `- ${pkg.name}: ${pkg.size_mb.toFixed(1)}MB`).join('\n')}
+              
+              Please consider:
+              1. Moving heavy dependencies to optional extras
+              2. Using lazy imports for non-essential packages
+              3. Removing unused dependencies
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  memory-usage-analysis:
+    name: Memory Usage Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        installation-type: ['core', 'ai', 'cloud', 'all']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies based on matrix
+        run: |
+          python -m pip install --upgrade pip
+          case "${{ matrix.installation-type }}" in
+            "core")
+              pip install -e .
+              ;;
+            "ai")
+              pip install -e ".[ai]"
+              ;;
+            "cloud")
+              pip install -e ".[cloud]"
+              ;;
+            "all")
+              pip install -e ".[all]"
+              ;;
+          esac
+
+      - name: Analyze memory usage
+        run: |
+          python scripts/analyze_memory_usage.py --compare-installations --output memory-analysis-${{ matrix.installation-type }}.json
+
+      - name: Upload memory analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: memory-analysis-${{ matrix.installation-type }}
+          path: memory-analysis-${{ matrix.installation-type }}.json
+
+  nodejs-dependency-check:
+    name: Node.js Dependency Analysis
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'package.json') || contains(github.event.head_commit.modified, 'package-lock.json')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=high --json > npm-audit-results.json || true
+
+      - name: Analyze bundle size
+        run: |
+          npx bundlephobia-cli package.json > bundle-size-analysis.txt || true
+
+      - name: Upload Node.js analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: nodejs-dependency-analysis
+          path: |
+            npm-audit-results.json
+            bundle-size-analysis.txt
+
+  performance-regression-check:
+    name: Performance Regression Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies with monitoring
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,monitoring]"
+          pip install memory-profiler line-profiler
+
+      - name: Run import time benchmarks
+        run: |
+          python -c "
+          import time
+          import json
+          import tracemalloc
+          
+          # Test core imports
+          tracemalloc.start()
+          start_time = time.time()
+          
+          import src.core.lazy_imports
+          import src.circle_of_experts
+          import src.core.retry
+          
+          end_time = time.time()
+          current, peak = tracemalloc.get_traced_memory()
+          tracemalloc.stop()
+          
+          results = {
+            'import_time_seconds': end_time - start_time,
+            'memory_peak_mb': peak / (1024 * 1024),
+            'memory_current_mb': current / (1024 * 1024)
+          }
+          
+          with open('import-performance.json', 'w') as f:
+            json.dump(results, f, indent=2)
+          
+          print(f'Import time: {results[\"import_time_seconds\"]:.2f}s')
+          print(f'Memory usage: {results[\"memory_peak_mb\"]:.1f}MB peak')
+          "
+
+      - name: Check performance thresholds
+        run: |
+          python -c "
+          import json
+          
+          with open('import-performance.json', 'r') as f:
+            results = json.load(f)
+          
+          # Define thresholds
+          MAX_IMPORT_TIME = 2.0  # seconds
+          MAX_MEMORY_MB = 100.0  # MB
+          
+          if results['import_time_seconds'] > MAX_IMPORT_TIME:
+            print(f'❌ Import time ({results[\"import_time_seconds\"]:.2f}s) exceeds threshold ({MAX_IMPORT_TIME}s)')
+            exit(1)
+          
+          if results['memory_peak_mb'] > MAX_MEMORY_MB:
+            print(f'❌ Memory usage ({results[\"memory_peak_mb\"]:.1f}MB) exceeds threshold ({MAX_MEMORY_MB}MB)')
+            exit(1)
+          
+          print(f'✅ Performance within thresholds')
+          print(f'   Import time: {results[\"import_time_seconds\"]:.2f}s (< {MAX_IMPORT_TIME}s)')
+          print(f'   Memory usage: {results[\"memory_peak_mb\"]:.1f}MB (< {MAX_MEMORY_MB}MB)')
+          "
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-regression-results
+          path: import-performance.json
+
+  generate-optimization-report:
+    name: Generate Optimization Report
+    runs-on: ubuntu-latest
+    needs: [dependency-bloat-check, memory-usage-analysis, dependency-security-scan, performance-regression-check]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate comprehensive report
+        run: |
+          python -c "
+          import json
+          import os
+          from datetime import datetime
+          
+          report = {
+            'timestamp': datetime.now().isoformat(),
+            'commit': os.getenv('GITHUB_SHA', 'unknown'),
+            'branch': os.getenv('GITHUB_REF_NAME', 'unknown'),
+            'workflow_run': os.getenv('GITHUB_RUN_ID', 'unknown'),
+            'results': {}
+          }
+          
+          # Collect all results
+          for root, dirs, files in os.walk('.'):
+            for file in files:
+              if file.endswith('.json') and 'results' in file:
+                path = os.path.join(root, file)
+                try:
+                  with open(path, 'r') as f:
+                    data = json.load(f)
+                    report['results'][file] = data
+                except Exception as e:
+                  print(f'Failed to read {path}: {e}')
+          
+          # Generate summary
+          summary = {
+            'total_checks': len(report['results']),
+            'passed_checks': 0,
+            'failed_checks': 0,
+            'warnings': []
+          }
+          
+          for check_name, check_data in report['results'].items():
+            if isinstance(check_data, dict) and 'passed' in check_data:
+              if check_data['passed']:
+                summary['passed_checks'] += 1
+              else:
+                summary['failed_checks'] += 1
+                summary['warnings'].extend(check_data.get('recommendations', []))
+          
+          report['summary'] = summary
+          
+          with open('optimization-report.json', 'w') as f:
+            json.dump(report, f, indent=2)
+          
+          print(f\"Generated optimization report with {summary['total_checks']} checks\")
+          print(f\"Passed: {summary['passed_checks']}, Failed: {summary['failed_checks']}\")
+          "
+
+      - name: Upload optimization report
+        uses: actions/upload-artifact@v3
+        with:
+          name: optimization-report
+          path: optimization-report.json
+
+      - name: Comment summary on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            if (fs.existsSync('optimization-report.json')) {
+              const report = JSON.parse(fs.readFileSync('optimization-report.json', 'utf8'));
+              const summary = report.summary;
+              
+              const status = summary.failed_checks === 0 ? '✅ PASSED' : '❌ FAILED';
+              const emoji = summary.failed_checks === 0 ? '🎉' : '⚠️';
+              
+              const comment = `
+              ## ${emoji} Dependency Optimization Report ${status}
+              
+              **Commit**: ${report.commit.substring(0, 8)}
+              **Branch**: ${report.branch}
+              **Timestamp**: ${report.timestamp}
+              
+              ### Summary
+              - **Total Checks**: ${summary.total_checks}
+              - **Passed**: ${summary.passed_checks}
+              - **Failed**: ${summary.failed_checks}
+              
+              ${summary.warnings.length > 0 ? `
+              ### Warnings & Recommendations
+              ${summary.warnings.slice(0, 5).map(w => `- ${w}`).join('\n')}
+              ${summary.warnings.length > 5 ? `\n... and ${summary.warnings.length - 5} more` : ''}
+              ` : ''}
+              
+              ### Next Steps
+              ${summary.failed_checks === 0 ? 
+                '🎉 All dependency optimization checks passed! Your changes maintain our memory efficiency goals.' :
+                '⚠️ Some optimization checks failed. Please review the recommendations above and consider using lazy imports or optional extras for heavy dependencies.'
+              }
+              
+              📊 [View detailed report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }

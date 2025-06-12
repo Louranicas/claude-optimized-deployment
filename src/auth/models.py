@@ -8,6 +8,7 @@ from typing import Optional, List, Set, Dict, Any
 from enum import Enum
 import secrets
 import hashlib
+import hmac
 from dataclasses import dataclass, field
 import bcrypt
 
@@ -227,8 +228,8 @@ class APIKey:
         return hashlib.sha256(raw_key.encode()).hexdigest()
     
     def verify_key(self, raw_key: str) -> bool:
-        """Verify an API key against the hash."""
-        return self.key_hash == self.hash_key(raw_key)
+        """Verify an API key against the hash using constant-time comparison."""
+        return hmac.compare_digest(self.key_hash, self.hash_key(raw_key))
     
     def is_valid(self) -> bool:
         """Check if API key is valid."""

@@ -6,9 +6,13 @@ for computationally intensive Circle of Experts operations.
 """
 
 import asyncio
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Iterator
 import logging
 from functools import lru_cache
+import sys
+import gc
+from collections import deque
+import weakref
 
 logger = logging.getLogger(__name__)
 
@@ -202,13 +206,16 @@ class ResponseAggregator:
     Uses Rust for efficient deduplication and content merging.
     """
     
-    def __init__(self, weight_by_confidence: bool = True, deduplication_threshold: float = 0.85):
+    def __init__(self, weight_by_confidence: bool = True, deduplication_threshold: float = 0.85,
+                 max_chunk_size: int = 1000, enable_streaming: bool = True):
         """
         Initialize the response aggregator.
         
         Args:
             weight_by_confidence: Whether to weight responses by confidence scores
             deduplication_threshold: Similarity threshold for deduplication
+            max_chunk_size: Maximum size of data chunks for streaming processing
+            enable_streaming: Whether to use streaming data conversion
         """
         if RUST_AVAILABLE:
             self._aggregator = create_response_aggregator(weight_by_confidence, deduplication_threshold)
@@ -216,10 +223,19 @@ class ResponseAggregator:
             self._aggregator = RustResponseAggregator(weight_by_confidence, deduplication_threshold)
         self.weight_by_confidence = weight_by_confidence
         self.deduplication_threshold = deduplication_threshold
+        
+        # Memory optimization settings
+        self.max_chunk_size = max_chunk_size
+        self.enable_streaming = enable_streaming
+        
+        # Data conversion cache with size limit
+        self._conversion_cache: deque = deque(maxlen=100)
+        self._cache_hits = 0
+        self._cache_misses = 0
     
     def aggregate_responses(self, responses: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        Aggregate multiple expert responses into a unified response.
+        Aggregate multiple expert responses into a unified response with streaming.
         
         Args:
             responses: List of expert response dictionaries
@@ -231,14 +247,25 @@ class ResponseAggregator:
             return self._python_fallback_aggregate(responses)
         
         try:
-            return self._aggregator.aggregate_responses(responses)
+            if self.enable_streaming and len(responses) > self.max_chunk_size:
+                return self._stream_aggregate_responses(responses)
+            else:
+                # Use optimized data conversion
+                processed_responses = self._optimize_data_conversion(responses)
+                result = self._aggregator.aggregate_responses(processed_responses)
+                
+                # Trigger garbage collection for large responses
+                if len(responses) > 100:
+                    gc.collect()
+                
+                return result
         except Exception as e:
             logger.error(f"Rust response aggregation failed: {e}")
             return self._python_fallback_aggregate(responses)
     
     def merge_recommendations(self, responses: List[Dict[str, Any]]) -> List[str]:
         """
-        Merge and deduplicate recommendations from multiple experts.
+        Merge and deduplicate recommendations from multiple experts with streaming.
         
         Args:
             responses: List of expert response dictionaries
@@ -250,17 +277,25 @@ class ResponseAggregator:
             return self._python_fallback_merge(responses)
         
         try:
-            # Extract recommendations for Rust processing
-            processed_responses = [
-                {
-                    "confidence": r.get("confidence", 0.5),
-                    "expert_name": r.get("expert_name", "Unknown"),
-                    "content": r.get("content", ""),
-                    "recommendations": r.get("recommendations", [])
-                }
-                for r in responses
-            ]
-            return self._aggregator.merge_recommendations(processed_responses)
+            if self.enable_streaming and len(responses) > self.max_chunk_size:
+                return self._stream_merge_recommendations(responses)
+            else:
+                # Use optimized data conversion with minimal copying
+                processed_responses = [
+                    {
+                        "confidence": r.get("confidence", 0.5),
+                        "expert_name": r.get("expert_name", "Unknown"),
+                        "content": r.get("content", "")[:500],  # Limit content size
+                        "recommendations": r.get("recommendations", [])[:20]  # Limit recommendations
+                    }
+                    for r in responses
+                ]
+                result = self._aggregator.merge_recommendations(processed_responses)
+                
+                # Clear processed data to free memory
+                del processed_responses
+                
+                return result
         except Exception as e:
             logger.error(f"Rust recommendation merging failed: {e}")
             return self._python_fallback_merge(responses)
@@ -304,6 +339,108 @@ class ResponseAggregator:
         for r in responses:
             all_recs.extend(r.get("recommendations", []))
         return list(dict.fromkeys(all_recs))
+    
+    def _optimize_data_conversion(self, responses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Optimize data conversion to minimize memory usage."""
+        # Use generator for memory-efficient processing
+        def convert_response(response):
+            return {
+                "confidence": response.get("confidence", 0.5),
+                "expert_name": response.get("expert_name", "Unknown"),
+                "content": response.get("content", "")[:1000],  # Limit content size
+                "recommendations": response.get("recommendations", [])[:50]  # Limit recommendations
+            }
+        
+        # Process in chunks to limit memory spikes
+        result = []
+        for i in range(0, len(responses), self.max_chunk_size):
+            chunk = responses[i:i + self.max_chunk_size]
+            processed_chunk = [convert_response(r) for r in chunk]
+            result.extend(processed_chunk)
+            
+            # Force garbage collection after each chunk
+            if len(chunk) == self.max_chunk_size:
+                gc.collect()
+        
+        return result
+    
+    def _stream_aggregate_responses(self, responses: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Stream-process large response sets to prevent memory spikes."""
+        # Process responses in chunks
+        aggregated_content = []
+        all_recommendations = set()
+        confidence_sum = 0
+        expert_count = 0
+        
+        for i in range(0, len(responses), self.max_chunk_size):
+            chunk = responses[i:i + self.max_chunk_size]
+            
+            # Process chunk
+            for response in chunk:
+                content = response.get("content", "")
+                if content and len(content) < 2000:  # Skip very large content
+                    aggregated_content.append(content)
+                
+                recommendations = response.get("recommendations", [])
+                all_recommendations.update(recommendations[:10])  # Limit per response
+                
+                confidence_sum += response.get("confidence", 0.5)
+                expert_count += 1
+            
+            # Force garbage collection after each chunk
+            gc.collect()
+        
+        # Limit final aggregated content size
+        final_content = "\n\n".join(aggregated_content[:100])  # Max 100 content pieces
+        
+        return {
+            "aggregated_content": final_content,
+            "recommendations": list(all_recommendations)[:50],  # Max 50 recommendations
+            "overall_confidence": confidence_sum / expert_count if expert_count > 0 else 0.0,
+            "expert_count": expert_count,
+            "aggregation_method": "streaming_weighted" if self.weight_by_confidence else "streaming_equal"
+        }
+    
+    def _stream_merge_recommendations(self, responses: List[Dict[str, Any]]) -> List[str]:
+        """Stream-merge recommendations to prevent memory buildup."""
+        unique_recommendations = set()
+        
+        for i in range(0, len(responses), self.max_chunk_size):
+            chunk = responses[i:i + self.max_chunk_size]
+            
+            for response in chunk:
+                recommendations = response.get("recommendations", [])
+                # Limit recommendations per response to prevent memory explosion
+                unique_recommendations.update(recommendations[:15])
+            
+            # Limit total unique recommendations to prevent unbounded growth
+            if len(unique_recommendations) > 200:
+                # Keep only the first 200 recommendations
+                unique_recommendations = set(list(unique_recommendations)[:200])
+            
+            # Force garbage collection
+            gc.collect()
+        
+        return list(unique_recommendations)[:100]  # Final limit
+    
+    def get_memory_stats(self) -> Dict[str, Any]:
+        """Get memory usage statistics."""
+        return {
+            "cache_size": len(self._conversion_cache),
+            "cache_hits": self._cache_hits,
+            "cache_misses": self._cache_misses,
+            "cache_hit_ratio": self._cache_hits / (self._cache_hits + self._cache_misses) if (self._cache_hits + self._cache_misses) > 0 else 0,
+            "streaming_enabled": self.enable_streaming,
+            "max_chunk_size": self.max_chunk_size,
+            "memory_usage_mb": sys.getsizeof(self) / 1024 / 1024
+        }
+    
+    def cleanup(self):
+        """Clean up resources and caches."""
+        self._conversion_cache.clear()
+        self._cache_hits = 0
+        self._cache_misses = 0
+        gc.collect()
 
 
 class PatternMatcher:

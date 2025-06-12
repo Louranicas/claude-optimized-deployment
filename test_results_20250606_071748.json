@@ -1,0 +1,127 @@
+{
+  "timestamp": "2025-06-06T07:17:48.176850",
+  "environment": {
+    "python_version": "3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]",
+    "platform": "linux",
+    "working_dir": "/home/louranicas/projects/claude-optimized-deployment"
+  },
+  "modules": {
+    "Core Utilities": {
+      "category": "Core Utilities",
+      "base_module": "src.core",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.core: No module named 'aiodns'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.core: No module named 'aiodns'"
+      }
+    },
+    "API": {
+      "category": "API",
+      "base_module": "src.api",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.api: 'src.core'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.api: 'src.core'"
+      }
+    },
+    "Authentication/RBAC": {
+      "category": "Authentication/RBAC",
+      "base_module": "src.auth",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.auth: No module named 'email_validator'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.auth: No module named 'email_validator'"
+      }
+    },
+    "Database": {
+      "category": "Database",
+      "base_module": "src.database",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.database: No module named 'tortoise'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.database: No module named 'tortoise'"
+      }
+    },
+    "Monitoring": {
+      "category": "Monitoring",
+      "base_module": "src.monitoring",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.monitoring: No module named 'opentelemetry.sdk'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.monitoring: No module named 'opentelemetry.sdk'"
+      }
+    },
+    "MCP Servers": {
+      "category": "MCP Servers",
+      "base_module": "src.mcp",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.mcp: 'src.core'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.mcp: 'src.core'"
+      }
+    },
+    "Circle of Experts": {
+      "category": "Circle of Experts",
+      "base_module": "src.circle_of_experts",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.circle_of_experts: No module named 'aiodns'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.circle_of_experts: No module named 'aiodns'"
+      }
+    }
+  },
+  "summary": {
+    "total_modules": 7,
+    "passed": 0,
+    "failed": 7,
+    "partial": 0,
+    "success_rate": "0.0%"
+  },
+  "dependencies": {
+    "pydantic": true,
+    "aiohttp": true,
+    "bcrypt": true,
+    "sqlalchemy": true,
+    "fastapi": true,
+    "prometheus_client": true,
+    "opentelemetry": true,
+    "pyjwt": false,
+    "cryptography": true,
+    "pyyaml": false
+  }
+}

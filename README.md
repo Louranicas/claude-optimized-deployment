@@ -105,6 +105,11 @@ export AWS_ACCESS_KEY_ID="your-key"    # S3 storage
 export SLACK_BOT_TOKEN="your-token"    # Team notifications
 export AZURE_DEVOPS_TOKEN="your-token" # DevOps automation
 
+# Configure audit logging (required for production)
+python scripts/setup_audit_key.py
+# Or set environment variable:
+# export AUDIT_SIGNING_KEY="your-secure-signing-key"
+
 # Test Circle of Experts
 python examples/circle_of_experts_usage.py
 

@@ -3,14 +3,22 @@
 Handles storage and retrieval of Prometheus-compatible metrics data.
 """
 
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any, Tuple, AsyncIterator
 from datetime import datetime, timedelta
+import asyncio
+import gc
 
 from sqlalchemy import select, func, and_, delete
 
 from src.database.repositories.base import SQLAlchemyRepository, TortoiseRepository
 from src.database.models import SQLAlchemyMetricData, TortoiseMetricData
 from src.core.logging_config import get_logger
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
 
 logger = get_logger(__name__)
 
@@ -20,6 +28,16 @@ class MetricsRepository(SQLAlchemyRepository[SQLAlchemyMetricData]):
     
     def __init__(self, session=None):
         super().__init__(SQLAlchemyMetricData, session)
+    
+    def _check_memory_pressure(self) -> bool:
+        """Check if system is under memory pressure."""
+        if not PSUTIL_AVAILABLE:
+            return False
+        try:
+            memory = psutil.virtual_memory()
+            return memory.percent > 85  # 85% threshold
+        except Exception:
+            return False
     
     async def record_metric(
         self,
@@ -38,23 +56,43 @@ class MetricsRepository(SQLAlchemyRepository[SQLAlchemyMetricData]):
     
     async def record_metrics_batch(
         self,
-        metrics: List[Dict[str, Any]]
+        metrics: List[Dict[str, Any]],
+        chunk_size: int = 100
     ) -> List[SQLAlchemyMetricData]:
-        """Record multiple metric data points efficiently."""
-        instances = []
-        for metric in metrics:
-            instance = SQLAlchemyMetricData(
-                metric_name=metric["metric_name"],
-                value=metric["value"],
-                timestamp=metric.get("timestamp", datetime.utcnow()),
-                labels=metric.get("labels", {})
-            )
-            instances.append(instance)
+        """Record multiple metric data points efficiently with chunking."""
+        all_instances = []
         
-        self._session.add_all(instances)
-        await self._session.commit()
+        # Process metrics in chunks to prevent memory overload
+        for i in range(0, len(metrics), chunk_size):
+            chunk = metrics[i:i + chunk_size]
+            
+            # Check memory pressure before processing chunk
+            if self._check_memory_pressure():
+                logger.warning(f"Memory pressure detected, reducing chunk size")
+                chunk_size = max(10, chunk_size // 2)
+                chunk = chunk[:chunk_size]
+            
+            instances = []
+            for metric in chunk:
+                instance = SQLAlchemyMetricData(
+                    metric_name=metric["metric_name"],
+                    value=metric["value"],
+                    timestamp=metric.get("timestamp", datetime.utcnow()),
+                    labels=metric.get("labels", {})
+                )
+                instances.append(instance)
+            
+            self._session.add_all(instances)
+            await self._session.commit()
+            all_instances.extend(instances)
+            
+            # Clean up memory between chunks
+            if i + chunk_size < len(metrics):
+                gc.collect()
+                await asyncio.sleep(0.01)  # Allow other coroutines to run
         
-        return instances
+        logger.info(f"Recorded {len(all_instances)} metrics in {(len(metrics) + chunk_size - 1) // chunk_size} chunks")
+        return all_instances
     
     async def query_metrics(
         self,
@@ -300,6 +338,64 @@ class MetricsRepository(SQLAlchemyRepository[SQLAlchemyMetricData]):
             }
         
         return summary
+    
+    async def stream_metrics(
+        self,
+        metric_name: str,
+        start_time: datetime,
+        end_time: datetime,
+        labels: Optional[Dict[str, str]] = None,
+        chunk_size: int = 1000
+    ) -> AsyncIterator[List[Dict[str, Any]]]:
+        """Stream metrics data in chunks to avoid memory overload."""
+        offset = 0
+        
+        while True:
+            # Build base query
+            base_query = select(SQLAlchemyMetricData).where(
+                and_(
+                    SQLAlchemyMetricData.metric_name == metric_name,
+                    SQLAlchemyMetricData.timestamp >= start_time,
+                    SQLAlchemyMetricData.timestamp <= end_time
+                )
+            )
+            
+            # Filter by labels if provided
+            if labels:
+                for key, value in labels.items():
+                    base_query = base_query.where(
+                        SQLAlchemyMetricData.labels[key].astext == value
+                    )
+            
+            # Apply pagination and ordering
+            chunk_query = base_query.order_by(SQLAlchemyMetricData.timestamp).limit(chunk_size).offset(offset)
+            
+            result = await self._session.execute(chunk_query)
+            data_points = result.scalars().all()
+            
+            if not data_points:
+                break
+            
+            chunk_data = [
+                {
+                    "timestamp": dp.timestamp.isoformat(),
+                    "value": dp.value,
+                    "labels": dp.labels
+                }
+                for dp in data_points
+            ]
+            
+            yield chunk_data
+            
+            # Check if we've reached the end
+            if len(data_points) < chunk_size:
+                break
+            
+            offset += chunk_size
+            
+            # Allow other coroutines to run and clean memory
+            await asyncio.sleep(0.01)
+            gc.collect()
 
 
 class TortoiseMetricsRepository(TortoiseRepository[TortoiseMetricData]):

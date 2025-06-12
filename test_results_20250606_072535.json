@@ -1,0 +1,169 @@
+{
+  "timestamp": "2025-06-06T07:25:34.862830",
+  "environment": {
+    "python_version": "3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]",
+    "platform": "linux",
+    "working_dir": "/home/louranicas/projects/claude-optimized-deployment"
+  },
+  "modules": {
+    "API": {
+      "category": "API",
+      "base_module": "src.api",
+      "status": "passed",
+      "submodules": {
+        "src.api.circuit_breaker_api": {
+          "success": true,
+          "message": "Successfully imported src.api.circuit_breaker_api"
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.api"
+      },
+      "success_rate": "1/1"
+    },
+    "Authentication/RBAC": {
+      "category": "Authentication/RBAC",
+      "base_module": "src.auth",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.auth: No module named 'pyotp'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.auth: No module named 'pyotp'"
+      }
+    },
+    "Monitoring": {
+      "category": "Monitoring",
+      "base_module": "src.monitoring",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.monitoring: No module named 'opentelemetry.exporter'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.monitoring: No module named 'opentelemetry.exporter'"
+      }
+    },
+    "Database": {
+      "category": "Database",
+      "base_module": "src.database",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.database: cannot import name 'DatabaseConnectionError' from 'src.core.exceptions' (/home/louranicas/projects/claude-optimized-deployment/src/core/exceptions.py)"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.database: cannot import name 'DatabaseConnectionError' from 'src.core.exceptions' (/home/louranicas/projects/claude-optimized-deployment/src/core/exceptions.py)"
+      }
+    },
+    "Circle of Experts": {
+      "category": "Circle of Experts",
+      "base_module": "src.circle_of_experts",
+      "status": "partial",
+      "submodules": {
+        "src.circle_of_experts.core.expert_manager": {
+          "success": true,
+          "message": "Successfully imported src.circle_of_experts.core.expert_manager"
+        },
+        "src.circle_of_experts.core.query_handler": {
+          "success": true,
+          "message": "Successfully imported src.circle_of_experts.core.query_handler"
+        },
+        "src.circle_of_experts.core.response_collector": {
+          "success": true,
+          "message": "Successfully imported src.circle_of_experts.core.response_collector"
+        },
+        "src.circle_of_experts.experts.expert_factory": {
+          "success": false,
+          "message": "Failed to import src.circle_of_experts.experts.expert_factory: No module named 'anthropic'"
+        }
+      },
+      "errors": [
+        "Failed to import src.circle_of_experts.experts.expert_factory: No module named 'anthropic'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.circle_of_experts"
+      },
+      "success_rate": "3/4"
+    },
+    "MCP Servers": {
+      "category": "MCP Servers",
+      "base_module": "src.mcp",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.mcp: unexpected indent (manager.py, line 297)"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.mcp: unexpected indent (manager.py, line 297)"
+      }
+    },
+    "Core Utilities": {
+      "category": "Core Utilities",
+      "base_module": "src.core",
+      "status": "passed",
+      "submodules": {
+        "src.core.exceptions": {
+          "success": true,
+          "message": "Successfully imported src.core.exceptions"
+        },
+        "src.core.retry": {
+          "success": true,
+          "message": "Successfully imported src.core.retry"
+        },
+        "src.core.circuit_breaker": {
+          "success": true,
+          "message": "Successfully imported src.core.circuit_breaker"
+        },
+        "src.core.logging_config": {
+          "success": true,
+          "message": "Successfully imported src.core.logging_config"
+        },
+        "src.core.connections": {
+          "success": true,
+          "message": "Successfully imported src.core.connections"
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.core"
+      },
+      "success_rate": "5/5"
+    }
+  },
+  "summary": {
+    "total_modules": 7,
+    "passed": 2,
+    "failed": 4,
+    "partial": 1,
+    "success_rate": "28.6%"
+  },
+  "dependencies": {
+    "pydantic": true,
+    "aiohttp": true,
+    "bcrypt": true,
+    "sqlalchemy": true,
+    "fastapi": true,
+    "prometheus_client": true,
+    "opentelemetry": true,
+    "pyjwt": false,
+    "cryptography": true,
+    "pyyaml": false
+  }
+}

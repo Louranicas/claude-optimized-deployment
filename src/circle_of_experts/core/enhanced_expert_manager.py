@@ -11,12 +11,21 @@ from pathlib import Path
 import asyncio
 import logging
 import time
+import gc
+import sys
 from contextlib import asynccontextmanager
+from weakref import WeakValueDictionary
 
 from .expert_manager import ExpertManager
 from src.circle_of_experts.models.query import ExpertQuery, QueryPriority, QueryType
 from src.circle_of_experts.models.response import ExpertResponse, ExpertType
 from src.circle_of_experts.utils.rust_integration import get_rust_integration
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +51,10 @@ class EnhancedExpertManager(ExpertManager):
         enable_performance_monitoring: bool = True,
         use_rust_acceleration: bool = True,
         rust_analyzer: Optional[Any] = None,
-        rust_validator: Optional[Any] = None
+        rust_validator: Optional[Any] = None,
+        max_concurrent_queries: int = 5,
+        memory_budget_mb: float = 512.0,
+        enable_streaming: bool = True
     ):
         """
         Initialize the Enhanced Expert Manager.
@@ -54,6 +66,9 @@ class EnhancedExpertManager(ExpertManager):
             log_level: Logging level
             log_file: Optional log file path
             enable_performance_monitoring: Whether to track performance metrics
+            max_concurrent_queries: Maximum concurrent queries to prevent memory overload
+            memory_budget_mb: Memory budget per query batch in MB
+            enable_streaming: Whether to enable response streaming
         """
         super().__init__(
             credentials_path=credentials_path,
@@ -67,12 +82,22 @@ class EnhancedExpertManager(ExpertManager):
         self.use_rust_acceleration = use_rust_acceleration
         self.rust_analyzer = rust_analyzer
         self.rust_validator = rust_validator
+        self.max_concurrent_queries = max_concurrent_queries
+        self.memory_budget_mb = memory_budget_mb
+        self.enable_streaming = enable_streaming
+        
+        # Concurrency and memory management
+        self._query_semaphore = asyncio.Semaphore(max_concurrent_queries)
+        self._active_queries: WeakValueDictionary = WeakValueDictionary()
+        self._memory_pressure_threshold = 0.85  # 85% memory usage
         
         self._performance_metrics: Dict[str, Any] = {
             "total_queries": 0,
             "rust_accelerated_queries": 0,
             "average_response_time": 0.0,
-            "total_processing_time": 0.0
+            "total_processing_time": 0.0,
+            "memory_optimized_queries": 0,
+            "streaming_queries": 0
         }
         
         # Override Rust integration if custom modules provided
@@ -82,9 +107,41 @@ class EnhancedExpertManager(ExpertManager):
         # Log Rust availability status
         rust_stats = self._rust_integration.get_performance_stats()
         if rust_stats["rust_available"] and self.use_rust_acceleration:
-            logger.info("Enhanced Expert Manager initialized with Rust acceleration")
+            logger.info(f"Enhanced Expert Manager initialized with Rust acceleration, {max_concurrent_queries} max queries, {memory_budget_mb}MB budget")
         else:
-            logger.info("Enhanced Expert Manager initialized (Python-only mode)")
+            logger.info(f"Enhanced Expert Manager initialized (Python-only mode), {max_concurrent_queries} max queries, {memory_budget_mb}MB budget")
+    
+    def _check_memory_pressure(self) -> bool:
+        """Check if system is under memory pressure."""
+        if not PSUTIL_AVAILABLE:
+            return False
+        try:
+            memory = psutil.virtual_memory()
+            return memory.percent / 100.0 > self._memory_pressure_threshold
+        except Exception:
+            return False
+    
+    def _get_current_memory_mb(self) -> float:
+        """Get current memory usage in MB."""
+        if not PSUTIL_AVAILABLE:
+            return 0.0
+        try:
+            process = psutil.Process()
+            return process.memory_info().rss / 1024 / 1024
+        except Exception:
+            return 0.0
+    
+    def _cleanup_query_memory(self, query_id: str) -> None:
+        """Clean up memory associated with a query."""
+        try:
+            # Remove from active tracking
+            self._active_queries.pop(query_id, None)
+            
+            # Force garbage collection
+            gc.collect()
+            
+        except Exception as e:
+            logger.debug(f"Memory cleanup failed for query {query_id}: {e}")
     
     async def consult_experts_enhanced(
         self,

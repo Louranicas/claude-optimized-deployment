@@ -1,0 +1,524 @@
+{
+  "id": null,
+  "title": "Memory Monitoring Dashboard",
+  "tags": ["memory", "monitoring", "performance"],
+  "style": "dark",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Memory Usage Overview",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "memory_usage_percent{component=\"system\"}",
+          "legendFormat": "Current Usage",
+          "refId": "A"
+        },
+        {
+          "expr": "memory:usage_percent:avg_5m",
+          "legendFormat": "5m Average",
+          "refId": "B"
+        },
+        {
+          "expr": "memory:usage_percent:max_1h",
+          "legendFormat": "1h Peak",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "orange", "value": 80},
+              {"color": "red", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "Memory Pressure Level",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "memory_pressure_level{component=\"system\"}",
+          "legendFormat": "Pressure Level",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "max": 4,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "orange", "value": 2},
+              {"color": "red", "value": 3}
+            ]
+          },
+          "mappings": [
+            {"options": {"0": {"text": "Normal"}}, "type": "value"},
+            {"options": {"1": {"text": "Warning"}}, "type": "value"},
+            {"options": {"2": {"text": "High"}}, "type": "value"},
+            {"options": {"3": {"text": "Critical"}}, "type": "value"},
+            {"options": {"4": {"text": "Emergency"}}, "type": "value"}
+          ]
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "id": 3,
+      "title": "Memory Usage Trend",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "memory_usage_percent{component=\"system\"}",
+          "legendFormat": "Current Usage %",
+          "refId": "A"
+        },
+        {
+          "expr": "memory:trend_prediction:15m",
+          "legendFormat": "15m Prediction",
+          "refId": "B"
+        },
+        {
+          "expr": "70",
+          "legendFormat": "Warning Threshold",
+          "refId": "C"
+        },
+        {
+          "expr": "80",
+          "legendFormat": "High Threshold",
+          "refId": "D"
+        },
+        {
+          "expr": "90",
+          "legendFormat": "Critical Threshold",
+          "refId": "E"
+        },
+        {
+          "expr": "95",
+          "legendFormat": "Emergency Threshold",
+          "refId": "F"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "none"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"},
+            "hideFrom": {"legend": false, "tooltip": false, "vis": false},
+            "thresholdsStyle": {"mode": "off"}
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "15m Prediction"},
+            "properties": [
+              {"id": "custom.lineStyle", "value": {"dash": [10, 10], "fill": "dash"}},
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "blue"}}
+            ]
+          },
+          {
+            "matcher": {"id": "byRegexp", "options": ".*Threshold"},
+            "properties": [
+              {"id": "custom.lineStyle", "value": {"dash": [5, 5], "fill": "dash"}},
+              {"id": "custom.lineWidth", "value": 1}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+    },
+    {
+      "id": 4,
+      "title": "Component Memory Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "memory:component_usage_percent:circle_of_experts",
+          "legendFormat": "Circle of Experts",
+          "refId": "A"
+        },
+        {
+          "expr": "memory:component_usage_percent:mcp_servers",
+          "legendFormat": "MCP Servers",
+          "refId": "B"
+        },
+        {
+          "expr": "memory:component_usage_percent:database",
+          "legendFormat": "Database",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "normal"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"}
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+    },
+    {
+      "id": 5,
+      "title": "Memory Rate of Change",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "memory:usage_rate:5m",
+          "legendFormat": "5m Rate (MB/s)",
+          "refId": "A"
+        },
+        {
+          "expr": "memory:usage_rate:15m",
+          "legendFormat": "15m Rate (MB/s)",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MBs",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "none"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"}
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+    },
+    {
+      "id": 6,
+      "title": "Garbage Collection Activity",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "gc:collection_rate:generation_0",
+          "legendFormat": "Gen 0 Collections/s",
+          "refId": "A"
+        },
+        {
+          "expr": "gc:collection_rate:generation_1",
+          "legendFormat": "Gen 1 Collections/s",
+          "refId": "B"
+        },
+        {
+          "expr": "gc:collection_rate:generation_2",
+          "legendFormat": "Gen 2 Collections/s",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "normal"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"}
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+    },
+    {
+      "id": 7,
+      "title": "Memory Cleanup Effectiveness",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "memory:cleanup_bytes_freed:rate_5m",
+          "legendFormat": "Bytes Freed Rate",
+          "refId": "A"
+        },
+        {
+          "expr": "memory:cleanup_effectiveness:ratio * 100",
+          "legendFormat": "Cleanup Effectiveness %",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "none"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"}
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+    },
+    {
+      "id": 8,
+      "title": "Memory Alerts",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "memory:alert_rate:5m",
+          "legendFormat": "Alert Rate",
+          "refId": "A"
+        },
+        {
+          "expr": "memory_alerts_fired_total",
+          "legendFormat": "{{alert_level}} Alerts",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "none"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"}
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32}
+    },
+    {
+      "id": 9,
+      "title": "Memory Response Actions",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "memory:response_rate:5m",
+          "legendFormat": "Response Rate",
+          "refId": "A"
+        },
+        {
+          "expr": "memory_responses_triggered_total",
+          "legendFormat": "{{response_type}} Responses",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "none"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"}
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32}
+    },
+    {
+      "id": 10,
+      "title": "Memory Health Score",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "memory:health_score:weighted",
+          "legendFormat": "Health Score",
+          "refId": "A"
+        },
+        {
+          "expr": "memory:performance:efficiency * 100",
+          "legendFormat": "Efficiency",
+          "refId": "B"
+        },
+        {
+          "expr": "memory:performance:stability * 100",
+          "legendFormat": "Stability",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "green", "value": 80}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40}
+    },
+    {
+      "id": 11,
+      "title": "Time to Memory Exhaustion",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "memory:time_to_exhaustion:estimated / 60",
+          "legendFormat": "Minutes to Exhaustion",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "min",
+          "min": 0,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 15},
+              {"color": "green", "value": 60}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40}
+    },
+    {
+      "id": 12,
+      "title": "Memory Allocation Patterns",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "memory:allocation_rate:5m",
+          "legendFormat": "Allocation Rate (MB/s)",
+          "refId": "A"
+        },
+        {
+          "expr": "memory:allocation_size:p95 / 1048576",
+          "legendFormat": "P95 Allocation Size (MB)",
+          "refId": "B"
+        },
+        {
+          "expr": "memory:allocation_size:p99 / 1048576",
+          "legendFormat": "P99 Allocation Size (MB)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MB",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "showPoints": "never",
+            "pointSize": 5,
+            "stacking": {"mode": "none"},
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "scaleDistribution": {"type": "linear"}
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 48}
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Memory Alerts",
+        "datasource": "Prometheus",
+        "enable": true,
+        "hide": false,
+        "iconColor": "red",
+        "query": "ALERTS{alertname=~\".*Memory.*\"}",
+        "tagKeys": "alertname,severity",
+        "textFormat": "{{alertname}}: {{summary}}",
+        "titleFormat": "Alert"
+      }
+    ]
+  },
+  "refresh": "5s",
+  "schemaVersion": 30,
+  "version": 1,
+  "links": []
+}

@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Set DeepSeek API key
-os.environ['DEEPSEEK_API_KEY'] = 'sk-87178544da6648acb4fee894c0818550'
+os.environ['DEEPSEEK_API_KEY'] = os.getenv('DEEPSEEK_API_KEY', 'mock-api-key-for-testing')
 os.environ['LOG_LEVEL'] = 'INFO'
 
 async def test_simple_query():

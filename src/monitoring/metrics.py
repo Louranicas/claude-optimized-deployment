@@ -13,9 +13,14 @@ import os
 import time
 import psutil
 import functools
-from typing import Dict, Optional, Callable, Any, Union
+from typing import Dict, Optional, Callable, Any
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from collections import defaultdict, deque
+import threading
+import weakref
+import asyncio
+import re
 
 from prometheus_client import (
     Counter,
@@ -33,8 +38,37 @@ from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 class MetricsCollector:
     """Centralized metrics collector for the application."""
     
-    def __init__(self, registry: Optional[CollectorRegistry] = None):
+    def __init__(self, registry: Optional[CollectorRegistry] = None,
+                 max_label_values: int = 100,
+                 metric_expiration_seconds: int = 3600,
+                 cleanup_interval_seconds: int = 300):
         self.registry = registry or CollectorRegistry()
+        
+        # Memory leak prevention settings
+        self.max_label_values = max_label_values
+        self.metric_expiration_seconds = metric_expiration_seconds
+        self.cleanup_interval_seconds = cleanup_interval_seconds
+        
+        # Track metric label cardinality to prevent memory leaks
+        self._label_cardinality: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        self._metric_timestamps: Dict[str, datetime] = {}
+        self._last_cleanup = datetime.now()
+        
+        # High-frequency event sampling
+        self._high_freq_counters: Dict[str, int] = defaultdict(int)
+        self._sample_rates: Dict[str, int] = {
+            'http_requests_total': 1,  # No sampling for critical metrics
+            'business_operations_total': 1,
+            'ai_requests_total': 10,  # Sample 1 in 10 for AI requests
+            'mcp_tool_calls_total': 5,  # Sample 1 in 5 for MCP calls
+        }
+        
+        # Background cleanup task
+        self._cleanup_task: Optional[asyncio.Task] = None
+        self._is_running = False
+        
+        # Lock for thread safety
+        self._lock = threading.RLock()
         
         # HTTP metrics
         self.http_requests_total = Counter(
@@ -212,6 +246,14 @@ class MetricsCollector:
         
         # Initialize resource metrics
         self._update_resource_metrics()
+        
+        # Start background cleanup if running in async context
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                self._start_cleanup_task()
+        except RuntimeError:
+            pass  # No event loop running
     
     def _update_resource_metrics(self):
         """Update resource usage metrics."""
@@ -268,29 +310,41 @@ class MetricsCollector:
         request_size: int = 0,
         response_size: int = 0
     ):
-        """Record HTTP request metrics."""
-        self.http_requests_total.labels(
-            method=method,
-            endpoint=endpoint,
-            status=str(status)
-        ).inc()
-        
-        self.http_request_duration_seconds.labels(
-            method=method,
-            endpoint=endpoint
-        ).observe(duration)
-        
-        if request_size > 0:
-            self.http_request_size_bytes.labels(
-                method=method,
-                endpoint=endpoint
-            ).observe(request_size)
-        
-        if response_size > 0:
-            self.http_response_size_bytes.labels(
-                method=method,
-                endpoint=endpoint
-            ).observe(response_size)
+        """Record HTTP request metrics with label cardinality limits."""
+        with self._lock:
+            # Check label cardinality before recording
+            if not self._check_label_cardinality('http_requests_total', 
+                                                {'method': method, 'endpoint': endpoint, 'status': str(status)}):
+                # Use aggregated endpoint if too many unique values
+                endpoint = self._aggregate_endpoint(endpoint)
+            
+            # Apply sampling for high-frequency endpoints
+            if self._should_sample('http_requests_total', f"{method}:{endpoint}"):
+                self.http_requests_total.labels(
+                    method=method,
+                    endpoint=endpoint,
+                    status=str(status)
+                ).inc()
+                
+                self.http_request_duration_seconds.labels(
+                    method=method,
+                    endpoint=endpoint
+                ).observe(duration)
+                
+                if request_size > 0:
+                    self.http_request_size_bytes.labels(
+                        method=method,
+                        endpoint=endpoint
+                    ).observe(request_size)
+                
+                if response_size > 0:
+                    self.http_response_size_bytes.labels(
+                        method=method,
+                        endpoint=endpoint
+                    ).observe(response_size)
+            
+            # Update timestamp for this metric
+            self._metric_timestamps[f'http_{method}_{endpoint}'] = datetime.now()
     
     def record_error(self, error_type: str, component: str):
         """Record error metrics."""
@@ -385,7 +439,109 @@ class MetricsCollector:
     def get_metrics(self) -> bytes:
         """Get metrics in Prometheus format."""
         self._update_resource_metrics()
+        
+        # Trigger cleanup if needed
+        if (datetime.now() - self._last_cleanup).total_seconds() > self.cleanup_interval_seconds:
+            self._cleanup_expired_metrics()
+        
         return generate_latest(self.registry)
+    
+    def _check_label_cardinality(self, metric_name: str, labels: Dict[str, str]) -> bool:
+        """Check if adding these labels would exceed cardinality limits."""
+        for label_name, label_value in labels.items():
+            current_cardinality = len(self._label_cardinality[metric_name])
+            if (label_value not in self._label_cardinality[metric_name] and 
+                current_cardinality >= self.max_label_values):
+                return False
+            self._label_cardinality[metric_name][label_value] += 1
+        return True
+    
+    def _aggregate_endpoint(self, endpoint: str) -> str:
+        """Aggregate endpoint paths to reduce cardinality."""
+        # Simple aggregation: replace IDs with placeholders
+        # Replace UUIDs and numeric IDs with placeholders
+        endpoint = re.sub(r'/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', '/{uuid}', endpoint)
+        endpoint = re.sub(r'/\\d+', '/{id}', endpoint)
+        return endpoint
+    
+    def _should_sample(self, metric_name: str, key: str) -> bool:
+        """Determine if this metric should be sampled."""
+        sample_rate = self._sample_rates.get(metric_name, 1)
+        if sample_rate == 1:
+            return True
+        
+        self._high_freq_counters[key] += 1
+        return self._high_freq_counters[key] % sample_rate == 0
+    
+    def _start_cleanup_task(self):
+        """Start background cleanup task."""
+        async def cleanup_loop():
+            self._is_running = True
+            while self._is_running:
+                try:
+                    await asyncio.sleep(self.cleanup_interval_seconds)
+                    self._cleanup_expired_metrics()
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    print(f"Metrics cleanup error: {e}")
+        
+        self._cleanup_task = asyncio.create_task(cleanup_loop())
+    
+    def _cleanup_expired_metrics(self):
+        """Clean up expired metrics to prevent memory leaks."""
+        with self._lock:
+            current_time = datetime.now()
+            cutoff_time = current_time - timedelta(seconds=self.metric_expiration_seconds)
+            
+            # Remove expired metric timestamps
+            expired_metrics = [
+                metric_key for metric_key, timestamp in self._metric_timestamps.items()
+                if timestamp < cutoff_time
+            ]
+            
+            for metric_key in expired_metrics:
+                del self._metric_timestamps[metric_key]
+            
+            # Clean up label cardinality tracking for old values
+            for metric_name in list(self._label_cardinality.keys()):
+                # Reset cardinality counters that haven't been used recently
+                if f"{metric_name}_last_used" not in self._metric_timestamps:
+                    # If no recent activity, reduce cardinality tracking
+                    current_size = len(self._label_cardinality[metric_name])
+                    if current_size > self.max_label_values // 2:
+                        # Remove least frequently used labels
+                        sorted_labels = sorted(
+                            self._label_cardinality[metric_name].items(),
+                            key=lambda x: x[1]
+                        )
+                        # Keep only the top 50% most used labels
+                        keep_count = self.max_label_values // 2
+                        new_dict = dict(sorted_labels[-keep_count:])
+                        self._label_cardinality[metric_name] = defaultdict(int, new_dict)
+            
+            # Clean up high-frequency counters
+            if len(self._high_freq_counters) > 1000:
+                # Reset all counters when they get too large
+                self._high_freq_counters.clear()
+            
+            self._last_cleanup = current_time
+            print(f"Metrics cleanup completed. Active metrics: {len(self._metric_timestamps)}")
+    
+    def shutdown(self):
+        """Shutdown the metrics collector and clean up resources."""
+        self._is_running = False
+        
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+        
+        # Clear all tracking data
+        with self._lock:
+            self._label_cardinality.clear()
+            self._metric_timestamps.clear()
+            self._high_freq_counters.clear()
+        
+        print("Metrics collector shutdown complete")
 
 
 # Global metrics collector instance

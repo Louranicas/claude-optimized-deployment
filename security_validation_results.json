@@ -1,13 +1,13 @@
 {
-  "timestamp": 1748609781.3963673,
-  "total_tests": 14,
-  "passed_tests": 8,
-  "failed_tests": 6,
+  "timestamp": 1749157441.4899356,
+  "total_tests": 12,
+  "passed_tests": 4,
+  "failed_tests": 8,
   "categories": {
     "Command Injection Fixes": {
       "total": 3,
-      "passed": 2,
-      "failed": 1,
+      "passed": 1,
+      "failed": 2,
       "details": [
         {
           "test": "Shell injection removal",
@@ -21,8 +21,8 @@
         },
         {
           "test": "Infrastructure commander validation",
-          "status": "PASSED",
-          "message": "Dangerous command correctly blocked: Command contains dangerous patterns"
+          "status": "ERROR",
+          "error": "name 'InfrastructureCommanderMCP' is not defined"
         }
       ]
     },
@@ -39,29 +39,19 @@
         {
           "test": "SHA-256 usage verification",
           "status": "PASSED",
-          "message": "Found 5 SHA-256 usage patterns"
+          "message": "Found 7 SHA-256 usage patterns"
         }
       ]
     },
     "Authentication Middleware": {
-      "total": 3,
+      "total": 1,
       "passed": 0,
-      "failed": 3,
+      "failed": 1,
       "details": [
         {
-          "test": "Token generation and validation",
+          "test": "Authentication middleware availability",
           "status": "FAILED",
-          "issue": "Token validation failed"
-        },
-        {
-          "test": "Role-based authorization",
-          "status": "ERROR",
-          "error": "'NoneType' object has no attribute 'tool_whitelist'"
-        },
-        {
-          "test": "Session invalidation",
-          "status": "ERROR",
-          "error": "'NoneType' object has no attribute 'session_id'"
+          "issue": "Auth middleware not available"
         }
       ]
     },
@@ -72,49 +62,49 @@
       "details": [
         {
           "test": "Security scanning tools",
-          "status": "PASSED",
-          "message": "Safety package available for dependency scanning"
+          "status": "ERROR",
+          "error": "[Errno 2] No such file or directory: 'python'"
         },
         {
           "test": "Critical package versions",
-          "status": "FAILED",
-          "issue": "Issues: ['requests missing']"
+          "status": "PASSED",
+          "message": "Critical packages have minimum secure versions"
         }
       ]
     },
     "Input Validation": {
       "total": 1,
-      "passed": 1,
-      "failed": 0,
+      "passed": 0,
+      "failed": 1,
       "details": [
         {
           "test": "Malicious input blocking",
-          "status": "PASSED",
-          "message": "All 7 malicious inputs blocked"
+          "status": "ERROR",
+          "error": "name 'InfrastructureCommanderMCP' is not defined"
         }
       ]
     },
     "Rate Limiting": {
       "total": 1,
-      "passed": 1,
-      "failed": 0,
+      "passed": 0,
+      "failed": 1,
       "details": [
         {
-          "test": "Rate limiting enforcement",
-          "status": "PASSED",
-          "message": "Rate limiting working - 0/70 requests allowed"
+          "test": "Rate limiting availability",
+          "status": "FAILED",
+          "issue": "Auth middleware not available"
         }
       ]
     },
     "Session Management": {
       "total": 1,
-      "passed": 1,
-      "failed": 0,
+      "passed": 0,
+      "failed": 1,
       "details": [
         {
-          "test": "Session cleanup",
-          "status": "PASSED",
-          "message": "Session cleanup working correctly"
+          "test": "Session management availability",
+          "status": "FAILED",
+          "issue": "Auth middleware not available"
         }
       ]
     },
@@ -124,9 +114,9 @@
       "failed": 1,
       "details": [
         {
-          "test": "Tool whitelist enforcement",
-          "status": "ERROR",
-          "error": "'NoneType' object has no attribute 'tool_whitelist'"
+          "test": "Authorization controls availability",
+          "status": "FAILED",
+          "issue": "Auth middleware not available"
         }
       ]
     }

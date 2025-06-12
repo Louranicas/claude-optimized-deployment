@@ -1,5 +1,112 @@
 // Custom JavaScript for CODE API Documentation
 
+/**
+ * Memory management utilities for preventing event listener leaks
+ */
+const MemoryManager = {
+    // WeakMap for storing cleanup functions
+    cleanupFunctions: new WeakMap(),
+    // WeakMap for storing timer references
+    timers: new WeakMap(),
+    // Set to track all registered event listeners
+    eventListeners: new Set(),
+    
+    /**
+     * Register an event listener for cleanup tracking
+     * @param {Element} element - The element to add listener to
+     * @param {string} event - The event type
+     * @param {Function} handler - The event handler
+     * @param {Object} options - Event listener options
+     */
+    addEventListener: function(element, event, handler, options = {}) {
+        element.addEventListener(event, handler, options);
+        
+        const listenerInfo = { element, event, handler, options };
+        this.eventListeners.add(listenerInfo);
+        
+        // Store cleanup function
+        const cleanup = () => {
+            element.removeEventListener(event, handler, options);
+            this.eventListeners.delete(listenerInfo);
+        };
+        
+        const cleanups = this.cleanupFunctions.get(element) || [];
+        cleanups.push(cleanup);
+        this.cleanupFunctions.set(element, cleanups);
+        
+        return cleanup;
+    },
+    
+    /**
+     * Set a timeout with automatic cleanup tracking
+     * @param {Function} callback - The callback function
+     * @param {number} delay - Delay in milliseconds
+     * @returns {number} Timer ID
+     */
+    setTimeout: function(callback, delay) {
+        const timerId = setTimeout(callback, delay);
+        this.timers.set(callback, timerId);
+        return timerId;
+    },
+    
+    /**
+     * Clear a tracked timeout
+     * @param {number} timerId - The timer ID to clear
+     */
+    clearTimeout: function(timerId) {
+        clearTimeout(timerId);
+        // Find and remove from timers map
+        for (const [callback, id] of this.timers.entries()) {
+            if (id === timerId) {
+                this.timers.delete(callback);
+                break;
+            }
+        }
+    },
+    
+    /**
+     * Clean up all event listeners and timers for an element
+     * @param {Element} element - The element to clean up
+     */
+    cleanup: function(element) {
+        const cleanups = this.cleanupFunctions.get(element);
+        if (cleanups) {
+            cleanups.forEach(cleanup => cleanup());
+            this.cleanupFunctions.delete(element);
+        }
+    },
+    
+    /**
+     * Clean up all registered event listeners and timers
+     */
+    cleanupAll: function() {
+        // Clean up all event listeners
+        this.eventListeners.forEach(({ element, event, handler, options }) => {
+            element.removeEventListener(event, handler, options);
+        });
+        this.eventListeners.clear();
+        
+        // Clear all timers
+        this.timers.forEach((timerId) => {
+            clearTimeout(timerId);
+        });
+        this.timers.clear();
+        
+        // Clear cleanup functions
+        this.cleanupFunctions = new WeakMap();
+    }
+};
+
+// Global cleanup on page unload
+MemoryManager.addEventListener(window, 'beforeunload', () => {
+    MemoryManager.cleanupAll();
+});
+
+// Global cleanup on page hide (for mobile browsers)
+MemoryManager.addEventListener(window, 'pagehide', () => {
+    MemoryManager.cleanupAll();
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     // Add copy buttons to code blocks
     addCopyButtons();
@@ -17,6 +124,9 @@ document.addEventListener('DOMContentLoaded', function() {
     enhanceNavigation();
 });
 
+/**
+ * Add copy buttons to code blocks with proper memory management
+ */
 function addCopyButtons() {
     const codeBlocks = document.querySelectorAll('.highlight pre');
     
@@ -42,24 +152,53 @@ function addCopyButtons() {
         container.style.position = 'relative';
         container.appendChild(copyButton);
         
-        copyButton.addEventListener('click', function() {
+        // Use MemoryManager for event listeners with proper cleanup
+        let copyTimeoutId = null;
+        
+        const clickHandler = function() {
             const code = block.textContent;
             navigator.clipboard.writeText(code).then(function() {
                 copyButton.textContent = 'Copied!';
-                setTimeout(function() {
+                
+                // Clear existing timeout if any
+                if (copyTimeoutId) {
+                    MemoryManager.clearTimeout(copyTimeoutId);
+                }
+                
+                copyTimeoutId = MemoryManager.setTimeout(function() {
                     copyButton.textContent = 'Copy';
+                    copyTimeoutId = null;
                 }, 2000);
             });
-        });
+        };
         
-        // Show/hide on hover
-        container.addEventListener('mouseenter', function() {
+        const mouseEnterHandler = function() {
             copyButton.style.opacity = '1';
-        });
+        };
         
-        container.addEventListener('mouseleave', function() {
+        const mouseLeaveHandler = function() {
             copyButton.style.opacity = '0.8';
-        });
+        };
+        
+        // Register event listeners with cleanup tracking
+        MemoryManager.addEventListener(copyButton, 'click', clickHandler);
+        MemoryManager.addEventListener(container, 'mouseenter', mouseEnterHandler);
+        MemoryManager.addEventListener(container, 'mouseleave', mouseLeaveHandler);
+        
+        // Store cleanup function for this button
+        const cleanup = () => {
+            if (copyTimeoutId) {
+                MemoryManager.clearTimeout(copyTimeoutId);
+                copyTimeoutId = null;
+            }
+            MemoryManager.cleanup(copyButton);
+            MemoryManager.cleanup(container);
+        };
+        
+        // Store cleanup function in WeakMap
+        const cleanups = MemoryManager.cleanupFunctions.get(container) || [];
+        cleanups.push(cleanup);
+        MemoryManager.cleanupFunctions.set(container, cleanups);
     });
 }
 
@@ -94,6 +233,10 @@ function initializeAPIExamples() {
     });
 }
 
+/**
+ * Add curl converter with proper memory management
+ * @param {Element} example - The example element
+ */
 function addCurlConverter(example) {
     const convertButton = document.createElement('button');
     convertButton.textContent = 'Convert to Python';
@@ -111,14 +254,17 @@ function addCurlConverter(example) {
     
     example.appendChild(convertButton);
     
-    convertButton.addEventListener('click', function() {
+    const clickHandler = function() {
         const curlCommand = example.querySelector('pre').textContent;
         const pythonCode = convertCurlToPython(curlCommand);
         
         if (pythonCode) {
             showConvertedCode(example, pythonCode);
         }
-    });
+    };
+    
+    // Register event listener with cleanup tracking
+    MemoryManager.addEventListener(convertButton, 'click', clickHandler);
 }
 
 function convertCurlToPython(curlCommand) {
@@ -251,12 +397,15 @@ function addStatusBadges() {
     });
 }
 
+/**
+ * Enhance navigation with proper memory management
+ */
 function enhanceNavigation() {
     // Add smooth scrolling to anchor links
     const anchors = document.querySelectorAll('a[href^="#"]');
     
     anchors.forEach(function(anchor) {
-        anchor.addEventListener('click', function(e) {
+        const clickHandler = function(e) {
             e.preventDefault();
             
             const target = document.querySelector(this.getAttribute('href'));
@@ -266,13 +415,19 @@ function enhanceNavigation() {
                     block: 'start'
                 });
             }
-        });
+        };
+        
+        // Register event listener with cleanup tracking
+        MemoryManager.addEventListener(anchor, 'click', clickHandler);
     });
     
     // Add table of contents highlighting
     highlightCurrentSection();
 }
 
+/**
+ * Highlight current section in table of contents with proper memory management
+ */
 function highlightCurrentSection() {
     const sections = document.querySelectorAll('h1[id], h2[id], h3[id]');
     const tocLinks = document.querySelectorAll('.wy-menu a');
@@ -303,13 +458,13 @@ function highlightCurrentSection() {
         }
     }
     
-    // Update on scroll
-    window.addEventListener('scroll', updateHighlight);
+    // Register scroll event listener with cleanup tracking
+    MemoryManager.addEventListener(window, 'scroll', updateHighlight);
     updateHighlight(); // Initial call
 }
 
-// Add keyboard shortcuts
-document.addEventListener('keydown', function(e) {
+// Add keyboard shortcuts with proper memory management
+const keyboardHandler = function(e) {
     // Ctrl/Cmd + K to focus search
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
@@ -326,9 +481,15 @@ document.addEventListener('keydown', function(e) {
             code.remove();
         });
     }
-});
+};
+
+// Register keyboard event listener with cleanup tracking
+MemoryManager.addEventListener(document, 'keydown', keyboardHandler);
 
 // Add API endpoint testing functionality
+/**
+ * Add API testing functionality with proper memory management
+ */
 function addAPITester() {
     const endpoints = document.querySelectorAll('.api-endpoint');
     
@@ -348,10 +509,13 @@ function addAPITester() {
         
         endpoint.appendChild(testButton);
         
-        testButton.addEventListener('click', function() {
+        const clickHandler = function() {
             // This would open a testing interface
             console.log('API testing interface would open here');
-        });
+        };
+        
+        // Register event listener with cleanup tracking
+        MemoryManager.addEventListener(testButton, 'click', clickHandler);
     });
 }
 

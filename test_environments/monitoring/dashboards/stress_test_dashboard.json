@@ -1,0 +1,322 @@
+{
+  "dashboard": {
+    "id": "stress_test_dashboard",
+    "title": "Stress Testing Dashboard",
+    "description": "Real-time monitoring for stress testing scenarios",
+    "refresh_interval": 1000,
+    "auto_refresh": true,
+    "theme": "dark",
+    "layout": {
+      "type": "grid",
+      "columns": 12,
+      "row_height": 100,
+      "gap": 20
+    }
+  },
+  "widgets": [
+    {
+      "id": "stress_test_control",
+      "type": "control_panel",
+      "title": "Stress Test Control",
+      "position": { "x": 0, "y": 0, "width": 4, "height": 3 },
+      "config": {
+        "controls": [
+          {
+            "type": "button",
+            "label": "Start Stress Test",
+            "action": "start_stress_test",
+            "color": "green"
+          },
+          {
+            "type": "button",
+            "label": "Stop Test",
+            "action": "stop_stress_test",
+            "color": "red"
+          },
+          {
+            "type": "slider",
+            "label": "Concurrent Users",
+            "min": 1,
+            "max": 1000,
+            "default": 100,
+            "step": 10
+          },
+          {
+            "type": "slider",
+            "label": "Requests/sec",
+            "min": 1,
+            "max": 500,
+            "default": 50,
+            "step": 5
+          }
+        ]
+      },
+      "data_sources": []
+    },
+    {
+      "id": "test_scenario_status",
+      "type": "status_panel",
+      "title": "Test Scenario Status",
+      "position": { "x": 4, "y": 0, "width": 4, "height": 3 },
+      "config": {
+        "show_progress": true,
+        "show_duration": true,
+        "show_phase": true
+      },
+      "data_sources": [
+        "test_scenario_active",
+        "test_scenario_phase",
+        "test_scenario_progress",
+        "test_scenario_duration"
+      ]
+    },
+    {
+      "id": "breaking_point_indicator",
+      "type": "gauge",
+      "title": "System Stress Level",
+      "position": { "x": 8, "y": 0, "width": 4, "height": 3 },
+      "config": {
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "thresholds": [
+          { "value": 70, "color": "#4CAF50", "label": "Healthy" },
+          { "value": 85, "color": "#FF9800", "label": "Warning" },
+          { "value": 95, "color": "#F44336", "label": "Critical" }
+        ],
+        "needle_color": "#2196F3"
+      },
+      "data_sources": ["stress_test_breaking_point_reached"]
+    },
+    {
+      "id": "concurrent_users_chart",
+      "type": "line_chart",
+      "title": "Concurrent Users",
+      "position": { "x": 0, "y": 3, "width": 6, "height": 4 },
+      "config": {
+        "y_axis": {
+          "min": 0,
+          "label": "Users"
+        },
+        "x_axis": {
+          "type": "time",
+          "label": "Time"
+        },
+        "colors": ["#2196F3"],
+        "fill": true,
+        "tension": 0.4,
+        "max_points": 100
+      },
+      "data_sources": ["stress_test_concurrent_users"]
+    },
+    {
+      "id": "requests_per_second_chart",
+      "type": "line_chart",
+      "title": "Requests per Second",
+      "position": { "x": 6, "y": 3, "width": 6, "height": 4 },
+      "config": {
+        "y_axis": {
+          "min": 0,
+          "label": "Requests/sec"
+        },
+        "x_axis": {
+          "type": "time",
+          "label": "Time"
+        },
+        "colors": ["#4CAF50"],
+        "fill": true,
+        "tension": 0.4,
+        "max_points": 100
+      },
+      "data_sources": ["stress_test_requests_per_second"]
+    },
+    {
+      "id": "response_time_distribution",
+      "type": "multi_line_chart",
+      "title": "Response Time Distribution",
+      "position": { "x": 0, "y": 7, "width": 8, "height": 4 },
+      "config": {
+        "y_axis": {
+          "min": 0,
+          "label": "Response Time (ms)"
+        },
+        "x_axis": {
+          "type": "time",
+          "label": "Time"
+        },
+        "series": [
+          {
+            "label": "Average",
+            "color": "#2196F3",
+            "data_source": "stress_test_response_time_avg"
+          },
+          {
+            "label": "95th Percentile",
+            "color": "#FF9800",
+            "data_source": "stress_test_response_time_p95"
+          },
+          {
+            "label": "99th Percentile",
+            "color": "#F44336",
+            "data_source": "stress_test_response_time_p99"
+          }
+        ],
+        "max_points": 100
+      },
+      "data_sources": [
+        "stress_test_response_time_avg",
+        "stress_test_response_time_p95",
+        "stress_test_response_time_p99"
+      ]
+    },
+    {
+      "id": "error_rate_gauge",
+      "type": "gauge",
+      "title": "Error Rate",
+      "position": { "x": 8, "y": 7, "width": 4, "height": 4 },
+      "config": {
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "thresholds": [
+          { "value": 1, "color": "#4CAF50", "label": "Excellent" },
+          { "value": 5, "color": "#FF9800", "label": "Acceptable" },
+          { "value": 10, "color": "#F44336", "label": "Poor" }
+        ],
+        "decimals": 2
+      },
+      "data_sources": ["stress_test_error_rate"]
+    },
+    {
+      "id": "throughput_meter",
+      "type": "line_chart",
+      "title": "Throughput",
+      "position": { "x": 0, "y": 11, "width": 6, "height": 4 },
+      "config": {
+        "y_axis": {
+          "min": 0,
+          "label": "Throughput (req/sec)"
+        },
+        "x_axis": {
+          "type": "time",
+          "label": "Time"
+        },
+        "colors": ["#9C27B0"],
+        "fill": false,
+        "tension": 0.2,
+        "max_points": 100
+      },
+      "data_sources": ["stress_test_throughput"]
+    },
+    {
+      "id": "resource_utilization_heatmap",
+      "type": "heatmap",
+      "title": "Resource Utilization During Stress",
+      "position": { "x": 6, "y": 11, "width": 6, "height": 4 },
+      "config": {
+        "color_scale": [
+          "#2E7D32",
+          "#FFC107",
+          "#FF5722"
+        ],
+        "x_axis_label": "Resource Type",
+        "y_axis_label": "Component",
+        "show_values": true,
+        "cell_border": 1
+      },
+      "data_sources": ["stress_test_resource_utilization"]
+    },
+    {
+      "id": "cycle_metrics_table",
+      "type": "table",
+      "title": "Stress Test Cycles Summary",
+      "position": { "x": 0, "y": 15, "width": 12, "height": 4 },
+      "config": {
+        "columns": [
+          { "key": "cycle_number", "label": "Cycle", "type": "number" },
+          { "key": "concurrent_users", "label": "Users", "type": "number" },
+          { "key": "requests_per_second", "label": "RPS", "type": "number", "decimals": 1 },
+          { "key": "error_rate", "label": "Error %", "type": "percentage", "decimals": 2 },
+          { "key": "response_time_avg", "label": "Avg RT (ms)", "type": "number", "decimals": 1 },
+          { "key": "response_time_p95", "label": "P95 RT (ms)", "type": "number", "decimals": 1 },
+          { "key": "throughput", "label": "Throughput", "type": "number", "decimals": 1 },
+          { "key": "breaking_point_reached", "label": "Breaking Point", "type": "boolean" },
+          { "key": "recovery_time", "label": "Recovery (s)", "type": "number", "decimals": 1 }
+        ],
+        "max_rows": 10,
+        "sort_by": "cycle_number",
+        "sort_order": "desc"
+      },
+      "data_sources": ["stress_test_cycles_completed"]
+    }
+  ],
+  "alerts": {
+    "enabled": true,
+    "position": "top-right",
+    "max_visible": 5,
+    "auto_dismiss": 10000,
+    "rules": [
+      {
+        "id": "high_error_rate",
+        "condition": "stress_test_error_rate > 5",
+        "level": "warning",
+        "message": "High error rate detected: {value}%"
+      },
+      {
+        "id": "extreme_error_rate",
+        "condition": "stress_test_error_rate > 10",
+        "level": "critical",
+        "message": "Extreme error rate: {value}% - Consider stopping test"
+      },
+      {
+        "id": "breaking_point_reached",
+        "condition": "stress_test_breaking_point_reached == 1",
+        "level": "info",
+        "message": "System breaking point reached"
+      },
+      {
+        "id": "slow_response_time",
+        "condition": "stress_test_response_time_p95 > 5000",
+        "level": "warning",
+        "message": "P95 response time is {value}ms"
+      }
+    ]
+  },
+  "filters": {
+    "time_range": {
+      "enabled": true,
+      "default": "last_1_hour",
+      "options": [
+        { "label": "Last 5 minutes", "value": "last_5_minutes" },
+        { "label": "Last 15 minutes", "value": "last_15_minutes" },
+        { "label": "Last 1 hour", "value": "last_1_hour" },
+        { "label": "Last 4 hours", "value": "last_4_hours" },
+        { "label": "Custom", "value": "custom" }
+      ]
+    },
+    "test_scenario": {
+      "enabled": true,
+      "type": "dropdown",
+      "label": "Test Scenario",
+      "options": [
+        { "label": "All Scenarios", "value": "all" },
+        { "label": "Load Test", "value": "load_test" },
+        { "label": "Stress Test", "value": "stress_test" },
+        { "label": "Spike Test", "value": "spike_test" },
+        { "label": "Volume Test", "value": "volume_test" }
+      ]
+    }
+  },
+  "export": {
+    "enabled": true,
+    "formats": ["png", "pdf", "csv", "json"],
+    "include_data": true,
+    "include_config": true
+  },
+  "real_time": {
+    "enabled": true,
+    "websocket_endpoint": "ws://localhost:8765",
+    "reconnect_attempts": 5,
+    "heartbeat_interval": 30000
+  }
+}

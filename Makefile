@@ -584,5 +584,101 @@ commit: git-commit ## Quick commit with AI
 .PHONY: pr
 pr: git-pr ## Quick PR creation
 
+#########################
+# Dependency Optimization
+#########################
+
+.PHONY: deps-analyze
+deps-analyze: ## Analyze dependency memory usage
+	@echo "📊 Analyzing dependency memory usage..."
+	$(PYTHON) scripts/analyze_memory_usage.py --profile-dependencies --output dependency-analysis.json
+	@echo "✅ Dependency analysis complete! Check dependency-analysis.json"
+
+.PHONY: deps-bloat-check
+deps-bloat-check: ## Check for dependency bloat
+	@echo "🔍 Checking for dependency bloat..."
+	$(PYTHON) scripts/analyze_memory_usage.py --ci-check --memory-limit 500
+	@echo "✅ Dependency bloat check passed!"
+
+.PHONY: deps-compare
+deps-compare: ## Compare installation methods
+	@echo "📈 Comparing installation methods..."
+	$(PYTHON) scripts/analyze_memory_usage.py --compare-installations --output installation-comparison.json
+	@echo "✅ Installation comparison complete! Check installation-comparison.json"
+
+.PHONY: deps-import-test
+deps-import-test: ## Test import memory usage
+	@echo "⚡ Testing import memory usage..."
+	$(PYTHON) scripts/analyze_memory_usage.py --analyze-imports --modules pydantic fastapi httpx sqlalchemy transformers langchain boto3
+	@echo "✅ Import analysis complete!"
+
+.PHONY: deps-install-core
+deps-install-core: ## Install core dependencies only
+	@echo "📦 Installing core dependencies..."
+	$(PIP) install -e .
+	@echo "✅ Core dependencies installed!"
+
+.PHONY: deps-install-ai
+deps-install-ai: ## Install with AI dependencies
+	@echo "📦 Installing AI dependencies..."
+	$(PIP) install -e ".[ai]"
+	@echo "✅ AI dependencies installed!"
+
+.PHONY: deps-install-cloud
+deps-install-cloud: ## Install with cloud dependencies
+	@echo "📦 Installing cloud dependencies..."
+	$(PIP) install -e ".[cloud]"
+	@echo "✅ Cloud dependencies installed!"
+
+.PHONY: deps-install-all
+deps-install-all: ## Install all dependencies
+	@echo "📦 Installing all dependencies..."
+	$(PIP) install -e ".[all]"
+	@echo "✅ All dependencies installed!"
+
+.PHONY: deps-upgrade
+deps-upgrade: ## Upgrade dependencies safely
+	@echo "⬆️ Upgrading dependencies..."
+	$(PIP) install --upgrade pip setuptools wheel
+	$(PIP) install --upgrade -e ".[dev]"
+	@echo "✅ Dependencies upgraded!"
+
+.PHONY: deps-audit
+deps-audit: ## Run dependency security audit
+	@echo "🔐 Running dependency security audit..."
+	pip-audit --desc --format=json --output=security-audit.json || true
+	safety check --json --output=safety-report.json || true
+	@echo "✅ Security audit complete! Check security-audit.json and safety-report.json"
+
+.PHONY: deps-clean
+deps-clean: ## Clean dependency cache
+	@echo "🧹 Cleaning dependency cache..."
+	$(PIP) cache purge
+	rm -rf .pytest_cache
+	rm -rf __pycache__
+	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete
+	@echo "✅ Dependency cache cleaned!"
+
+.PHONY: deps-report
+deps-report: ## Generate comprehensive dependency report
+	@echo "📋 Generating comprehensive dependency report..."
+	$(PYTHON) scripts/analyze_memory_usage.py --profile-dependencies --output comprehensive-dependency-report.json
+	@echo "✅ Dependency report generated! Check comprehensive-dependency-report.json"
+
+.PHONY: deps-validate
+deps-validate: deps-bloat-check deps-audit ## Validate all dependency optimizations
+	@echo "✅ All dependency validations passed!"
+
+# Quick aliases for dependency management
+.PHONY: analyze
+analyze: deps-analyze ## Quick dependency analysis
+
+.PHONY: bloat
+bloat: deps-bloat-check ## Quick bloat check
+
+.PHONY: audit
+audit: deps-audit ## Quick security audit
+
 # Default target
 .DEFAULT_GOAL := help

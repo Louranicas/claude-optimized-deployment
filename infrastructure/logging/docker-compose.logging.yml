@@ -7,6 +7,7 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: code-elasticsearch
+    user: "1000:1000"
     environment:
       - node.name=es01
       - cluster.name=code-logs-cluster
@@ -15,7 +16,7 @@ services:
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - xpack.security.enabled=true
       - xpack.security.enrollment.enabled=true
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     ulimits:
       memlock:
         soft: -1
@@ -24,11 +25,12 @@ services:
       - elasticsearch_data:/usr/share/elasticsearch/data
       - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     ports:
-      - "9200:9200"
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:9200:9200"
     networks:
       - logging
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -u elastic:${ELASTIC_PASSWORD:-changeme} https://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=30s || exit 1"]
+      test: ["CMD-SHELL", "curl -s -u elastic:${ELASTIC_PASSWORD} https://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=30s || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -36,19 +38,21 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: code-logstash
+    user: "1000:1000"
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
       - ./logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./templates:/etc/logstash/templates:ro
       - logstash_certs:/etc/logstash/certs
     ports:
-      - "5044:5044"  # Beats
-      - "5514:5514"  # Syslog
-      - "8080:8080"  # HTTP
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:5044:5044"  # Beats
+      - "127.0.0.1:5514:5514"  # Syslog
+      - "127.0.0.1:8080:8080"  # HTTP
     environment:
       - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
       - ELASTICSEARCH_USER=elastic
-      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
       - CLUSTER_NAME=${CLUSTER_NAME:-default}
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - ALERT_WEBHOOK_URL=${ALERT_WEBHOOK_URL:-http://alertmanager:8081/alerts}
@@ -61,15 +65,17 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:8.11.0
     container_name: code-kibana
+    user: "1000:1000"
     volumes:
       - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro
       - ./dashboards:/usr/share/kibana/dashboards:ro
     ports:
-      - "5601:5601"
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
       - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
       - SERVER_NAME=code-kibana
       - ELASTICSEARCH_SSL_VERIFICATIONMODE=none
     networks:
@@ -81,7 +87,9 @@ services:
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.11.0
     container_name: code-filebeat
-    user: root
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -91,7 +99,7 @@ services:
     environment:
       - ELASTICSEARCH_HOST=https://elasticsearch:9200
       - ELASTICSEARCH_USER=elastic
-      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
       - KIBANA_HOST=https://kibana:5601
       - ENVIRONMENT=${ENVIRONMENT:-development}
     networks:
@@ -106,11 +114,12 @@ services:
   curator:
     image: bitnami/elasticsearch-curator:5.8.4
     container_name: code-curator
+    user: "1000:1000"
     environment:
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_PORT=9200
       - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
     volumes:
       - ./curator-actions.yml:/etc/curator/actions.yml:ro
     networks:
@@ -124,12 +133,14 @@ services:
   alertmanager:
     image: prom/alertmanager:latest
     container_name: code-alertmanager
+    user: "1000:1000"
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager_data:/alertmanager
     ports:
-      - "9093:9093"
-      - "8081:8081"  # Webhook receiver
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:9093:9093"
+      - "127.0.0.1:8081:8081"  # Webhook receiver
     networks:
       - logging
     command:

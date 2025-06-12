@@ -11,6 +11,7 @@ from .permissions import PermissionChecker, require_permission, ResourceType, Re
 from .middleware import AuthMiddleware, get_current_user_dependency, require_auth
 from .user_manager import UserManager, UserCreationRequest, PasswordResetRequest
 from .audit import AuditLogger, AuditEventType, AuditSeverity, AuditEvent
+from .audit_config import get_audit_logger, audit_config
 from .mcp_integration import AuthenticatedMCPManager, AuthenticatedMCPContext
 from .experts_integration import AuthenticatedExpertManager, AuthenticatedExpertContext
 from .api import auth_router
@@ -53,6 +54,8 @@ __all__ = [
     "AuditEventType",
     "AuditSeverity", 
     "AuditEvent",
+    "get_audit_logger",
+    "audit_config",
     
     # Integrations
     "AuthenticatedMCPManager",
@@ -89,7 +92,7 @@ def create_auth_system(
     token_manager = TokenManager(secret_key=secret_key)
     rbac_manager = RBACManager()
     permission_checker = PermissionChecker(rbac_manager)
-    audit_logger = AuditLogger()
+    audit_logger = get_audit_logger()
     
     # Initialize user manager
     user_manager = UserManager(

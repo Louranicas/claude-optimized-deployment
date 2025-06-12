@@ -1,0 +1,395 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-config
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: config
+data:
+  app.yaml: |
+    app:
+      name: claude-deployment
+      version: "1.0.0"
+      environment: production
+      debug: false
+      log_level: info
+      
+    server:
+      host: "0.0.0.0"
+      port: 8000
+      workers: 4
+      timeout: 300
+      keepalive: 2
+      max_connections: 1000
+      
+    security:
+      jwt_expiration: 3600
+      cors_origins:
+        - "https://claude-deployment.example.com"
+      allowed_hosts:
+        - "api.claude-deployment.example.com"
+      rate_limit:
+        requests_per_minute: 100
+        burst_size: 10
+      
+    monitoring:
+      metrics_enabled: true
+      metrics_port: 9090
+      health_check_path: "/health"
+      readiness_check_path: "/ready"
+      
+    features:
+      circle_of_experts: true
+      mcp_integration: true
+      rust_acceleration: true
+      background_tasks: true
+
+  database.yaml: |
+    database:
+      pool_size: 20
+      max_overflow: 30
+      pool_timeout: 30
+      pool_recycle: 3600
+      echo: false
+      
+    migrations:
+      auto_upgrade: false
+      check_on_startup: true
+      
+    backup:
+      enabled: true
+      schedule: "0 2 * * *"
+      retention_days: 30
+
+  redis.yaml: |
+    redis:
+      pool_size: 20
+      max_connections: 100
+      retry_on_timeout: true
+      socket_connect_timeout: 5
+      socket_timeout: 5
+      
+    cache:
+      default_ttl: 3600
+      max_ttl: 86400
+      compression: true
+      
+    session:
+      timeout: 1800
+      cleanup_interval: 300
+
+  logging.yaml: |
+    logging:
+      version: 1
+      disable_existing_loggers: false
+      
+      formatters:
+        standard:
+          format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        json:
+          class: pythonjsonlogger.jsonlogger.JsonFormatter
+          format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+          
+      handlers:
+        console:
+          class: logging.StreamHandler
+          level: INFO
+          formatter: json
+          stream: ext://sys.stdout
+          
+        file:
+          class: logging.handlers.RotatingFileHandler
+          level: INFO
+          formatter: json
+          filename: /var/log/claude-deployment/app.log
+          maxBytes: 10485760
+          backupCount: 5
+          
+      loggers:
+        '':
+          level: INFO
+          handlers: [console, file]
+          propagate: false
+          
+        claude_deployment:
+          level: INFO
+          handlers: [console, file]
+          propagate: false
+          
+        uvicorn:
+          level: INFO
+          handlers: [console]
+          propagate: false
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-redis-config
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment-redis
+    component: cache
+data:
+  redis.conf: |
+    # Redis configuration for Claude Deployment
+    
+    # Network
+    bind 0.0.0.0
+    port 6379
+    tcp-backlog 511
+    timeout 0
+    tcp-keepalive 300
+    
+    # General
+    daemonize no
+    supervised no
+    pidfile /var/run/redis_6379.pid
+    loglevel notice
+    logfile ""
+    databases 16
+    
+    # Security
+    protected-mode yes
+    requirepass ${REDIS_PASSWORD}
+    
+    # Memory
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+    maxmemory-samples 5
+    
+    # Persistence
+    save 900 1
+    save 300 10
+    save 60 10000
+    stop-writes-on-bgsave-error yes
+    rdbcompression yes
+    rdbchecksum yes
+    dbfilename dump.rdb
+    dir /data
+    
+    # Replication
+    replica-serve-stale-data yes
+    replica-read-only yes
+    repl-diskless-sync no
+    repl-diskless-sync-delay 5
+    
+    # Clients
+    maxclients 10000
+    
+    # Performance
+    hz 10
+    dynamic-hz yes
+    
+    # Security hardening
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    rename-command DEBUG ""
+    rename-command CONFIG ""
+    rename-command SHUTDOWN SHUTDOWN_89C44E
+    rename-command EVAL ""
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-nginx-config
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment-nginx
+    component: proxy
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+    
+    events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+    }
+    
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
+        
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+        limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/s;
+        
+        # Logging
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+        
+        access_log /var/log/nginx/access.log main;
+        
+        # Performance
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        server_tokens off;
+        
+        # Gzip
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 1024;
+        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+        
+        upstream api_backend {
+            least_conn;
+            server claude-deployment-api:80 max_fails=3 fail_timeout=30s;
+            keepalive 32;
+        }
+        
+        server {
+            listen 80;
+            server_name _;
+            return 301 https://$host$request_uri;
+        }
+        
+        server {
+            listen 443 ssl http2;
+            server_name api.claude-deployment.example.com;
+            
+            ssl_certificate /etc/ssl/certs/tls.crt;
+            ssl_certificate_key /etc/ssl/private/tls.key;
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+            ssl_prefer_server_ciphers off;
+            ssl_session_cache shared:SSL:10m;
+            ssl_session_timeout 10m;
+            
+            location / {
+                limit_req zone=api burst=20 nodelay;
+                
+                proxy_pass http://api_backend;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_cache_bypass $http_upgrade;
+                
+                proxy_connect_timeout 30s;
+                proxy_send_timeout 30s;
+                proxy_read_timeout 30s;
+                proxy_buffers 8 32k;
+                proxy_buffer_size 64k;
+            }
+            
+            location /auth {
+                limit_req zone=auth burst=10 nodelay;
+                
+                proxy_pass http://api_backend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-monitoring-config
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment-monitoring
+    component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'claude-deployment'
+        
+    rule_files:
+      - "rules/*.yml"
+      
+    scrape_configs:
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - claude-deployment
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+            
+      - job_name: 'claude-deployment-api'
+        static_configs:
+          - targets: ['claude-deployment-api:9090']
+        metrics_path: /metrics
+        scrape_interval: 30s
+        
+      - job_name: 'claude-deployment-worker'
+        static_configs:
+          - targets: ['claude-deployment-worker-metrics:9090']
+        metrics_path: /metrics
+        scrape_interval: 30s
+        
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['claude-deployment-redis:6379']
+        metrics_path: /metrics
+
+  alerting.yml: |
+    groups:
+      - name: claude-deployment
+        rules:
+          - alert: HighErrorRate
+            expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: High error rate detected
+              description: "Error rate is {{ $value }} errors per second"
+              
+          - alert: HighMemoryUsage
+            expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: High memory usage
+              description: "Memory usage is {{ $value | humanizePercentage }}"
+              
+          - alert: PodCrashLooping
+            expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: Pod is crash looping
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping"

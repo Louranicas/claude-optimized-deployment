@@ -25,6 +25,7 @@ import aiohttp
 from aiohttp import ClientTimeout, TCPConnector
 from src.core.retry import retry_network, RetryConfig
 from src.core.connections import get_connection_manager
+from src.core.ssrf_protection import SSRFProtectedSession, get_ssrf_protector, MODERATE_SSRF_CONFIG
 
 from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
 from src.mcp.servers import MCPServer
@@ -148,6 +149,30 @@ class PrometheusMonitoringMCP(MCPServer):
         self._metrics = defaultdict(int)
         self._start_time = time.time()
         self._connection_manager = None
+        self._ssrf_session: Optional[SSRFProtectedSession] = None
+        
+        # Initialize SSRF protector for monitoring endpoints
+        from src.core.ssrf_protection import SSRFProtector
+        self._ssrf_protector = SSRFProtector(**MODERATE_SSRF_CONFIG)
+        
+        # Validate Prometheus URL at initialization
+        if self.prometheus_url:
+            validation = self._ssrf_protector.validate_url(self.prometheus_url)
+            if not validation.is_safe:
+                logger.error(f"SSRF protection blocked Prometheus URL {self.prometheus_url}: {validation.reason}")
+                raise ValueError(f"Unsafe Prometheus URL: {validation.reason}")
+    
+    async def _get_ssrf_session(self):
+        """Get or create SSRF-protected session."""
+        if not self._ssrf_session:
+            self._ssrf_session = SSRFProtectedSession(self._ssrf_protector)
+            await self._ssrf_session.__aenter__()
+        return self._ssrf_session
+    
+    async def _make_safe_request(self, method: str, url: str, **kwargs):
+        """Make HTTP request with SSRF protection."""
+        session = await self._get_ssrf_session()
+        return await session._validate_and_request(method, url, **kwargs)
     
     def get_server_info(self) -> MCPServerInfo:
         """Get Prometheus server information."""
@@ -358,28 +383,29 @@ class PrometheusMonitoringMCP(MCPServer):
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             
-            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
-                async with session.get(
-                    f"{self.prometheus_url}/api/v1/query",
-                    params=params,
-                    headers=headers,
-                    ssl=True
-                ) as response:
-                text = await response.text()
-                if response.status != 200:
-                    logger.error(f"Query failed: {response.status} - {text}")
-                    raise MCPError(-32000, f"Query failed: {response.status}")
-                
-                data = json.loads(text)
-                if data.get("status") != "success":
-                    raise MCPError(-32000, f"Query error: {data.get('error', 'Unknown')}")
-                
-                return {
-                    "query": query,
-                    "status": data.get("status"),
-                    "data": data.get("data"),
-                    "timestamp": time or datetime.utcnow().isoformat()
-                }
+            response = await self._make_safe_request(
+                "GET",
+                f"{self.prometheus_url}/api/v1/query",
+                params=params,
+                headers=headers,
+                ssl=True
+            )
+            
+            text = await response.text()
+            if response.status != 200:
+                logger.error(f"Query failed: {response.status} - {text}")
+                raise MCPError(-32000, f"Query failed: {response.status}")
+            
+            data = json.loads(text)
+            if data.get("status") != "success":
+                raise MCPError(-32000, f"Query error: {data.get('error', 'Unknown')}")
+            
+            return {
+                "query": query,
+                "status": data.get("status"),
+                "data": data.get("data"),
+                "timestamp": time or datetime.utcnow().isoformat()
+            }
         except aiohttp.ClientError as e:
             logger.error(f"HTTP error: {e}")
             raise MCPError(-32000, f"Connection error: {str(e)}")
@@ -404,30 +430,31 @@ class PrometheusMonitoringMCP(MCPServer):
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             
-            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
-                async with session.get(
-                    f"{self.prometheus_url}/api/v1/query_range",
-                    params=params,
-                    headers=headers,
-                    ssl=True
-                ) as response:
-                text = await response.text()
-                if response.status != 200:
-                    raise MCPError(-32000, f"Range query failed: {response.status}")
-                
-                data = json.loads(text)
-                if data.get("status") != "success":
-                    raise MCPError(-32000, f"Query error: {data.get('error')}")
-                
-                return {
-                    "query": query,
-                    "status": data.get("status"),
-                    "data": data.get("data"),
-                    "start": start,
-                    "end": end,
-                    "step": step,
-                    "resultType": data.get("data", {}).get("resultType")
-                }
+            response = await self._make_safe_request(
+                "GET",
+                f"{self.prometheus_url}/api/v1/query_range",
+                params=params,
+                headers=headers,
+                ssl=True
+            )
+            
+            text = await response.text()
+            if response.status != 200:
+                raise MCPError(-32000, f"Range query failed: {response.status}")
+            
+            data = json.loads(text)
+            if data.get("status") != "success":
+                raise MCPError(-32000, f"Query error: {data.get('error')}")
+            
+            return {
+                "query": query,
+                "status": data.get("status"),
+                "data": data.get("data"),
+                "start": start,
+                "end": end,
+                "step": step,
+                "resultType": data.get("data", {}).get("resultType")
+            }
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
@@ -456,23 +483,24 @@ class PrometheusMonitoringMCP(MCPServer):
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             
-            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
-                async with session.get(
-                    f"{self.prometheus_url}/api/v1/series",
-                    params=params,
-                    headers=headers,
-                    ssl=True
-                ) as response:
-                if response.status != 200:
-                    raise MCPError(-32000, f"Series query failed: {response.status}")
-                
-                data = await response.json()
-                return {
-                    "match": match,
-                    "status": data.get("status"),
-                    "data": data.get("data"),
-                    "series_count": len(data.get("data", []))
-                }
+            response = await self._make_safe_request(
+                "GET",
+                f"{self.prometheus_url}/api/v1/series",
+                params=params,
+                headers=headers,
+                ssl=True
+            )
+            
+            if response.status != 200:
+                raise MCPError(-32000, f"Series query failed: {response.status}")
+            
+            data = await response.json()
+            return {
+                "match": match,
+                "status": data.get("status"),
+                "data": data.get("data"),
+                "series_count": len(data.get("data", []))
+            }
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
@@ -493,18 +521,18 @@ class PrometheusMonitoringMCP(MCPServer):
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             
-            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
-                async with session.get(url, headers=headers, ssl=True) as response:
-                if response.status != 200:
-                    raise MCPError(-32000, f"Labels query failed: {response.status}")
-                
-                data = await response.json()
-                return {
-                    "label": label,
-                    "status": data.get("status"),
-                    "data": data.get("data"),
-                    "count": len(data.get("data", []))
-                }
+            response = await self._make_safe_request("GET", url, headers=headers, ssl=True)
+            
+            if response.status != 200:
+                raise MCPError(-32000, f"Labels query failed: {response.status}")
+            
+            data = await response.json()
+            return {
+                "label": label,
+                "status": data.get("status"),
+                "data": data.get("data"),
+                "count": len(data.get("data", []))
+            }
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
@@ -520,36 +548,37 @@ class PrometheusMonitoringMCP(MCPServer):
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             
-            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
-                async with session.get(
-                    f"{self.prometheus_url}/api/v1/targets",
-                    params=params,
-                    headers=headers,
-                    ssl=True
-                ) as response:
-                if response.status != 200:
-                    raise MCPError(-32000, f"Targets query failed: {response.status}")
-                
-                data = await response.json()
-                targets = data.get("data", {})
-                
-                # Calculate health summary
-                active = targets.get("activeTargets", [])
-                dropped = targets.get("droppedTargets", [])
-                
-                health_summary = {
-                    "total_active": len(active),
-                    "total_dropped": len(dropped),
-                    "healthy": sum(1 for t in active if t.get("health") == "up"),
-                    "unhealthy": sum(1 for t in active if t.get("health") == "down")
-                }
-                
-                return {
-                    "state": state,
-                    "status": data.get("status"),
-                    "data": targets,
-                    "health_summary": health_summary
-                }
+            response = await self._make_safe_request(
+                "GET",
+                f"{self.prometheus_url}/api/v1/targets",
+                params=params,
+                headers=headers,
+                ssl=True
+            )
+            
+            if response.status != 200:
+                raise MCPError(-32000, f"Targets query failed: {response.status}")
+            
+            data = await response.json()
+            targets = data.get("data", {})
+            
+            # Calculate health summary
+            active = targets.get("activeTargets", [])
+            dropped = targets.get("droppedTargets", [])
+            
+            health_summary = {
+                "total_active": len(active),
+                "total_dropped": len(dropped),
+                "healthy": sum(1 for t in active if t.get("health") == "up"),
+                "unhealthy": sum(1 for t in active if t.get("health") == "down")
+            }
+            
+            return {
+                "state": state,
+                "status": data.get("status"),
+                "data": targets,
+                "health_summary": health_summary
+            }
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
@@ -565,36 +594,37 @@ class PrometheusMonitoringMCP(MCPServer):
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             
-            async with self._connection_manager.http_pool.get_session(self.prometheus_url) as session:
-                async with session.get(
-                    f"{self.prometheus_url}/api/v1/alerts",
-                    params=params,
-                    headers=headers,
-                    ssl=True
-                ) as response:
-                if response.status != 200:
-                    raise MCPError(-32000, f"Alerts query failed: {response.status}")
-                
-                data = await response.json()
-                alerts = data.get("data", {}).get("alerts", [])
-                
-                # Categorize alerts
-                by_severity = defaultdict(list)
-                for alert in alerts:
-                    severity = alert.get("labels", {}).get("severity", "unknown")
-                    by_severity[severity].append(alert)
-                
-                return {
-                    "state": state,
-                    "status": data.get("status"),
-                    "alerts": alerts,
-                    "summary": {
-                        "total": len(alerts),
-                        "by_severity": {k: len(v) for k, v in by_severity.items()},
-                        "firing": sum(1 for a in alerts if a.get("state") == "firing"),
-                        "pending": sum(1 for a in alerts if a.get("state") == "pending")
-                    }
+            response = await self._make_safe_request(
+                "GET",
+                f"{self.prometheus_url}/api/v1/alerts",
+                params=params,
+                headers=headers,
+                ssl=True
+            )
+            
+            if response.status != 200:
+                raise MCPError(-32000, f"Alerts query failed: {response.status}")
+            
+            data = await response.json()
+            alerts = data.get("data", {}).get("alerts", [])
+            
+            # Categorize alerts
+            by_severity = defaultdict(list)
+            for alert in alerts:
+                severity = alert.get("labels", {}).get("severity", "unknown")
+                by_severity[severity].append(alert)
+            
+            return {
+                "state": state,
+                "status": data.get("status"),
+                "alerts": alerts,
+                "summary": {
+                    "total": len(alerts),
+                    "by_severity": {k: len(v) for k, v in by_severity.items()},
+                    "firing": sum(1 for a in alerts if a.get("state") == "firing"),
+                    "pending": sum(1 for a in alerts if a.get("state") == "pending")
                 }
+            }
         except aiohttp.ClientError as e:
             raise MCPError(-32000, f"Connection error: {str(e)}")
     
@@ -616,7 +646,10 @@ class PrometheusMonitoringMCP(MCPServer):
     
     async def close(self):
         """Cleanup resources."""
-        if self.session:
+        if self._ssrf_session:
+            await self._ssrf_session.__aexit__(None, None, None)
+            self._ssrf_session = None
+        if hasattr(self, 'session') and self.session:
             await self.session.close()
             self.session = None
         logger.info("Prometheus MCP closed", extra={"metrics": self.get_metrics()})

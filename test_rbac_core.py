@@ -15,11 +15,12 @@ from typing import Dict, Any, List
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 # Import core components without FastAPI
-from auth.models import User, UserStatus, APIKey, TokenManager, RBACManager
-from auth.permissions import PermissionChecker
-from auth.rbac import RBACManager, Role, Permission
-from auth.tokens import TokenManager, TokenData
-from auth.audit import AuditLogger, AuditEventType, AuditSeverity
+from src.auth.models import User, UserStatus, APIKey
+from src.auth.permissions import PermissionChecker
+from src.auth.rbac import RBACManager, Role, Permission
+from src.auth.tokens import TokenManager, TokenData
+from src.auth.audit import AuditLogger, AuditEventType, AuditSeverity
+from src.auth.test_utils import get_test_audit_logger
 
 
 async def test_core_components():
@@ -121,7 +122,7 @@ async def test_core_components():
     # Test Audit Logger
     print("\n📋 Testing Audit System...")
     
-    audit_logger = AuditLogger()
+    audit_logger = get_test_audit_logger()
     
     # Log test event
     event_id = await audit_logger.log_event(

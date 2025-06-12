@@ -1,0 +1,190 @@
+groups:
+  - name: memory.rules
+    interval: 15s
+    rules:
+      # Memory usage percentage aggregations
+      - record: memory:usage_percent:system
+        expr: memory_usage_percent{component="system"}
+        
+      - record: memory:usage_percent:avg_5m
+        expr: avg_over_time(memory_usage_percent{component="system"}[5m])
+        
+      - record: memory:usage_percent:avg_15m
+        expr: avg_over_time(memory_usage_percent{component="system"}[15m])
+        
+      - record: memory:usage_percent:max_1h
+        expr: max_over_time(memory_usage_percent{component="system"}[1h])
+        
+      # Memory pressure levels
+      - record: memory:pressure_level:current
+        expr: memory_pressure_level{component="system"}
+        
+      - record: memory:pressure_level:max_5m
+        expr: max_over_time(memory_pressure_level{component="system"}[5m])
+        
+      # Memory usage rate of change (MB/s)
+      - record: memory:usage_rate:5m
+        expr: rate(memory_usage_bytes{component="system",memory_type="physical"}[5m]) / 1048576
+        
+      - record: memory:usage_rate:15m
+        expr: rate(memory_usage_bytes{component="system",memory_type="physical"}[15m]) / 1048576
+        
+      # Component memory usage percentages
+      - record: memory:component_usage_percent:circle_of_experts
+        expr: (memory_usage_bytes{component="circle_of_experts",memory_type="rss"} / on() memory_usage_bytes{component="system",memory_type="physical"}) * 100
+        
+      - record: memory:component_usage_percent:mcp_servers
+        expr: (memory_usage_bytes{component="mcp_servers",memory_type="rss"} / on() memory_usage_bytes{component="system",memory_type="physical"}) * 100
+        
+      - record: memory:component_usage_percent:database
+        expr: (memory_usage_bytes{component="database",memory_type="rss"} / on() memory_usage_bytes{component="system",memory_type="physical"}) * 100
+        
+      # Memory allocation patterns
+      - record: memory:allocation_rate:5m
+        expr: rate(memory_allocation_bytes_sum[5m]) / 1048576
+        
+      - record: memory:allocation_size:p95
+        expr: histogram_quantile(0.95, rate(memory_allocation_bytes_bucket[5m]))
+        
+      - record: memory:allocation_size:p99
+        expr: histogram_quantile(0.99, rate(memory_allocation_bytes_bucket[5m]))
+        
+      # Garbage collection metrics
+      - record: gc:collection_rate:5m
+        expr: rate(gc_collection_total[5m])
+        
+      - record: gc:collection_rate:generation_0
+        expr: rate(gc_collection_total{generation="0"}[5m])
+        
+      - record: gc:collection_rate:generation_1
+        expr: rate(gc_collection_total{generation="1"}[5m])
+        
+      - record: gc:collection_rate:generation_2
+        expr: rate(gc_collection_total{generation="2"}[5m])
+        
+      # Memory cleanup effectiveness
+      - record: memory:cleanup_bytes_freed:rate_5m
+        expr: rate(memory_cleanup_bytes_freed[5m])
+        
+      - record: memory:cleanup_effectiveness:ratio
+        expr: memory_cleanup_bytes_freed / memory_usage_bytes{component="system",memory_type="physical"}
+        
+      # Memory response metrics
+      - record: memory:response_rate:5m
+        expr: rate(memory_responses_triggered_total[5m])
+        
+      - record: memory:response_success_rate:5m
+        expr: (rate(memory_responses_triggered_total[5m]) - rate(memory_response_errors_total[5m])) / rate(memory_responses_triggered_total[5m])
+        
+      # Alert firing rates
+      - record: memory:alert_rate:5m
+        expr: rate(memory_alerts_fired_total[5m])
+        
+      - record: memory:alert_resolution_time:avg
+        expr: rate(memory_alert_resolution_seconds_sum[5m]) / rate(memory_alert_resolution_seconds_count[5m])
+        
+      # Predictive metrics
+      - record: memory:trend_prediction:15m
+        expr: predict_linear(memory_usage_percent{component="system"}[15m], 900)  # 15 minute prediction
+        
+      - record: memory:time_to_exhaustion:estimated
+        expr: (100 - memory_usage_percent{component="system"}) / (memory:usage_rate:15m / memory_usage_bytes{component="system",memory_type="physical"} * 100)
+        
+      # Availability and health metrics
+      - record: memory:availability:5m
+        expr: (1 - (memory_pressure_level{component="system"} >= 3)) * 100
+        
+      - record: memory:health_score:weighted
+        expr: |
+          (
+            (100 - memory_usage_percent{component="system"}) * 0.4 +
+            (4 - memory_pressure_level{component="system"}) * 25 * 0.3 +
+            (1 - clamp_max(memory:response_rate:5m, 1)) * 100 * 0.2 +
+            memory:response_success_rate:5m * 100 * 0.1
+          )
+          
+  - name: memory.thresholds
+    interval: 30s
+    rules:
+      # Boolean indicators for threshold breaches
+      - record: memory:threshold:warning
+        expr: memory_usage_percent{component="system"} >= 70
+        
+      - record: memory:threshold:high
+        expr: memory_usage_percent{component="system"} >= 80
+        
+      - record: memory:threshold:critical
+        expr: memory_usage_percent{component="system"} >= 90
+        
+      - record: memory:threshold:emergency
+        expr: memory_usage_percent{component="system"} >= 95
+        
+      # Component thresholds
+      - record: memory:component_threshold:circle_of_experts:high
+        expr: memory_usage_bytes{component="circle_of_experts"} >= 1073741824  # 1GB
+        
+      - record: memory:component_threshold:mcp_servers:high
+        expr: memory_usage_bytes{component="mcp_servers"} >= 536870912  # 512MB
+        
+      # Trend-based thresholds
+      - record: memory:trend_threshold:increasing_rapidly
+        expr: memory:usage_rate:5m >= 1.0  # 1 MB/s increase
+        
+      - record: memory:trend_threshold:exhaustion_imminent
+        expr: memory:time_to_exhaustion:estimated <= 900  # 15 minutes
+        
+  - name: memory.sla
+    interval: 60s
+    rules:
+      # SLA compliance metrics
+      - record: memory:sla:availability:24h
+        expr: avg_over_time(memory:availability:5m[24h])
+        
+      - record: memory:sla:p95_usage:24h
+        expr: quantile_over_time(0.95, memory_usage_percent{component="system"}[24h])
+        
+      - record: memory:sla:max_pressure:24h
+        expr: max_over_time(memory_pressure_level{component="system"}[24h])
+        
+      - record: memory:sla:response_time:p95
+        expr: histogram_quantile(0.95, rate(memory_response_duration_seconds_bucket[24h]))
+        
+      - record: memory:sla:mttr:24h
+        expr: avg_over_time(memory:alert_resolution_time:avg[24h])
+        
+      # Performance indicators
+      - record: memory:performance:efficiency
+        expr: |
+          (
+            memory:cleanup_effectiveness:ratio * 0.3 +
+            memory:response_success_rate:5m * 0.4 +
+            (1 - memory:sla:p95_usage:24h / 100) * 0.3
+          )
+          
+      - record: memory:performance:stability
+        expr: 1 - (stddev_over_time(memory_usage_percent{component="system"}[1h]) / 10)
+        
+  - name: memory.alerting_support
+    interval: 10s
+    rules:
+      # Support metrics for alerting
+      - record: memory:alerting:context:current_state
+        expr: |
+          label_replace(
+            label_replace(
+              memory_usage_percent{component="system"},
+              "pressure_level", "$1", "memory_pressure_level", "(.*)"
+            ),
+            "trend", "$1", "memory:usage_rate:5m", "(.*)"
+          )
+          
+      - record: memory:alerting:context:component_breakdown
+        expr: |
+          sum by (component) (memory_usage_bytes{memory_type="rss"}) /
+          on() memory_usage_bytes{component="system",memory_type="physical"} * 100
+          
+      - record: memory:alerting:runbook:cleanup_candidates
+        expr: memory_cleanup_bytes_freed > 0
+        
+      - record: memory:alerting:runbook:scaling_candidates
+        expr: memory:component_usage_percent:circle_of_experts > 20

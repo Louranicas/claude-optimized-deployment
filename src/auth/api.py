@@ -18,6 +18,7 @@ from .rbac import RBACManager
 from .permissions import PermissionChecker
 from .middleware import AuthMiddleware, get_current_user_dependency
 from .audit import AuditLogger, AuditEventType, AuditSeverity
+from .audit_config import get_audit_logger
 
 
 # Request/Response models
@@ -95,7 +96,7 @@ class APIKeyResponse(BaseModel):
 token_manager = TokenManager()
 rbac_manager = RBACManager()
 permission_checker = PermissionChecker(rbac_manager)
-audit_logger = AuditLogger()
+audit_logger = get_audit_logger()
 
 # This would be injected in production
 user_manager: Optional[UserManager] = None

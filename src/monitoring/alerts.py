@@ -436,26 +436,36 @@ def register_alert_handler(handler: Callable[[Alert], None], is_async: bool = Fa
 
 # Example alert handlers
 def log_alert_handler(alert: Alert):
-    """Log alerts to standard logging."""
+    """Log alerts to standard logging with sanitization."""
+    from ..core.log_sanitization import sanitize_for_logging, sanitize_dict_for_logging, SanitizationLevel
     import logging
     logger = logging.getLogger(__name__)
     
+    # Sanitize alert data before logging - use STRICT level for alert data
+    safe_rule_name = sanitize_for_logging(alert.rule.name, SanitizationLevel.STRICT, "alert.rule.name")
+    safe_summary = sanitize_for_logging(
+        alert.annotations.get('summary', 'No summary'), 
+        SanitizationLevel.STRICT, 
+        "alert.summary"
+    )
+    safe_labels = sanitize_dict_for_logging(alert.labels, SanitizationLevel.STRICT, "alert.labels")
+    
     if alert.state == AlertState.FIRING:
         logger.error(
-            f"ALERT FIRING: {alert.rule.name} - {alert.annotations.get('summary', 'No summary')}",
+            f"ALERT FIRING: {safe_rule_name} - {safe_summary}",
             extra={
-                "alert_name": alert.rule.name,
+                "alert_name": safe_rule_name,
                 "severity": alert.rule.severity.value,
-                "labels": alert.labels,
+                "labels": safe_labels,
                 "value": alert.value,
                 "duration": str(alert.duration)
             }
         )
     elif alert.state == AlertState.RESOLVED:
         logger.info(
-            f"ALERT RESOLVED: {alert.rule.name}",
+            f"ALERT RESOLVED: {safe_rule_name}",
             extra={
-                "alert_name": alert.rule.name,
+                "alert_name": safe_rule_name,
                 "duration": str(alert.duration)
             }
         )

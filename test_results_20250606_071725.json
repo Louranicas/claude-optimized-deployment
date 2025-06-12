@@ -1,0 +1,127 @@
+{
+  "timestamp": "2025-06-06T07:17:25.604495",
+  "environment": {
+    "python_version": "3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]",
+    "platform": "linux",
+    "working_dir": "/home/louranicas/projects/claude-optimized-deployment"
+  },
+  "modules": {
+    "MCP Servers": {
+      "category": "MCP Servers",
+      "base_module": "src.mcp",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.mcp: No module named 'aiohttp'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.mcp: No module named 'aiohttp'"
+      }
+    },
+    "API": {
+      "category": "API",
+      "base_module": "src.api",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.api: No module named 'fastapi'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.api: No module named 'fastapi'"
+      }
+    },
+    "Database": {
+      "category": "Database",
+      "base_module": "src.database",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.database: No module named 'sqlalchemy'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.database: No module named 'sqlalchemy'"
+      }
+    },
+    "Core Utilities": {
+      "category": "Core Utilities",
+      "base_module": "src.core",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.core: No module named 'aiohttp'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.core: No module named 'aiohttp'"
+      }
+    },
+    "Authentication/RBAC": {
+      "category": "Authentication/RBAC",
+      "base_module": "src.auth",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.auth: No module named 'bcrypt'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.auth: No module named 'bcrypt'"
+      }
+    },
+    "Monitoring": {
+      "category": "Monitoring",
+      "base_module": "src.monitoring",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.monitoring: No module named 'prometheus_client'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.monitoring: No module named 'prometheus_client'"
+      }
+    },
+    "Circle of Experts": {
+      "category": "Circle of Experts",
+      "base_module": "src.circle_of_experts",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.circle_of_experts: No module named 'google'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.circle_of_experts: No module named 'google'"
+      }
+    }
+  },
+  "summary": {
+    "total_modules": 7,
+    "passed": 0,
+    "failed": 7,
+    "partial": 0,
+    "success_rate": "0.0%"
+  },
+  "dependencies": {
+    "pydantic": true,
+    "aiohttp": false,
+    "bcrypt": false,
+    "sqlalchemy": false,
+    "fastapi": false,
+    "prometheus_client": false,
+    "opentelemetry": false,
+    "pyjwt": false,
+    "cryptography": true,
+    "pyyaml": false
+  }
+}

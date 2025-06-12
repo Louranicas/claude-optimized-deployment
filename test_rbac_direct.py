@@ -13,11 +13,12 @@ from typing import Dict, Any, List
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 # Direct imports to avoid circular dependencies
-from auth.models import User, UserStatus, APIKey, APIKeyStatus
-from auth.tokens import TokenManager, TokenData
-from auth.rbac import RBACManager, Role, Permission
-from auth.permissions import PermissionChecker
-from auth.audit import AuditLogger, AuditEventType, AuditSeverity
+from src.auth.models import User, UserStatus, APIKey, APIKeyStatus
+from src.auth.tokens import TokenManager, TokenData
+from src.auth.rbac import RBACManager, Role, Permission
+from src.auth.permissions import PermissionChecker
+from src.auth.audit import AuditLogger, AuditEventType, AuditSeverity
+from src.auth.test_utils import get_test_audit_logger
 
 
 async def test_rbac_system():
@@ -190,7 +191,7 @@ async def test_rbac_system():
     # 6. Test Audit Logging
     print("\n📋 Testing Audit Logging System...")
     
-    audit_logger = AuditLogger()
+    audit_logger = get_test_audit_logger()
     
     # Test various event types
     events_to_log = [

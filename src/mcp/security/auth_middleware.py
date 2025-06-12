@@ -205,14 +205,26 @@ class MCPAuthMiddleware:
         Generate JWT token for user authentication.
         
         Args:
-            user_id: Unique user identifier
-            role: User role
+            user_id: Unique user identifier (REQUIRED)
+            role: User role (REQUIRED)
             tool_whitelist: Optional list of tools user can access
             custom_expiry: Custom token expiration time
             
         Returns:
             JWT token string
+            
+        Raises:
+            ValueError: If required parameters are missing or invalid
         """
+        # SECURITY FIX: Strict input validation
+        if not user_id or not isinstance(user_id, str) or not user_id.strip():
+            raise ValueError("User ID is required and cannot be empty")
+        if not role or not isinstance(role, UserRole):
+            raise ValueError("Valid UserRole is required")
+        if tool_whitelist is not None and not isinstance(tool_whitelist, list):
+            raise ValueError("Tool whitelist must be a list if provided")
+        if custom_expiry is not None and not isinstance(custom_expiry, timedelta):
+            raise ValueError("Custom expiry must be a timedelta if provided")
         now = datetime.utcnow()
         expiry = now + (custom_expiry or self.token_expiry)
         session_id = hashlib.sha256(f"{user_id}:{now.isoformat()}:{os.urandom(16).hex()}".encode()).hexdigest()
@@ -296,13 +308,23 @@ class MCPAuthMiddleware:
         Validate request with comprehensive security checks.
         
         Args:
-            token: JWT authentication token
-            tool_name: Name of the tool being accessed
-            context_id: Request context identifier
+            token: JWT authentication token (REQUIRED)
+            tool_name: Name of the tool being accessed (REQUIRED)
+            context_id: Request context identifier (REQUIRED)
             
         Returns:
             True if request is authorized, False otherwise
+            
+        Raises:
+            ValueError: If any required parameter is missing or empty
         """
+        # SECURITY FIX: Strict parameter validation
+        if not token or not isinstance(token, str) or not token.strip():
+            raise ValueError("Authentication token is required and cannot be empty")
+        if not tool_name or not isinstance(tool_name, str) or not tool_name.strip():
+            raise ValueError("Tool name is required and cannot be empty")
+        if not context_id or not isinstance(context_id, str) or not context_id.strip():
+            raise ValueError("Context ID is required and cannot be empty")
         # 1. Validate authentication token
         auth_context = await self.validate_token(token)
         if not auth_context:
@@ -474,27 +496,39 @@ class MCPAuthMiddleware:
 
 
 # Decorator for protecting MCP tool functions
-def require_auth(auth_middleware: MCPAuthMiddleware, required_permission: Permission = Permission.READ):
+def require_auth(auth_middleware: Optional[MCPAuthMiddleware] = None, required_permission: Permission = Permission.READ):
     """
     Decorator to protect MCP tool functions with authentication.
     
     Args:
-        auth_middleware: Authentication middleware instance
+        auth_middleware: Authentication middleware instance (can be None for global instance)
         required_permission: Minimum permission required
     """
     def decorator(func):
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
+            # Get auth middleware (global or provided)
+            middleware = auth_middleware or get_auth_middleware()
+            if not middleware:
+                raise Exception("Authentication middleware not configured")
+                
             # Extract token from kwargs or context
             token = kwargs.get("auth_token") or getattr(self, "_current_auth_token", None)
             tool_name = func.__name__
             
-            if not token:
-                raise Exception("Authentication token required")
+            # SECURITY FIX: Strict token validation
+            if not token or not isinstance(token, str) or not token.strip():
+                raise Exception("Valid authentication token required")
             
-            # Validate request
-            if not await auth_middleware.validate_request(token, tool_name, f"{id(self)}"):
-                raise Exception("Unauthorized access to tool")
+            # Generate unique context ID for this request
+            context_id = f"{id(self)}_{func.__name__}_{hash(str(args) + str(kwargs))}"
+            
+            # Validate request with comprehensive checks
+            try:
+                if not await middleware.validate_request(token, tool_name, context_id):
+                    raise Exception("Unauthorized access to tool")
+            except ValueError as e:
+                raise Exception(f"Authentication validation failed: {str(e)}")
             
             # Proceed with tool execution
             return await func(self, *args, **kwargs)
@@ -507,11 +541,37 @@ def require_auth(auth_middleware: MCPAuthMiddleware, required_permission: Permis
 _global_auth_middleware: Optional[MCPAuthMiddleware] = None
 
 
-def get_auth_middleware() -> MCPAuthMiddleware:
-    """Get global authentication middleware instance."""
+def get_auth_middleware() -> Optional[MCPAuthMiddleware]:
+    """Get global authentication middleware instance.
+    
+    Returns:
+        MCPAuthMiddleware instance or None if not initialized
+        
+    Note:
+        Returns None instead of auto-creating to prevent security bypasses.
+        Authentication middleware must be explicitly initialized.
+    """
     global _global_auth_middleware
-    if _global_auth_middleware is None:
-        _global_auth_middleware = MCPAuthMiddleware()
+    return _global_auth_middleware
+
+
+def initialize_auth_middleware(secret_key: Optional[str] = None) -> MCPAuthMiddleware:
+    """Initialize global authentication middleware.
+    
+    Args:
+        secret_key: Optional secret key for JWT signing
+        
+    Returns:
+        Initialized MCPAuthMiddleware instance
+        
+    Raises:
+        RuntimeError: If middleware is already initialized
+    """
+    global _global_auth_middleware
+    if _global_auth_middleware is not None:
+        raise RuntimeError("Authentication middleware is already initialized")
+    
+    _global_auth_middleware = MCPAuthMiddleware(secret_key)
     return _global_auth_middleware
 
 

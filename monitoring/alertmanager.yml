@@ -36,6 +36,15 @@ route:
       group_interval: 5m
       repeat_interval: 24h
     
+    # Memory related alerts
+    - match_re:
+        alertname: ^(Memory.*|MemoryExhaustion.*|MemoryPressure.*)$
+      receiver: memory-alerts
+      group_by: ['component', 'alert_level']
+      group_wait: 5s
+      group_interval: 30s
+      repeat_interval: 5m
+    
     # AI/Cost related alerts
     - match_re:
         alertname: ^(HighAICosts|AIProviderErrors)$
@@ -96,6 +105,47 @@ receivers:
         title: 'ℹ️ {{ .GroupLabels.alertname }}'
         text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
         send_resolved: false
+
+  - name: 'memory-alerts'
+    slack_configs:
+      - channel: '#memory-alerts'
+        title: '🧠 Memory Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          Alert Level: {{ .GroupLabels.alert_level }}
+          Component: {{ .GroupLabels.component }}
+          {{ range .Alerts }}
+          Current Usage: {{ .Annotations.current_usage }}%
+          {{ if .Annotations.predicted_usage }}Predicted Usage: {{ .Annotations.predicted_usage }}%{{ end }}
+          {{ if .Annotations.time_to_threshold }}Time to Threshold: {{ .Annotations.time_to_threshold }}s{{ end }}
+          Description: {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/webhooks/memory-alerts'
+        send_resolved: true
+    email_configs:
+      - to: 'memory-alerts@example.com'
+        from: 'alertmanager@example.com'
+        smarthost: 'smtp.example.com:587'
+        auth_username: 'alertmanager@example.com'
+        auth_password: 'password'
+        headers:
+          Subject: '[MEMORY] {{ .GroupLabels.alertname }} - {{ .GroupLabels.alert_level }}'
+        body: |
+          Memory Alert Details:
+          
+          Alert: {{ .GroupLabels.alertname }}
+          Level: {{ .GroupLabels.alert_level }}
+          Component: {{ .GroupLabels.component }}
+          
+          {{ range .Alerts }}
+          Current Usage: {{ .Annotations.current_usage }}%
+          {{ if .Annotations.predicted_usage }}Predicted Usage: {{ .Annotations.predicted_usage }}%{{ end }}
+          {{ if .Annotations.time_to_threshold }}Time to Threshold: {{ .Annotations.time_to_threshold }}s{{ end }}
+          
+          Description: {{ .Annotations.description }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
 
   - name: 'ai-alerts'
     slack_configs:

@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
 from src.mcp.servers import MCPServer
 from src.core.retry import retry_network, RetryConfig
+from src.core.ssrf_protection import SSRFProtectedSession, get_ssrf_protector, MODERATE_SSRF_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,32 @@ class SlackNotificationMCPServer(MCPServer):
         self.alert_history: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
         self.escalation_timers: Dict[str, asyncio.Task] = {}
         self.session: Optional[aiohttp.ClientSession] = None
+        self._ssrf_session: Optional[SSRFProtectedSession] = None
         self.audit_log: List[Dict[str, Any]] = []
+        
+        # Initialize SSRF protector with moderate config for communication
+        from src.core.ssrf_protection import SSRFProtector
+        self._ssrf_protector = SSRFProtector(**MODERATE_SSRF_CONFIG)
+    
+    async def _make_safe_request(self, method: str, url: str, **kwargs):
+        """Make HTTP request with SSRF protection."""
+        if not self._ssrf_session:
+            self._ssrf_session = SSRFProtectedSession(self._ssrf_protector)
+            await self._ssrf_session.__aenter__()
+            self.session = self._ssrf_session.session
+        
+        # Validate URL before making request
+        validation = self._ssrf_protector.validate_url(url)
+        if not validation.is_safe:
+            logger.error(f"SSRF protection blocked request to {url}: {validation.reason}")
+            raise Exception(f"SSRF protection: {validation.reason}")
+        
+        # Log suspicious URLs
+        if validation.threat_level.value == "suspicious":
+            logger.warning(f"Suspicious URL detected in communication: {url} - {validation.reason}")
+        
+        # Make the request
+        return await self._ssrf_session._validate_and_request(method, url, **kwargs)
     
     def get_server_info(self) -> MCPServerInfo:
         """Get Communication Hub server information."""
@@ -310,8 +336,10 @@ class SlackNotificationMCPServer(MCPServer):
     
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
         """Execute a communication tool."""
-        if not self.session:
-            self.session = aiohttp.ClientSession()
+        if not self._ssrf_session:
+            self._ssrf_session = SSRFProtectedSession(self._ssrf_protector)
+            await self._ssrf_session.__aenter__()
+            self.session = self._ssrf_session.session
         
         try:
             if not await self._check_rate_limit(tool_name):
@@ -543,11 +571,11 @@ class SlackNotificationMCPServer(MCPServer):
         }
         
         try:
-            async with self.session.post(
-                "https://slack.com/api/chat.postMessage", headers=headers, json=payload
-            ) as response:
-                data = await response.json()
-                return {"success": data.get("ok", False), "channel": channel, "ts": data.get("ts")}
+            response = await self._make_safe_request(
+                "POST", "https://slack.com/api/chat.postMessage", headers=headers, json=payload
+            )
+            data = await response.json()
+            return {"success": data.get("ok", False), "channel": channel, "ts": data.get("ts")}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
@@ -572,8 +600,8 @@ class SlackNotificationMCPServer(MCPServer):
         }
         
         try:
-            async with self.session.post(self.teams_webhook, json=payload) as response:
-                return {"success": response.status == 200, "status": response.status}
+            response = await self._make_safe_request("POST", self.teams_webhook, json=payload)
+            return {"success": response.status == 200, "status": response.status}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
@@ -627,8 +655,8 @@ class SlackNotificationMCPServer(MCPServer):
         }
         
         try:
-            async with self.session.post(webhook_url, json=payload) as response:
-                return {"success": response.status in [200, 201, 202], "status": response.status}
+            response = await self._make_safe_request("POST", webhook_url, json=payload)
+            return {"success": response.status in [200, 201, 202], "status": response.status}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
@@ -651,15 +679,15 @@ class SlackNotificationMCPServer(MCPServer):
             headers = {"Authorization": f"Bearer {self.slack_token}", "Content-Type": "application/json"}
             payload = {"name": channel_name, "is_private": False}
             
-            async with self.session.post(
-                "https://slack.com/api/conversations.create", headers=headers, json=payload
-            ) as response:
-                data = await response.json()
-                return {
-                    "success": data.get("ok", False),
-                    "channel_id": data.get("channel", {}).get("id"),
-                    "channel_name": channel_name
-                }
+            response = await self._make_safe_request(
+                "POST", "https://slack.com/api/conversations.create", headers=headers, json=payload
+            )
+            data = await response.json()
+            return {
+                "success": data.get("ok", False),
+                "channel_id": data.get("channel", {}).get("id"),
+                "channel_name": channel_name
+            }
         
         return {"success": False, "error": f"Channel creation not supported for {channel_type}"}
     
@@ -834,6 +862,9 @@ class SlackNotificationMCPServer(MCPServer):
         """Close the communication hub."""
         for task in self.escalation_timers.values():
             task.cancel()
+        if self._ssrf_session:
+            await self._ssrf_session.__aexit__(None, None, None)
+            self._ssrf_session = None
         if self.session:
             await self.session.close()
             self.session = None

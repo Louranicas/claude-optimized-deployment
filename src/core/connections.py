@@ -27,6 +27,10 @@ import weakref
 from collections import defaultdict
 import ssl
 
+# Import LRU cache and cleanup scheduler
+from .lru_cache import create_ttl_dict
+from .cleanup_scheduler import get_cleanup_scheduler
+
 import aiohttp
 from aiohttp import ClientSession, ClientTimeout, TCPConnector, ClientError
 import aiodns
@@ -99,6 +103,8 @@ class ConnectionMetrics:
     wait_time_sum: float = 0.0
     connection_reuse_count: int = 0
     health_check_failures: int = 0
+    cleanup_count: int = 0
+    expired_connections: int = 0
     
     def add_request(self, wait_time: float = 0.0):
         """Record a request."""
@@ -127,21 +133,53 @@ class HTTPConnectionPool:
     
     def __init__(self, config: ConnectionPoolConfig):
         self.config = config
-        self._sessions: Dict[str, ClientSession] = {}
-        self._session_metrics: Dict[str, ConnectionMetrics] = defaultdict(ConnectionMetrics)
+        
+        # Use TTL dict for sessions (TTL: 30 minutes, max: 50 sessions)
+        self._sessions = create_ttl_dict(
+            max_size=50,
+            ttl=1800.0,  # 30 minutes
+            cleanup_interval=300.0  # 5 minutes
+        )
+        
+        # Metrics with TTL (TTL: 1 hour, max: 100 entries)
+        self._session_metrics = create_ttl_dict(
+            max_size=100,
+            ttl=3600.0,  # 1 hour
+            cleanup_interval=600.0  # 10 minutes
+        )
+        
         self._lock = asyncio.Lock()
         self._closed = False
         self._health_check_task: Optional[asyncio.Task] = None
+        self._cleanup_task: Optional[asyncio.Task] = None
+        
+        # Session timestamp tracking for lifecycle management
+        self._session_timestamps: Dict[str, datetime] = {}
         
         # SSL context for HTTPS
         self._ssl_context = ssl.create_default_context()
         self._ssl_context.check_hostname = True
         self._ssl_context.verify_mode = ssl.CERT_REQUIRED
+        
+        # Register cleanup with scheduler
+        try:
+            cleanup_scheduler = get_cleanup_scheduler()
+            cleanup_scheduler.register_cleanable_object(self._sessions)
+            cleanup_scheduler.register_cleanable_object(self._session_metrics)
+            cleanup_scheduler.register_task(
+                name=f"http_pool_{id(self)}_cleanup",
+                callback=self._cleanup_expired_sessions,
+                interval_seconds=300.0,  # 5 minutes
+                priority=cleanup_scheduler.TaskPriority.MEDIUM
+            )
+        except Exception as e:
+            logger.warning(f"Could not register with cleanup scheduler: {e}")
     
     async def initialize(self):
         """Initialize the connection pool."""
         if self.config.enable_monitoring:
             self._health_check_task = asyncio.create_task(self._health_check_loop())
+            self._cleanup_task = asyncio.create_task(self._session_cleanup_loop())
     
     async def _create_session(self, base_url: str) -> ClientSession:
         """Create a new session for a base URL."""
@@ -181,10 +219,19 @@ class HTTPConnectionPool:
         async with self._lock:
             if base_url not in self._sessions:
                 self._sessions[base_url] = await self._create_session(base_url)
+                # Initialize metrics if not present
+                if base_url not in self._session_metrics:
+                    self._session_metrics[base_url] = ConnectionMetrics()
                 self._session_metrics[base_url].total_connections += 1
+                
+                # Track session creation timestamp
+                self._session_timestamps[base_url] = datetime.now()
             
             session = self._sessions[base_url]
-            metrics = self._session_metrics[base_url]
+            metrics = self._session_metrics.get(base_url)
+            if metrics is None:
+                metrics = ConnectionMetrics()
+                self._session_metrics[base_url] = metrics
             
         wait_time = time.time() - start_time
         metrics.add_request(wait_time)
@@ -216,7 +263,9 @@ class HTTPConnectionPool:
                 async with session.request(method, url, **kwargs) as response:
                     return response
             except ClientError as e:
-                self._session_metrics[base_url].failed_connections += 1
+                metrics = self._session_metrics.get(base_url)
+                if metrics:
+                    metrics.failed_connections += 1
                 raise
     
     async def _health_check_loop(self):
@@ -238,6 +287,39 @@ class HTTPConnectionPool:
                     del self._sessions[base_url]
                     logger.info(f"Removed closed session for {base_url}")
     
+    async def _session_cleanup_loop(self):
+        """Periodic cleanup of session timestamps and metrics."""
+        while not self._closed:
+            try:
+                await asyncio.sleep(self.config.health_check_interval)
+                await self._cleanup_expired_sessions()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Session cleanup error: {e}")
+    
+    async def _cleanup_expired_sessions(self):
+        """Clean up expired session timestamps."""
+        current_time = datetime.now()
+        cutoff_time = current_time - timedelta(seconds=self.config.connection_lifetime)
+        
+        async with self._lock:
+            # Clean up expired session timestamps
+            expired_sessions = [
+                url for url, timestamp in self._session_timestamps.items()
+                if timestamp < cutoff_time
+            ]
+            
+            for url in expired_sessions:
+                del self._session_timestamps[url]
+                # Update metrics
+                if url in self._session_metrics:
+                    self._session_metrics[url].expired_connections += 1
+                    self._session_metrics[url].cleanup_count += 1
+            
+            if expired_sessions:
+                logger.info(f"Cleaned up {len(expired_sessions)} expired session timestamps")
+    
     async def close(self):
         """Close all connections."""
         self._closed = True
@@ -249,6 +331,13 @@ class HTTPConnectionPool:
             except asyncio.CancelledError:
                 pass
         
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            try:
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
+        
         async with self._lock:
             for session in self._sessions.values():
                 await session.close()
@@ -256,7 +345,44 @@ class HTTPConnectionPool:
     
     def get_metrics(self) -> Dict[str, ConnectionMetrics]:
         """Get connection metrics."""
-        return dict(self._session_metrics)
+        return dict(self._session_metrics.items())
+    
+    def _cleanup_expired_sessions(self) -> int:
+        """
+        Clean up expired sessions and metrics.
+        
+        Returns:
+            Number of expired entries removed
+        """
+        try:
+            session_cleanup = self._sessions.cleanup()
+            metrics_cleanup = self._session_metrics.cleanup()
+            total_cleanup = session_cleanup + metrics_cleanup
+            
+            if total_cleanup > 0:
+                logger.info(f"Cleaned up {session_cleanup} sessions and {metrics_cleanup} metrics")
+            
+            return total_cleanup
+        except Exception as e:
+            logger.error(f"Error during session cleanup: {e}")
+            return 0
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for monitoring."""
+        try:
+            session_stats = self._sessions.get_stats()
+            metrics_stats = self._session_metrics.get_stats()
+            
+            return {
+                "sessions_cache": session_stats.to_dict(),
+                "metrics_cache": metrics_stats.to_dict(),
+                "active_sessions": len(self._sessions),
+                "cached_metrics": len(self._session_metrics),
+                "cache_type": "TTLDict with LRU eviction"
+            }
+        except Exception as e:
+            logger.error(f"Error getting cache stats: {e}")
+            return {}
 
 
 class DatabaseConnectionPool:

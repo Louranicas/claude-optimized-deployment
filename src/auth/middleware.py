@@ -18,6 +18,7 @@ from .tokens import TokenManager, TokenData
 from .models import User, APIKey
 from .rbac import RBACManager
 from .permissions import PermissionChecker
+from ..core.cors_config import get_cors_config
 
 
 # Security schemes
@@ -62,10 +63,11 @@ class AuthMiddleware:
         self.ip_whitelist: set = set()
         self.ip_blacklist: set = set()
         
-        # CORS settings
-        self.allowed_origins = ["*"]
-        self.allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-        self.allowed_headers = ["*"]
+        # CORS settings - using secure configuration
+        self.cors_config = get_cors_config()
+        self.allowed_origins = self.cors_config.allowed_origins
+        self.allowed_methods = self.cors_config.allow_methods
+        self.allowed_headers = self.cors_config.allow_headers
     
     async def __call__(self, request: Request, call_next: Callable) -> Any:
         """Main middleware handler."""
@@ -101,14 +103,14 @@ class AuthMiddleware:
             
             # CORS preflight
             if request.method == "OPTIONS":
+                origin = request.headers.get("Origin")
+                cors_headers = self.cors_config.get_manual_cors_headers(origin) if origin else {}
+                
                 return JSONResponse(
                     status_code=status.HTTP_200_OK,
                     headers={
                         **response_headers,
-                        "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Methods": ", ".join(self.allowed_methods),
-                        "Access-Control-Allow-Headers": ", ".join(self.allowed_headers),
-                        "Access-Control-Max-Age": "86400",
+                        **cors_headers
                     }
                 )
             
@@ -118,6 +120,13 @@ class AuthMiddleware:
             # Add security headers to response
             for header, value in response_headers.items():
                 response.headers[header] = value
+            
+            # Add CORS headers to response
+            origin = request.headers.get("Origin")
+            if origin:
+                cors_headers = self.cors_config.get_manual_cors_headers(origin)
+                for header, value in cors_headers.items():
+                    response.headers[header] = value
             
             # Add request timing
             process_time = time.time() - start_time

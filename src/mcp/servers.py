@@ -12,30 +12,14 @@ import logging
 
 from src.mcp.protocols import (
     MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities,
-    BraveSearchResult, BraveSearchResponse, MCPError
+    BraveSearchResult, BraveSearchResponse, MCPError, MCPServer
 )
 from src.mcp.client import MCPClient, HTTPTransport
 
 logger = logging.getLogger(__name__)
 
 
-class MCPServer(ABC):
-    """Abstract base class for MCP servers."""
-    
-    @abstractmethod
-    def get_server_info(self) -> MCPServerInfo:
-        """Get server information."""
-        pass
-    
-    @abstractmethod
-    def get_tools(self) -> List[MCPTool]:
-        """Get available tools."""
-        pass
-    
-    @abstractmethod
-    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """Execute a tool."""
-        pass
+# Remove the duplicate MCPServer definition - it's now imported from protocols
 
 
 class BraveMCPServer(MCPServer):
@@ -45,37 +29,43 @@ class BraveMCPServer(MCPServer):
     Provides web search capabilities through Brave's Search API.
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, permission_checker: Optional[Any] = None):
         """
         Initialize Brave MCP Server.
         
         Args:
             api_key: Brave API key (or from BRAVE_API_KEY env var)
+            permission_checker: Optional permission checker for authentication
+            
+        Raises:
+            ValueError: If no API key is provided via parameter or environment variable
         """
-        self.api_key = api_key or os.getenv("BRAVE_API_KEY", "BSAigVAUU4-V72PjB48t8_CqN00Hh5z")
+        super().__init__(name="brave-search", version="1.0.0", permission_checker=permission_checker)
+        
+        # Load API key from parameter or environment variable
+        self.api_key = api_key or os.getenv('BRAVE_API_KEY')
+        
+        if not self.api_key:
+            raise ValueError(
+                "Brave API key is required. Please provide it either as a parameter "
+                "or set the BRAVE_API_KEY environment variable."
+            )
         self.base_url = "https://api.search.brave.com/res/v1"
         self.session: Optional[aiohttp.ClientSession] = None
+        
+        # Set up tool-specific permissions
+        self.tool_permissions = {
+            "brave_web_search": "mcp.brave.search:execute",
+            "brave_local_search": "mcp.brave.local:execute",
+            "brave_news_search": "mcp.brave.news:execute",
+            "brave_image_search": "mcp.brave.images:execute"
+        }
+        
+        # Register resource permissions if permission checker available
+        if self.permission_checker:
+            self.register_resource_permissions()
     
-    def get_server_info(self) -> MCPServerInfo:
-        """Get Brave server information."""
-        return MCPServerInfo(
-            name="brave-search",
-            version="1.0.0",
-            description="Brave Search API integration for web search capabilities",
-            capabilities=MCPCapabilities(
-                tools=True,
-                resources=False,
-                prompts=False,
-                experimental={
-                    "web_search": True,
-                    "local_search": True,
-                    "news_search": True,
-                    "image_search": True
-                }
-            )
-        )
-    
-    def get_tools(self) -> List[MCPTool]:
+    def _get_all_tools(self) -> List[MCPTool]:
         """Get available Brave search tools."""
         return [
             MCPTool(
@@ -200,12 +190,16 @@ class BraveMCPServer(MCPServer):
             )
         ]
     
-    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """Execute a Brave search tool."""
+    async def _call_tool_impl(self, tool_name: str, arguments: Dict[str, Any], 
+                             user: Any, context: Optional[Dict[str, Any]] = None) -> Any:
+        """Execute a Brave search tool with authentication context."""
         if not self.session:
             self.session = aiohttp.ClientSession()
         
         try:
+            # Add user context to logging
+            logger.debug(f"User {user.username} executing Brave tool: {tool_name}")
+            
             if tool_name == "brave_web_search":
                 return await self._web_search(**arguments)
             elif tool_name == "brave_local_search":
@@ -217,7 +211,7 @@ class BraveMCPServer(MCPServer):
             else:
                 raise MCPError(-32601, f"Unknown tool: {tool_name}")
         except Exception as e:
-            logger.error(f"Error calling Brave tool {tool_name}: {e}")
+            logger.error(f"Error calling Brave tool {tool_name} for user {user.username}: {e}")
             raise
     
     async def _web_search(
@@ -431,14 +425,35 @@ class BraveMCPServer(MCPServer):
 class MCPServerRegistry:
     """Registry for managing multiple MCP servers."""
     
-    def __init__(self):
+    def __init__(self, permission_checker: Any):
+        """Initialize registry with required permission checker.
+        
+        Args:
+            permission_checker: Required permission checker for authentication
+            
+        Raises:
+            ValueError: If permission checker is not provided
+        """
+        if not permission_checker:
+            raise ValueError(
+                "Permission checker is required for MCP server registry. "
+                "Cannot create registry without proper authentication system."
+            )
         self.servers: Dict[str, MCPServer] = {}
+        self.permission_checker = permission_checker
         self._initialize_default_servers()
     
     def _initialize_default_servers(self):
-        """Initialize default MCP servers."""
+        """Initialize default MCP servers with permission checker."""
+        # SECURITY: Ensure permission checker is always provided
+        if not self.permission_checker:
+            raise ValueError(
+                "Permission checker is required for all MCP servers. "
+                "Cannot initialize servers without proper authentication."
+            )
+            
         # Add Brave server
-        self.register("brave", BraveMCPServer())
+        self.register("brave", BraveMCPServer(permission_checker=self.permission_checker))
         
         # Add infrastructure servers
         from src.mcp.infrastructure_servers import (
@@ -456,20 +471,24 @@ class MCPServerRegistry:
         # Add advanced research-based servers
         from src.mcp.monitoring.prometheus_server import PrometheusMonitoringMCPServer
         from src.mcp.security.scanner_server import SecurityScannerMCPServer
+        from src.mcp.security.sast_server import SASTMCPServer
+        from src.mcp.security.supply_chain_server import SupplyChainSecurityMCPServer
         from src.mcp.communication.slack_server import SlackNotificationMCPServer
         from src.mcp.storage.s3_server import S3StorageMCPServer
         from src.mcp.storage.cloud_storage_server import CloudStorageMCP
         
-        self.register("desktop-commander", DesktopCommanderMCPServer())
-        self.register("docker", DockerMCPServer())
-        self.register("kubernetes", KubernetesMCPServer())
-        self.register("azure-devops", AzureDevOpsMCPServer())
-        self.register("windows-system", WindowsSystemMCPServer())
-        self.register("prometheus-monitoring", PrometheusMonitoringMCPServer())
-        self.register("security-scanner", SecurityScannerMCPServer())
-        self.register("slack-notifications", SlackNotificationMCPServer())
-        self.register("s3-storage", S3StorageMCPServer())
-        self.register("cloud-storage", CloudStorageMCP())
+        self.register("desktop-commander", DesktopCommanderMCPServer(permission_checker=self.permission_checker))
+        self.register("docker", DockerMCPServer(permission_checker=self.permission_checker))
+        self.register("kubernetes", KubernetesMCPServer(permission_checker=self.permission_checker))
+        self.register("azure-devops", AzureDevOpsMCPServer(permission_checker=self.permission_checker))
+        self.register("windows-system", WindowsSystemMCPServer(permission_checker=self.permission_checker))
+        self.register("prometheus-monitoring", PrometheusMonitoringMCPServer(permission_checker=self.permission_checker))
+        self.register("security-scanner", SecurityScannerMCPServer(permission_checker=self.permission_checker))
+        self.register("sast-scanner", SASTMCPServer(permission_checker=self.permission_checker))
+        self.register("supply-chain-security", SupplyChainSecurityMCPServer(permission_checker=self.permission_checker))
+        self.register("slack-notifications", SlackNotificationMCPServer(permission_checker=self.permission_checker))
+        self.register("s3-storage", S3StorageMCPServer(permission_checker=self.permission_checker))
+        self.register("cloud-storage", CloudStorageMCP(permission_checker=self.permission_checker))
     
     def register(self, name: str, server: MCPServer):
         """Register an MCP server."""

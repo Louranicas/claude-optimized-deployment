@@ -594,7 +594,7 @@ class GroqExpertClient(BaseExpertClient):
         return response
     
     async def health_check(self) -> bool:
-        """Check Groq API availability."""
+        """Check Groq API availability with SSRF protection."""
         if not self.api_key:
             return False
         
@@ -604,13 +604,14 @@ class GroqExpertClient(BaseExpertClient):
                 "Content-Type": "application/json"
             }
             
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.base_url}/models",
-                    headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=5)
-                ) as resp:
-                    return resp.status == 200
+            # Use SSRF-protected session
+            resp = await self._make_safe_request(
+                "GET",
+                f"{self.base_url}/models",
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=5)
+            )
+            return resp.status == 200
         except Exception:
             return False
     
@@ -633,34 +634,34 @@ class GroqExpertClient(BaseExpertClient):
             }
         ]
         
-        # Use connection pool for better resource management
-        connection_manager = await get_connection_manager()
-        async with connection_manager.http_pool.get_session(self.base_url) as session:
-            async with session.post(
-                f"{self.base_url}/chat/completions",
-                headers=headers,
-                json={
+        # Use SSRF-protected request
+        resp = await self._make_safe_request(
+            "POST",
+            f"{self.base_url}/chat/completions",
+            headers=headers,
+            json={
+                "model": self.model,
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 4096
+            }
+        )
+        
+        if resp.status == 200:
+            data = await resp.json()
+            content = data["choices"][0]["message"]["content"]
+            
+            return {
+                'content': content,
+                'confidence': 0.88,  # High confidence for Groq
+                'metadata': {
                     "model": self.model,
-                    "messages": messages,
-                    "temperature": 0.7,
-                    "max_tokens": 4096
+                    "usage": data.get("usage", {})
                 }
-            ) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    content = data["choices"][0]["message"]["content"]
-                    
-                    return {
-                        'content': content,
-                        'confidence': 0.88,  # High confidence for Groq
-                        'metadata': {
-                            "model": self.model,
-                            "usage": data.get("usage", {})
-                        }
-                    }
-                else:
-                    error = await resp.text()
-                    raise RuntimeError(f"Groq API error: {error}")
+            }
+        else:
+            error = await resp.text()
+            raise RuntimeError(f"Groq API error: {error}")
     
     def _create_fallback_response(self, query: ExpertQuery) -> Dict[str, Any]:
         """Create fallback response when circuit is open."""
@@ -799,19 +800,18 @@ Use clear structure with headings and markdown formatting."""
                 "Content-Type": "application/json"
             }
             
-            # Use connection pool for health check
-            connection_manager = await get_connection_manager()
-            async with connection_manager.http_pool.get_session(self.base_url) as session:
-                async with session.post(
-                    f"{self.base_url}/chat/completions",
-                    headers=headers,
-                    json={
-                        "model": "deepseek-chat",
-                        "messages": [{"role": "user", "content": "Hi"}],
-                        "max_tokens": 5
-                    }
-                ) as resp:
-                    return resp.status == 200
+            # Use SSRF-protected request for health check
+            resp = await self._make_safe_request(
+                "POST",
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [{"role": "user", "content": "Hi"}],
+                    "max_tokens": 5
+                }
+            )
+            return resp.status == 200
         except Exception as e:
             logger.error(f"DeepSeek health check failed: {e}")
             return False
@@ -893,39 +893,39 @@ Use clear structure with headings and markdown formatting."""
             "Content-Type": "application/json"
         }
         
-        # Use connection pool for better resource management
-        connection_manager = await get_connection_manager()
-        async with connection_manager.http_pool.get_session(self.base_url) as session:
-            async with session.post(
-                f"{self.base_url}/chat/completions",
-                headers=headers,
-                json={
+        # Use SSRF-protected request
+        resp = await self._make_safe_request(
+            "POST",
+            f"{self.base_url}/chat/completions",
+            headers=headers,
+            json={
+                "model": model,
+                "messages": self._create_messages(query),
+                "temperature": 0.7,
+                "max_tokens": 4096,
+                "top_p": 0.95,
+                "stream": False
+            }
+        )
+        
+        if resp.status == 200:
+            data = await resp.json()
+            content = data["choices"][0]["message"]["content"]
+            
+            return {
+                'content': content,
+                'confidence': self._calculate_confidence(content, data),
+                'recommendations': self._extract_recommendations(content),
+                'code_snippets': self._extract_code_snippets(content),
+                'metadata': {
                     "model": model,
-                    "messages": self._create_messages(query),
-                    "temperature": 0.7,
-                    "max_tokens": 4096,
-                    "top_p": 0.95,
-                    "stream": False
+                    "usage": data.get("usage", {}),
+                    "finish_reason": data["choices"][0].get("finish_reason")
                 }
-            ) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    content = data["choices"][0]["message"]["content"]
-                    
-                    return {
-                        'content': content,
-                        'confidence': self._calculate_confidence(content, data),
-                        'recommendations': self._extract_recommendations(content),
-                        'code_snippets': self._extract_code_snippets(content),
-                        'metadata': {
-                            "model": model,
-                            "usage": data.get("usage", {}),
-                            "finish_reason": data["choices"][0].get("finish_reason")
-                        }
-                    }
-                else:
-                    error_text = await resp.text()
-                    raise RuntimeError(f"DeepSeek API error ({resp.status}): {error_text}")
+            }
+        else:
+            error_text = await resp.text()
+            raise RuntimeError(f"DeepSeek API error ({resp.status}): {error_text}")
     
     def _create_fallback_response(self, query: ExpertQuery, model: str) -> Dict[str, Any]:
         """Create fallback response when circuit is open."""

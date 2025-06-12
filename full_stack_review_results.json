@@ -1,0 +1,335 @@
+{
+  "timestamp": "2025-06-06T07:37:47.108197",
+  "stack_components": {
+    "system": {
+      "python_version": {
+        "version": "3.12.3",
+        "status": "pass",
+        "message": "Python 3.12.3 detected"
+      },
+      "docker": {
+        "installed": true,
+        "path": "/usr/bin/docker"
+      },
+      "kubectl": {
+        "installed": false,
+        "path": null
+      },
+      "git": {
+        "installed": true,
+        "path": "/usr/bin/git"
+      },
+      "make": {
+        "installed": true,
+        "path": "/usr/bin/make"
+      },
+      "cargo": {
+        "installed": true,
+        "path": "/usr/bin/cargo"
+      },
+      "rustc": {
+        "installed": true,
+        "path": "/usr/bin/rustc"
+      }
+    },
+    "python": {
+      "core_packages": {
+        "pydantic": "installed",
+        "aiohttp": "installed",
+        "aiofiles": "installed",
+        "fastapi": "installed",
+        "uvicorn": "installed",
+        "sqlalchemy": "installed",
+        "tortoise": "installed",
+        "asyncpg": "installed",
+        "aiomysql": "installed",
+        "alembic": "installed",
+        "jwt": "installed",
+        "bcrypt": "installed",
+        "cryptography": "installed",
+        "email_validator": "installed",
+        "boto3": "installed",
+        "kubernetes": "installed",
+        "google.auth": "installed",
+        "openai": "installed",
+        "anthropic": "installed",
+        "prometheus_client": "installed",
+        "opentelemetry": "installed",
+        "structlog": "installed",
+        "click": "installed",
+        "rich": "installed"
+      },
+      "optional_packages": {
+        "redis": "installed",
+        "celery": "installed",
+        "flower": "installed",
+        "sentry_sdk": "not installed",
+        "datadog": "not installed",
+        "numpy": "not installed",
+        "pandas": "not installed",
+        "matplotlib": "not installed",
+        "seaborn": "not installed",
+        "plotly": "not installed"
+      },
+      "dev_packages": {
+        "pytest": "installed",
+        "pytest_asyncio": "installed",
+        "pytest_cov": "installed",
+        "pytest_benchmark": "installed",
+        "black": "installed",
+        "ruff": "installed",
+        "mypy": "installed",
+        "bandit": "installed",
+        "safety": "installed",
+        "sphinx": "not installed",
+        "mkdocs": "not installed",
+        "pre_commit": "not installed"
+      }
+    },
+    "infrastructure": {
+      "docker": {
+        "installed": true,
+        "running": true
+      },
+      "kubernetes": {
+        "kubectl_installed": false,
+        "version": null
+      },
+      "aws_cli": false,
+      "gcloud_cli": false,
+      "az_cli": false
+    },
+    "database": {
+      "postgresql": {
+        "driver": "asyncpg",
+        "installed": true
+      },
+      "mysql": {
+        "driver": "aiomysql",
+        "installed": true
+      },
+      "sqlite": {
+        "driver": "aiosqlite",
+        "installed": true
+      },
+      "redis": {
+        "driver": "redis",
+        "installed": true
+      },
+      "mongodb": {
+        "driver": "motor",
+        "installed": false
+      },
+      "tortoise_orm": true,
+      "sqlalchemy": true
+    },
+    "ai_ml": {
+      "anthropic": "installed",
+      "openai": "installed",
+      "google_generativeai": "installed",
+      "huggingface": "not installed",
+      "langchain": "not installed",
+      "llamaindex": "not installed",
+      "ollama": false
+    },
+    "monitoring": {
+      "prometheus_client": "installed",
+      "opentelemetry.api": "not installed",
+      "opentelemetry.sdk": "not installed",
+      "opentelemetry.instrumentation": "not installed",
+      "opentelemetry.exporter.otlp": "not installed",
+      "opentelemetry.exporter.jaeger": "not installed",
+      "datadog": "not installed",
+      "sentry_sdk": "not installed",
+      "structlog": "installed",
+      "loguru": "not installed"
+    },
+    "security": {
+      "cryptography": "installed",
+      "jwt": "installed",
+      "bcrypt": "installed",
+      "passlib": "not installed",
+      "python_jose": "not installed",
+      "authlib": "installed",
+      "pyotp": "installed",
+      "qrcode": "installed",
+      "bandit": "installed",
+      "safety": "installed",
+      "ssl_support": {
+        "available": true,
+        "version": "OpenSSL 3.0.13 30 Jan 2024"
+      }
+    },
+    "web_framework": {
+      "fastapi": "installed",
+      "uvicorn": "installed",
+      "gunicorn": "not installed",
+      "starlette": "installed",
+      "pydantic": "installed",
+      "httpx": "installed",
+      "requests": "installed",
+      "aiohttp": "installed",
+      "websockets": "not installed",
+      "socketio": "not installed"
+    },
+    "testing": {
+      "pytest": "installed",
+      "pytest_asyncio": "installed",
+      "pytest_cov": "installed",
+      "pytest_benchmark": "installed",
+      "pytest_mock": "not installed",
+      "pytest_timeout": "not installed",
+      "hypothesis": "not installed",
+      "faker": "not installed",
+      "factory_boy": "not installed",
+      "responses": "not installed",
+      "vcr": "not installed"
+    },
+    "environment": {
+      "DATABASE_URL": {
+        "set": false,
+        "value": null,
+        "required": true
+      },
+      "JWT_SECRET_KEY": {
+        "set": false,
+        "value": null,
+        "required": true
+      },
+      "ENVIRONMENT": {
+        "set": false,
+        "value": null,
+        "required": true
+      },
+      "ANTHROPIC_API_KEY": {
+        "set": false,
+        "value": null,
+        "required": "at_least_one"
+      },
+      "OPENAI_API_KEY": {
+        "set": false,
+        "value": null,
+        "required": "at_least_one"
+      },
+      "GOOGLE_GEMINI_API_KEY": {
+        "set": false,
+        "value": null,
+        "required": "at_least_one"
+      },
+      "DEEPSEEK_API_KEY": {
+        "set": false,
+        "value": null,
+        "required": "at_least_one"
+      },
+      "REDIS_URL": {
+        "set": false,
+        "value": null,
+        "required": false
+      },
+      "PROMETHEUS_URL": {
+        "set": false,
+        "value": null,
+        "required": false
+      },
+      "SLACK_WEBHOOK_URL": {
+        "set": false,
+        "value": null,
+        "required": false
+      },
+      "SENTRY_DSN": {
+        "set": false,
+        "value": null,
+        "required": false
+      },
+      "AWS_ACCESS_KEY_ID": {
+        "set": false,
+        "value": null,
+        "required": false
+      },
+      "AWS_SECRET_ACCESS_KEY": {
+        "set": false,
+        "value": null,
+        "required": false
+      },
+      "AZURE_TENANT_ID": {
+        "set": false,
+        "value": null,
+        "required": false
+      },
+      "GCP_PROJECT_ID": {
+        "set": false,
+        "value": null,
+        "required": false
+      }
+    },
+    "file_structure": {
+      "dir_src": {
+        "exists": true,
+        "is_directory": true
+      },
+      "dir_tests": {
+        "exists": true,
+        "is_directory": true
+      },
+      "dir_docs": {
+        "exists": true,
+        "is_directory": true
+      },
+      "dir_scripts": {
+        "exists": true,
+        "is_directory": true
+      },
+      "dir_examples": {
+        "exists": true,
+        "is_directory": true
+      },
+      "dir_rust_core": {
+        "exists": true,
+        "is_directory": true
+      },
+      "file_requirements.txt": {
+        "exists": true,
+        "is_file": true
+      },
+      "file_requirements-dev.txt": {
+        "exists": true,
+        "is_file": true
+      },
+      "file_pyproject.toml": {
+        "exists": true,
+        "is_file": true
+      },
+      "file_Makefile": {
+        "exists": true,
+        "is_file": true
+      },
+      "file_README.md": {
+        "exists": true,
+        "is_file": true
+      },
+      "file_.env.example": {
+        "exists": true,
+        "is_file": true
+      }
+    },
+    "imports": {
+      "Circle of Experts": "success",
+      "MCP Manager": "success",
+      "Core Exceptions": "success",
+      "Auth RBAC": "failed: no running event loop",
+      "Database Models": "success",
+      "Monitoring Metrics": "failed: cannot import name 'AlwaysOnSampler' from 'opentelemetry.sdk.trace.sampling' (/home/louranicas/projects/claude-optimized-deployment/venv_bulletproof/lib/python3.12/site-packages/opentelemetry/sdk/trace/sampling.py)",
+      "API Circuit Breaker": "success"
+    }
+  },
+  "missing_dependencies": [],
+  "configuration_issues": [
+    "No AI provider API key found. At least one is required."
+  ],
+  "runtime_issues": [
+    "Auth RBAC: no running event loop",
+    "Monitoring Metrics: cannot import name 'AlwaysOnSampler' from 'opentelemetry.sdk.trace.sampling' (/home/louranicas/projects/claude-optimized-deployment/venv_bulletproof/lib/python3.12/site-packages/opentelemetry/sdk/trace/sampling.py)"
+  ],
+  "security_findings": [],
+  "recommendations": []
+}

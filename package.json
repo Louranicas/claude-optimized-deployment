@@ -1,5 +1,22 @@
 {
+  "name": "claude-optimized-deployment",
+  "version": "1.0.0",
+  "description": "Claude-Optimized Deployment Engine with Node.js memory optimization",
+  "scripts": {
+    "start": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" node src/main.js",
+    "dev": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" node --inspect src/main.js",
+    "test": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" jest",
+    "build": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" npm run build:prod",
+    "build:prod": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" webpack --mode=production",
+    "lint": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" eslint src/",
+    "serve": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" node server.js",
+    "worker": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" node src/worker.js",
+    "monitor": "NODE_OPTIONS=\"--max-old-space-size=6144 --gc-interval=100 --optimize-for-size\" node src/monitoring/index.js"
+  },
   "dependencies": {
     "@wonderwhy-er/desktop-commander": "^0.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }

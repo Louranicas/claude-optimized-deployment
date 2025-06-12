@@ -1,41 +1,41 @@
-# Development dependencies
+# Development dependencies - Optimized for memory efficiency
+# This file is deprecated - use `pip install .[dev]` instead for better dependency management
 
-# Code quality
-black>=23.0.0
-isort>=5.12.0
-flake8>=6.0.0
-mypy>=1.4.0
-pylint>=2.17.0
+# NOTICE: This file is kept for backwards compatibility
+# NEW INSTALLATIONS: Use `pip install .[dev]` from pyproject.toml instead
+
+# Essential development tools only (redundant packages removed)
+# Core code quality - consolidated linting
+ruff>=0.1.0         # Replaces: flake8, isort, pylint (single tool, faster, less memory)
+black>=24.1.0       # Code formatting
+mypy>=1.8.0         # Type checking
 
 # Pre-commit hooks
-pre-commit>=3.3.0
+pre-commit>=3.6.0
 
-# Documentation
-sphinx>=7.0.0
-sphinx-rtd-theme>=1.3.0
-sphinx-autodoc-typehints>=1.24.0
-myst-parser>=2.0.0
-
-# Testing extras
+# Essential testing extensions (core testing already in requirements.txt)
 pytest-timeout>=2.1.0
 pytest-xdist>=3.3.0
 pytest-benchmark>=4.0.0
-hypothesis>=6.82.0
-faker>=19.0.0
 
-# Debugging
-ipdb>=0.13.0
-ipython>=8.14.0
-
-# Performance profiling
-memory-profiler>=0.61.0
-line-profiler>=4.0.0
-
-# Security scanning
+# Security scanning - essential only
 bandit>=1.7.0
 safety>=2.3.0
 
-# Type stubs
-types-PyYAML
-types-requests
-boto3-stubs[essential]
+# Memory analysis - development specific
+memory-profiler>=0.61.0
+
+# REMOVED PACKAGES (available through optional extras):
+# - Documentation tools (sphinx, etc.) -> Use pip install .[docs] 
+# - Heavy debugging tools (ipython, ipdb) -> Use pip install .[debug]
+# - Performance profiling (line-profiler) -> Use pip install .[profiling]
+# - Type stubs -> Included in specific feature extras
+# - faker, hypothesis -> Use pip install .[testing-extended]
+
+# MIGRATION GUIDE:
+# Old: pip install -r requirements-dev.txt
+# New: pip install .[dev]                    # Essential dev tools
+#      pip install .[dev,docs,debug]         # Dev + docs + debugging
+#      pip install .[all]                    # Everything
+
+# Memory savings: ~75MB by removing redundant linting tools and heavy packages

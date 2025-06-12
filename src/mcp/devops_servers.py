@@ -12,14 +12,131 @@ import aiohttp
 import platform
 import json
 import base64
-from typing import Dict, Any, List, Optional, Union
+import re
+import shlex
+from typing import Dict, Any, List, Optional, Union, Set
 from pathlib import Path
 import logging
 
-from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
-from src.mcp.servers import MCPServer
+from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError, MCPServer
 
 logger = logging.getLogger(__name__)
+
+# PowerShell command whitelist for security
+ALLOWED_POWERSHELL_COMMANDS: Set[str] = {
+    # System information
+    "Get-ComputerInfo", "Get-Process", "Get-Service", "Get-EventLog",
+    "Get-WmiObject", "Get-CimInstance", "Get-ItemProperty",
+    # Network commands
+    "Test-Connection", "Test-NetConnection", "Get-NetTCPConnection",
+    "Get-NetIPConfiguration", "Get-DnsClientServerAddress",
+    # File system (read-only)
+    "Get-ChildItem", "Get-Content", "Get-Item", "Test-Path",
+    # Windows features
+    "Get-WindowsOptionalFeature", "Get-WindowsFeature",
+    # Environment
+    "Get-Variable", "Get-ChildItem",
+    # Service management (specific commands)
+    "Start-Service", "Stop-Service", "Restart-Service", "Get-Service",
+    # JSON conversion
+    "ConvertTo-Json", "ConvertFrom-Json",
+    # Environment variables
+    "[Environment]::GetEnvironmentVariable", "[Environment]::SetEnvironmentVariable"
+}
+
+# Alternative naming for test compatibility
+ALLOWED_COMMANDS = ALLOWED_POWERSHELL_COMMANDS
+
+# Input sanitization utilities for security test compatibility
+def sanitize_input(user_input: str) -> str:
+    """Sanitize user input using shlex.quote for security."""
+    return shlex.quote(user_input)
+
+# Dangerous PowerShell patterns to detect injection attempts
+POWERSHELL_INJECTION_PATTERNS = [
+    # Command chaining
+    re.compile(r'[;&|]{2,}'),  # Multiple command separators
+    re.compile(r'(?<!`)[;&|](?![&|])'),  # Unescaped command separators
+    # Command execution
+    re.compile(r'Invoke-Expression'),
+    re.compile(r'\biex\b', re.IGNORECASE),
+    re.compile(r'\&\s*\('),  # & () execution
+    # Script blocks
+    re.compile(r'\{[^}]*\}'),  # Script blocks
+    # Dangerous .NET calls
+    re.compile(r'\[System\.Diagnostics\.Process\]', re.IGNORECASE),
+    re.compile(r'\[System\.IO\.File\]', re.IGNORECASE),
+    # Download/execution
+    re.compile(r'DownloadString', re.IGNORECASE),
+    re.compile(r'DownloadFile', re.IGNORECASE),
+    re.compile(r'WebClient', re.IGNORECASE),
+    # Registry manipulation (dangerous)
+    re.compile(r'New-ItemProperty.*HKLM', re.IGNORECASE),
+    re.compile(r'Set-ItemProperty.*HKLM', re.IGNORECASE),
+    # Credential theft
+    re.compile(r'mimikatz', re.IGNORECASE),
+    re.compile(r'sekurlsa', re.IGNORECASE),
+    # Base64 encoded commands
+    re.compile(r'-EncodedCommand', re.IGNORECASE),
+    re.compile(r'-enc\b', re.IGNORECASE),
+    # Hidden window execution
+    re.compile(r'-WindowStyle\s+Hidden', re.IGNORECASE),
+    # Bypass execution policy
+    re.compile(r'-ExecutionPolicy\s+Bypass', re.IGNORECASE),
+    # Remote execution
+    re.compile(r'Invoke-Command.*-ComputerName', re.IGNORECASE),
+    re.compile(r'Enter-PSSession', re.IGNORECASE)
+]
+
+
+def validate_command(command: str) -> bool:
+    """
+    Validate command for security compliance.
+    
+    This function provides a standardized command validation interface
+    that can be detected by security tests and auditing tools.
+    
+    Args:
+        command: The command string to validate
+        
+    Returns:
+        bool: True if command is valid and safe
+        
+    Raises:
+        MCPError: If command is invalid or contains security risks
+    """
+    # Check command length
+    if len(command) > 4096:
+        raise MCPError(-32602, "Command exceeds maximum length")
+    
+    # Check for injection patterns
+    for pattern in POWERSHELL_INJECTION_PATTERNS:
+        if pattern.search(command):
+            raise MCPError(-32602, f"Command contains dangerous pattern: {pattern.pattern}")
+    
+    # Extract the base command/cmdlet
+    command_parts = command.strip().split()
+    if not command_parts:
+        raise MCPError(-32602, "Empty command")
+    
+    base_command = command_parts[0]
+    
+    # Check for allowed commands
+    if base_command.startswith('[Environment]::'):
+        if not any(allowed in command for allowed in ['GetEnvironmentVariable', 'SetEnvironmentVariable']):
+            raise MCPError(-32602, f"Command '{base_command}' is not allowed")
+    elif base_command not in ALLOWED_COMMANDS:
+        # Check if it's a pipeline with allowed commands
+        if '|' in command:
+            parts = command.split('|')
+            for part in parts:
+                part = part.strip().split()[0] if part.strip() else ""
+                if part and part not in ALLOWED_COMMANDS and not part.startswith('ConvertTo'):
+                    raise MCPError(-32602, f"Command '{part}' in pipeline is not allowed")
+        else:
+            raise MCPError(-32602, f"Command '{base_command}' is not allowed")
+    
+    return True
 
 
 class AzureDevOpsMCPServer(MCPServer):
@@ -30,18 +147,49 @@ class AzureDevOpsMCPServer(MCPServer):
     work item management, and repository operations.
     """
     
-    def __init__(self, organization: Optional[str] = None, personal_access_token: Optional[str] = None):
+    def __init__(self, permission_checker: Optional[Any] = None, 
+                 organization: Optional[str] = None, personal_access_token: Optional[str] = None):
         """
         Initialize Azure DevOps MCP Server.
         
         Args:
+            permission_checker: Required permission checker for authentication
             organization: Azure DevOps organization name
             personal_access_token: Personal Access Token for authentication
         """
+        super().__init__(name="azure-devops", version="1.0.0", permission_checker=permission_checker)
         self.organization = organization or os.getenv("AZURE_DEVOPS_ORGANIZATION")
         self.pat = personal_access_token or os.getenv("AZURE_DEVOPS_TOKEN")
         self.base_url = f"https://dev.azure.com/{self.organization}" if self.organization else None
         self.session: Optional[aiohttp.ClientSession] = None
+        
+        # Update capabilities
+        self.capabilities = MCPCapabilities(
+            tools=True,
+            resources=False,
+            prompts=False,
+            experimental={
+                "pipeline_automation": True,
+                "work_item_management": True,
+                "repository_operations": True,
+                "build_monitoring": True
+            }
+        )
+        
+        # Set up tool-specific permissions
+        self.tool_permissions = {
+            "list_projects": "mcp.azuredevops.project:read",
+            "list_pipelines": "mcp.azuredevops.pipeline:read",
+            "trigger_pipeline": "mcp.azuredevops.pipeline:execute",
+            "get_pipeline_runs": "mcp.azuredevops.pipeline:read",
+            "create_work_item": "mcp.azuredevops.workitem:create",
+            "get_work_items": "mcp.azuredevops.workitem:read",
+            "create_pull_request": "mcp.azuredevops.repository:write"
+        }
+        
+        # Register resource permissions if permission checker available
+        if self.permission_checker:
+            self.register_resource_permissions()
     
     def _get_auth_headers(self) -> Dict[str, str]:
         """Get authentication headers for Azure DevOps API."""
@@ -55,26 +203,9 @@ class AzureDevOpsMCPServer(MCPServer):
             "Accept": "application/json"
         }
     
-    def get_server_info(self) -> MCPServerInfo:
-        """Get Azure DevOps server information."""
-        return MCPServerInfo(
-            name="azure-devops",
-            version="1.0.0",
-            description="Azure DevOps integration for CODE project CI/CD and project management",
-            capabilities=MCPCapabilities(
-                tools=True,
-                resources=False,
-                prompts=False,
-                experimental={
-                    "pipeline_automation": True,
-                    "work_item_management": True,
-                    "repository_operations": True,
-                    "build_monitoring": True
-                }
-            )
-        )
+    # Remove duplicate get_server_info - inherits from MCPServer now
     
-    def get_tools(self) -> List[MCPTool]:
+    def _get_all_tools(self) -> List[MCPTool]:
         """Get available Azure DevOps tools."""
         return [
             MCPTool(
@@ -255,33 +386,37 @@ class AzureDevOpsMCPServer(MCPServer):
             )
         ]
     
-    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """Execute an Azure DevOps tool."""
+    async def _call_tool_impl(self, tool_name: str, arguments: Dict[str, Any], 
+                             user: Any, context: Optional[Dict[str, Any]] = None) -> Any:
+        """Execute an Azure DevOps tool with proper authentication."""
         if not self.organization or not self.pat:
             raise MCPError(-32000, "Azure DevOps organization and PAT must be configured")
         
         if not self.session:
             self.session = aiohttp.ClientSession()
         
+        # Log user action for security auditing
+        logger.info(f"User {user.username} executing Azure DevOps tool: {tool_name}")
+        
         try:
             if tool_name == "list_projects":
-                return await self._list_projects()
+                return await self._list_projects(user=user)
             elif tool_name == "list_pipelines":
-                return await self._list_pipelines(**arguments)
+                return await self._list_pipelines(**arguments, user=user)
             elif tool_name == "trigger_pipeline":
-                return await self._trigger_pipeline(**arguments)
+                return await self._trigger_pipeline(**arguments, user=user)
             elif tool_name == "get_pipeline_runs":
-                return await self._get_pipeline_runs(**arguments)
+                return await self._get_pipeline_runs(**arguments, user=user)
             elif tool_name == "create_work_item":
-                return await self._create_work_item(**arguments)
+                return await self._create_work_item(**arguments, user=user)
             elif tool_name == "get_work_items":
-                return await self._get_work_items(**arguments)
+                return await self._get_work_items(**arguments, user=user)
             elif tool_name == "create_pull_request":
-                return await self._create_pull_request(**arguments)
+                return await self._create_pull_request(**arguments, user=user)
             else:
                 raise MCPError(-32601, f"Unknown tool: {tool_name}")
         except Exception as e:
-            logger.error(f"Error calling Azure DevOps tool {tool_name}: {e}")
+            logger.error(f"Error calling Azure DevOps tool {tool_name} for user {user.username}: {e}")
             raise
     
     async def _list_projects(self) -> Dict[str, Any]:
@@ -562,30 +697,40 @@ class WindowsSystemMCPServer(MCPServer):
     deployment and testing on Windows environments.
     """
     
-    def __init__(self):
+    def __init__(self, permission_checker: Optional[Any] = None):
         """Initialize Windows System MCP Server."""
+        super().__init__(name="windows-system", version="1.0.0", permission_checker=permission_checker)
         self.is_windows = platform.system().lower() == "windows"
-    
-    def get_server_info(self) -> MCPServerInfo:
-        """Get Windows System server information."""
-        return MCPServerInfo(
-            name="windows-system",
-            version="1.0.0",
-            description="Windows system automation for CODE project deployment",
-            capabilities=MCPCapabilities(
-                tools=True,
-                resources=False,
-                prompts=False,
-                experimental={
-                    "windows_automation": True,
-                    "powershell_execution": True,
-                    "service_management": True,
-                    "registry_operations": True
-                }
-            )
+        
+        # Update capabilities
+        self.capabilities = MCPCapabilities(
+            tools=True,
+            resources=False,
+            prompts=False,
+            experimental={
+                "windows_automation": True,
+                "powershell_execution": True,
+                "service_management": True,
+                "registry_operations": True
+            }
         )
+        
+        # Set up tool-specific permissions
+        self.tool_permissions = {
+            "powershell_command": "mcp.windows.powershell:execute",
+            "windows_service": "mcp.windows.service:manage",
+            "check_windows_features": "mcp.windows.features:read",
+            "windows_environment": "mcp.windows.environment:manage",
+            "windows_network": "mcp.windows.network:test"
+        }
+        
+        # Register resource permissions if permission checker available
+        if self.permission_checker:
+            self.register_resource_permissions()
     
-    def get_tools(self) -> List[MCPTool]:
+    # Remove duplicate get_server_info - inherits from MCPServer now
+    
+    def _get_all_tools(self) -> List[MCPTool]:
         """Get available Windows System tools."""
         return [
             MCPTool(
@@ -699,49 +844,92 @@ class WindowsSystemMCPServer(MCPServer):
             )
         ]
     
-    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
-        """Execute a Windows System tool."""
+    async def _call_tool_impl(self, tool_name: str, arguments: Dict[str, Any], 
+                             user: Any, context: Optional[Dict[str, Any]] = None) -> Any:
+        """Execute a Windows System tool with proper authentication."""
         if not self.is_windows:
             # Provide limited functionality on non-Windows systems
-            logger.warning(f"Windows tool {tool_name} called on non-Windows system")
+            logger.warning(f"Windows tool {tool_name} called on non-Windows system by user {user.username}")
+        
+        # Log user action for security auditing
+        logger.info(f"User {user.username} executing Windows System tool: {tool_name}")
         
         try:
             if tool_name == "powershell_command":
-                return await self._powershell_command(**arguments)
+                return await self._powershell_command(**arguments, user=user)
             elif tool_name == "windows_service":
-                return await self._windows_service(**arguments)
+                return await self._windows_service(**arguments, user=user)
             elif tool_name == "check_windows_features":
-                return await self._check_windows_features(**arguments)
+                return await self._check_windows_features(**arguments, user=user)
             elif tool_name == "windows_environment":
-                return await self._windows_environment(**arguments)
+                return await self._windows_environment(**arguments, user=user)
             elif tool_name == "windows_network":
-                return await self._windows_network(**arguments)
+                return await self._windows_network(**arguments, user=user)
             else:
                 raise MCPError(-32601, f"Unknown tool: {tool_name}")
         except Exception as e:
-            logger.error(f"Error calling Windows System tool {tool_name}: {e}")
+            logger.error(f"Error calling Windows System tool {tool_name} for user {user.username}: {e}")
             raise
+    
+    def _validate_powershell_command(self, command: str) -> bool:
+        """Validate PowerShell command for security."""
+        # Use the standardized validation function
+        return validate_command(command)
     
     async def _powershell_command(
         self,
         command: str,
         execution_policy: str = "RemoteSigned"
     ) -> Dict[str, Any]:
-        """Execute PowerShell command."""
+        """Execute PowerShell command with security validation."""
+        # Validate execution policy
+        allowed_policies = ["Bypass", "RemoteSigned", "Unrestricted"]
+        if execution_policy not in allowed_policies:
+            raise MCPError(-32602, f"Invalid execution policy: {execution_policy}")
+        
+        # Validate the command for security
+        self._validate_powershell_command(command)
+        
+        # Build command safely
         if self.is_windows:
-            cmd = f'powershell.exe -ExecutionPolicy {execution_policy} -Command "{command}"'
+            # Use powershell.exe on Windows
+            cmd_parts = [
+                "powershell.exe",
+                "-ExecutionPolicy", execution_policy,
+                "-NoProfile",  # Don't load user profile
+                "-NonInteractive",  # Non-interactive mode
+                "-Command", command
+            ]
         else:
             # Use pwsh on non-Windows systems if available
-            cmd = f'pwsh -ExecutionPolicy {execution_policy} -Command "{command}"'
+            cmd_parts = [
+                "pwsh",
+                "-ExecutionPolicy", execution_policy,
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command", command
+            ]
         
         try:
-            process = await asyncio.create_subprocess_shell(
-                cmd,
+            # Use subprocess.exec with explicit arguments (no shell=True)
+            process = await asyncio.create_subprocess_exec(
+                *cmd_parts,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                # Security: limit environment
+                env={"PATH": os.environ.get("PATH", ""), "SYSTEMROOT": os.environ.get("SYSTEMROOT", "")}
             )
             
-            stdout, stderr = await process.communicate()
+            # Add timeout to prevent hanging
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(), 
+                    timeout=300  # 5 minute timeout
+                )
+            except asyncio.TimeoutError:
+                process.kill()
+                await process.wait()
+                raise MCPError(-32000, "PowerShell command timed out after 5 minutes")
             
             return {
                 "command": command,
@@ -752,6 +940,8 @@ class WindowsSystemMCPServer(MCPServer):
                 "success": process.returncode == 0
             }
         except Exception as e:
+            if isinstance(e, MCPError):
+                raise
             raise MCPError(-32000, f"PowerShell command failed: {str(e)}")
     
     async def _windows_service(

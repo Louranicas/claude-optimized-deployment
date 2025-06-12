@@ -1,0 +1,255 @@
+groups:
+  - name: memory_alerts
+    interval: 15s
+    rules:
+      # Early Warning - Memory Pressure
+      - alert: MemoryPressureEarly
+        expr: memory_usage_bytes{type="percent"} > 70
+        for: 5m
+        labels:
+          severity: low
+          team: infrastructure
+          component: memory
+        annotations:
+          summary: "Early memory pressure detected"
+          description: "Memory usage is {{ $value }}% for 5 minutes on {{ $labels.instance }}"
+          runbook: "https://docs.company.com/runbooks/memory-pressure"
+          action: "Monitor memory usage trends and prepare for potential intervention"
+
+      # Warning - High Memory Usage
+      - alert: MemoryUsageHigh
+        expr: memory_usage_bytes{type="percent"} > 80
+        for: 3m
+        labels:
+          severity: medium
+          team: infrastructure
+          component: memory
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% for 3 minutes on {{ $labels.instance }}"
+          action: "Consider scaling horizontally or investigating memory leaks"
+          impact: "Performance degradation possible"
+
+      # Critical - Very High Memory Usage
+      - alert: MemoryUsageCritical
+        expr: memory_usage_bytes{type="percent"} > 90
+        for: 1m
+        labels:
+          severity: high
+          team: infrastructure
+          component: memory
+        annotations:
+          summary: "Critical memory usage"
+          description: "Memory usage is {{ $value }}% for 1 minute on {{ $labels.instance }} - immediate action required"
+          action: "Scale immediately or restart service to prevent OOM"
+          impact: "Service degradation imminent"
+
+      # Fatal - Imminent OOM
+      - alert: MemoryUsageFatal
+        expr: memory_usage_bytes{type="percent"} > 95
+        for: 30s
+        labels:
+          severity: critical
+          team: infrastructure
+          component: memory
+        annotations:
+          summary: "FATAL: Imminent out-of-memory condition"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }} - OOM likely within minutes"
+          action: "IMMEDIATE: Scale or restart service NOW"
+          impact: "Service failure imminent"
+
+      # Memory Growth Rate
+      - alert: MemoryGrowthRateHigh
+        expr: rate(process_memory_rss_bytes[5m]) > 10485760  # 10MB/5min
+        for: 10m
+        labels:
+          severity: medium
+          team: development
+          component: memory
+        annotations:
+          summary: "High memory growth rate detected"
+          description: "Memory is growing at {{ $value | humanize }}B/5min on {{ $labels.instance }}"
+          action: "Investigate potential memory leak"
+          impact: "Memory exhaustion possible if trend continues"
+
+      # Memory Growth Rate Critical
+      - alert: MemoryGrowthRateCritical
+        expr: rate(process_memory_rss_bytes[5m]) > 52428800  # 50MB/5min
+        for: 5m
+        labels:
+          severity: high
+          team: development
+          component: memory
+        annotations:
+          summary: "Critical memory growth rate"
+          description: "Memory is growing at {{ $value | humanize }}B/5min on {{ $labels.instance }} - potential leak"
+          action: "URGENT: Investigate memory leak immediately"
+          impact: "Service failure likely if growth continues"
+
+      # GC Performance Alerts
+      - alert: GCPerformanceDegraded
+        expr: rate(python_gc_time_seconds_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: medium
+          team: development
+          component: gc
+        annotations:
+          summary: "Garbage collection performance degraded"
+          description: "GC is consuming {{ $value | humanizePercentage }} of CPU time on {{ $labels.instance }}"
+          action: "Review memory allocation patterns and object lifecycle"
+          impact: "Application performance degraded"
+
+      # Heap Growth Rate
+      - alert: HeapGrowthSustained
+        expr: increase(python_memory_heap_size_bytes[15m]) > 104857600  # 100MB in 15min
+        for: 15m
+        labels:
+          severity: medium
+          team: development
+          component: heap
+        annotations:
+          summary: "Sustained heap growth detected"
+          description: "Heap has grown {{ $value | humanize }}B in 15 minutes on {{ $labels.instance }}"
+          action: "Monitor for memory leaks and review object retention"
+          impact: "Memory pressure increasing"
+
+      # Object Count Growth
+      - alert: ObjectCountGrowthHigh
+        expr: rate(python_memory_objects_total[10m]) > 1000
+        for: 10m
+        labels:
+          severity: medium
+          team: development
+          component: objects
+        annotations:
+          summary: "High object creation rate"
+          description: "Creating {{ $value }} objects per 10 minutes on {{ $labels.instance }}"
+          action: "Review object creation patterns and consider object pooling"
+          impact: "Memory allocation pressure"
+
+      # Available Memory Low
+      - alert: AvailableMemoryLow
+        expr: memory_available_bytes < 536870912  # 512MB
+        for: 2m
+        labels:
+          severity: high
+          team: infrastructure
+          component: memory
+        annotations:
+          summary: "Available memory critically low"
+          description: "Only {{ $value | humanize }}B of memory available on {{ $labels.instance }}"
+          action: "Scale immediately or free memory"
+          impact: "OOM killer activation imminent"
+
+      # Swap Usage High
+      - alert: SwapUsageHigh
+        expr: (memory_swap_used_bytes / (memory_swap_used_bytes + memory_swap_free_bytes)) * 100 > 50
+        for: 5m
+        labels:
+          severity: medium
+          team: infrastructure
+          component: swap
+        annotations:
+          summary: "High swap usage detected"
+          description: "Swap usage is {{ $value }}% on {{ $labels.instance }}"
+          action: "Consider increasing memory or optimizing memory usage"
+          impact: "Performance severely degraded due to swapping"
+
+      # Memory Fragmentation
+      - alert: MemoryFragmentationHigh
+        expr: ((memory_usage_bytes{type="vms"} - memory_usage_bytes{type="rss"}) / memory_usage_bytes{type="vms"}) * 100 > 30
+        for: 10m
+        labels:
+          severity: low
+          team: development
+          component: memory
+        annotations:
+          summary: "High memory fragmentation"
+          description: "Memory fragmentation is {{ $value }}% on {{ $labels.instance }}"
+          action: "Consider memory defragmentation or allocation strategy changes"
+          impact: "Memory efficiency reduced"
+
+      # Memory Leak Detection (Sustained Growth)
+      - alert: MemoryLeakSuspected
+        expr: increase(process_memory_rss_bytes[1h]) > 209715200 and rate(process_memory_rss_bytes[1h]) > 0  # 200MB in 1 hour
+        for: 30m
+        labels:
+          severity: high
+          team: development
+          component: memory
+        annotations:
+          summary: "Potential memory leak detected"
+          description: "Memory has consistently grown {{ $value | humanize }}B over 1 hour on {{ $labels.instance }}"
+          action: "URGENT: Investigate memory leak patterns and object retention"
+          impact: "Memory exhaustion likely if leak continues"
+
+      # Memory Pressure Index High
+      - alert: MemoryPressureIndexHigh
+        expr: memory:pressure_index > 85
+        for: 5m
+        labels:
+          severity: high
+          team: infrastructure
+          component: memory
+        annotations:
+          summary: "Memory pressure index critically high"
+          description: "Memory pressure index is {{ $value }} on {{ $labels.instance }}"
+          action: "Implement immediate memory pressure relief measures"
+          impact: "Multiple memory stress indicators active"
+
+      # Predicted Memory Exhaustion
+      - alert: MemoryExhaustionPredicted
+        expr: memory:exhaustion_time_seconds < 3600 and memory:exhaustion_time_seconds > 0  # Less than 1 hour
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+          component: memory
+        annotations:
+          summary: "Memory exhaustion predicted within 1 hour"
+          description: "Current memory growth rate will exhaust available memory in {{ $value | humanizeDuration }} on {{ $labels.instance }}"
+          action: "IMMEDIATE: Scale service or implement emergency memory relief"
+          impact: "Service failure predicted within 1 hour"
+
+      # Memory Allocation Efficiency Low
+      - alert: MemoryAllocationEfficiencyLow
+        expr: memory:allocation_efficiency < 10
+        for: 15m
+        labels:
+          severity: medium
+          team: development
+          component: memory
+        annotations:
+          summary: "Memory allocation efficiency is low"
+          description: "Only {{ $value }} objects allocated per KB of memory on {{ $labels.instance }}"
+          action: "Review memory allocation patterns and object sizes"
+          impact: "Memory usage inefficient"
+
+      # GC Collections Excessive
+      - alert: GCCollectionsExcessive
+        expr: rate(python_gc_collections_total[5m]) > 1
+        for: 10m
+        labels:
+          severity: medium
+          team: development
+          component: gc
+        annotations:
+          summary: "Excessive garbage collection activity"
+          description: "{{ $value }} GC collections per second on {{ $labels.instance }}"
+          action: "Review object lifecycle and consider GC tuning"
+          impact: "CPU overhead from frequent garbage collection"
+
+      # Memory Usage Spike
+      - alert: MemoryUsageSpike
+        expr: increase(memory_usage_bytes{type="percent"}[5m]) > 20
+        for: 1m
+        labels:
+          severity: medium
+          team: development
+          component: memory
+        annotations:
+          summary: "Sudden memory usage spike detected"
+          description: "Memory usage increased by {{ $value }}% in 5 minutes on {{ $labels.instance }}"
+          action: "Investigate cause of sudden memory increase"
+          impact: "Rapid memory consumption detected"

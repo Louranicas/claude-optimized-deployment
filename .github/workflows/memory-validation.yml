@@ -1,0 +1,280 @@
+name: Memory Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  schedule:
+    # Run nightly validation at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      validation_level:
+        description: 'Validation level'
+        required: true
+        default: 'comprehensive'
+        type: choice
+        options:
+        - quick
+        - comprehensive
+        - nightly
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  memory-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    strategy:
+      matrix:
+        validation-level: 
+          - ${{ github.event.inputs.validation_level || (github.event_name == 'schedule' && 'nightly' || (github.ref == 'refs/heads/main' && 'comprehensive' || 'quick')) }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history for baseline comparisons
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential pkg-config
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        
+        # Install memory profiling dependencies
+        pip install memory-profiler psutil pytest-benchmark objgraph pympler
+    
+    - name: Build Rust components
+      run: |
+        cd rust_core
+        cargo build --release
+        cd ..
+    
+    - name: Setup test environment
+      run: |
+        # Create necessary directories
+        mkdir -p tests/memory
+        mkdir -p reports/memory_validation
+        mkdir -p benchmarks
+        
+        # Set test environment variables
+        echo "ENVIRONMENT=testing" >> $GITHUB_ENV
+        echo "LOG_LEVEL=INFO" >> $GITHUB_ENV
+        echo "ANTHROPIC_API_KEY=test-key" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=test-key" >> $GITHUB_ENV
+        echo "GOOGLE_GEMINI_API_KEY=test-key" >> $GITHUB_ENV
+    
+    - name: Download baseline metrics
+      uses: actions/download-artifact@v3
+      with:
+        name: memory-baselines
+        path: benchmarks/
+      continue-on-error: true
+    
+    - name: Run Memory Validation Suite
+      id: memory-validation
+      run: |
+        python scripts/memory_validation_suite.py \
+          --level ${{ matrix.validation-level }} \
+          --output-dir reports/memory_validation
+      continue-on-error: true
+    
+    - name: Parse validation results
+      id: parse-results
+      run: |
+        # Find the latest validation report
+        REPORT_FILE=$(find reports/memory_validation -name "memory_validation_summary_*.md" | sort | tail -1)
+        
+        if [ -f "$REPORT_FILE" ]; then
+          # Extract status from report
+          STATUS=$(grep "^\*\*Status:\*\*" "$REPORT_FILE" | sed 's/\*\*Status:\*\* //')
+          SCORE=$(grep "^\*\*Overall Score:\*\*" "$REPORT_FILE" | sed 's/\*\*Overall Score:\*\* //')
+          
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "report_file=$REPORT_FILE" >> $GITHUB_OUTPUT
+          
+          # Set job summary
+          {
+            echo "## Memory Validation Results"
+            echo "**Level:** ${{ matrix.validation-level }}"
+            echo "**Status:** $STATUS"
+            echo "**Score:** $SCORE"
+            echo ""
+            echo "### Summary"
+            cat "$REPORT_FILE"
+          } >> $GITHUB_STEP_SUMMARY
+        else
+          echo "status=ERROR" >> $GITHUB_OUTPUT
+          echo "score=0.0" >> $GITHUB_OUTPUT
+          echo "No validation report found" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Upload validation reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: memory-validation-reports-${{ matrix.validation-level }}
+        path: reports/memory_validation/
+        retention-days: 30
+      if: always()
+    
+    - name: Upload updated baselines
+      uses: actions/upload-artifact@v3
+      with:
+        name: memory-baselines
+        path: benchmarks/memory_baselines.json
+        retention-days: 90
+      if: steps.parse-results.outputs.status == 'PASS' && (github.ref == 'refs/heads/main' || github.event_name == 'schedule')
+    
+    - name: Comment on PR
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request' && always()
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          const status = '${{ steps.parse-results.outputs.status }}';
+          const score = '${{ steps.parse-results.outputs.score }}';
+          const level = '${{ matrix.validation-level }}';
+          
+          let emoji = '✅';
+          let statusText = 'PASSED';
+          
+          if (status === 'FAIL') {
+            emoji = '❌';
+            statusText = 'FAILED';
+          } else if (status === 'WARNING') {
+            emoji = '⚠️';
+            statusText = 'PASSED with warnings';
+          } else if (status === 'ERROR') {
+            emoji = '💥';
+            statusText = 'ERROR';
+          }
+          
+          const reportFile = '${{ steps.parse-results.outputs.report_file }}';
+          let reportContent = '';
+          
+          if (fs.existsSync(reportFile)) {
+            reportContent = fs.readFileSync(reportFile, 'utf8');
+          }
+          
+          const comment = `
+          ## ${emoji} Memory Validation ${statusText}
+          
+          **Validation Level:** ${level}
+          **Overall Score:** ${score}
+          
+          ${reportContent}
+          
+          <details>
+          <summary>View detailed reports</summary>
+          
+          Detailed validation reports are available in the [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          
+          </details>
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+    
+    - name: Notify on critical failures
+      uses: actions/github-script@v6
+      if: steps.parse-results.outputs.status == 'FAIL' && (github.ref == 'refs/heads/main' || github.event_name == 'schedule')
+      with:
+        script: |
+          // Create an issue for critical memory validation failures
+          const issueTitle = `🚨 Critical Memory Validation Failure - ${new Date().toISOString().split('T')[0]}`;
+          const issueBody = `
+          ## Critical Memory Validation Failure
+          
+          **Validation Level:** ${{ matrix.validation-level }}
+          **Workflow Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          
+          ### Details
+          A critical memory validation failure has been detected. This indicates potential:
+          - Memory leaks
+          - Performance regressions
+          - GC performance issues
+          - Memory stability problems
+          
+          ### Action Required
+          1. Review the validation report in the workflow artifacts
+          2. Investigate the root cause of the failure
+          3. Fix the identified issues
+          4. Re-run the validation to confirm the fix
+          
+          ### Reports
+          Detailed reports are available in the [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          `;
+          
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: issueTitle,
+            body: issueBody,
+            labels: ['bug', 'critical', 'memory', 'performance']
+          });
+    
+    - name: Fail job on critical issues
+      if: steps.parse-results.outputs.status == 'FAIL'
+      run: |
+        echo "❌ Memory validation failed with critical issues"
+        exit 1
+
+  # Job to aggregate results from matrix
+  memory-validation-summary:
+    runs-on: ubuntu-latest
+    needs: memory-validation
+    if: always()
+    
+    steps:
+    - name: Aggregate validation results
+      run: |
+        echo "## Memory Validation Summary" >> $GITHUB_STEP_SUMMARY
+        echo "All memory validation jobs completed." >> $GITHUB_STEP_SUMMARY
+        
+        # Check if any jobs failed
+        if [ "${{ needs.memory-validation.result }}" = "failure" ]; then
+          echo "❌ Memory validation failed" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        elif [ "${{ needs.memory-validation.result }}" = "success" ]; then
+          echo "✅ Memory validation passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Memory validation completed with issues" >> $GITHUB_STEP_SUMMARY
+        fi

@@ -5,7 +5,8 @@ This module enables queries to be submitted to multiple AI experts (Claude, GPT-
 through a Google Drive folder system for collaborative problem-solving.
 """
 
-from .core.enhanced_expert_manager import EnhancedExpertManager as ExpertManager  # Using enhanced version due to file corruption
+from .core.enhanced_expert_manager import EnhancedExpertManager
+from .core.enhanced_expert_manager import EnhancedExpertManager as ExpertManager  # Alias for compatibility
 from .core.query_handler import QueryHandler
 from .core.response_collector import ResponseCollector
 from .models.query import ExpertQuery, QueryType, QueryPriority
@@ -13,6 +14,7 @@ from .models.response import ExpertResponse, ExpertType, ConsensusResponse, Resp
 
 __version__ = "0.1.0"
 __all__ = [
+    "EnhancedExpertManager",
     "ExpertManager",
     "QueryHandler", 
     "ResponseCollector",

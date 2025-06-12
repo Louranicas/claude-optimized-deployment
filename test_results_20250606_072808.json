@@ -1,0 +1,187 @@
+{
+  "timestamp": "2025-06-06T07:28:07.128573",
+  "environment": {
+    "python_version": "3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]",
+    "platform": "linux",
+    "working_dir": "/home/louranicas/projects/claude-optimized-deployment"
+  },
+  "modules": {
+    "API": {
+      "category": "API",
+      "base_module": "src.api",
+      "status": "passed",
+      "submodules": {
+        "src.api.circuit_breaker_api": {
+          "success": true,
+          "message": "Successfully imported src.api.circuit_breaker_api"
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.api"
+      },
+      "success_rate": "1/1"
+    },
+    "Authentication/RBAC": {
+      "category": "Authentication/RBAC",
+      "base_module": "src.auth",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.auth: cannot import name 'ConflictError' from 'src.core.exceptions' (/home/louranicas/projects/claude-optimized-deployment/src/core/exceptions.py)"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.auth: cannot import name 'ConflictError' from 'src.core.exceptions' (/home/louranicas/projects/claude-optimized-deployment/src/core/exceptions.py)"
+      }
+    },
+    "MCP Servers": {
+      "category": "MCP Servers",
+      "base_module": "src.mcp",
+      "status": "passed",
+      "submodules": {
+        "src.mcp.manager": {
+          "success": true,
+          "message": "Successfully imported src.mcp.manager"
+        },
+        "src.mcp.servers": {
+          "success": true,
+          "message": "Successfully imported src.mcp.servers"
+        },
+        "src.mcp.infrastructure_servers": {
+          "success": true,
+          "message": "Successfully imported src.mcp.infrastructure_servers"
+        },
+        "src.mcp.devops_servers": {
+          "success": true,
+          "message": "Successfully imported src.mcp.devops_servers"
+        },
+        "src.mcp.protocols": {
+          "success": true,
+          "message": "Successfully imported src.mcp.protocols"
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.mcp"
+      },
+      "success_rate": "5/5"
+    },
+    "Core Utilities": {
+      "category": "Core Utilities",
+      "base_module": "src.core",
+      "status": "passed",
+      "submodules": {
+        "src.core.exceptions": {
+          "success": true,
+          "message": "Successfully imported src.core.exceptions"
+        },
+        "src.core.retry": {
+          "success": true,
+          "message": "Successfully imported src.core.retry"
+        },
+        "src.core.circuit_breaker": {
+          "success": true,
+          "message": "Successfully imported src.core.circuit_breaker"
+        },
+        "src.core.logging_config": {
+          "success": true,
+          "message": "Successfully imported src.core.logging_config"
+        },
+        "src.core.connections": {
+          "success": true,
+          "message": "Successfully imported src.core.connections"
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.core"
+      },
+      "success_rate": "5/5"
+    },
+    "Database": {
+      "category": "Database",
+      "base_module": "src.database",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.database: cannot import name 'DatabaseError' from 'src.core.exceptions' (/home/louranicas/projects/claude-optimized-deployment/src/core/exceptions.py)"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.database: cannot import name 'DatabaseError' from 'src.core.exceptions' (/home/louranicas/projects/claude-optimized-deployment/src/core/exceptions.py)"
+      }
+    },
+    "Monitoring": {
+      "category": "Monitoring",
+      "base_module": "src.monitoring",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.monitoring: No module named 'opentelemetry.instrumentation.requests'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.monitoring: No module named 'opentelemetry.instrumentation.requests'"
+      }
+    },
+    "Circle of Experts": {
+      "category": "Circle of Experts",
+      "base_module": "src.circle_of_experts",
+      "status": "passed",
+      "submodules": {
+        "src.circle_of_experts.core.expert_manager": {
+          "success": true,
+          "message": "Successfully imported src.circle_of_experts.core.expert_manager"
+        },
+        "src.circle_of_experts.core.query_handler": {
+          "success": true,
+          "message": "Successfully imported src.circle_of_experts.core.query_handler"
+        },
+        "src.circle_of_experts.core.response_collector": {
+          "success": true,
+          "message": "Successfully imported src.circle_of_experts.core.response_collector"
+        },
+        "src.circle_of_experts.experts.expert_factory": {
+          "success": true,
+          "message": "Successfully imported src.circle_of_experts.experts.expert_factory"
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.circle_of_experts"
+      },
+      "success_rate": "4/4"
+    }
+  },
+  "summary": {
+    "total_modules": 7,
+    "passed": 4,
+    "failed": 3,
+    "partial": 0,
+    "success_rate": "57.1%"
+  },
+  "dependencies": {
+    "pydantic": true,
+    "aiohttp": true,
+    "bcrypt": true,
+    "sqlalchemy": true,
+    "fastapi": true,
+    "prometheus_client": true,
+    "opentelemetry": true,
+    "pyjwt": false,
+    "cryptography": true,
+    "pyyaml": false
+  }
+}

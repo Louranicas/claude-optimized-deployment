@@ -11,7 +11,7 @@ Provides:
 import os
 import json
 from enum import Enum
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, Union
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from collections import defaultdict

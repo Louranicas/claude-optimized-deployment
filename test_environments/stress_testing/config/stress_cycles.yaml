@@ -1,0 +1,342 @@
+# Stress Testing Cycle Configuration
+# Defines the 7-phase progressive ramping system with intelligent thresholds
+
+metadata:
+  version: "1.0"
+  description: "Core stress testing cycle configuration with 7 progressive phases"
+  author: "Claude Optimized Deployment System"
+  created: "2025-06-06"
+
+# Global settings
+global_settings:
+  max_concurrent_phases: 1
+  emergency_stop_threshold: 95.0
+  recovery_timeout: 30.0
+  metrics_collection_interval: 0.1
+  safety_check_interval: 1.0
+
+# Default ramping profile
+default_ramping_profile:
+  strategy: "adaptive"
+  aggressiveness: 0.5
+  stability_threshold: 0.1
+  degradation_threshold: 0.2
+  recovery_factor: 0.8
+  adaptation_rate: 0.1
+  min_ramp_time: 5.0
+  max_load_jump: 10.0
+
+# Phase configurations
+phases:
+  - phase: 0  # IDLE
+    name: "Idle Baseline"
+    description: "Baseline measurement phase with minimal load"
+    min_load_percent: 0.0
+    max_load_percent: 5.0
+    duration_seconds: 60
+    ramp_up_seconds: 10
+    ramp_down_seconds: 10
+    
+    # Load type weights (0.0 to 1.0)
+    cpu_weight: 0.2
+    memory_weight: 0.1
+    io_weight: 0.1
+    network_weight: 0.1
+    
+    # Safety thresholds
+    safety_thresholds:
+      cpu_usage: 20.0
+      memory_usage: 30.0
+      load_average: 2.0
+      temperature: 60.0
+      swap_usage: 10.0
+    
+    # Adaptive settings
+    adaptive_enabled: true
+    ramping_strategy: "conservative"
+    
+    # Monitoring settings
+    high_precision_metrics: ["cpu_usage", "memory_usage"]
+    
+  - phase: 1  # LIGHT
+    name: "Light Load"
+    description: "Normal operation simulation with light load"
+    min_load_percent: 10.0
+    max_load_percent: 25.0
+    duration_seconds: 120
+    ramp_up_seconds: 30
+    ramp_down_seconds: 20
+    
+    cpu_weight: 1.0
+    memory_weight: 0.8
+    io_weight: 0.6
+    network_weight: 0.4
+    
+    safety_thresholds:
+      cpu_usage: 40.0
+      memory_usage: 50.0
+      load_average: 4.0
+      temperature: 65.0
+      swap_usage: 20.0
+    
+    adaptive_enabled: true
+    ramping_strategy: "linear"
+    
+    high_precision_metrics: ["cpu_usage", "memory_usage", "response_time"]
+    
+  - phase: 2  # MEDIUM
+    name: "Medium Load"
+    description: "Busy period simulation with moderate load"
+    min_load_percent: 25.0
+    max_load_percent: 50.0
+    duration_seconds: 180
+    ramp_up_seconds: 45
+    ramp_down_seconds: 30
+    
+    cpu_weight: 1.0
+    memory_weight: 1.0
+    io_weight: 0.8
+    network_weight: 0.6
+    
+    safety_thresholds:
+      cpu_usage: 70.0
+      memory_usage: 70.0
+      load_average: 6.0
+      temperature: 70.0
+      swap_usage: 30.0
+    
+    adaptive_enabled: true
+    ramping_strategy: "adaptive"
+    
+    high_precision_metrics: ["cpu_usage", "memory_usage", "io_wait", "response_time"]
+    
+  - phase: 3  # HEAVY
+    name: "Heavy Load"
+    description: "Peak usage simulation with heavy load"
+    min_load_percent: 50.0
+    max_load_percent: 75.0
+    duration_seconds: 240
+    ramp_up_seconds: 60
+    ramp_down_seconds: 45
+    
+    cpu_weight: 1.0
+    memory_weight: 1.0
+    io_weight: 1.0
+    network_weight: 0.8
+    
+    safety_thresholds:
+      cpu_usage: 85.0
+      memory_usage: 80.0
+      load_average: 8.0
+      temperature: 75.0
+      swap_usage: 40.0
+    
+    adaptive_enabled: true
+    ramping_strategy: "adaptive"
+    
+    high_precision_metrics: ["cpu_usage", "memory_usage", "io_wait", "network_latency"]
+    
+  - phase: 4  # EXTREME
+    name: "Extreme Load"
+    description: "Overload condition testing with extreme load"
+    min_load_percent: 75.0
+    max_load_percent: 90.0
+    duration_seconds: 180
+    ramp_up_seconds: 90
+    ramp_down_seconds: 60
+    
+    cpu_weight: 1.0
+    memory_weight: 1.0
+    io_weight: 1.0
+    network_weight: 1.0
+    
+    safety_thresholds:
+      cpu_usage: 95.0
+      memory_usage: 90.0
+      load_average: 12.0
+      temperature: 80.0
+      swap_usage: 60.0
+    
+    adaptive_enabled: true
+    ramping_strategy: "conservative"  # More conservative at extreme loads
+    
+    high_precision_metrics: ["cpu_usage", "memory_usage", "swap_usage", "temperature"]
+    
+    # Special settings for extreme phase
+    emergency_monitoring: true
+    circuit_breaker_enabled: true
+    
+  - phase: 5  # CRITICAL
+    name: "Critical Load"
+    description: "Near-failure testing with critical load levels"
+    min_load_percent: 90.0
+    max_load_percent: 95.0
+    duration_seconds: 120
+    ramp_up_seconds: 120  # Very slow ramp up
+    ramp_down_seconds: 90
+    
+    cpu_weight: 1.0
+    memory_weight: 1.0
+    io_weight: 1.0
+    network_weight: 1.0
+    
+    safety_thresholds:
+      cpu_usage: 98.0
+      memory_usage: 95.0
+      load_average: 16.0
+      temperature: 85.0
+      swap_usage: 80.0
+    
+    adaptive_enabled: true
+    ramping_strategy: "conservative"
+    
+    high_precision_metrics: ["cpu_usage", "memory_usage", "swap_usage", "temperature", "error_rate"]
+    
+    # Enhanced safety for critical phase
+    emergency_monitoring: true
+    circuit_breaker_enabled: true
+    continuous_safety_monitoring: true
+    auto_fallback_enabled: true
+    
+  - phase: 6  # CHAOS
+    name: "Chaos Load"
+    description: "Failure condition testing with maximum load"
+    min_load_percent: 95.0
+    max_load_percent: 100.0
+    duration_seconds: 60  # Short duration
+    ramp_up_seconds: 60   # Very slow approach
+    ramp_down_seconds: 120 # Extended recovery
+    
+    cpu_weight: 1.0
+    memory_weight: 1.0
+    io_weight: 1.0
+    network_weight: 1.0
+    
+    safety_thresholds:
+      cpu_usage: 99.0
+      memory_usage: 98.0
+      load_average: 20.0
+      temperature: 90.0
+      swap_usage: 95.0
+    
+    adaptive_enabled: true
+    ramping_strategy: "conservative"
+    
+    high_precision_metrics: ["cpu_usage", "memory_usage", "swap_usage", "temperature", "error_rate", "system_stability"]
+    
+    # Maximum safety for chaos phase
+    emergency_monitoring: true
+    circuit_breaker_enabled: true
+    continuous_safety_monitoring: true
+    auto_fallback_enabled: true
+    real_time_intervention: true
+    
+    # Special chaos phase settings
+    chaos_settings:
+      max_duration_override: 30  # Override if system shows distress
+      immediate_fallback_threshold: 99.5
+      recovery_verification_required: true
+
+# Circuit breaker configurations
+circuit_breakers:
+  cpu_protection:
+    failure_threshold: 3
+    recovery_timeout: 10.0
+    half_open_max_calls: 2
+    success_threshold: 2
+    
+  memory_protection:
+    failure_threshold: 2
+    recovery_timeout: 15.0
+    half_open_max_calls: 1
+    success_threshold: 1
+    
+  system_protection:
+    failure_threshold: 1
+    recovery_timeout: 30.0
+    half_open_max_calls: 1
+    success_threshold: 1
+    
+  temperature_protection:
+    failure_threshold: 1
+    recovery_timeout: 60.0
+    half_open_max_calls: 1
+    success_threshold: 2
+
+# Load generator configurations
+load_generators:
+  cpu:
+    cores: "auto"  # Use all available cores
+    precision_interval_ms: 100
+    affinity_enabled: true
+    
+  memory:
+    limit_gb: "auto"  # 80% of available memory
+    chunk_size_mb: 10
+    allocation_rate_limit: 100  # chunks per second
+    
+  io:
+    operations_per_second: 1000
+    file_size_range: [4096, 1048576]  # 4KB to 1MB
+    operation_mix:
+      read: 0.4
+      write: 0.4
+      seek: 0.2
+    
+  network:
+    bandwidth_mbps: 100.0
+    connection_pool_size: 10
+    packet_size_range: [64, 1500]
+
+# Monitoring and metrics
+monitoring:
+  collection_interval: 0.1
+  high_precision_interval: 0.05
+  baseline_duration: 30.0
+  
+  metrics_export:
+    json_enabled: true
+    csv_enabled: true
+    real_time_stream: true
+    
+  alert_thresholds:
+    cpu_critical: 95.0
+    memory_critical: 95.0
+    temperature_critical: 85.0
+    load_critical: 20.0
+
+# Recovery and cleanup
+recovery:
+  graceful_shutdown_timeout: 60.0
+  emergency_shutdown_timeout: 10.0
+  cleanup_verification: true
+  
+  post_test_recovery:
+    wait_time: 30.0
+    verification_checks: 5
+    recovery_confirmation_required: true
+
+# Reporting
+reporting:
+  auto_generate_reports: true
+  include_raw_data: false
+  include_charts: true
+  export_formats: ["json", "html", "pdf"]
+  
+  report_sections:
+    - "executive_summary"
+    - "phase_analysis"
+    - "performance_metrics"
+    - "safety_events"
+    - "recommendations"
+
+# Integration settings
+integration:
+  circle_of_experts_enabled: true
+  mcp_monitoring_enabled: true
+  external_monitoring_hooks: []
+  
+  notification_endpoints:
+    slack: null
+    email: null
+    webhook: null

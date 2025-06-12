@@ -7,7 +7,7 @@ Provides alternatives that don't require API keys or payment.
 from __future__ import annotations
 import os
 import asyncio
-import aiohttp
+import httpx
 from typing import Optional, Dict, Any, List
 import json
 import logging
@@ -320,9 +320,9 @@ class LocalAIExpertClient(BaseExpertClient):
         )
         
         try:
-            async with aiohttp.ClientSession() as session:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 # OpenAI-compatible endpoint
-                async with session.post(
+                response_data = await client.post(
                     f"{self.host}/v1/chat/completions",
                     json={
                         "model": self.model,
@@ -338,18 +338,17 @@ class LocalAIExpertClient(BaseExpertClient):
                         ],
                         "temperature": 0.7,
                         "max_tokens": 4096
-                    },
-                    timeout=aiohttp.ClientTimeout(total=self.timeout)
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        content = data["choices"][0]["message"]["content"]
-                        
-                        response.content = content
-                        response.confidence = 0.8  # Default for local models
-                        response.mark_completed()
-                    else:
-                        raise RuntimeError(f"LocalAI error: {resp.status}")
+                    }
+                )
+                if response_data.status_code == 200:
+                    data = response_data.json()
+                    content = data["choices"][0]["message"]["content"]
+                    
+                    response.content = content
+                    response.confidence = 0.8  # Default for local models
+                    response.mark_completed()
+                else:
+                    raise RuntimeError(f"LocalAI error: {response_data.status_code}")
                         
         except Exception as e:
             logger.error(f"LocalAI generation failed: {e}")
@@ -360,12 +359,9 @@ class LocalAIExpertClient(BaseExpertClient):
     async def health_check(self) -> bool:
         """Check LocalAI availability."""
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.host}/readyz",
-                    timeout=aiohttp.ClientTimeout(total=5)
-                ) as resp:
-                    return resp.status == 200
+            async with httpx.AsyncClient(timeout=5) as client:
+                response = await client.get(f"{self.host}/readyz")
+                return response.status_code == 200
         except Exception:
             return False
 
@@ -434,14 +430,13 @@ class HuggingFaceExpertClient(BaseExpertClient):
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.post(
                     self.api_url,
                     headers=headers,
-                    json={"inputs": "Hello"},
-                    timeout=aiohttp.ClientTimeout(total=10)
-                ) as resp:
-                    return resp.status in [200, 503]  # 503 = model loading
+                    json={"inputs": "Hello"}
+                )
+                return response.status_code in [200, 503]  # 503 = model loading
         except Exception:
             return False
     
@@ -456,8 +451,8 @@ class HuggingFaceExpertClient(BaseExpertClient):
 <|user|>{query.content}</s>
 <|assistant|>"""
         
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
                 self.api_url,
                 headers=headers,
                 json={
@@ -468,31 +463,30 @@ class HuggingFaceExpertClient(BaseExpertClient):
                         "top_p": 0.95,
                         "do_sample": True
                     }
-                },
-                timeout=aiohttp.ClientTimeout(total=60)
-            ) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    
-                    # Extract generated text
-                    if isinstance(data, list) and data:
-                        content = data[0].get("generated_text", "")
-                        # Remove the prompt from response
-                        content = content.replace(prompt, "").strip()
-                    else:
-                        content = str(data)
-                    
-                    return {
-                        'content': content,
-                        'confidence': 0.75,
-                        'metadata': {
-                            "model": self.model,
-                            "api_url": self.api_url
-                        }
-                    }
+                }
+            )
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract generated text
+                if isinstance(data, list) and data:
+                    content = data[0].get("generated_text", "")
+                    # Remove the prompt from response
+                    content = content.replace(prompt, "").strip()
                 else:
-                    error_data = await resp.text()
-                    raise RuntimeError(f"HuggingFace error {resp.status}: {error_data}")
+                    content = str(data)
+                
+                return {
+                    'content': content,
+                    'confidence': 0.75,
+                    'metadata': {
+                        "model": self.model,
+                        "api_url": self.api_url
+                    }
+                }
+            else:
+                error_data = response.text
+                raise RuntimeError(f"HuggingFace error {response.status_code}: {error_data}")
     
     def _create_fallback_response(self, query: ExpertQuery) -> Dict[str, Any]:
         """Create fallback response when circuit is open."""

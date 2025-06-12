@@ -1,0 +1,365 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-deployment-api
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment-api
+    tier: api
+    security: restricted
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: claude-deployment-api
+  template:
+    metadata:
+      labels:
+        app: claude-deployment-api
+        tier: api
+        security: restricted
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/api: runtime/default
+        seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    spec:
+      serviceAccountName: claude-deployment-api
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: api
+        image: claude-deployment-api:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        env:
+        - name: NODE_OPTIONS
+          value: "--max-old-space-size=6144 --gc-interval=100 --optimize-for-size"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-db-secret
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-redis-secret
+              key: redis-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-jwt-secret
+              key: jwt-secret
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/cache
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "8Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: claude-deployment-config
+          defaultMode: 0444
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/worker: "true"
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-deployment-worker
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment-worker
+    tier: worker
+    security: restricted
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: claude-deployment-worker
+  template:
+    metadata:
+      labels:
+        app: claude-deployment-worker
+        tier: worker
+        security: restricted
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/worker: runtime/default
+        seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    spec:
+      serviceAccountName: claude-deployment-worker
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: worker
+        image: claude-deployment-worker:latest
+        imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        env:
+        - name: NODE_OPTIONS
+          value: "--max-old-space-size=6144 --gc-interval=100 --optimize-for-size"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-db-secret
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-redis-secret
+              key: redis-url
+        - name: WORKER_CONCURRENCY
+          value: "4"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: work
+          mountPath: /app/work
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "8Gi"
+            cpu: "3000m"
+        livenessProbe:
+          exec:
+            command:
+            - /app/health-check.sh
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - /app/ready-check.sh
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: work
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: claude-deployment-config
+          defaultMode: 0444
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/worker: "true"
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: claude-deployment-redis
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment-redis
+    tier: cache
+    security: baseline
+spec:
+  serviceName: claude-deployment-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claude-deployment-redis
+  template:
+    metadata:
+      labels:
+        app: claude-deployment-redis
+        tier: cache
+        security: baseline
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/redis: runtime/default
+        seccomp.security.alpha.kubernetes.io/pod: runtime/default
+    spec:
+      serviceAccountName: claude-deployment-api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: redis
+          containerPort: 6379
+          protocol: TCP
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          runAsGroup: 999
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
+          seccompProfile:
+            type: RuntimeDefault
+        command:
+        - redis-server
+        - /etc/redis/redis.conf
+        volumeMounts:
+        - name: config
+          mountPath: /etc/redis
+          readOnly: true
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: redis
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: config
+        configMap:
+          name: claude-deployment-redis-config
+          defaultMode: 0444
+      - name: tmp
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "fast-ssd"
+      resources:
+        requests:
+          storage: 10Gi

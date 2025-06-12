@@ -22,6 +22,15 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 from functools import wraps
 
+from .log_sanitization import (
+    LogInjectionFilter, 
+    LogSanitizer, 
+    LogSanitizerConfig, 
+    SanitizationLevel,
+    sanitize_for_logging,
+    sanitize_dict_for_logging
+)
+
 # Log levels by environment
 ENV_LOG_LEVELS = {
     "development": "DEBUG",
@@ -53,17 +62,37 @@ class CorrelationFilter(logging.Filter):
 
 
 class SensitiveDataFilter(logging.Filter):
-    """Filter to redact sensitive data from logs."""
+    """Filter to redact sensitive data and prevent log injection attacks."""
+    
+    def __init__(self, sanitization_level: SanitizationLevel = SanitizationLevel.STANDARD):
+        """Initialize with log sanitizer."""
+        super().__init__()
+        self.sanitizer = LogSanitizer(LogSanitizerConfig(sanitization_level))
     
     def filter(self, record: logging.LogRecord) -> bool:
-        """Redact sensitive data from log message and args."""
-        # Redact message
+        """Redact sensitive data and sanitize log message and args."""
+        # Sanitize and redact message
         if hasattr(record, 'msg'):
-            record.msg = self._redact_sensitive(str(record.msg))
+            sanitized_msg = self.sanitizer.sanitize(str(record.msg), "log.message")
+            record.msg = self._redact_sensitive(sanitized_msg)
         
-        # Redact structured data
+        # Sanitize args if present
+        if hasattr(record, 'args') and record.args:
+            sanitized_args = tuple(
+                self._redact_sensitive(self.sanitizer.sanitize(arg, f"log.args[{i}]"))
+                for i, arg in enumerate(record.args)
+            )
+            record.args = sanitized_args
+        
+        # Sanitize and redact structured data
         if hasattr(record, 'structured_data'):
-            record.structured_data = self._redact_dict(record.structured_data)
+            sanitized_data = self.sanitizer.sanitize_dict(record.structured_data, "log.structured_data")
+            record.structured_data = self._redact_dict(sanitized_data)
+        
+        # Sanitize extra fields if present
+        if hasattr(record, 'extra_fields'):
+            sanitized_extra = self.sanitizer.sanitize_dict(record.extra_fields, "log.extra_fields")
+            record.extra_fields = self._redact_dict(sanitized_extra)
         
         return True
     
@@ -95,16 +124,21 @@ class SensitiveDataFilter(logging.Filter):
 
 
 class StructuredFormatter(logging.Formatter):
-    """JSON formatter with performance tracking and structured data."""
+    """JSON formatter with performance tracking, structured data, and injection protection."""
+    
+    def __init__(self, sanitization_level: SanitizationLevel = SanitizationLevel.STANDARD):
+        """Initialize with sanitizer."""
+        super().__init__()
+        self.sanitizer = LogSanitizer(LogSanitizerConfig(sanitization_level))
     
     def format(self, record: logging.LogRecord) -> str:
-        """Format log record as structured JSON."""
+        """Format log record as structured JSON with sanitization."""
         # Base log structure
         log_data = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": self.sanitizer.sanitize(record.getMessage(), "formatter.message"),
             "correlation_id": getattr(record, 'correlation_id', None),
             "environment": os.getenv("ENVIRONMENT", "development"),
             "service": "claude-optimized-deployment",
@@ -121,22 +155,22 @@ class StructuredFormatter(logging.Formatter):
         
         # Add performance data if present
         if hasattr(record, 'performance'):
-            log_data["performance"] = record.performance
+            log_data["performance"] = self.sanitizer.sanitize_dict(record.performance, "formatter.performance")
         
         # Add security audit data if present
         if hasattr(record, 'security_audit'):
-            log_data["security_audit"] = record.security_audit
+            log_data["security_audit"] = self.sanitizer.sanitize_dict(record.security_audit, "formatter.security_audit")
         
         # Add any structured data
         if hasattr(record, 'structured_data'):
-            log_data["data"] = record.structured_data
+            log_data["data"] = self.sanitizer.sanitize_dict(record.structured_data, "formatter.structured_data")
         
         # Add exception info
         if record.exc_info:
             log_data["exception"] = {
                 "type": record.exc_info[0].__name__,
-                "message": str(record.exc_info[1]),
-                "traceback": self.formatException(record.exc_info)
+                "message": self.sanitizer.sanitize(str(record.exc_info[1]), "formatter.exception.message"),
+                "traceback": self.sanitizer.sanitize(self.formatException(record.exc_info), "formatter.exception.traceback")
             }
         
         return json.dumps(log_data, default=str)
@@ -209,50 +243,62 @@ class SecurityAuditLogger:
         self.logger = logger
     
     def log_access(self, resource: str, action: str, user: str, result: str, **extra):
-        """Log access attempt."""
+        """Log access attempt with sanitization."""
+        # Sanitize all inputs for security logging
+        safe_resource = sanitize_for_logging(resource, SanitizationLevel.STRICT, "security.access.resource")
+        safe_action = sanitize_for_logging(action, SanitizationLevel.STRICT, "security.access.action")
+        safe_user = sanitize_for_logging(user, SanitizationLevel.STRICT, "security.access.user")
+        safe_result = sanitize_for_logging(result, SanitizationLevel.STRICT, "security.access.result")
+        safe_extra = sanitize_dict_for_logging(extra, SanitizationLevel.STRICT, "security.access.extra")
+        
         record = self.logger.makeRecord(
             self.logger.name,
             logging.INFO,
             "(security)",
             0,
-            f"Security audit: {action} on {resource}",
+            f"Security audit: {safe_action} on {safe_resource}",
             (),
             None
         )
         
         record.security_audit = {
             "event_type": "access",
-            "resource": resource,
-            "action": action,
-            "user": user,
-            "result": result,
+            "resource": safe_resource,
+            "action": safe_action,
+            "user": safe_user,
+            "result": safe_result,
             "timestamp": datetime.utcnow().isoformat(),
-            **extra
+            **safe_extra
         }
         
         self.logger.handle(record)
     
     def log_authentication(self, user: str, method: str, success: bool, **extra):
-        """Log authentication attempt."""
+        """Log authentication attempt with sanitization."""
         level = logging.INFO if success else logging.WARNING
+        
+        # Sanitize inputs for security logging - use STRICT level for auth events
+        safe_user = sanitize_for_logging(user, SanitizationLevel.STRICT, "security.auth.user")
+        safe_method = sanitize_for_logging(method, SanitizationLevel.STRICT, "security.auth.method")
+        safe_extra = sanitize_dict_for_logging(extra, SanitizationLevel.STRICT, "security.auth.extra")
         
         record = self.logger.makeRecord(
             self.logger.name,
             level,
             "(security)",
             0,
-            f"Authentication {'succeeded' if success else 'failed'} for {user}",
+            f"Authentication {'succeeded' if success else 'failed'} for {safe_user}",
             (),
             None
         )
         
         record.security_audit = {
             "event_type": "authentication",
-            "user": user,
-            "method": method,
+            "user": safe_user,
+            "method": safe_method,
             "success": success,
             "timestamp": datetime.utcnow().isoformat(),
-            **extra
+            **safe_extra
         }
         
         self.logger.handle(record)
@@ -289,7 +335,8 @@ def setup_logging(
     backup_count: int = 5,
     structured: bool = True,
     enable_console: bool = True,
-    enable_file: bool = True
+    enable_file: bool = True,
+    sanitization_level: SanitizationLevel = SanitizationLevel.STANDARD
 ) -> None:
     """
     Configure comprehensive logging for the application.
@@ -303,6 +350,7 @@ def setup_logging(
         structured: Use structured JSON logging
         enable_console: Enable console output
         enable_file: Enable file output
+        sanitization_level: Level of log injection protection to apply
     """
     # Determine log level
     environment = os.getenv("ENVIRONMENT", "development")
@@ -318,21 +366,23 @@ def setup_logging(
     
     # Create formatter
     if structured:
-        formatter = StructuredFormatter()
+        formatter = StructuredFormatter(sanitization_level)
     else:
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - [%(correlation_id)s] - %(message)s'
         )
     
-    # Add correlation filter
+    # Add correlation filter and log injection protection
     correlation_filter = CorrelationFilter()
-    sensitive_filter = SensitiveDataFilter()
+    sensitive_filter = SensitiveDataFilter(sanitization_level)
+    injection_filter = LogInjectionFilter(sanitization_level)
     
     # Console handler
     if enable_console:
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(formatter)
         console_handler.addFilter(correlation_filter)
+        console_handler.addFilter(injection_filter)
         console_handler.addFilter(sensitive_filter)
         root_logger.addHandler(console_handler)
     
@@ -355,6 +405,7 @@ def setup_logging(
         
         file_handler.setFormatter(formatter)
         file_handler.addFilter(correlation_filter)
+        file_handler.addFilter(injection_filter)
         file_handler.addFilter(sensitive_filter)
         root_logger.addHandler(file_handler)
     
@@ -405,17 +456,21 @@ def get_security_logger(name: str) -> SecurityAuditLogger:
 
 
 def log_with_context(logger: logging.Logger, level: int, msg: str, **context):
-    """Log message with structured context data."""
+    """Log message with structured context data (automatically sanitized)."""
+    # Sanitize the message and context
+    sanitized_msg = sanitize_for_logging(msg, context="log_with_context.message")
+    sanitized_context = sanitize_dict_for_logging(context, context="log_with_context.context")
+    
     record = logger.makeRecord(
         logger.name,
         level,
         "(context)",
         0,
-        msg,
+        sanitized_msg,
         (),
         None
     )
-    record.structured_data = context
+    record.structured_data = sanitized_context
     logger.handle(record)
 
 
@@ -448,30 +503,41 @@ class MCPOperationLogger:
     
     def log_tool_call(self, server: str, tool: str, params: Dict[str, Any], 
                      correlation_id: Optional[str] = None):
-        """Log MCP tool call."""
+        """Log MCP tool call with sanitization."""
         with correlation_context(correlation_id):
+            # Sanitize input parameters before logging
+            safe_server = sanitize_for_logging(server, context="mcp.server")
+            safe_tool = sanitize_for_logging(tool, context="mcp.tool") 
+            safe_params = sanitize_dict_for_logging(params, context="mcp.params")
+            
             log_with_context(
                 self.logger,
                 logging.INFO,
-                f"MCP tool call: {server}.{tool}",
-                server=server,
-                tool=tool,
-                params=params
+                f"MCP tool call: {safe_server}.{safe_tool}",
+                server=safe_server,
+                tool=safe_tool,
+                params=safe_params
             )
     
     def log_tool_result(self, server: str, tool: str, success: bool,
                        duration_ms: float, error: Optional[str] = None):
-        """Log MCP tool result."""
+        """Log MCP tool result with sanitization."""
         level = logging.INFO if success else logging.ERROR
+        
+        # Sanitize inputs
+        safe_server = sanitize_for_logging(server, context="mcp.result.server")
+        safe_tool = sanitize_for_logging(tool, context="mcp.result.tool")
+        safe_error = sanitize_for_logging(error, context="mcp.result.error") if error else None
+        
         log_with_context(
             self.logger,
             level,
-            f"MCP tool result: {server}.{tool}",
-            server=server,
-            tool=tool,
+            f"MCP tool result: {safe_server}.{safe_tool}",
+            server=safe_server,
+            tool=safe_tool,
             success=success,
             duration_ms=duration_ms,
-            error=error
+            error=safe_error
         )
 
 
@@ -485,27 +551,36 @@ class AIRequestLogger:
     
     def log_request(self, provider: str, model: str, prompt_tokens: int,
                    correlation_id: Optional[str] = None):
-        """Log AI request."""
+        """Log AI request with sanitization."""
         with correlation_context(correlation_id):
+            # Sanitize inputs
+            safe_provider = sanitize_for_logging(provider, context="ai.request.provider")
+            safe_model = sanitize_for_logging(model, context="ai.request.model")
+            
             log_with_context(
                 self.logger,
                 logging.INFO,
-                f"AI request: {provider}/{model}",
-                provider=provider,
-                model=model,
+                f"AI request: {safe_provider}/{safe_model}",
+                provider=safe_provider,
+                model=safe_model,
                 prompt_tokens=prompt_tokens
             )
     
     def log_response(self, provider: str, model: str, response_tokens: int,
                     duration_ms: float, success: bool, cost: Optional[float] = None):
-        """Log AI response."""
+        """Log AI response with sanitization."""
         level = logging.INFO if success else logging.ERROR
+        
+        # Sanitize inputs
+        safe_provider = sanitize_for_logging(provider, context="ai.response.provider")
+        safe_model = sanitize_for_logging(model, context="ai.response.model")
+        
         log_with_context(
             self.logger,
             level,
-            f"AI response: {provider}/{model}",
-            provider=provider,
-            model=model,
+            f"AI response: {safe_provider}/{safe_model}",
+            provider=safe_provider,
+            model=safe_model,
             response_tokens=response_tokens,
             duration_ms=duration_ms,
             success=success,
@@ -523,26 +598,33 @@ class InfrastructureChangeLogger:
     
     def log_deployment(self, service: str, version: str, environment: str,
                       user: str, success: bool):
-        """Log deployment event."""
+        """Log deployment event with sanitization."""
         level = logging.INFO if success else logging.ERROR
+        
+        # Sanitize inputs
+        safe_service = sanitize_for_logging(service, context="infra.deployment.service")
+        safe_version = sanitize_for_logging(version, context="infra.deployment.version")
+        safe_environment = sanitize_for_logging(environment, context="infra.deployment.environment")
+        safe_user = sanitize_for_logging(user, context="infra.deployment.user")
+        
         log_with_context(
             self.logger,
             level,
-            f"Deployment: {service} v{version} to {environment}",
-            service=service,
-            version=version,
-            environment=environment,
-            user=user,
+            f"Deployment: {safe_service} v{safe_version} to {safe_environment}",
+            service=safe_service,
+            version=safe_version,
+            environment=safe_environment,
+            user=safe_user,
             success=success
         )
         
         # Also log as security audit
         self.security_logger.log_access(
-            resource=f"{service}:{environment}",
+            resource=f"{safe_service}:{safe_environment}",
             action="deploy",
-            user=user,
+            user=safe_user,
             result="success" if success else "failure",
-            version=version
+            version=safe_version
         )
 
 

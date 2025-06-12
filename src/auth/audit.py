@@ -12,9 +12,35 @@ import json
 import asyncio
 import hashlib
 import hmac
-from collections import defaultdict
+from collections import defaultdict, deque
 import threading
 import queue
+
+# Import bounded collections
+try:
+    from ..core.lru_cache import create_lru_cache, LRUCache
+    from ..core.cleanup_scheduler import get_cleanup_scheduler
+    HAS_BOUNDED_COLLECTIONS = True
+except ImportError:
+    HAS_BOUNDED_COLLECTIONS = False
+
+# Import sanitization for log injection prevention
+try:
+    from ..core.log_sanitization import (
+        sanitize_for_logging,
+        sanitize_dict_for_logging,
+        SanitizationLevel
+    )
+    HAS_SANITIZATION = True
+except ImportError:
+    # Fallback if core module not available
+    HAS_SANITIZATION = False
+    
+    def sanitize_for_logging(value, level=None, context=None):
+        return str(value) if value is not None else None
+    
+    def sanitize_dict_for_logging(data, level=None, context=None):
+        return data if data else {}
 
 
 class AuditEventType(Enum):
@@ -111,23 +137,26 @@ class AuditEvent:
     tags: List[str] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for storage."""
+        """Convert to dictionary for storage with sanitization."""
+        # Use STRICT sanitization for audit logs due to their security-critical nature
+        level = SanitizationLevel.STRICT if HAS_SANITIZATION else None
+        
         return {
             "id": self.id,
             "timestamp": self.timestamp.isoformat(),
             "event_type": self.event_type.value,
             "severity": self.severity.value,
-            "user_id": self.user_id,
-            "actor_id": self.actor_id,
-            "resource": self.resource,
-            "action": self.action,
-            "result": self.result,
-            "ip_address": self.ip_address,
-            "user_agent": self.user_agent,
-            "session_id": self.session_id,
-            "correlation_id": self.correlation_id,
-            "details": self.details,
-            "tags": self.tags
+            "user_id": sanitize_for_logging(self.user_id, level, "audit.user_id"),
+            "actor_id": sanitize_for_logging(self.actor_id, level, "audit.actor_id"),
+            "resource": sanitize_for_logging(self.resource, level, "audit.resource"),
+            "action": sanitize_for_logging(self.action, level, "audit.action"),
+            "result": sanitize_for_logging(self.result, level, "audit.result"),
+            "ip_address": sanitize_for_logging(self.ip_address, level, "audit.ip_address"),
+            "user_agent": sanitize_for_logging(self.user_agent, level, "audit.user_agent"),
+            "session_id": sanitize_for_logging(self.session_id, level, "audit.session_id"),
+            "correlation_id": sanitize_for_logging(self.correlation_id, level, "audit.correlation_id"),
+            "details": sanitize_dict_for_logging(self.details, level, "audit.details"),
+            "tags": [sanitize_for_logging(tag, level, f"audit.tags[{i}]") for i, tag in enumerate(self.tags)]
         }
     
     def to_json(self) -> str:
@@ -147,31 +176,75 @@ class AuditLogger:
     """Secure audit logging service."""
     
     def __init__(self, storage_backend: Optional[Any] = None,
-                 signing_key: Optional[str] = None):
+                 signing_key: Optional[str] = None,
+                 max_buffer_size: int = 100,
+                 max_stats_entries: int = 1000,
+                 stats_cleanup_interval: int = 3600):
         """
         Initialize audit logger.
         
         Args:
             storage_backend: Backend for storing audit logs
-            signing_key: Key for signing audit entries (for tamper detection)
+            signing_key: Key for signing audit entries (for tamper detection).
+                        Required for production use to ensure audit log integrity.
+            max_buffer_size: Maximum buffer size before forced flush
+            max_stats_entries: Maximum number of statistics entries (sliding window)
+            stats_cleanup_interval: Interval for statistics cleanup in seconds
+        
+        Raises:
+            ValueError: If signing_key is not provided or is insecure
         """
         self.storage_backend = storage_backend
-        self.signing_key = signing_key or "default-signing-key"
         
-        # In-memory buffer for performance
+        # Validate signing key
+        if not signing_key:
+            raise ValueError("signing_key is required for audit log integrity")
+        
+        if len(signing_key) < 32:
+            raise ValueError("signing_key must be at least 32 characters for security")
+        
+        self.signing_key = signing_key
+        
+        # In-memory buffer with bounded size and ring buffer for high-frequency events
         self.buffer: List[AuditEvent] = []
-        self.buffer_size = 100
+        self.buffer_size = max_buffer_size
         self.flush_interval = 5  # seconds
         
-        # Async queue for background processing
+        # Ring buffer for high-frequency events (fixed size)
+        self._high_freq_buffer = deque(maxlen=500)
+        
+        # Async queue with circuit breaker for overflow protection
         self.event_queue: asyncio.Queue = asyncio.Queue(maxsize=1000)
+        self._queue_overflow_count = 0
+        self._circuit_breaker_threshold = 100
+        self._circuit_breaker_open = False
+        self._circuit_breaker_reset_time = None
         
-        # Statistics
-        self.stats = defaultdict(int)
+        # Statistics with bounded LRU cache if available
+        if HAS_BOUNDED_COLLECTIONS:
+            self.stats = create_lru_cache(
+                max_size=max_stats_entries,
+                ttl=stats_cleanup_interval,
+                cleanup_interval=stats_cleanup_interval // 6  # Cleanup 6 times per TTL
+            )
+            self._stats_timestamps = deque(maxlen=max_stats_entries)
+        else:
+            # Fallback to bounded defaultdict with manual cleanup
+            self.stats = defaultdict(int)
+            self._stats_timestamps = deque(maxlen=max_stats_entries)
+        
+        self.max_stats_entries = max_stats_entries
+        self.stats_cleanup_interval = stats_cleanup_interval
         self.last_flush = datetime.now(timezone.utc)
+        self._last_stats_cleanup = datetime.now(timezone.utc)
         
-        # Alert callbacks
-        self.alert_callbacks: List[Callable] = []
+        # Alert callbacks with weak references to prevent memory leaks
+        self.alert_callbacks: List[weakref.ref] = []
+        
+        # Lifecycle management
+        self._worker_task: Optional[asyncio.Task] = None
+        self._cleanup_task: Optional[asyncio.Task] = None
+        self._is_running = False
         
         # Start background worker
         self._start_worker()
@@ -179,28 +252,60 @@ class AuditLogger:
     def _start_worker(self) -> None:
         """Start background worker for processing events."""
         async def worker():
-            while True:
+            self._is_running = True
+            while self._is_running:
                 try:
-                    # Process events from queue
-                    event = await asyncio.wait_for(
-                        self.event_queue.get(),
-                        timeout=self.flush_interval
-                    )
-                    self.buffer.append(event)
+                    # Check circuit breaker
+                    if self._circuit_breaker_open:
+                        await self._check_circuit_breaker()
+                        if self._circuit_breaker_open:
+                            await asyncio.sleep(1)
+                            continue
                     
-                    # Flush if buffer is full
-                    if len(self.buffer) >= self.buffer_size:
-                        await self._flush_buffer()
+                    # Process events from queue
+                    try:
+                        event = await asyncio.wait_for(
+                            self.event_queue.get(),
+                            timeout=self.flush_interval
+                        )
                         
-                except asyncio.TimeoutError:
-                    # Flush on timeout
-                    if self.buffer:
-                        await self._flush_buffer()
+                        # Check if high-frequency event
+                        if self._is_high_frequency_event(event):
+                            self._high_freq_buffer.append(event)
+                        else:
+                            self.buffer.append(event)
+                        
+                        # Enforce buffer size limits
+                        if len(self.buffer) >= self.buffer_size:
+                            await self._flush_buffer()
+                            
+                    except asyncio.TimeoutError:
+                        # Flush on timeout
+                        await self._flush_buffers()
+                        
+                    # Periodic cleanup
+                    await self._periodic_cleanup()
+                        
+                except asyncio.CancelledError:
+                    break
                 except Exception as e:
                     print(f"Audit worker error: {e}")
+                    await asyncio.sleep(1)
         
-        # Create task in background
-        asyncio.create_task(worker())
+        async def cleanup_worker():
+            """Periodic cleanup task."""
+            while self._is_running:
+                try:
+                    await asyncio.sleep(self.stats_cleanup_interval)
+                    await self._cleanup_statistics()
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    print(f"Audit cleanup error: {e}")
+        
+        # Create tasks in background
+        self._worker_task = asyncio.create_task(worker())
+        self._cleanup_task = asyncio.create_task(cleanup_worker())
     
     async def log_event(self, event_type: AuditEventType,
                        severity: AuditSeverity = AuditSeverity.INFO,
@@ -215,45 +320,92 @@ class AuditLogger:
                        correlation_id: Optional[str] = None,
                        details: Optional[Dict[str, Any]] = None,
                        tags: Optional[List[str]] = None) -> str:
-        """Log an audit event."""
+        """Log an audit event with input sanitization."""
         import uuid
         
-        # Create event
+        # Sanitize all inputs before creating audit event - use STRICT level for security
+        level = SanitizationLevel.STRICT if HAS_SANITIZATION else None
+        
+        safe_user_id = sanitize_for_logging(user_id, level, "audit.input.user_id")
+        safe_actor_id = sanitize_for_logging(actor_id or user_id, level, "audit.input.actor_id")
+        safe_resource = sanitize_for_logging(resource, level, "audit.input.resource")
+        safe_action = sanitize_for_logging(action, level, "audit.input.action")
+        safe_result = sanitize_for_logging(result, level, "audit.input.result")
+        safe_ip_address = sanitize_for_logging(ip_address, level, "audit.input.ip_address")
+        safe_user_agent = sanitize_for_logging(user_agent, level, "audit.input.user_agent")
+        safe_session_id = sanitize_for_logging(session_id, level, "audit.input.session_id")
+        safe_correlation_id = sanitize_for_logging(correlation_id, level, "audit.input.correlation_id")
+        safe_details = sanitize_dict_for_logging(details or {}, level, "audit.input.details")
+        safe_tags = [sanitize_for_logging(tag, level, f"audit.input.tags[{i}]") for i, tag in enumerate(tags or [])]
+        
+        # Create event with sanitized data
         event = AuditEvent(
             id=str(uuid.uuid4()),
             timestamp=datetime.now(timezone.utc),
             event_type=event_type,
             severity=severity,
-            user_id=user_id,
-            actor_id=actor_id or user_id,
-            resource=resource,
-            action=action,
-            result=result,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            session_id=session_id,
-            correlation_id=correlation_id,
-            details=details or {},
-            tags=tags or []
+            user_id=safe_user_id,
+            actor_id=safe_actor_id,
+            resource=safe_resource,
+            action=safe_action,
+            result=safe_result,
+            ip_address=safe_ip_address,
+            user_agent=safe_user_agent,
+            session_id=safe_session_id,
+            correlation_id=safe_correlation_id,
+            details=safe_details,
+            tags=safe_tags
         )
         
         # Add signature for tamper detection
         event.details["signature"] = self._sign_event(event)
         
-        # Update statistics
-        self.stats[event_type.value] += 1
-        self.stats[f"severity.{severity.value}"] += 1
+        # Update statistics with sliding window management
+        current_time = datetime.now(timezone.utc)
+        self._stats_timestamps.append(current_time)
+        
+        # Update statistics (handle both LRU cache and defaultdict)
+        if HAS_BOUNDED_COLLECTIONS and hasattr(self.stats, 'get'):
+            # LRU cache usage
+            event_count = self.stats.get(event_type.value, 0)
+            self.stats.put(event_type.value, event_count + 1)
+            severity_count = self.stats.get(f"severity.{severity.value}", 0)
+            self.stats.put(f"severity.{severity.value}", severity_count + 1)
+        else:
+            # Regular defaultdict usage
+            self.stats[event_type.value] += 1
+            self.stats[f"severity.{severity.value}"] += 1
+        
+        # Trigger immediate cleanup if stats are getting too large
+        if len(self.stats) > self.max_stats_entries * 1.2:
+            asyncio.create_task(self._cleanup_statistics())
         
         # Check for alerts
         await self._check_alerts(event)
         
-        # Queue for processing
+        # Queue for processing with circuit breaker
         try:
             await self.event_queue.put(event)
+            # Reset circuit breaker on successful queue operation
+            if self._circuit_breaker_open:
+                self._queue_overflow_count = 0
+                self._circuit_breaker_open = False
         except asyncio.QueueFull:
-            # If queue is full, flush immediately
-            await self._flush_buffer()
-            await self.event_queue.put(event)
+            self._queue_overflow_count += 1
+            
+            # Open circuit breaker if too many overflows
+            if self._queue_overflow_count >= self._circuit_breaker_threshold:
+                self._circuit_breaker_open = True
+                self._circuit_breaker_reset_time = datetime.now(timezone.utc) + timedelta(minutes=5)
+                print(f"Audit queue circuit breaker opened due to overflow")
+            
+            # If queue is full, flush immediately and try again
+            await self._flush_buffers()
+            try:
+                await self.event_queue.put(event)
+            except asyncio.QueueFull:
+                # Last resort: add to high-frequency buffer
+                self._high_freq_buffer.append(event)
         
         return event.id
     
@@ -316,9 +468,39 @@ class AuditLogger:
             
         except Exception as e:
             print(f"Failed to flush audit buffer: {e}")
-            # Re-queue events
+            # Re-queue events with size limit to prevent memory growth
+            requeue_count = 0
             for event in events_to_flush:
-                await self.event_queue.put(event)
+                if requeue_count < 50:  # Limit requeue to prevent infinite growth
+                    try:
+                        await self.event_queue.put(event)
+                        requeue_count += 1
+                    except asyncio.QueueFull:
+                        # Add to high-frequency buffer as last resort
+                        self._high_freq_buffer.append(event)
+                        break
+                else:
+                    break
+    
+    async def _flush_buffers(self) -> None:
+        """Flush all buffers (main and high-frequency)."""
+        await self._flush_buffer()
+        
+        # Flush high-frequency buffer if it has events
+        if self._high_freq_buffer:
+            high_freq_events = list(self._high_freq_buffer)
+            self._high_freq_buffer.clear()
+            
+            try:
+                if self.storage_backend:
+                    await self.storage_backend.store_events(high_freq_events)
+                else:
+                    # Sample high-frequency events (keep only every 10th to reduce spam)
+                    sampled_events = high_freq_events[::10]
+                    for event in sampled_events:
+                        print(f"AUDIT-HF: {event.to_json()}")
+            except Exception as e:
+                print(f"Failed to flush high-frequency buffer: {e}")
     
     async def _check_alerts(self, event: AuditEvent) -> None:
         """Check if event should trigger alerts."""
@@ -346,19 +528,42 @@ class AuditLogger:
                 self.stats[failure_key] = 0
     
     async def _trigger_alert(self, event: AuditEvent, message: str) -> None:
-        """Trigger alert callbacks."""
-        for callback in self.alert_callbacks:
+        """Trigger alert callbacks with weak reference handling."""
+        active_callbacks = []
+        
+        for callback_ref in self.alert_callbacks:
             try:
+                if isinstance(callback_ref, weakref.ref):
+                    callback = callback_ref()
+                    if callback is None:
+                        continue  # Dead reference, skip
+                else:
+                    callback = callback_ref
+                
+                active_callbacks.append(callback)
+                
                 if asyncio.iscoroutinefunction(callback):
                     await callback(event, message)
                 else:
                     callback(event, message)
             except Exception as e:
                 print(f"Alert callback error: {e}")
+        
+        # Update callbacks list to remove dead references
+        self.alert_callbacks = [
+            cb for cb in self.alert_callbacks 
+            if not isinstance(cb, weakref.ref) or cb() is not None
+        ]
     
     def add_alert_callback(self, callback: Callable) -> None:
-        """Add callback for security alerts."""
-        self.alert_callbacks.append(callback)
+        """Add callback for security alerts using weak references."""
+        # Store weak reference to prevent memory leaks
+        weak_callback = weakref.ref(callback) if hasattr(callback, '__self__') else callback
+        self.alert_callbacks.append(weak_callback)
+        
+        # Clean up dead weak references
+        self.alert_callbacks = [cb for cb in self.alert_callbacks 
+                               if not isinstance(cb, weakref.ref) or cb() is not None]
     
     async def query_events(self, filters: Dict[str, Any],
                           start_time: Optional[datetime] = None,
@@ -479,6 +684,134 @@ class AuditLogger:
             return deleted_count
         
         return 0
+    
+    def _cleanup_expired_stats(self) -> int:
+        """
+        Clean up expired statistics entries.
+        
+        Returns:
+            Number of expired entries removed
+        """
+        if not HAS_BOUNDED_COLLECTIONS:
+            return 0
+        
+        try:
+            if hasattr(self.stats, 'cleanup'):
+                removed_count = self.stats.cleanup()
+                if removed_count > 0:
+                    logger.debug(f"Cleaned up {removed_count} expired audit statistics")
+                return removed_count
+        except Exception as e:
+            logger.error(f"Error during audit statistics cleanup: {e}")
+        
+        return 0
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for monitoring."""
+        stats_info = {}
+        
+        if HAS_BOUNDED_COLLECTIONS and hasattr(self.stats, 'get_stats'):
+            try:
+                cache_stats = self.stats.get_stats()
+                stats_info["stats_cache"] = cache_stats.to_dict()
+                stats_info["cache_type"] = "LRU Cache"
+            except Exception as e:
+                logger.error(f"Error getting cache stats: {e}")
+        
+        stats_info.update({
+            "buffer_size": len(self.buffer),
+            "queue_size": self.event_queue.qsize() if hasattr(self.event_queue, 'qsize') else 0,
+            "alert_callbacks": len(self.alert_callbacks),
+            "last_flush": self.last_flush.isoformat() if self.last_flush else None,
+            "has_bounded_collections": HAS_BOUNDED_COLLECTIONS
+        })
+        
+        return stats_info
+    
+    def _is_high_frequency_event(self, event: AuditEvent) -> bool:
+        """Check if event is high-frequency and should use ring buffer."""
+        high_freq_types = {
+            AuditEventType.API_KEY_USED,
+            AuditEventType.PERMISSION_CHECK_SUCCESS,
+            AuditEventType.PERMISSION_CHECK_FAILED,
+            AuditEventType.MCP_TOOL_CALLED,
+            AuditEventType.MCP_TOOL_SUCCESS
+        }
+        return event.event_type in high_freq_types
+    
+    async def _check_circuit_breaker(self) -> None:
+        """Check if circuit breaker should be reset."""
+        if (self._circuit_breaker_reset_time and 
+            datetime.now(timezone.utc) >= self._circuit_breaker_reset_time):
+            self._circuit_breaker_open = False
+            self._queue_overflow_count = 0
+            self._circuit_breaker_reset_time = None
+            print("Audit queue circuit breaker reset")
+    
+    async def _periodic_cleanup(self) -> None:
+        """Perform periodic cleanup operations."""
+        current_time = datetime.now(timezone.utc)
+        
+        # Clean up statistics every hour
+        if (current_time - self._last_stats_cleanup).total_seconds() >= self.stats_cleanup_interval:
+            await self._cleanup_statistics()
+    
+    async def _cleanup_statistics(self) -> None:
+        """Clean up old statistics using sliding window."""
+        current_time = datetime.now(timezone.utc)
+        cutoff_time = current_time - timedelta(hours=24)  # Keep 24 hours of stats
+        
+        # Clean up timestamps older than cutoff
+        while self._stats_timestamps and self._stats_timestamps[0] < cutoff_time:
+            self._stats_timestamps.popleft()
+        
+        # If we have too many stats entries, keep only the most recent ones
+        if len(self.stats) > self.max_stats_entries:
+            # Sort by keys and keep the most recent entries
+            sorted_keys = sorted(self.stats.keys())
+            excess_count = len(self.stats) - self.max_stats_entries
+            
+            # Remove oldest statistical entries (simple heuristic)
+            for i in range(excess_count):
+                if i < len(sorted_keys):
+                    key_to_remove = sorted_keys[i]
+                    if not key_to_remove.startswith("severity."):  # Keep severity stats
+                        del self.stats[key_to_remove]
+        
+        self._last_stats_cleanup = current_time
+        print(f"Statistics cleanup completed. Entries: {len(self.stats)}")
+    
+    async def shutdown(self) -> None:
+        """Gracefully shutdown the audit logger."""
+        print("Shutting down audit logger...")
+        self._is_running = False
+        
+        # Cancel background tasks
+        if self._worker_task:
+            self._worker_task.cancel()
+            try:
+                await self._worker_task
+            except asyncio.CancelledError:
+                pass
+        
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            try:
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
+        
+        # Flush remaining events
+        await self._flush_buffers()
+        
+        # Clear all buffers and reset state
+        self.buffer.clear()
+        self._high_freq_buffer.clear()
+        self.stats.clear()
+        self._stats_timestamps.clear()
+        self.alert_callbacks.clear()
+        
+        print("Audit logger shutdown complete")
 
 
 # Convenience decorators for audit logging
@@ -494,7 +827,12 @@ def audit_action(event_type: AuditEventType, severity: AuditSeverity = AuditSeve
                     break
             
             # Get audit logger (would be injected in real app)
-            logger = AuditLogger()
+            from .audit_config import get_audit_logger
+            try:
+                logger = get_audit_logger()
+            except ValueError:
+                # Skip audit logging if not configured
+                return await func(*args, **kwargs)
             
             try:
                 result = await func(*args, **kwargs)
@@ -526,7 +864,12 @@ def audit_action(event_type: AuditEventType, severity: AuditSeverity = AuditSeve
                     user_id = arg.id
                     break
             
-            logger = AuditLogger()
+            from .audit_config import get_audit_logger
+            try:
+                logger = get_audit_logger()
+            except ValueError:
+                # Skip audit logging if not configured
+                return func(*args, **kwargs)
             
             try:
                 result = func(*args, **kwargs)

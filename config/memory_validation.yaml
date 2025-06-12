@@ -1,0 +1,249 @@
+# Memory Validation Configuration
+# Configuration for comprehensive memory optimization testing and validation
+
+validation_levels:
+  quick:
+    description: "Quick validation for PR checks (5-10 minutes)"
+    leak_detection:
+      enabled: true
+      iterations: 50
+      components: ["ExpertManager", "RustModules"]
+      warmup_iterations: 5
+      timeout_seconds: 300
+    regression_testing:
+      enabled: true
+      components: ["ExpertManager", "RustModules"]
+      baseline_comparison: true
+      statistical_confidence: 0.8
+    stress_testing:
+      enabled: false
+    gc_performance:
+      enabled: true
+      iterations: 100
+      components: ["ExpertManager", "RustModules"]
+      detailed_analysis: false
+
+  comprehensive:
+    description: "Full validation for main branch (15-30 minutes)"
+    leak_detection:
+      enabled: true
+      iterations: 200
+      components: ["all"]
+      warmup_iterations: 20
+      timeout_seconds: 900
+      long_running_tests: false
+    regression_testing:
+      enabled: true
+      components: ["all"]
+      baseline_comparison: true
+      statistical_confidence: 0.9
+      detailed_analysis: true
+    stress_testing:
+      enabled: true
+      scenarios: ["memory_pressure", "concurrent_operations"]
+      breaking_point_analysis: true
+      recovery_testing: true
+    gc_performance:
+      enabled: true
+      iterations: 500
+      components: ["all"]
+      detailed_analysis: true
+      pause_time_analysis: true
+
+  nightly:
+    description: "Extended validation for nightly builds (30-60 minutes)"
+    leak_detection:
+      enabled: true
+      iterations: 1000
+      components: ["all"]
+      warmup_iterations: 50
+      timeout_seconds: 3600
+      long_running_tests: true
+      marathon_testing: true
+    regression_testing:
+      enabled: true
+      components: ["all"]
+      baseline_comparison: true
+      statistical_confidence: 0.95
+      detailed_analysis: true
+      historical_comparison: true
+    stress_testing:
+      enabled: true
+      scenarios: ["all"]
+      breaking_point_analysis: true
+      recovery_testing: true
+      extended_scenarios: true
+      fragmentation_testing: true
+    gc_performance:
+      enabled: true
+      iterations: 1000
+      components: ["all"]
+      detailed_analysis: true
+      pause_time_analysis: true
+      generation_analysis: true
+      efficiency_optimization: true
+
+# Validation thresholds and limits
+thresholds:
+  memory_leak:
+    # Memory leak severity thresholds
+    critical_mb: 50.0        # > 50MB growth = critical
+    major_mb: 20.0           # > 20MB growth = major
+    minor_mb: 5.0            # > 5MB growth = minor
+    growth_per_iteration_mb: 0.1  # > 0.1MB per iteration = leak
+    baseline_tolerance_mb: 5.0    # Acceptable baseline variance
+    confidence_threshold: 0.8     # Statistical confidence required
+
+  performance_regression:
+    # Performance regression thresholds (as percentages)
+    critical_percent: 50.0   # > 50% regression = critical failure
+    major_percent: 30.0      # > 30% regression = major issue
+    minor_percent: 15.0      # > 15% regression = minor issue
+    improvement_threshold: 10.0   # > 10% improvement = significant
+    statistical_confidence: 0.85  # Required confidence for regression detection
+
+  gc_performance:
+    # Garbage collection performance limits
+    min_efficiency_score: 0.7          # Minimum GC efficiency (0-1)
+    max_pause_ms: 100.0               # Maximum acceptable GC pause time
+    max_frequency_per_100_ops: 50     # Max GC collections per 100 operations
+    max_avg_pause_ms: 50.0            # Maximum average pause time
+    variance_threshold: 0.5           # Maximum pause time variance
+
+  stress_testing:
+    # Memory stress testing limits
+    min_stability_score: 0.6      # Minimum stability score (0-1)
+    max_breaking_points: 2        # Maximum acceptable breaking points
+    min_recovery_score: 0.8       # Minimum recovery score
+    max_recovery_time_seconds: 10.0   # Maximum recovery time
+    fragmentation_threshold: 0.7  # Maximum fragmentation score
+
+  system_limits:
+    # System resource limits
+    max_memory_usage_mb: 2048     # Maximum memory usage during tests
+    max_cpu_percent: 90           # Maximum CPU usage
+    max_test_duration_minutes: 60 # Maximum test duration
+    max_concurrent_operations: 200 # Maximum concurrent operations
+
+# Component-specific configurations
+components:
+  ExpertManager:
+    priority: high
+    memory_sensitive: true
+    expected_efficiency: 0.8
+    leak_tolerance_mb: 2.0
+    gc_efficiency_target: 0.8
+
+  RustModules:
+    priority: high
+    memory_sensitive: true
+    expected_efficiency: 0.9
+    leak_tolerance_mb: 1.0
+    gc_efficiency_target: 0.9
+
+  MCPManager:
+    priority: medium
+    memory_sensitive: false
+    expected_efficiency: 0.7
+    leak_tolerance_mb: 5.0
+    gc_efficiency_target: 0.7
+
+  MCPTools:
+    priority: medium
+    memory_sensitive: false
+    expected_efficiency: 0.6
+    leak_tolerance_mb: 10.0
+    gc_efficiency_target: 0.6
+
+  ResponseAggregation:
+    priority: high
+    memory_sensitive: true
+    expected_efficiency: 0.8
+    leak_tolerance_mb: 3.0
+    gc_efficiency_target: 0.8
+
+# Reporting and notification configuration
+reporting:
+  generate_html: true
+  generate_json: true
+  generate_markdown: true
+  upload_artifacts: true
+  
+  # Report retention
+  retention_days: 30
+  baseline_retention_days: 90
+  
+  # Notification settings
+  send_notifications: false
+  notification_channels:
+    slack_webhook: null
+    email_recipients: []
+    github_issues: true
+  
+  # Report formatting
+  include_charts: false
+  include_raw_data: true
+  compress_reports: false
+
+# CI/CD integration settings
+ci_integration:
+  # Failure handling
+  fail_on_critical_leaks: true
+  fail_on_critical_regressions: true
+  fail_on_gc_issues: false
+  fail_on_stress_breaking_points: false
+  
+  # PR comment settings
+  comment_on_pr: true
+  comment_threshold: "warning"  # Comment on warning or above
+  include_recommendations: true
+  
+  # Baseline management
+  auto_update_baselines: true
+  baseline_update_threshold: 0.1  # 10% improvement required
+  require_approval_for_baseline_update: false
+
+# Advanced settings
+advanced:
+  # Memory profiling
+  enable_tracemalloc: true
+  enable_objgraph: false
+  enable_pympler: false
+  
+  # Statistical analysis
+  use_statistical_tests: true
+  outlier_detection: true
+  trend_analysis: true
+  
+  # Performance optimization
+  parallel_execution: false
+  memory_pool_testing: false
+  cache_warming: true
+  
+  # Debugging and diagnostics
+  save_memory_dumps: false
+  enable_debug_logging: false
+  capture_stack_traces: false
+
+# Environment-specific overrides
+environments:
+  development:
+    thresholds:
+      memory_leak:
+        critical_mb: 100.0  # More lenient in development
+      performance_regression:
+        critical_percent: 75.0  # More lenient in development
+  
+  staging:
+    # Use default thresholds
+    
+  production:
+    thresholds:
+      memory_leak:
+        critical_mb: 25.0   # Stricter in production
+      performance_regression:
+        critical_percent: 25.0  # Stricter in production
+    reporting:
+      send_notifications: true
+      notification_channels:
+        github_issues: true

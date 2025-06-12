@@ -31,6 +31,8 @@ from src.core.circuit_breaker import (
     get_circuit_breaker_manager,
     CircuitOpenError
 )
+from src.core.lru_cache import create_ttl_dict
+from src.core.cleanup_scheduler import get_cleanup_scheduler
 
 # Optional Circle of Experts integration
 try:
@@ -72,10 +74,17 @@ class MCPContext:
     query: Optional[ExpertQuery] = None
     tool_calls: List[MCPToolCall] = field(default_factory=list)
     enabled_servers: Set[str] = field(default_factory=set)
+    created_at: float = field(default_factory=time.time)
+    max_tool_calls: int = 100  # Limit tool call history
     
     def add_tool_call(self, call: MCPToolCall):
         """Add a tool call to the context."""
         self.tool_calls.append(call)
+        
+        # Enforce size limit to prevent unbounded growth
+        if len(self.tool_calls) > self.max_tool_calls:
+            # Remove oldest calls, keep last max_tool_calls
+            self.tool_calls = self.tool_calls[-self.max_tool_calls:]
     
     def get_tool_history(self) -> List[Dict[str, Any]]:
         """Get tool call history for context."""
@@ -89,6 +98,10 @@ class MCPContext:
             }
             for call in self.tool_calls
         ]
+    
+    def age_seconds(self) -> float:
+        """Get age of context in seconds."""
+        return time.time() - self.created_at
 
 
 class MCPManager:
@@ -105,8 +118,28 @@ class MCPManager:
     def __init__(self):
         """Initialize MCP Manager."""
         self.registry = MCPServerRegistry()
-        self.contexts: Dict[str, MCPContext] = {}
+        
+        # Use TTL dict for contexts (TTL: 1 hour, max: 200 contexts)
+        self.contexts = create_ttl_dict(
+            max_size=200,
+            ttl=3600.0,  # 1 hour
+            cleanup_interval=300.0  # 5 minutes
+        )
+        
         self._default_enabled_servers = {"brave"}  # Brave enabled by default
+        
+        # Register cleanup with scheduler
+        try:
+            cleanup_scheduler = get_cleanup_scheduler()
+            cleanup_scheduler.register_cleanable_object(self.contexts)
+            cleanup_scheduler.register_task(
+                name=f"mcp_manager_{id(self)}_context_cleanup",
+                callback=self._cleanup_expired_contexts,
+                interval_seconds=300.0,  # 5 minutes
+                priority=cleanup_scheduler.TaskPriority.MEDIUM
+            )
+        except Exception as e:
+            logger.warning(f"Could not register with cleanup scheduler: {e}")
     
     async def initialize(self):
         """Initialize all registered MCP servers."""
@@ -294,25 +327,25 @@ class MCPManager:
                 actual_tool_name,
                 arguments
             )
-                duration_ms = (time.time() - start_time) * 1000
-                
-                # Log successful tool result
-                mcp_logger.log_tool_result(server_name, actual_tool_name, True, duration_ms)
-                
-                # Record in context if provided
-                if context_id:
-                    context = self.get_context(context_id)
-                    if context:
-                        context.add_tool_call(MCPToolCall(
-                            server_name=server_name,
-                            tool_name=actual_tool_name,
-                            arguments=arguments,
-                            result=result,
-                            duration_ms=duration_ms,
-                            success=True
-                        ))
-                
-                return result
+            duration_ms = (time.time() - start_time) * 1000
+            
+            # Log successful tool result
+            mcp_logger.log_tool_result(server_name, actual_tool_name, True, duration_ms)
+            
+            # Record in context if provided
+            if context_id:
+                context = self.get_context(context_id)
+                if context:
+                    context.add_tool_call(MCPToolCall(
+                        server_name=server_name,
+                        tool_name=actual_tool_name,
+                        arguments=arguments,
+                        result=result,
+                        duration_ms=duration_ms,
+                        success=True
+                    ))
+            
+            return result
             
         except CircuitOpenError as e:
             # Circuit breaker is open - return fallback
@@ -499,6 +532,45 @@ class MCPManager:
         queries.extend([p.strip() for p in search_patterns])
         
         return queries[:3]  # Limit to 3 queries
+    
+    def _cleanup_expired_contexts(self) -> int:
+        """
+        Clean up expired MCP contexts.
+        
+        Returns:
+            Number of expired contexts removed
+        """
+        try:
+            removed_count = self.contexts.cleanup()
+            if removed_count > 0:
+                logger.info(f"Cleaned up {removed_count} expired MCP contexts")
+            return removed_count
+        except Exception as e:
+            logger.error(f"Error during MCP context cleanup: {e}")
+            return 0
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for monitoring."""
+        try:
+            stats = self.contexts.get_stats()
+            
+            # Calculate tool call statistics
+            total_tool_calls = 0
+            active_contexts = 0
+            for context in self.contexts.items():
+                if isinstance(context[1], MCPContext):
+                    active_contexts += 1
+                    total_tool_calls += len(context[1].tool_calls)
+            
+            return {
+                "contexts_cache": stats.to_dict(),
+                "active_contexts": active_contexts,
+                "total_tool_calls": total_tool_calls,
+                "cache_type": "TTLDict with LRU eviction"
+            }
+        except Exception as e:
+            logger.error(f"Error getting cache stats: {e}")
+            return {}
     
     def _create_tool_fallback_response(
         self,

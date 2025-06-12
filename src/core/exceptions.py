@@ -58,6 +58,8 @@ class ErrorCode(str, Enum):
     NETWORK_TIMEOUT = "5002"
     NETWORK_DNS = "5003"
     NETWORK_SSL = "5004"
+    DATABASE_CONNECTION = "5005"
+    DATABASE_GENERAL = "5006"
     
     # Authentication errors (6xxx)
     AUTH_GENERAL = "6000"
@@ -475,6 +477,65 @@ class ConnectionError(NetworkError):
         kwargs['context'] = context
         super().__init__(message, **kwargs)
         self.error_code = ErrorCode.NETWORK_CONNECTION
+
+
+class DatabaseConnectionError(ConnectionError):
+    """Database connection failures."""
+    
+    def __init__(self, message: str, database: str, **kwargs):
+        super().__init__(message, host=database, **kwargs)
+        self.error_code = ErrorCode.DATABASE_CONNECTION
+
+
+class NotFoundError(BaseDeploymentError):
+    """Resource not found error."""
+    
+    def __init__(self, message: str, resource_type: str, resource_id: Optional[str] = None, **kwargs):
+        context = kwargs.get('context', {})
+        context['resource_type'] = resource_type
+        if resource_id:
+            context['resource_id'] = resource_id
+        kwargs['context'] = context
+        super().__init__(message, **kwargs)
+        self.error_code = ErrorCode.VALIDATION_GENERAL
+
+
+
+
+class ConflictError(BaseDeploymentError):
+    """Resource conflict error."""
+    
+    def __init__(self, message: str, resource_type: str, conflict_reason: str, **kwargs):
+        context = kwargs.get('context', {})
+        context['resource_type'] = resource_type
+        context['conflict_reason'] = conflict_reason
+        kwargs['context'] = context
+        super().__init__(message, **kwargs)
+        self.error_code = ErrorCode.VALIDATION_GENERAL
+
+
+class DatabaseError(BaseDeploymentError):
+    """General database error."""
+    
+    def __init__(self, message: str, operation: str, **kwargs):
+        context = kwargs.get('context', {})
+        context['operation'] = operation
+        kwargs['context'] = context
+        super().__init__(message, **kwargs)
+        self.error_code = ErrorCode.DATABASE_GENERAL
+
+
+class AuthorizationError(BaseDeploymentError):
+    """Authorization failed error."""
+    
+    def __init__(self, message: str, action: str, resource: Optional[str] = None, **kwargs):
+        context = kwargs.get('context', {})
+        context['action'] = action
+        if resource:
+            context['resource'] = resource
+        kwargs['context'] = context
+        super().__init__(message, **kwargs)
+        self.error_code = ErrorCode.AUTH_PERMISSION_DENIED
 
 
 class TimeoutError(NetworkError):

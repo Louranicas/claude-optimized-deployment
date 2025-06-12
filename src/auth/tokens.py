@@ -81,10 +81,14 @@ class TokenManager:
         
         # Generate or use provided secret key
         if secret_key:
+            # Check if this is a legacy key or new format key
+            # New format keys are longer due to embedded salt
             self.secret_key = secret_key
+            self._is_legacy_key = self._check_legacy_key_format(secret_key)
         else:
-            # Generate secure secret key
+            # Generate secure secret key with random salt
             self.secret_key = self._generate_secret_key()
+            self._is_legacy_key = False
         
         # Key rotation support
         self.key_rotation_enabled = False
@@ -97,26 +101,80 @@ class TokenManager:
         self.revoked_sessions: set = set()
     
     def _generate_secret_key(self) -> str:
-        """Generate a secure secret key."""
+        """Generate a secure secret key.
+        
+        Security improvement: This method now uses a random salt instead of a static one,
+        following OWASP best practices for key derivation. The salt is embedded in the
+        returned key string for proper storage and retrieval.
+        """
         # Use environment variable if available
         env_key = os.environ.get("JWT_SECRET_KEY")
         if env_key:
             return env_key
         
-        # Generate new secure key
+        # Generate new secure key with random salt
         random_bytes = secrets.token_bytes(32)
+        
+        # Generate a random salt (32 bytes) for enhanced security
+        # Using os.urandom for cryptographically secure random bytes
+        salt = os.urandom(32)
         
         # Use PBKDF2 for key derivation (OWASP recommended)
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
-            salt=b'claude-optimized-deployment',  # Static salt for deterministic key
+            salt=salt,  # Now using random salt for each key generation
             iterations=100000,  # OWASP recommends 100,000+
             backend=default_backend()
         )
         
         key = kdf.derive(random_bytes)
-        return base64.urlsafe_b64encode(key).decode('utf-8')
+        
+        # Combine salt and key for storage
+        # Format: base64(salt + key) - this allows us to extract the salt later if needed
+        combined = salt + key
+        return base64.urlsafe_b64encode(combined).decode('utf-8')
+    
+    def _check_legacy_key_format(self, key: str) -> bool:
+        """Check if a key is in legacy format (without embedded salt).
+        
+        Args:
+            key: The secret key to check
+            
+        Returns:
+            True if legacy format, False if new format with salt
+        """
+        try:
+            # Decode the key
+            decoded = base64.urlsafe_b64decode(key.encode('utf-8'))
+            # New format has salt (32 bytes) + key (32 bytes) = 64 bytes total
+            # Legacy format would be just 32 bytes or a different length
+            return len(decoded) != 64
+        except Exception:
+            # If we can't decode it, assume it's a legacy format
+            return True
+    
+    def _extract_key_from_combined(self, combined_key: str) -> str:
+        """Extract the actual key from a combined salt+key format.
+        
+        Args:
+            combined_key: The base64 encoded salt+key
+            
+        Returns:
+            The extracted key portion
+        """
+        if self._check_legacy_key_format(combined_key):
+            # Legacy format - return as is
+            return combined_key
+        
+        try:
+            # Decode and extract the key portion (skip the 32-byte salt)
+            decoded = base64.urlsafe_b64decode(combined_key.encode('utf-8'))
+            key_portion = decoded[32:]  # Skip salt, get key
+            return base64.urlsafe_b64encode(key_portion).decode('utf-8')
+        except Exception:
+            # If extraction fails, return original
+            return combined_key
     
     def create_access_token(self, token_data: TokenData) -> str:
         """Create an access token."""
@@ -140,8 +198,9 @@ class TokenManager:
             "jti": secrets.token_urlsafe(16),  # Unique token ID
         })
         
-        # Encode token
-        token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+        # Encode token using the extracted key portion
+        signing_key = self._extract_key_from_combined(self.secret_key)
+        token = jwt.encode(payload, signing_key, algorithm=self.algorithm)
         return token
     
     def create_refresh_token(self, token_data: TokenData) -> str:
@@ -168,8 +227,9 @@ class TokenManager:
             "jti": secrets.token_urlsafe(16),
         }
         
-        # Encode token
-        token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+        # Encode token using the extracted key portion
+        signing_key = self._extract_key_from_combined(self.secret_key)
+        token = jwt.encode(payload, signing_key, algorithm=self.algorithm)
         return token
     
     def create_token_pair(self, user_id: str, username: str,
@@ -207,8 +267,9 @@ class TokenManager:
             TokenData if valid, None otherwise
         """
         try:
-            # Try current key first
-            payload = self._decode_token(token, self.secret_key)
+            # Try current key first (extract actual key from combined format)
+            signing_key = self._extract_key_from_combined(self.secret_key)
+            payload = self._decode_token(token, signing_key)
             
         except jwt.ExpiredSignatureError:
             return None
@@ -218,7 +279,9 @@ class TokenManager:
             if self.key_rotation_enabled and self.old_keys:
                 for old_key in self.old_keys:
                     try:
-                        payload = self._decode_token(token, old_key)
+                        # Extract key from potentially combined format
+                        old_signing_key = self._extract_key_from_combined(old_key)
+                        payload = self._decode_token(token, old_signing_key)
                         break
                     except jwt.InvalidTokenError:
                         continue
@@ -282,10 +345,11 @@ class TokenManager:
     def revoke_token(self, token: str) -> bool:
         """Revoke a specific token."""
         try:
-            # Decode token to get JTI
+            # Decode token to get JTI (extract key from combined format)
+            signing_key = self._extract_key_from_combined(self.secret_key)
             payload = jwt.decode(
                 token,
-                self.secret_key,
+                signing_key,
                 algorithms=[self.algorithm],
                 options={"verify_exp": False}
             )
@@ -305,7 +369,10 @@ class TokenManager:
         self.revoked_sessions.add(session_id)
     
     def rotate_key(self) -> str:
-        """Rotate the secret key for enhanced security."""
+        """Rotate the secret key for enhanced security.
+        
+        Uses the new secure key generation with random salt.
+        """
         # Keep old key for grace period
         self.old_keys.append(self.secret_key)
         
@@ -313,7 +380,7 @@ class TokenManager:
         if len(self.old_keys) > 3:
             self.old_keys.pop(0)
         
-        # Generate new key
+        # Generate new key with random salt
         self.secret_key = self._generate_secret_key()
         self.last_key_rotation = datetime.now(timezone.utc)
         self.key_rotation_enabled = True
@@ -353,8 +420,9 @@ class TokenManager:
             "jti": secrets.token_urlsafe(16),
         })
         
-        # Encode token
-        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+        # Encode token using the extracted key portion
+        signing_key = self._extract_key_from_combined(self.secret_key)
+        return jwt.encode(payload, signing_key, algorithm=self.algorithm)
     
     def decode_token_unsafe(self, token: str) -> Optional[Dict[str, Any]]:
         """
@@ -366,3 +434,35 @@ class TokenManager:
             return jwt.decode(token, options={"verify_signature": False})
         except jwt.InvalidTokenError:
             return None
+    
+    def migrate_to_secure_key(self) -> str:
+        """
+        Migrate from legacy key format to new secure format with random salt.
+        
+        This method helps with backward compatibility by:
+        1. Keeping the old key in the rotation list for grace period
+        2. Generating a new key with random salt
+        3. Enabling key rotation to handle tokens signed with old key
+        
+        Returns:
+            The new secure key
+            
+        Usage:
+            # During deployment migration
+            token_manager = TokenManager(secret_key=old_key)
+            new_key = token_manager.migrate_to_secure_key()
+            # Save new_key to secure storage (env var, secrets manager, etc.)
+        """
+        # Only migrate if using legacy format
+        if hasattr(self, '_is_legacy_key') and not self._is_legacy_key:
+            # Already using new format
+            return self.secret_key
+        
+        # Enable key rotation and rotate to new secure key
+        self.key_rotation_enabled = True
+        new_key = self.rotate_key()
+        
+        # Log migration for audit purposes (in production, use proper logging)
+        print(f"[SECURITY] Migrated from legacy key format to secure key with random salt")
+        
+        return new_key

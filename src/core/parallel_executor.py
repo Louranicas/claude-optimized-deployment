@@ -12,6 +12,9 @@ from typing import List, Dict, Any, Callable, Optional, Set
 import multiprocessing as mp
 from functools import wraps
 import time
+import psutil
+import resource
+from weakref import WeakValueDictionary
 
 from src.core.logging_config import get_logger, get_performance_logger, performance_logged
 
@@ -76,7 +79,9 @@ class ParallelExecutor:
     def __init__(self, 
                  max_workers_thread: int = 10,
                  max_workers_process: int = None,
-                 enable_progress: bool = True):
+                 enable_progress: bool = True,
+                 max_concurrent_tasks: int = 10,
+                 memory_limit_mb: int = 1024):
         """
         Initialize parallel executor with resource pools
         
@@ -84,6 +89,8 @@ class ParallelExecutor:
             max_workers_thread: Max thread pool workers
             max_workers_process: Max process pool workers (defaults to CPU count)
             enable_progress: Show progress updates
+            max_concurrent_tasks: Maximum concurrent tasks to prevent memory overload
+            memory_limit_mb: Memory limit per task in MB
         """
         self.thread_pool = ThreadPoolExecutor(max_workers=max_workers_thread)
         self.process_pool = ProcessPoolExecutor(
@@ -91,6 +98,15 @@ class ParallelExecutor:
         )
         self.enable_progress = enable_progress
         self._results: Dict[str, TaskResult] = {}
+        
+        # Memory and concurrency management
+        self.max_concurrent_tasks = max_concurrent_tasks
+        self.memory_limit_mb = memory_limit_mb
+        self._task_semaphore = asyncio.Semaphore(max_concurrent_tasks)
+        self._active_tasks: WeakValueDictionary = WeakValueDictionary()
+        self._memory_pressure_threshold = 0.85  # 85% memory usage triggers pressure
+        
+        logger.info(f"ParallelExecutor initialized with {max_concurrent_tasks} max concurrent tasks and {memory_limit_mb}MB memory limit")
         
     async def execute_tasks(self, tasks: List[Task]) -> Dict[str, TaskResult]:
         """
@@ -141,30 +157,39 @@ class ParallelExecutor:
         return self._results
     
     async def _execute_stage(self, tasks: List[Task]) -> Dict[str, TaskResult]:
-        """Execute a stage of independent tasks in parallel"""
+        """Execute a stage of independent tasks in parallel with memory pressure monitoring"""
         logger.info(f"Executing stage with {len(tasks)} tasks")
         
         with perf_logger.track_operation("stage_execution", task_count=len(tasks)):
+            # Check memory pressure before starting
+            if self._check_memory_pressure():
+                logger.warning("Memory pressure detected, reducing concurrency")
+                self._task_semaphore = asyncio.Semaphore(max(1, self.max_concurrent_tasks // 2))
+            
             # Group tasks by type for optimal execution
             grouped = self._group_tasks_by_type(tasks)
             
-            # Execute each group with appropriate strategy
+            # Execute each group with appropriate strategy and concurrency control
             all_futures = []
             
             for task_type, task_list in grouped.items():
                 if task_type == TaskType.ASYNC:
-                    futures = [self._execute_async_task(task) for task in task_list]
+                    futures = [self._execute_async_task_with_limits(task) for task in task_list]
                 elif task_type == TaskType.IO_BOUND:
-                    futures = [self._execute_thread_task(task) for task in task_list]
+                    futures = [self._execute_thread_task_with_limits(task) for task in task_list]
                 elif task_type == TaskType.CPU_BOUND:
-                    futures = [self._execute_process_task(task) for task in task_list]
+                    futures = [self._execute_process_task_with_limits(task) for task in task_list]
                 else:  # MIXED
-                    futures = [self._execute_mixed_task(task) for task in task_list]
+                    futures = [self._execute_mixed_task_with_limits(task) for task in task_list]
                 
                 all_futures.extend(futures)
             
             # Wait for all tasks to complete
             results = await asyncio.gather(*all_futures, return_exceptions=True)
+            
+            # Clean up task references
+            for task in tasks:
+                self._active_tasks.pop(task.name, None)
             
             # Map results back to task names
             return {
@@ -172,12 +197,66 @@ class ParallelExecutor:
                 for task, result in zip(tasks, results)
             }
     
+    def _check_memory_pressure(self) -> bool:
+        """Check if system is under memory pressure"""
+        try:
+            memory = psutil.virtual_memory()
+            memory_usage = memory.percent / 100.0
+            
+            if memory_usage > self._memory_pressure_threshold:
+                logger.warning(f"Memory pressure detected: {memory_usage:.1%} usage")
+                return True
+            return False
+        except Exception as e:
+            logger.warning(f"Failed to check memory pressure: {e}")
+            return False
+    
+    async def _execute_async_task_with_limits(self, task: Task) -> TaskResult:
+        """Execute async task with concurrency and memory limits"""
+        async with self._task_semaphore:
+            # Track active task
+            self._active_tasks[task.name] = task
+            return await self._execute_async_task(task)
+    
+    async def _execute_thread_task_with_limits(self, task: Task) -> TaskResult:
+        """Execute thread task with concurrency and memory limits"""
+        async with self._task_semaphore:
+            # Track active task
+            self._active_tasks[task.name] = task
+            return await self._execute_thread_task(task)
+    
+    async def _execute_process_task_with_limits(self, task: Task) -> TaskResult:
+        """Execute process task with concurrency and memory limits"""
+        async with self._task_semaphore:
+            # Track active task
+            self._active_tasks[task.name] = task
+            return await self._execute_process_task(task)
+    
+    async def _execute_mixed_task_with_limits(self, task: Task) -> TaskResult:
+        """Execute mixed task with concurrency and memory limits"""
+        async with self._task_semaphore:
+            # Track active task
+            self._active_tasks[task.name] = task
+            return await self._execute_mixed_task(task)
+    
     async def _execute_async_task(self, task: Task) -> TaskResult:
-        """Execute pure async task"""
+        """Execute pure async task with memory monitoring"""
         start_time = time.time()
+        initial_memory = self._get_current_memory_usage()
         
         for attempt in range(task.retry_count):
             try:
+                # Check memory before execution
+                if self._check_memory_pressure():
+                    logger.warning(f"Skipping task {task.name} due to memory pressure")
+                    return TaskResult(
+                        task_name=task.name,
+                        success=False,
+                        error=Exception("Task skipped due to memory pressure"),
+                        duration=time.time() - start_time,
+                        retries=attempt
+                    )
+                
                 if asyncio.iscoroutinefunction(task.func):
                     result = await task.func(*task.args, **task.kwargs)
                 else:
@@ -186,6 +265,13 @@ class ParallelExecutor:
                     result = await loop.run_in_executor(
                         None, task.func, *task.args, **task.kwargs
                     )
+                
+                # Check memory usage after execution
+                final_memory = self._get_current_memory_usage()
+                memory_used = final_memory - initial_memory
+                
+                if memory_used > self.memory_limit_mb:
+                    logger.warning(f"Task {task.name} exceeded memory limit: {memory_used}MB > {self.memory_limit_mb}MB")
                 
                 return TaskResult(
                     task_name=task.name,
@@ -197,6 +283,10 @@ class ParallelExecutor:
                 
             except Exception as e:
                 logger.warning(f"Task {task.name} failed (attempt {attempt + 1}): {e}")
+                
+                # Clean up any allocated memory between retries
+                self._cleanup_task_memory(task.name)
+                
                 if attempt == task.retry_count - 1:
                     return TaskResult(
                         task_name=task.name,
@@ -234,13 +324,55 @@ class ParallelExecutor:
         else:
             return await self._execute_process_task(task)
     
+    def _get_current_memory_usage(self) -> float:
+        """Get current memory usage in MB"""
+        try:
+            process = psutil.Process()
+            return process.memory_info().rss / 1024 / 1024  # Convert to MB
+        except Exception:
+            return 0.0
+    
+    def _cleanup_task_memory(self, task_name: str) -> None:
+        """Clean up memory associated with a task"""
+        try:
+            # Force garbage collection
+            import gc
+            gc.collect()
+            
+            # Remove task from active tracking
+            self._active_tasks.pop(task_name, None)
+            
+        except Exception as e:
+            logger.debug(f"Memory cleanup failed for task {task_name}: {e}")
+    
     def _sync_task_wrapper(self, task: Task) -> TaskResult:
-        """Wrapper for synchronous task execution"""
+        """Wrapper for synchronous task execution with memory monitoring"""
         start_time = time.time()
+        initial_memory = self._get_current_memory_usage()
         
         for attempt in range(task.retry_count):
             try:
+                # Check memory before execution
+                memory = psutil.virtual_memory()
+                if memory.percent > 85:  # 85% memory usage
+                    logger.warning(f"Skipping task {task.name} due to memory pressure")
+                    return TaskResult(
+                        task_name=task.name,
+                        success=False,
+                        error=Exception("Task skipped due to memory pressure"),
+                        duration=time.time() - start_time,
+                        retries=attempt
+                    )
+                
                 result = task.func(*task.args, **task.kwargs)
+                
+                # Check memory usage after execution
+                final_memory = self._get_current_memory_usage()
+                memory_used = final_memory - initial_memory
+                
+                if memory_used > self.memory_limit_mb:
+                    logger.warning(f"Task {task.name} exceeded memory limit: {memory_used}MB > {self.memory_limit_mb}MB")
+                
                 return TaskResult(
                     task_name=task.name,
                     success=True,
@@ -249,6 +381,9 @@ class ParallelExecutor:
                     retries=attempt
                 )
             except Exception as e:
+                # Clean up memory between retries
+                self._cleanup_task_memory(task.name)
+                
                 if attempt == task.retry_count - 1:
                     return TaskResult(
                         task_name=task.name,
@@ -278,9 +413,20 @@ class ParallelExecutor:
         # TODO: Implement cycle detection using DFS
     
     def get_execution_report(self) -> Dict[str, Any]:
-        """Generate execution report for analysis"""
+        """Generate execution report for analysis with memory metrics"""
         successful = [r for r in self._results.values() if r.success]
         failed = [r for r in self._results.values() if not r.success]
+        
+        # Get current memory state
+        try:
+            memory = psutil.virtual_memory()
+            memory_info = {
+                "current_usage_percent": memory.percent,
+                "available_mb": memory.available / 1024 / 1024,
+                "total_mb": memory.total / 1024 / 1024
+            }
+        except Exception:
+            memory_info = {"error": "Unable to retrieve memory information"}
         
         return {
             "total_tasks": len(self._results),
@@ -289,6 +435,10 @@ class ParallelExecutor:
             "total_duration": sum(r.duration for r in self._results.values()),
             "average_duration": sum(r.duration for r in self._results.values()) / len(self._results) if self._results else 0,
             "total_retries": sum(r.retries for r in self._results.values()),
+            "memory_info": memory_info,
+            "active_tasks": len(self._active_tasks),
+            "max_concurrent_tasks": self.max_concurrent_tasks,
+            "memory_limit_mb": self.memory_limit_mb,
             "failures": [
                 {
                     "task": r.task_name,

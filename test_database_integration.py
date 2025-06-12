@@ -13,7 +13,7 @@ Tests all database functionality including:
 import asyncio
 import os
 import tempfile
-import pytest
+# import pytest  # Not needed for main execution
 from datetime import datetime, timedelta
 from typing import Dict, Any
 

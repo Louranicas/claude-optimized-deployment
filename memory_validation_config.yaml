@@ -1,0 +1,354 @@
+# Memory Validation Configuration
+# Configuration for comprehensive memory testing and validation
+
+# Validation levels configuration
+validation_levels:
+  quick:
+    description: "Quick validation for PR checks (5-10 minutes)"
+    timeout_minutes: 15
+    leak_detection:
+      enabled: true
+      iterations: 50
+      warmup_iterations: 5
+      components:
+        - "ExpertManager"
+        - "RustModules"
+      confidence_threshold: 0.8
+    
+    regression_testing:
+      enabled: true
+      iterations: 30
+      baseline_comparison: true
+      components:
+        - "ExpertManager"
+        - "RustModules"
+    
+    stress_testing:
+      enabled: false  # Skip stress testing for quick validation
+    
+    gc_performance:
+      enabled: true
+      iterations: 100
+      pause_time_monitoring: false
+      components:
+        - "ExpertManager"
+        - "RustModules"
+
+  comprehensive:
+    description: "Comprehensive validation for main branch (15-30 minutes)"
+    timeout_minutes: 45
+    leak_detection:
+      enabled: true
+      iterations: 100
+      warmup_iterations: 10
+      components:
+        - "ExpertManager"
+        - "RustModules"
+        - "MCPTools"
+        - "ResponseAggregation"
+      confidence_threshold: 0.9
+      statistical_analysis: true
+    
+    regression_testing:
+      enabled: true
+      iterations: 50
+      baseline_comparison: true
+      confidence_level: 0.95
+      components:
+        - "ExpertManager"
+        - "RustModules"
+        - "MCPTools"
+        - "ResponseAggregation"
+    
+    stress_testing:
+      enabled: true
+      memory_pressure: true
+      concurrent_operations: true
+      fragmentation_testing: false
+      breaking_point_detection: true
+    
+    gc_performance:
+      enabled: true
+      iterations: 500
+      pause_time_monitoring: true
+      efficiency_validation: true
+      components:
+        - "ExpertManager"
+        - "RustModules"
+        - "MCPTools"
+        - "ResponseAggregation"
+
+  nightly:
+    description: "Extended validation for nightly builds (30-60 minutes)"
+    timeout_minutes: 90
+    leak_detection:
+      enabled: true
+      iterations: 200
+      warmup_iterations: 20
+      components:
+        - "ExpertManager"
+        - "RustModules"
+        - "MCPTools"
+        - "ResponseAggregation"
+        - "DatabaseConnections"
+        - "AuthenticationSystem"
+      confidence_threshold: 0.95
+      statistical_analysis: true
+      long_running_tests: true
+    
+    regression_testing:
+      enabled: true
+      iterations: 100
+      baseline_comparison: true
+      historical_comparison: true
+      confidence_level: 0.99
+      components:
+        - "ExpertManager"
+        - "RustModules"
+        - "MCPTools"
+        - "ResponseAggregation"
+        - "DatabaseConnections"
+        - "AuthenticationSystem"
+    
+    stress_testing:
+      enabled: true
+      memory_pressure: true
+      concurrent_operations: true
+      fragmentation_testing: true
+      recovery_testing: true
+      breaking_point_detection: true
+      stability_analysis: true
+    
+    gc_performance:
+      enabled: true
+      iterations: 1000
+      pause_time_monitoring: true
+      efficiency_validation: true
+      generation_analysis: true
+      optimization_recommendations: true
+      components:
+        - "ExpertManager"
+        - "RustModules"
+        - "MCPTools"
+        - "ResponseAggregation"
+        - "DatabaseConnections"
+        - "AuthenticationSystem"
+
+# Memory thresholds and limits
+thresholds:
+  memory_leak:
+    critical_mb: 50.0          # Critical leak threshold
+    major_mb: 20.0             # Major leak threshold
+    minor_mb: 5.0              # Minor leak threshold
+    growth_rate_mb_per_op: 0.1 # Growth rate threshold
+    confidence_level: 0.95     # Statistical confidence required
+  
+  performance_regression:
+    critical_percent: 50.0     # Critical regression threshold (50% increase)
+    major_percent: 30.0        # Major regression threshold (30% increase)
+    minor_percent: 15.0        # Minor regression threshold (15% increase)
+    improvement_threshold: 10.0 # Improvement threshold (10% decrease)
+    statistical_significance: 0.05  # p-value threshold
+  
+  memory_stress:
+    max_memory_pressure_mb: 500    # Maximum memory pressure for testing
+    breaking_point_threshold: 0.9  # 90% failure rate indicates breaking point
+    stability_score_threshold: 0.7 # Minimum stability score
+    recovery_time_threshold: 10.0  # Maximum recovery time in seconds
+  
+  gc_performance:
+    max_pause_time_ms: 100         # Maximum acceptable GC pause time
+    max_collections_per_100_ops: 50 # Maximum GC collections per 100 operations
+    min_efficiency_score: 0.7       # Minimum GC efficiency score
+    max_gen0_frequency: 0.5         # Maximum Gen0 collection frequency
+
+# Component-specific configuration
+components:
+  ExpertManager:
+    memory_baseline_mb: 50
+    max_memory_mb: 200
+    operations_per_test: 100
+    timeout_seconds: 30
+    rust_acceleration: true
+  
+  RustModules:
+    memory_baseline_mb: 10
+    max_memory_mb: 50
+    operations_per_test: 200
+    timeout_seconds: 20
+    expected_efficiency_gain: 0.4  # 40% better than Python
+  
+  MCPTools:
+    memory_baseline_mb: 30
+    max_memory_mb: 150
+    operations_per_test: 50
+    timeout_seconds: 60  # Network operations may be slower
+    external_dependencies: true
+  
+  ResponseAggregation:
+    memory_baseline_mb: 25
+    max_memory_mb: 100
+    operations_per_test: 100
+    timeout_seconds: 25
+    batch_processing: true
+  
+  DatabaseConnections:
+    memory_baseline_mb: 40
+    max_memory_mb: 200
+    operations_per_test: 50
+    timeout_seconds: 45
+    connection_pooling: true
+  
+  AuthenticationSystem:
+    memory_baseline_mb: 20
+    max_memory_mb: 80
+    operations_per_test: 75
+    timeout_seconds: 30
+    security_validation: true
+
+# Testing environment configuration
+environment:
+  python_version: "3.11"
+  rust_toolchain: "stable"
+  test_isolation: true
+  cleanup_between_tests: true
+  gc_control: "automatic"  # automatic, disabled, aggressive, conservative
+  
+  # Memory monitoring configuration
+  monitoring:
+    continuous_monitoring: true
+    monitoring_interval_seconds: 0.5
+    detailed_profiling: false  # Enable for debugging
+    tracemalloc_depth: 10
+    object_tracking: true
+  
+  # Parallel execution configuration
+  parallelization:
+    enabled: false  # Disable for memory testing to avoid interference
+    max_workers: 1
+    component_isolation: true
+
+# Reporting configuration
+reporting:
+  output_formats:
+    - "json"
+    - "markdown"
+    - "html"
+  
+  # Report content configuration
+  include_details:
+    memory_timelines: true
+    allocation_traces: false  # Only for debugging
+    gc_event_details: true
+    statistical_analysis: true
+    recommendations: true
+    performance_comparisons: true
+  
+  # Report storage
+  storage:
+    local_reports: true
+    artifact_retention_days: 30
+    baseline_retention_days: 90
+    compress_reports: true
+  
+  # Notification configuration
+  notifications:
+    critical_failures: true
+    performance_regressions: true
+    improvements: false
+    create_issues: true
+    issue_labels:
+      - "memory"
+      - "performance"
+      - "testing"
+
+# Baseline management
+baselines:
+  # Baseline update policy
+  update_policy:
+    automatic_updates: true
+    improvement_threshold: 0.1  # 10% improvement required for update
+    validation_required: true
+    approval_required: false  # Set to true for production
+  
+  # Baseline storage
+  storage:
+    file_path: "benchmarks/memory_baselines.json"
+    backup_count: 5
+    compression: true
+  
+  # Baseline validation
+  validation:
+    environment_consistency: true
+    rust_acceleration_consistency: true
+    component_version_tracking: true
+    statistical_validation: true
+
+# Integration settings
+integration:
+  ci_cd:
+    fail_on_critical: true
+    fail_on_major_regression: true
+    warn_on_minor_regression: true
+    block_on_breaking_changes: true
+  
+  monitoring:
+    prometheus_metrics: false  # Enable for production monitoring
+    grafana_dashboards: false
+    alerting: false
+  
+  development:
+    pre_commit_validation: false  # Can be enabled for strict development
+    ide_integration: false
+    developer_reports: true
+
+# Advanced configuration
+advanced:
+  # Statistical analysis configuration
+  statistics:
+    confidence_levels:
+      - 0.95  # 95% confidence
+      - 0.99  # 99% confidence
+    
+    trend_analysis:
+      min_data_points: 5
+      regression_methods:
+        - "linear"
+        - "polynomial"
+      seasonality_detection: false
+    
+    anomaly_detection:
+      methods:
+        - "iqr"          # Interquartile Range
+        - "zscore"       # Z-score
+        - "modified_zscore"  # Modified Z-score
+      sensitivity: 1.5
+  
+  # Performance optimization
+  optimization:
+    object_pooling_recommendations: true
+    garbage_collection_tuning: true
+    memory_layout_analysis: false  # Advanced feature
+    allocation_pattern_analysis: true
+  
+  # Debug configuration
+  debug:
+    verbose_logging: false
+    memory_dumps: false  # Only for serious debugging
+    profiler_integration: false
+    trace_collection: false
+
+# Version and metadata
+metadata:
+  config_version: "1.0.0"
+  last_updated: "2025-06-06"
+  created_by: "Agent 9 - Memory Testing Validation Suite"
+  description: "Comprehensive memory testing configuration for Claude Optimized Deployment Engine"
+  
+  # Compatibility
+  min_python_version: "3.9"
+  max_python_version: "3.12"
+  supported_platforms:
+    - "linux"
+    - "darwin"  # macOS
+    - "win32"   # Windows

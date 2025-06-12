@@ -329,3 +329,25 @@ def _get_health_recommendations(summary: Dict[str, Any], health: str) -> List[st
 def include_router(app):
     """Include circuit breaker routes in main FastAPI app."""
     app.include_router(router)
+
+
+class CircuitBreakerAPI:
+    """Circuit Breaker API management class."""
+    
+    def __init__(self):
+        self.router = router
+        self.manager = get_circuit_breaker_manager()
+        self.monitor = get_circuit_breaker_monitor()
+    
+    def get_router(self):
+        """Get the FastAPI router for circuit breaker endpoints."""
+        return self.router
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get circuit breaker system status."""
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "monitoring": get_monitoring_status(),
+            "summary": self.manager.get_summary(),
+            "health": _calculate_system_health(self.manager.get_summary())
+        }
