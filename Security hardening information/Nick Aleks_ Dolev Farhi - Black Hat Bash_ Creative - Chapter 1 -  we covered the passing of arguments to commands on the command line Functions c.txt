@@ -1,0 +1,145 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 1 - , we covered the passing of arguments to commands on the command line. Functions can also take arguments by using the same syntax. For example, the function in Listing 2-12 prints the first three arguments it receives.
+#!/bin/bash
+Security Relevance Score: 6
+Word Count: 1091
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we covered the passing of arguments to commands on the command line. Functions can also take arguments by using the same syntax. For example, the function in Listing 2-12 prints the first three arguments it receives.
+#!/bin/bash
+
+print_args(){
+  echo "first: ${1}, second: ${2}, third: ${3}"
+}
+
+❶ print_args No Starch Press
+
+Listing 2-12: A function with arguments
+To call a function with arguments, enter its name and the arguments separated by spaces ❶. Save this script as function_with_args.sh and run it:
+$ chmod u+x function_with_args.sh
+$ ./function_with_args.sh
+
+first: No, second: Starch, third: Press
+
+You should see output similar to that shown here.
+
+
+
+Loops and Loop Controls
+Like many programming languages, bash lets you repeat chunks of code by using loops. Loops can be particularly useful in your penetration-testing adventures because they can help you accomplish tasks such as the following:
+
+Continuously checking whether an IP address is online after a reboot until the IP address is responsive
+Iterating through a list of hostnames (for example, to run a specific exploit against each of them or determine whether a firewall is protecting them)
+Testing for a certain condition and then running a loop when it is met (for example, checking whether a host is online and, if so, performing a brute-force attack against it)
+
+The following sections introduce you to the three kinds of loops in bash (while, until, and for) as well as the break and continue statements for working with loops.
+
+while
+In bash, while loops allow you to run a code block until a test returns a successful exit status code. You might use them in penetration testing to continuously perform a port scan on a network and pick up any new hosts that join the network, for example.
+Listing 2-13 shows the syntax of a while loop.
+while some_condition; do
+  # Run commands while the condition is true.
+done
+
+Listing 2-13: A while loop
+This loop starts with the keyword while, followed by an expression that describes the condition. We then surround the code to be executed with the do and done keywords, which define the start and end of the code block.
+You can use while loops to run a chunk of code infinitely by using true as the condition; because true always returns a successful exit code, the code will always run. Let’s use a while loop to repeatedly print a command to the screen. Save Listing 2-14 to a file named basic_while.sh and run it.
+#!/bin/bash
+
+while true; do
+  echo "Looping..."
+  sleep 2
+done
+
+Listing 2-14: Repeatedly running a command at two-second intervals
+You should see the following output:
+$ chmod u+x basic_while.sh
+$ ./basic_while.sh
+
+Looping...
+Looping...
+--snip--
+
+Next, let’s write a more sophisticated while loop that runs until it finds a specific file on the filesystem (Listing 2-15). Use CTRL-C to stop the code from executing at any point.
+
+while_loop.sh
+#!/bin/bash
+❶ SIGNAL_TO_STOP_FILE="stoploop"
+
+❷ while [[! -f "${SIGNAL_TO_STOP_FILE}"]]; do
+  echo "The file ${SIGNAL_TO_STOP_FILE} does not yet exist..."
+  echo "Checking again in 2 seconds..."
+  sleep 2
+done
+
+❸ echo "File was found! Exiting..."
+
+Listing 2-15: File monitoring
+At ❶, we define a variable representing the name of the file for which the while loop ❷ checks, using a file test operator. The loop won’t exit until the condition is satisfied. Once the file is available, the loop will stop, and the script will continue to the echo command ❸. Save this file as while_loop.sh and run it:
+$ chmod u+x while_loop.sh
+$ ./while_loop.sh
+
+The file stoploop does not yet exist...
+Checking again in 2 seconds...
+--snip--
+
+While the script is running, open a second terminal in the same directory as the script and create the stoploop file:
+$ touch stoploop
+Once you’ve done so, you should see the script break out of the loop and print the following:
+File was found! Exiting...
+We can use while loops to monitor for filesystem events, such as file creations or deletions, or when a process starts. This may come in handy if an application is suffering from a vulnerability we can only temporarily abuse. For example, consider an application that runs daily at a particular hour and checks whether the file /tmp/update.sh exists; if it does, the application executes it as the root user. Using a while loop, we can monitor when that application has started and then create the file just in time so our commands are executed by that application.
+
+
+until
+Whereas while runs so long as the condition succeeds, until runs so long as it fails. Listing 2-16 shows the until loop syntax.
+until some_condition; do
+  # Run some commands until the condition is no longer false.
+done
+
+Listing 2-16: An until loop
+Listing 2-17 uses until to run some commands until a file’s size is greater than zero (meaning it is not empty).
+
+until_loop.sh
+#!/bin/bash
+FILE="output.txt"
+
+touch "${FILE}"
+until [[-s "${FILE}"]]; do
+  echo "${FILE} is empty..."
+  echo "Checking again in 2 seconds..."
+  sleep 2
+done
+
+echo "${FILE} appears to have some content in it!"
+
+Listing 2-17: Checking a file’s size
+We first create an empty file, then begin a loop that runs until the file is no longer empty. Within the loop, we print messages to the terminal. Save this file as until_loop.sh and run it:
+$ chmod u+x until_loop.sh
+$ ./until_loop.sh
+
+output.txt is empty...
+Checking again in 2 seconds...
+--snip--
+
+At this point, the script has created the file output.txt, but it’s an empty file. We can check this by using the du (disk usage) command:
+$ du -sb output.txt
+0       output.txt
+
+Open another terminal and navigate to the location at which your script is saved, then append some content to the file so its size is no longer zero:
+$ echo "until_loop_will_now_stop!" > output.txt
+The script should exit the loop, and you should see it print the following:
+output.txt appears to have some content in it!
+
+
+for
+The for loop iterates over a sequence, such as a list of filenames or variables, or even a group of values generated by running a command. Inside the for loop, we define a block of commands that are run against each value in the list, and each value in the list is assigned to a variable name we define.
+Listing 2-18 shows the syntax of a for loop.
+for variable_name in LIST; do
+  # Run some commands for each item in the sequence.
+done
+
+Listing 2-18: A for loop
+A simple way to use a for loop is to execute the same command multiple times. For example, Listing 2-19 prints the numbers 1 through

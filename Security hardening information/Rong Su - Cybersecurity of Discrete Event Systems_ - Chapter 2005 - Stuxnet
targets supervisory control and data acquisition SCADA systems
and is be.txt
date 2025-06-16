@@ -1,0 +1,241 @@
+# Security Chapter Extract
+Book: Rong Su - Cybersecurity of Discrete Event Systems_ From Smart Attacks to Resilient Defence (2024, CRC Press) - libgen.li
+Chapter: 2005 - Stuxnet
+targets supervisory control and data acquisition (SCADA) systems
+and is believed to be responsible for causing substantial damage to the
+nuclear program of Iran. There are lots of stories and reports about this
+attack, which have been well disseminated in the media and academic
+communities. Here, we are interested in a high-level overview of its
+attack mechanism.
+According to a report by Kim Zetter [5], Stuxnet attack targeted
+at the following SCADA architecture depicted in Figure 1.2. In
+a normal operational condition, Siemens’ WinCC/PCS7 SCADA
+control software [75] (Step 7) issued relevant control commands,
+including information about operational frequencies of centrifuges,
+to Programmable Logic Controller (PLC), via a key communication
+library of WinCC called s7otbxdx.dll. The PLC also sent the system’s
+operational conditions back to Step 7 via s7otbxdx.dll. Normally,
+centrifuges operate at a frequency well above 1,000 Hz. Any drastic
+change of operational frequencies might damage centrifuges, which was
+a known fact to experts.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■5
+Figure 1.2The
+control architecture targeted by Stuxnet attack.
+A group of attackers managed to install Stuxnet code in the
+system. According to researcher Ralph Langner [6], once installed on
+a Windows system Stuxnet infected project files belonging to Step 7,
+and subverted the key communication library s7otbxdx.dll, by firstly
+inserting a malicious wrapper code between Step 7 and s7otbxdx.dll,
+and then renaming s7otbxdx.dll to s7otbxsx.dll, and passing the
+original name s7otbxdx.dll to the inserted malicious wrapper code. To
+successfully achieve this wrapping goal, attackers utilized a security
+vulnerability published by Siemens only one year before the attack,
+which however had not caused any public notice. This malicious code
+was able to intercept communications between the WinCC software
+running under Windows and the target Siemens PLC devices, when the
+two were connected via a data cable. Basically, the malicious code could
+change the operational frequency issued by Step 7 before passing to the
+PLC, possibly via the original but renamed communication library.
+To make the entire attack moves stealthy, the frequency changes were
+only done from time to time to avoid being detected. It was reported
+that when the malicious code caused centrifuges to operate at a much
+lowered frequency, a false fault alarm was sent to the system to ensure
+that such a low-frequency operation was due to some temporary sensor
+fault; thus, no emergency actions such as system shutdown would be
+taken by the system operators. Each feedback information from the
+6■Cybersecurit
+y of Discrete Event Systems
+PLC about the system’s operational conditions was also intercepted by
+the malicious code and modified before being passed to Step 7, making
+Step 7 believe that nothing abnormal happened in the system. The
+actual details are very complicated. However, a simplified high-level
+illustration of the attack scheme is shown in Figure 1.3.
+It was believed that periodic changes of operational frequencies of
+centrifuges eventually caused irreversible damage to centrifuges. The
+whole attack process took a long period to complete, making each
+attack move unnoticed by the system monitor. This is one typical
+example of a smart attack, which will be cast in a DES framework
+and addressed in this monograph. If we consider the PLC as a plant
+to be controlled, then Step 7 becomes a supervisor. The original
+communication library s7otbxdx.dll essentially creates communication
+channels between the plant and supervisor. The Stuxnet attack
+basically attacks both the information feedback channel from the plant
+to the supervisor and the control command channel from the supervisor
+to the plant, which is depicted in Figure 1.4. Later in this monograph,
+we will dub this type of smart attacks as sensor-actuator attacks, as
+Figure 1.3Illustration
+of Stuxnet attack mechanism.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■7
+Figure 1.4A
+DES view of Stuxnet attack mechanism.
+it attacks both the information channel and the command channel.
+From an attacker’s viewpoint, one fundamental question is how to
+ensure a successful cyberattack. In the Stuxnet attack, we can see
+that attackers had two pieces of knowledge. Firstly, they had a clear
+attack goal, namely to adjust operational frequencies of centrifuges
+to damage centrifuges. Secondly, they knew how to achieve their
+goal by exploiting functional vulnerabilities of the original Siemens
+control system to deploy malicious code to hijack the information and
+command channels and, most importantly, to operate attack moves
+in a stealthy manner. These two features, i.e., guarantee of damage
+infliction and attack stealthiness (or covertness), will be used in this
+monograph to characterize so-called smart attacks. On the other hand,
+from a defender’s viewpoint, one fundamental question is how to design
+system functions that deprive any potential attacker from attaining
+sufficient system resources for a successful attack, especially a stealthy
+attack. For example, in the Stuxnet attack case, if the Siemens control
+system vulnerability were fully aware of earlier, it would be much more
+difficult, if still possible, for the attackers to deploy their attack code.
+Basically, how to identify system vulnerabilities or critical assets and
+how to protect them are interesting and potential important topics for
+research, which will be addressed in this monograph.
+8■Cybersecurit
+y of Discrete Event Systems
+Security Relevance Score: 7
+Word Count: 1291
+Extracted: 2025-06-13 23:40:25
+
+---
+
+Stuxnet
+targets supervisory control and data acquisition (SCADA) systems
+and is believed to be responsible for causing substantial damage to the
+nuclear program of Iran. There are lots of stories and reports about this
+attack, which have been well disseminated in the media and academic
+communities. Here, we are interested in a high-level overview of its
+attack mechanism.
+According to a report by Kim Zetter [5], Stuxnet attack targeted
+at the following SCADA architecture depicted in Figure 1.2. In
+a normal operational condition, Siemens’ WinCC/PCS7 SCADA
+control software [75] (Step 7) issued relevant control commands,
+including information about operational frequencies of centrifuges,
+to Programmable Logic Controller (PLC), via a key communication
+library of WinCC called s7otbxdx.dll. The PLC also sent the system’s
+operational conditions back to Step 7 via s7otbxdx.dll. Normally,
+centrifuges operate at a frequency well above 1,000 Hz. Any drastic
+change of operational frequencies might damage centrifuges, which was
+a known fact to experts.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■5
+Figure 1.2The
+control architecture targeted by Stuxnet attack.
+A group of attackers managed to install Stuxnet code in the
+system. According to researcher Ralph Langner [6], once installed on
+a Windows system Stuxnet infected project files belonging to Step 7,
+and subverted the key communication library s7otbxdx.dll, by firstly
+inserting a malicious wrapper code between Step 7 and s7otbxdx.dll,
+and then renaming s7otbxdx.dll to s7otbxsx.dll, and passing the
+original name s7otbxdx.dll to the inserted malicious wrapper code. To
+successfully achieve this wrapping goal, attackers utilized a security
+vulnerability published by Siemens only one year before the attack,
+which however had not caused any public notice. This malicious code
+was able to intercept communications between the WinCC software
+running under Windows and the target Siemens PLC devices, when the
+two were connected via a data cable. Basically, the malicious code could
+change the operational frequency issued by Step 7 before passing to the
+PLC, possibly via the original but renamed communication library.
+To make the entire attack moves stealthy, the frequency changes were
+only done from time to time to avoid being detected. It was reported
+that when the malicious code caused centrifuges to operate at a much
+lowered frequency, a false fault alarm was sent to the system to ensure
+that such a low-frequency operation was due to some temporary sensor
+fault; thus, no emergency actions such as system shutdown would be
+taken by the system operators. Each feedback information from the
+6■Cybersecurit
+y of Discrete Event Systems
+PLC about the system’s operational conditions was also intercepted by
+the malicious code and modified before being passed to Step 7, making
+Step 7 believe that nothing abnormal happened in the system. The
+actual details are very complicated. However, a simplified high-level
+illustration of the attack scheme is shown in Figure 1.3.
+It was believed that periodic changes of operational frequencies of
+centrifuges eventually caused irreversible damage to centrifuges. The
+whole attack process took a long period to complete, making each
+attack move unnoticed by the system monitor. This is one typical
+example of a smart attack, which will be cast in a DES framework
+and addressed in this monograph. If we consider the PLC as a plant
+to be controlled, then Step 7 becomes a supervisor. The original
+communication library s7otbxdx.dll essentially creates communication
+channels between the plant and supervisor. The Stuxnet attack
+basically attacks both the information feedback channel from the plant
+to the supervisor and the control command channel from the supervisor
+to the plant, which is depicted in Figure 1.4. Later in this monograph,
+we will dub this type of smart attacks as sensor-actuator attacks, as
+Figure 1.3Illustration
+of Stuxnet attack mechanism.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■7
+Figure 1.4A
+DES view of Stuxnet attack mechanism.
+it attacks both the information channel and the command channel.
+From an attacker’s viewpoint, one fundamental question is how to
+ensure a successful cyberattack. In the Stuxnet attack, we can see
+that attackers had two pieces of knowledge. Firstly, they had a clear
+attack goal, namely to adjust operational frequencies of centrifuges
+to damage centrifuges. Secondly, they knew how to achieve their
+goal by exploiting functional vulnerabilities of the original Siemens
+control system to deploy malicious code to hijack the information and
+command channels and, most importantly, to operate attack moves
+in a stealthy manner. These two features, i.e., guarantee of damage
+infliction and attack stealthiness (or covertness), will be used in this
+monograph to characterize so-called smart attacks. On the other hand,
+from a defender’s viewpoint, one fundamental question is how to design
+system functions that deprive any potential attacker from attaining
+sufficient system resources for a successful attack, especially a stealthy
+attack. For example, in the Stuxnet attack case, if the Siemens control
+system vulnerability were fully aware of earlier, it would be much more
+difficult, if still possible, for the attackers to deploy their attack code.
+Basically, how to identify system vulnerabilities or critical assets and
+how to protect them are interesting and potential important topics for
+research, which will be addressed in this monograph.
+8■Cybersecurit
+y of Discrete Event Systems
+1.2.2 SQL Injection Attack
+An SQL injection attack is a technique that attackers use to gain
+unauthorized access to a web application database by adding a string of
+malicious code to a database query. It is considered as one of the most
+common web attack mechanisms used by attackers to steal sensitive
+data from organizations, alter data and access database servers with
+operating system privileges, and use these permissions to access other
+sensitive systems. In a report dated back to 2015 by Alastair Stevenson
+[7], A hacker group, known online as Team GhostShell, claims it
+successfully hacked over 300 websites and has posted over 13,000 users’
+personal details online. The actually number of victims could be much
+bigger. In 2014, security researchers publicized that they were able to
+breach the website of Tesla using SQL injection, gain administrative
+privileges, and steal user data. In 2018, a SQL injection vulnerability
+was found in Cisco Prime License Manager. The vulnerability allowed
+attackers to gain shell access to systems on which the license manager
+was deployed. Cisco has patched the vulnerability. Fortnite is an online
+game with over 350 million users. In 2019, a SQL injection vulnerability
+was discovered, which could let attackers access user accounts. The
+vulnerability was patched. Although SQL injection attacks have been
+discovered for more than a quarter of century, it is still included in the
+Open Worldwide Application Security Project (OWASP) Top 10 list
+of security vulnerabilities.
+There are many different types of SQL injection attacks, among
+which the Union-based SQL injection attack is the most popular type,
+which uses the UNION statement that represents the combination of
+two select statements to retrieve data from the database. We use a
+simple example to illustrate one such attack. Figure 1.5 illustrates one
+database, which consists of information of different products. The last
+column denotes whether a concerned row is publicly accessible: value
+1 indicates “yes”, and value 0 indicates “no”. Assume that each user is
+assigned with a specific access authorization grade, which is associated
+with a set of predetermined accessible product categories. An example
+of an SQL query command is shown below:
+SELECT * FROM product where Category=‘Sports’ AND released=1
+which states that this user is allowed to inquire information about
+all products in the Sports category, which is accessible to this user
+Intro
+duction to Cybersecurity in Discrete Event Systems ■9
+Figure 1.5A
+simple database.
+Figure 1.6A
+normal query command and three injection attacks.
+(denoted by “released=1”). This query command is susceptible to
+SQL injection attacks. There are at least three different injections by
+an attacker that could allow unauthorized information access, which
+are depicted in Figure 1.

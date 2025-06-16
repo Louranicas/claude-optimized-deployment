@@ -1,0 +1,105 @@
+# Development Environment Configuration
+
+variables:
+  # Database settings
+  db_host: "localhost"
+  db_port: 5432
+  db_name: "claude_deployment_dev"
+  db_ssl_mode: "disable"
+  
+  # Redis settings
+  redis_host: "localhost"
+  redis_port: 6379
+  redis_db: 1
+  redis_ssl: false
+  
+  # API settings
+  api_host: "127.0.0.1"
+  api_port: 8000
+  api_workers: 2
+  api_timeout: 60
+  api_debug: true
+  
+  # Security settings (relaxed for development)
+  cors_origins: 
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+    - "http://localhost:8080"
+  jwt_algorithm: "HS256"
+  session_timeout: 86400  # 24 hours
+  
+  # Monitoring settings
+  metrics_enabled: true
+  metrics_port: 9090
+  log_level: "DEBUG"
+  
+  # Performance settings (lower for development)
+  max_connections: 20
+  connection_timeout: 60
+  request_timeout: 120
+  worker_memory_limit: "1Gi"
+
+secrets:
+  # Simple development credentials
+  db_username: "dev_user"
+  db_password: "dev_password"
+  redis_password: ""  # No auth in development
+  
+  # Development JWT keys (not production secure)
+  jwt_private_key: "dev_jwt_secret_key_12345"
+  jwt_public_key: "dev_jwt_secret_key_12345"
+  
+  # API keys (can use test keys)
+  brave_api_key: "DEV_BRAVE_API_KEY"
+  slack_webhook_url: ""  # Disabled in development
+  
+  # Local cloud credentials
+  aws_access_key_id: "minioadmin"
+  aws_secret_access_key: "minioadmin"
+
+resource_limits:
+  cpu_cores: 2
+  memory_gb: 4
+  disk_gb: 50
+  max_file_descriptors: 1024
+  max_processes: 64
+
+networking:
+  load_balancer: false
+  ssl_termination: false
+  health_check_path: "/health"
+  health_check_interval: 60
+  health_check_timeout: 30
+  
+  # Rate limiting (relaxed)
+  rate_limit_per_minute: 10000
+  burst_limit: 1000
+  
+  # Firewall rules (allow all for development)
+  allowed_ips:
+    - "0.0.0.0/0"  # Allow all (development only!)
+
+security_policies:
+  # Authentication (relaxed for development)
+  require_mfa: false
+  password_policy:
+    min_length: 6
+    require_uppercase: false
+    require_lowercase: false
+    require_numbers: false
+    require_symbols: false
+  
+  # Authorization
+  rbac_enabled: false
+  default_permissions: "admin"  # Full access in development
+  admin_approval_required: false
+  
+  # Encryption
+  encrypt_at_rest: false
+  encrypt_in_transit: false
+  key_rotation_days: 365
+  
+  # Auditing
+  audit_logging: false
+  audit_retention_days: 30
+  security_scan_enabled: false

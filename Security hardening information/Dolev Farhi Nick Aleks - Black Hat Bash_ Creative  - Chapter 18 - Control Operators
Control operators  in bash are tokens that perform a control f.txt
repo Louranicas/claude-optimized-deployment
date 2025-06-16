@@ -1,0 +1,630 @@
+# Security Chapter Extract
+Book: Dolev Farhi, Nick Aleks - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, No Starch Press) - libgen.li
+Chapter: 18 - Control Operators
+Control operators  in bash are tokens that perform a control function. Table 1-3 
+gives an overview of control operators.
+Bash Basics   17Table 1-3: Bash Control Operators
+Operator Description
+& Sends a command to the background  .
+&& Used as a logical AND  .  The second command in the expression will 
+be evaluated only if the first command evaluates to true  .
+( and ) Used for command grouping  .
+; Used as a list terminator  .  A command following the terminator will run 
+after the preceding command has finished, regardless of whether it 
+evaluates to true or not  .
+;; Ends a case statement  .
+| Redirects the output of a command as input to another command  .
+|| Used as a logical OR  .  The second command will run if the first one 
+evaluates to false  .
+Let’s see some of these control operators in action. The & operator 
+sends a command to the background. If you have a list of commands to 
+run, as in Listing 1-18, sending the first command to the background will allow bash to continue to the next line even if the previous command hasn’t finished its work.
+#!/bin/bash
+# This script will send the sleep command to the background.
+echo "Sleeping for 10 seconds..."
+1 sleep 10 &
+# Creates a file
+echo "Creating the file test123"
+touch test123
+# Deletes a file
+echo "Deleting the file test123"
+rm test123
+Listing 1-18: Sending a command to the background so execution can move to the next line
+Commands that are long-running are often sent to the background to 
+prevent scripts from hanging 1 . You’ll learn about sending commands to 
+the background in more depth when we discuss job control in Chapter  2.
+The && operator allows us to perform an AND operation between two 
+commands. In the following example, the file test123  will be created only if 
+the first command is successful:
+touch test && touch test123
+18   Chapter 1The () operator allows us to group commands so they act a single unit 
+when we need to redirect them together:
+(ls; ps)
+This is generally useful when you need to redirect results from multiple 
+commands to a stream, as shown in “Redirection Operators,” next.
+The ; operator allows us to run multiple commands regardless of their 
+exit status:
+ls; ps; whoami
+As a result, each command is executed one after the other, as soon as 
+the previous one finishes.
+The || operator allows us to chain commands together using an OR 
+operation:
+lzl || echo "the lzl command failed"
+In this example, the echo command will be executed only if the first 
+command fails.
+Redirection Operators
+The three standard streams we highlighted earlier can be redirected from 
+one program to another. Redirection  is taking output from one command 
+or script and using it as input to another script or file for writing purposes. 
+Table 1-4  describes the available redirection operators.
+Table 1-4:  Redirection Operators
+Operator Description
+> Redirects stdout to a file
+>> Redirects stdout to a file by appending it to the existing content
+&> or >& Redirects stdout and stderr to a file
+&>> Redirects stdout and stderr to a file by appending them to the existing 
+content
+< Redirects input to a command
+<< Called a here document , or heredoc , redirects multiple input lines  
+to a command
+| Redirects output of a command as input to another command
+Let’s practice using redirection operators to see how they work with 
+standard streams. The > operator redirects the standard output stream to a 
+file. Any command that precedes this character will send its output to the 
+specified location. Run the following command directly in your terminal:
+$ echo "Hello World!" > output.txt
+Bash Basics   19We redirect the standard output stream to a file named output.txt . To 
+see the content of output.txt , simply run the following:
+$ cat output.txt
+Hello World!
+Next, we’ll use the >> operator to append some content to the end of 
+the same file (Listing 1-19).
+$ echo "Goodbye!" >> output.txt
+$ cat output.txt
+Hello World!
+Goodbye!
+Listing 1-19: Appending content to a file
+If we had used > instead of >>, the content of output.txt  would have been 
+overwritten completely with the Goodbye!  text.
+You can redirect both the standard output stream and the standard 
+error stream to a file by using &>. This is useful when you don’t want to send 
+any output to the screen and instead save everything in a logfile (perhaps 
+for later analysis):
+$ ls -l / &> stdout_and_stderr.txt
+To append both the standard output and standard error streams to a 
+file, use the ampersand followed by the double chevron ( &>>).
+What if we want to send the standard output stream to one file and the 
+standard error stream to another? This is also possible using the streams’ 
+file descriptor numbers:
+$ ls -l / 1> stdout.txt 2> stderr.txt
+You may sometimes find it useful to redirect the standard error stream 
+to a file, as we’ve done here, so you can log any errors that occur during 
+runtime. The next example runs a nonexistent command, lzl. This should 
+generate bash errors that will be written into the error.txt  file:
+$ lzl 2> error.txt
+$ cat error.txt
+bash: lzl: command not found
+Notice that you don’t see the error onscreen because bash sends the 
+error to the file instead.
+Next, let’s use the standard input stream. Run the command in 
+Listing 1-20 in the shell to supply the contents of output.txt  as input to the 
+cat command.
+20   Chapter 1$ cat < output.txt
+Hello World!
+Goodbye!
+Listing 1-20: Using a file as a command’s input
+What if we want to redirect multiple lines to a command? Here docu -
+ment redirection ( <<) can help with this (Listing 1-21).
+$ cat << EOF
+  Black Hat Bash
+  by No Starch Press
+EOF
+Black Hat Bash
+by No Starch Press
+Listing 1-21: Here document redirection
+In this example, we pass multiple lines as input to a command. The EOF 
+in this example acts as a delimiter, marking the start and end points of the 
+input. Here document redirection  treats the input as if it were a separate file, 
+preserving line breaks and whitespace.
+The pipe operator ( |) redirects the output of one command and uses it 
+as the input of another. For example, we could run the ls command on the 
+root directory and then use another command to extract data from it, as 
+shown in Listing 1-22.
+$ ls -l / | grep "bin"
+lrwxrwxrwx   1 root root          7 Mar 10 08:43 bin -> usr/bin
+lrwxrwxrwx   1 root root          8 Mar 10 08:43 sbin -> usr/sbin
+Listing 1-22: Piping command output into another command
+We use ls to print the content of the root directory into the standard 
+output stream, then use a pipe to send it as input to the grep command, 
+which filters out any lines containing the word bin.
+Positional Arguments
+Bash scripts can take positional arguments  (also called parameters ) passed on 
+the command line. Arguments are especially useful, for example, when you 
+want to develop a program that modifies its behavior based on input passed 
+to it by another program or user. Arguments can also change features of the 
+script such as the output format and how verbose it will be during runtime.
+For example, imagine you develop an exploit and send it to a few col -
+leagues, each of whom will use it against a different IP address. Instead of 
+writing a script and asking the user to modify it with their network informa -
+tion, you can write it to take an IP address argument and then act against 
+this input to avoid having to modify the source code in each case.
+Bash Basics   21A bash script can access arguments passed to it on the command line 
+by using the variables $1, $2, and so on. The number represents the order in 
+which the argument was entered. To illustrate this, the script in Listing 1-23 
+takes in an argument (an IP address or domain name) and performs a ping 
+test against it by using the ping utility. Save this file as ping_with_arguments.sh .
+ping_with  
+_arguments.sh#!/bin/bash
+# This script will ping any address provided as an argument.
+SCRIPT_NAME="${0}"
+TARGET="${1}"
+echo "Running the script ${SCRIPT_NAME}..."
+echo "Pinging the target: ${TARGET}..."
+ping "${TARGET}"
+Listing 1-23: A script that accepts command line input
+This script assigns the first positional argument to the variable TARGET . 
+Notice, also, that the argument ${0} is assigned to the SCRIPT_NAME  variable. This 
+argument contains the script’s name (in this case, ping_with_arguments.sh ).
+To run this script, use the commands in Listing 1-24.
+$ chmod u+x ping_with_arguments.sh
+$ ./ping_with_arguments.sh nostarch .com
+Running the script ping_with_arguments.sh...
+Pinging the target nostarch .com . ..
+PING nostarch .com (104.20.120.46) 56(84) bytes of data.
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=1 ttl=57 time=6.89 ms
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=2 ttl=57 time=4.16 ms
+--snip--
+Listing 1-24: Passing arguments to a script
+This script will perform a ping command against the domain nostarch  
+.com passed to it on the command line. The value is assigned to the $1 vari-
+able; if we passed another argument, it would get assigned to the second 
+variable, $2. Use ctrl -C to exit this script, as ping may run indefinitely on 
+some operating systems.
+What if you want to access all arguments? You can do so using the vari -
+able $@. Also, using $#, you can get the total number of arguments passed. 
+Listing 1-25 demonstrates how this works.
+#!/bin/bash
+echo "The arguments are: $@"
+echo "The total number of arguments is: $#"
+Listing 1-25: Retrieving all arguments and the total number of arguments
+22   Chapter 1Save this script to a file named show_args.sh  and run it as follows:
+$ chmod u+x show_args.sh
+$ ./show_args.sh "hello" "world"
+The arguments are: hello world
+The total number of arguments is: 2
+Table 1-5  summarizes the variables related to positional arguments.
+Table 1-5:  Special Variables Related to Positional Arguments
+Variable Description
+$0 The name of the script file
+$1, $2, $3,  .  .  . Positional arguments
+$# The number of passed positional arguments
+$* All positional arguments
+$@ All positional arguments, where each argument is individually quoted
+When a script uses "$*" with the quotes included, bash will expand 
+arguments into a single word. For instance, the following example groups 
+the arguments into one word:
+$ ./script.sh "1" "2" "3"
+1 2 3
+When a script uses "$@" (again including the quotes), it will expand 
+arguments into separate words:
+$ ./script.sh "1" "2" "3"
+1
+2
+3
+In most cases, you will want to use "$@" so that every argument is treated 
+as an individual word.
+The following script demonstrates how to use these special variables in 
+a for loop:
+#!/bin/bash
+# Change "$@" to "$*" to observe behavior.
+for args in "$@"; do
+    echo "${args}"
+done
+Input Prompting
+Some bash scripts don’t take any arguments during execution. However, 
+they may need to ask the user for information in an interactive way and have 
+Bash Basics   23the response feed into their runtime. In these cases, we can use the read 
+command. You often see applications use input prompting  when attempting 
+to install software, asking the user to enter yes to proceed or no to cancel 
+the operation.
+In the bash script in Listing 1-26, we ask the user for their first and last 
+names and then print these to the standard output stream.
+input 
+_prompting.sh#!/bin/bash
+# Takes input from the user and assigns it to variables
+echo "What is your first name?"
+read -r firstname
+echo "What is your last name?"
+read -r lastname
+echo "Your first name is ${firstname} and your last name is ${lastname}"
+Listing 1-26: Prompting a user for input
+Save and run this script as input_prompting.sh :
+$ chmod u+x input_prompting.sh
+$ ./input_prompting.sh
+What is your first name?
+John
+What is your last name?
+Doe
+Your first name is John and your last name is Doe
+Notice that you are prompted to enter information that then gets 
+printed.
+Exit Codes
+Bash commands return exit codes , which indicate whether the execution of 
+the command succeeded. Exit codes fall in the 0 to 255 range, where 0 means 
+success, 1 means failure, 126 means that the command was found but is not 
+executable, and 127 means the command was not found. The meaning of any 
+other number depends on the specific command being used and its logic.
+Checking Exit Codes
+To see exit codes in action, save the script in Listing 1-27 to a file named 
+exit_codes.sh  and run it.
+#!/bin/bash
+# Experimenting with exit codes
+24   Chapter 1ls -l > /dev/null
+echo "The exit code of the ls command was: $?"
+lzl 2> /dev/null
+echo "The exit code of the non-existing lzl command was: $?"
+Listing 1-27: Using exit codes to determine a command’s success
+We use the special variable $? with the echo command to return the exit 
+codes of the executed commands ls and lzl. We also redirect their standard 
+output and standard error streams to the file /dev/null , a special device file 
+that discards any data sent to it. When you want to silence commands, you 
+can redirect their output to it.
+You should see output like the following:
+$ ./exit_codes.sh
+The exit code of the ls command was: 0
+The exit code of the non-existing lzl command was: 127
+We receive two distinct exit codes, one for each command. The first 
+command returns 0 (success), and the second returns 127 (command 
+not found).
+WARNING  Use /dev/null  with caution. You may miss out on important errors if you choose to 
+redirect output to it. When in doubt, redirect standard streams such as standard out -
+put and standard error to a dedicated logfile instead.
+To understand why you might want to use exit codes, imagine you’re 
+trying to download a 1GB file from the internet by using bash. It might be 
+wise to first check whether the file already exists on the filesystem in case 
+someone ran the script and retrieved it. Also, you might want to check that 
+you have enough free space on the disk before attempting the download. 
+By running commands and looking at their returned exit codes, you can 
+decide whether to proceed with the file download.
+Setting a Script’s Exit Code
+You can set the exit code of a script by using the exit command followed by 
+the code number, as shown in Listing 1-28.
+#!/bin/bash
+# Sets the exit code of the script to be 223
+echo "Exiting with exit code: 223"
+exit 223
+Listing 1-28: Setting a script’s exit code
+Save this script as set_exit_code.sh  and run it on the command line. Then 
+use the special variable $? to see the exit code it returns:
+Bash Basics   25$ chmod u+x set_exit_code.sh
+$ ./set_exit_code.sh
+Exiting with exit code: 223
+echo $?
+223
+You can use the $? variable to check the returned exit code not only of 
+a script but also of individual commands:
+$ ps -ef
+$ echo $?
+0
+Exit codes are important; they can be used in a series of scripts that 
+call one another or within the same script, to control the logical flow of the 
+code execution.
+Exercise 1: Recording Your Name and the Date
+Write a script that does the following:
+Security Relevance Score: 2
+Word Count: 2571
+Extracted: 2025-06-13 23:40:24
+
+---
+
+Control Operators
+Control operators  in bash are tokens that perform a control function. Table 1-3 
+gives an overview of control operators.
+Bash Basics   17Table 1-3: Bash Control Operators
+Operator Description
+& Sends a command to the background  .
+&& Used as a logical AND  .  The second command in the expression will 
+be evaluated only if the first command evaluates to true  .
+( and ) Used for command grouping  .
+; Used as a list terminator  .  A command following the terminator will run 
+after the preceding command has finished, regardless of whether it 
+evaluates to true or not  .
+;; Ends a case statement  .
+| Redirects the output of a command as input to another command  .
+|| Used as a logical OR  .  The second command will run if the first one 
+evaluates to false  .
+Let’s see some of these control operators in action. The & operator 
+sends a command to the background. If you have a list of commands to 
+run, as in Listing 1-18, sending the first command to the background will allow bash to continue to the next line even if the previous command hasn’t finished its work.
+#!/bin/bash
+# This script will send the sleep command to the background.
+echo "Sleeping for 10 seconds..."
+1 sleep 10 &
+# Creates a file
+echo "Creating the file test123"
+touch test123
+# Deletes a file
+echo "Deleting the file test123"
+rm test123
+Listing 1-18: Sending a command to the background so execution can move to the next line
+Commands that are long-running are often sent to the background to 
+prevent scripts from hanging 1 . You’ll learn about sending commands to 
+the background in more depth when we discuss job control in Chapter  2.
+The && operator allows us to perform an AND operation between two 
+commands. In the following example, the file test123  will be created only if 
+the first command is successful:
+touch test && touch test123
+18   Chapter 1The () operator allows us to group commands so they act a single unit 
+when we need to redirect them together:
+(ls; ps)
+This is generally useful when you need to redirect results from multiple 
+commands to a stream, as shown in “Redirection Operators,” next.
+The ; operator allows us to run multiple commands regardless of their 
+exit status:
+ls; ps; whoami
+As a result, each command is executed one after the other, as soon as 
+the previous one finishes.
+The || operator allows us to chain commands together using an OR 
+operation:
+lzl || echo "the lzl command failed"
+In this example, the echo command will be executed only if the first 
+command fails.
+Redirection Operators
+The three standard streams we highlighted earlier can be redirected from 
+one program to another. Redirection  is taking output from one command 
+or script and using it as input to another script or file for writing purposes. 
+Table 1-4  describes the available redirection operators.
+Table 1-4:  Redirection Operators
+Operator Description
+> Redirects stdout to a file
+>> Redirects stdout to a file by appending it to the existing content
+&> or >& Redirects stdout and stderr to a file
+&>> Redirects stdout and stderr to a file by appending them to the existing 
+content
+< Redirects input to a command
+<< Called a here document , or heredoc , redirects multiple input lines  
+to a command
+| Redirects output of a command as input to another command
+Let’s practice using redirection operators to see how they work with 
+standard streams. The > operator redirects the standard output stream to a 
+file. Any command that precedes this character will send its output to the 
+specified location. Run the following command directly in your terminal:
+$ echo "Hello World!" > output.txt
+Bash Basics   19We redirect the standard output stream to a file named output.txt . To 
+see the content of output.txt , simply run the following:
+$ cat output.txt
+Hello World!
+Next, we’ll use the >> operator to append some content to the end of 
+the same file (Listing 1-19).
+$ echo "Goodbye!" >> output.txt
+$ cat output.txt
+Hello World!
+Goodbye!
+Listing 1-19: Appending content to a file
+If we had used > instead of >>, the content of output.txt  would have been 
+overwritten completely with the Goodbye!  text.
+You can redirect both the standard output stream and the standard 
+error stream to a file by using &>. This is useful when you don’t want to send 
+any output to the screen and instead save everything in a logfile (perhaps 
+for later analysis):
+$ ls -l / &> stdout_and_stderr.txt
+To append both the standard output and standard error streams to a 
+file, use the ampersand followed by the double chevron ( &>>).
+What if we want to send the standard output stream to one file and the 
+standard error stream to another? This is also possible using the streams’ 
+file descriptor numbers:
+$ ls -l / 1> stdout.txt 2> stderr.txt
+You may sometimes find it useful to redirect the standard error stream 
+to a file, as we’ve done here, so you can log any errors that occur during 
+runtime. The next example runs a nonexistent command, lzl. This should 
+generate bash errors that will be written into the error.txt  file:
+$ lzl 2> error.txt
+$ cat error.txt
+bash: lzl: command not found
+Notice that you don’t see the error onscreen because bash sends the 
+error to the file instead.
+Next, let’s use the standard input stream. Run the command in 
+Listing 1-20 in the shell to supply the contents of output.txt  as input to the 
+cat command.
+20   Chapter 1$ cat < output.txt
+Hello World!
+Goodbye!
+Listing 1-20: Using a file as a command’s input
+What if we want to redirect multiple lines to a command? Here docu -
+ment redirection ( <<) can help with this (Listing 1-21).
+$ cat << EOF
+  Black Hat Bash
+  by No Starch Press
+EOF
+Black Hat Bash
+by No Starch Press
+Listing 1-21: Here document redirection
+In this example, we pass multiple lines as input to a command. The EOF 
+in this example acts as a delimiter, marking the start and end points of the 
+input. Here document redirection  treats the input as if it were a separate file, 
+preserving line breaks and whitespace.
+The pipe operator ( |) redirects the output of one command and uses it 
+as the input of another. For example, we could run the ls command on the 
+root directory and then use another command to extract data from it, as 
+shown in Listing 1-22.
+$ ls -l / | grep "bin"
+lrwxrwxrwx   1 root root          7 Mar 10 08:43 bin -> usr/bin
+lrwxrwxrwx   1 root root          8 Mar 10 08:43 sbin -> usr/sbin
+Listing 1-22: Piping command output into another command
+We use ls to print the content of the root directory into the standard 
+output stream, then use a pipe to send it as input to the grep command, 
+which filters out any lines containing the word bin.
+Positional Arguments
+Bash scripts can take positional arguments  (also called parameters ) passed on 
+the command line. Arguments are especially useful, for example, when you 
+want to develop a program that modifies its behavior based on input passed 
+to it by another program or user. Arguments can also change features of the 
+script such as the output format and how verbose it will be during runtime.
+For example, imagine you develop an exploit and send it to a few col -
+leagues, each of whom will use it against a different IP address. Instead of 
+writing a script and asking the user to modify it with their network informa -
+tion, you can write it to take an IP address argument and then act against 
+this input to avoid having to modify the source code in each case.
+Bash Basics   21A bash script can access arguments passed to it on the command line 
+by using the variables $1, $2, and so on. The number represents the order in 
+which the argument was entered. To illustrate this, the script in Listing 1-23 
+takes in an argument (an IP address or domain name) and performs a ping 
+test against it by using the ping utility. Save this file as ping_with_arguments.sh .
+ping_with  
+_arguments.sh#!/bin/bash
+# This script will ping any address provided as an argument.
+SCRIPT_NAME="${0}"
+TARGET="${1}"
+echo "Running the script ${SCRIPT_NAME}..."
+echo "Pinging the target: ${TARGET}..."
+ping "${TARGET}"
+Listing 1-23: A script that accepts command line input
+This script assigns the first positional argument to the variable TARGET . 
+Notice, also, that the argument ${0} is assigned to the SCRIPT_NAME  variable. This 
+argument contains the script’s name (in this case, ping_with_arguments.sh ).
+To run this script, use the commands in Listing 1-24.
+$ chmod u+x ping_with_arguments.sh
+$ ./ping_with_arguments.sh nostarch .com
+Running the script ping_with_arguments.sh...
+Pinging the target nostarch .com . ..
+PING nostarch .com (104.20.120.46) 56(84) bytes of data.
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=1 ttl=57 time=6.89 ms
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=2 ttl=57 time=4.16 ms
+--snip--
+Listing 1-24: Passing arguments to a script
+This script will perform a ping command against the domain nostarch  
+.com passed to it on the command line. The value is assigned to the $1 vari-
+able; if we passed another argument, it would get assigned to the second 
+variable, $2. Use ctrl -C to exit this script, as ping may run indefinitely on 
+some operating systems.
+What if you want to access all arguments? You can do so using the vari -
+able $@. Also, using $#, you can get the total number of arguments passed. 
+Listing 1-25 demonstrates how this works.
+#!/bin/bash
+echo "The arguments are: $@"
+echo "The total number of arguments is: $#"
+Listing 1-25: Retrieving all arguments and the total number of arguments
+22   Chapter 1Save this script to a file named show_args.sh  and run it as follows:
+$ chmod u+x show_args.sh
+$ ./show_args.sh "hello" "world"
+The arguments are: hello world
+The total number of arguments is: 2
+Table 1-5  summarizes the variables related to positional arguments.
+Table 1-5:  Special Variables Related to Positional Arguments
+Variable Description
+$0 The name of the script file
+$1, $2, $3,  .  .  . Positional arguments
+$# The number of passed positional arguments
+$* All positional arguments
+$@ All positional arguments, where each argument is individually quoted
+When a script uses "$*" with the quotes included, bash will expand 
+arguments into a single word. For instance, the following example groups 
+the arguments into one word:
+$ ./script.sh "1" "2" "3"
+1 2 3
+When a script uses "$@" (again including the quotes), it will expand 
+arguments into separate words:
+$ ./script.sh "1" "2" "3"
+1
+2
+3
+In most cases, you will want to use "$@" so that every argument is treated 
+as an individual word.
+The following script demonstrates how to use these special variables in 
+a for loop:
+#!/bin/bash
+# Change "$@" to "$*" to observe behavior.
+for args in "$@"; do
+    echo "${args}"
+done
+Input Prompting
+Some bash scripts don’t take any arguments during execution. However, 
+they may need to ask the user for information in an interactive way and have 
+Bash Basics   23the response feed into their runtime. In these cases, we can use the read 
+command. You often see applications use input prompting  when attempting 
+to install software, asking the user to enter yes to proceed or no to cancel 
+the operation.
+In the bash script in Listing 1-26, we ask the user for their first and last 
+names and then print these to the standard output stream.
+input 
+_prompting.sh#!/bin/bash
+# Takes input from the user and assigns it to variables
+echo "What is your first name?"
+read -r firstname
+echo "What is your last name?"
+read -r lastname
+echo "Your first name is ${firstname} and your last name is ${lastname}"
+Listing 1-26: Prompting a user for input
+Save and run this script as input_prompting.sh :
+$ chmod u+x input_prompting.sh
+$ ./input_prompting.sh
+What is your first name?
+John
+What is your last name?
+Doe
+Your first name is John and your last name is Doe
+Notice that you are prompted to enter information that then gets 
+printed.
+Exit Codes
+Bash commands return exit codes , which indicate whether the execution of 
+the command succeeded. Exit codes fall in the 0 to 255 range, where 0 means 
+success, 1 means failure, 126 means that the command was found but is not 
+executable, and 127 means the command was not found. The meaning of any 
+other number depends on the specific command being used and its logic.
+Checking Exit Codes
+To see exit codes in action, save the script in Listing 1-27 to a file named 
+exit_codes.sh  and run it.
+#!/bin/bash
+# Experimenting with exit codes
+24   Chapter 1ls -l > /dev/null
+echo "The exit code of the ls command was: $?"
+lzl 2> /dev/null
+echo "The exit code of the non-existing lzl command was: $?"
+Listing 1-27: Using exit codes to determine a command’s success
+We use the special variable $? with the echo command to return the exit 
+codes of the executed commands ls and lzl. We also redirect their standard 
+output and standard error streams to the file /dev/null , a special device file 
+that discards any data sent to it. When you want to silence commands, you 
+can redirect their output to it.
+You should see output like the following:
+$ ./exit_codes.sh
+The exit code of the ls command was: 0
+The exit code of the non-existing lzl command was: 127
+We receive two distinct exit codes, one for each command. The first 
+command returns 0 (success), and the second returns 127 (command 
+not found).
+WARNING  Use /dev/null  with caution. You may miss out on important errors if you choose to 
+redirect output to it. When in doubt, redirect standard streams such as standard out -
+put and standard error to a dedicated logfile instead.
+To understand why you might want to use exit codes, imagine you’re 
+trying to download a 1GB file from the internet by using bash. It might be 
+wise to first check whether the file already exists on the filesystem in case 
+someone ran the script and retrieved it. Also, you might want to check that 
+you have enough free space on the disk before attempting the download. 
+By running commands and looking at their returned exit codes, you can 
+decide whether to proceed with the file download.
+Setting a Script’s Exit Code
+You can set the exit code of a script by using the exit command followed by 
+the code number, as shown in Listing 1-28.
+#!/bin/bash
+# Sets the exit code of the script to be 223
+echo "Exiting with exit code: 223"
+exit 223
+Listing 1-28: Setting a script’s exit code
+Save this script as set_exit_code.sh  and run it on the command line. Then 
+use the special variable $? to see the exit code it returns:
+Bash Basics   25$ chmod u+x set_exit_code.sh
+$ ./set_exit_code.sh
+Exiting with exit code: 223
+echo $?
+223
+You can use the $? variable to check the returned exit code not only of 
+a script but also of individual commands:
+$ ps -ef
+$ echo $?
+0
+Exit codes are important; they can be used in a series of scripts that 
+call one another or within the same script, to control the logical flow of the 
+code execution.
+Exercise 1: Recording Your Name and the Date
+Write a script that does the following:

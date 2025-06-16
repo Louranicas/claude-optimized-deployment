@@ -1,0 +1,80 @@
+# Rust Development Container
+# Optimized for Ryzen 7 7800X3D with parallel builds
+FROM rust:1.75-slim-bullseye
+
+# Install essential development tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    git \
+    curl \
+    wget \
+    vim \
+    gdb \
+    valgrind \
+    strace \
+    htop \
+    tree \
+    jq \
+    ca-certificates \
+    python3 \
+    python3-pip \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure Rust for performance on Ryzen 7 7800X3D
+ENV RUSTFLAGS="-C target-cpu=znver3 -C opt-level=3 -C lto=thin" \
+    CARGO_BUILD_JOBS=16 \
+    CARGO_TERM_COLOR=always \
+    RUST_BACKTRACE=1
+
+# Install Rust components for development
+RUN rustup component add \
+    clippy \
+    rustfmt \
+    rust-src \
+    rust-analyzer \
+    && rustup target add \
+    x86_64-unknown-linux-musl \
+    wasm32-unknown-unknown
+
+# Install useful Rust tools
+RUN cargo install \
+    cargo-watch \
+    cargo-edit \
+    cargo-audit \
+    cargo-outdated \
+    cargo-tree \
+    cargo-expand \
+    cargo-udeps \
+    cargo-machete \
+    sccache \
+    && rm -rf /usr/local/cargo/registry
+
+# Configure sccache for build acceleration
+ENV RUSTC_WRAPPER=sccache \
+    SCCACHE_DIR=/cache/sccache \
+    SCCACHE_CACHE_SIZE="2G"
+
+# Create development user
+RUN groupadd -r rustdev && useradd -r -g rustdev -u 1000 rustdev \
+    && mkdir -p /workspace /cache/sccache /cache/cargo \
+    && chown -R rustdev:rustdev /workspace /cache
+
+# Setup Cargo cache
+ENV CARGO_HOME=/cache/cargo
+RUN chown -R rustdev:rustdev /cache/cargo
+
+USER rustdev
+WORKDIR /workspace
+
+# Pre-compile common dependencies for faster builds
+COPY --chown=rustdev:rustdev containers/development/rust-precompile/Cargo.toml /tmp/precompile/
+RUN cd /tmp/precompile && cargo build --release && rm -rf /tmp/precompile
+
+EXPOSE 8000 8080 3000
+
+CMD ["bash"]

@@ -1,0 +1,50 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 2014 - At this point, I will only describe the sel subcommand for analyzing XPath expressions. The following command first defines the ns abbreviation for the default namespace in *.vbox files. -t -v 'xpath applies the specified XPath expression to the XML file and outputs the resulting value (-v for value). -n adds a newline to the output.
+$ xml|xmlstarlet sel -N ns='http://www.virtualbox.org/' \          -t -v  './/ns:HardDisk/@location' -n vbox/*.vbox  Kali-Linux-2022.2-virtualbox-amd64-disk001.vdi  kali-english.vdi  ... 
+You can find information on the rather unintuitive syntax of xml sel via xml sel --help. Further documentation can be found at https://xmlstar.sourceforge.net/docs.php.
+Security Relevance Score: 5
+Word Count: 528
+Extracted: 2025-06-13 23:41:06
+
+---
+
+At this point, I will only describe the sel subcommand for analyzing XPath expressions. The following command first defines the ns abbreviation for the default namespace in *.vbox files. -t -v 'xpath applies the specified XPath expression to the XML file and outputs the resulting value (-v for value). -n adds a newline to the output.
+$ xml|xmlstarlet sel -N ns='http://www.virtualbox.org/' \          -t -v  './/ns:HardDisk/@location' -n vbox/*.vbox  Kali-Linux-2022.2-virtualbox-amd64-disk001.vdi  kali-english.vdi  ... 
+You can find information on the rather unintuitive syntax of xml sel via xml sel --help. Further documentation can be found at https://xmlstar.sourceforge.net/docs.php.
+
+
+
+
+
+
+
+
+
+10.7    INI Files
+INI files are text files for storing key-value pairs. An INI file can be divided into various sections by using [section]:
+; File config.ini[server]hostname = example.comport = 8080[data]imagePath = /mnt/imagesdbName = mydb 
+INI files are often used to store configuration data. Only semicolons are provided for marking comments. Especially in the Linux environment, however, # is also mostly accepted.
+10.7.1    Python
+The easiest way to read INI files in Python is to use the ConfigParser module. The following listing shows the intuitive application. Note that the parser always returns strings. If you want to use port number 8080 as a number, you must perform an appropriate conversion using int().
+# Sample file read-config.pyfrom configparser import ConfigParserconfig = ConfigParser()config.read('config.ini')print(config['server']['port'])   # output: 8080 
+10.7.2    PowerShell
+Although INI files are quite commonly used on Windows, PowerShell lacks a cmdlet to easily read this type of file. In many cases, you can simple use the following commands:
+> $config = Get-Content 'config.ini' |            Select-String '^.*=.*[^=]*$' |            ConvertFrom-StringData> $config.port  8080 
+Get-Content reads the file and delivers it line by line. Select-String uses a regular expression to filter out all lines that match the key = value pattern. ConvertFrom-StringData turns the key-value pairs into a hash table.
+However, this simple approach reaches its limits when the same keys are used in different groups. If you want to analyze complex INI files without falling into syntactical traps, you’re better off using the popular PsIni extension, available at https://www.powershellgallery.com/packages/PsIni.
+10.7.3    Bash
+Like PowerShell, Bash lacks functions to parse INI files. In many Linux distributions, you can use crudini for this purpose. However, you must install the package of the same name beforehand. However, note that this package is itself a Python script! crudini therefore only works if Python is also installed.
+To read a single value, you can simply pass the INI file, the section name, and the key name. You can find various other types of applications in crudini --help.
+$ crudini --get config.ini server port  8080 
+
+
+
+
+
+
+
+
+11    Running Scripts AutomaticallyMany scripts aim to automate admin tasks such as running backups, uploading changed/new files, monitoring, and logging servers. This chapter describes ways to run scripts automatically on a regular basis. I am going to focus primarily on two processes: cron for Linux and Microsoft Windows Task Scheduler. I will also briefly discuss mechanisms for tracking changes in the file system “live,” so to speak, and responding immediately.
+Prerequisites for This Chapter
+The automation of scripts is detached from the choice of script language. In this respect, you can read this chapter largely independently from the rest of this book.

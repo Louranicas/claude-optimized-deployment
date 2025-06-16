@@ -1,0 +1,616 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 1 - Scripting: Doing One Thing
+This short introductory chapter addresses th e question, “What is scripting?” We’ll cover
+the differences between “full-fledged” pr ogramming languages and classic scripting
+languages and show you right away how thes e boundaries (especially with Python) are
+fluid.
+In this chapter, I want to go into a bit of the background and philos ophy of scripting. I
+think this background is especially impo rtant if you’ve previously developed code
+using a language like Java or C#. You have learned to use the correct data types and to
+structure your code in an object-oriented wa y. You’ve followed all the rules of the art as
+best you can.
+At this point, you might be wondering: Wh at is wrong with also  developing a backup
+script or a test program for a REST API in a strictly ty ped programming language? What
+are the advantages of a syntac tically much more generous script language like Bash,
+which knows strings as the only data type ? Why make friends with PowerShell when it
+uses the same .NET foundation as C#? We’ll be answering these questions as we discuss
+the benefits of each scripting la nguage in the co ming sections. 
+1.1    What Does Scripting Mean?
+Scripting means the following: 
+/L50189You can write 20 lines of code to create a backup of your database once a day, includ-
+ing encrypting and uploading this data to cloud storage.
+/L50189With a tiny program, you can reduce co untless wedding photos to a maximum res-
+olution of 1024×768 pixels, including wate rmarking and uploadin g the files to a hid-
+den directory on your web server so that your customers can view and select their
+favorite images via your website.
+/L50189You can easily scan all the computers on your local network for a specific security
+vulnerability or an outdated software version.
+/L50189You can capture, for instance, the volume of  gas stored in Germany, the price fluctu-
+ations of the next notebook you want to buy, or the latest COVID-19 case numbers
+from public websites and repr esent this data in charts.
+/L50189You can filter out the 20 error messages relevant to you from a log file of 50,000
+lines.
+1 Scripting: Doing One Thing
+301.1.1    Scripting versus Programming
+Scripts, too, are “only” progra ms. However, they differ from  large software projects in
+the way they are programmed, the tools/ components used, and their objectives:
+/L50189Typically, scripts perform mana geable, relatively simple ta sks. They often help auto-
+mate administrative tasks or at least perform them more efficiently.
+/L50189Scripts are used in text mode (in the te rminal) or executed automatically in the
+background. No graphical user interface (GUI) exists.
+/L50189Special script languages are used for prog ramming, which make uncomplicated, effi-
+cient development possible. Script languages require neither elaborate develop-
+ment tools nor compilers. The syntax is  minimalistic (sometimes, unfortunately,
+also outdated and it can take some getting used to). Central principles familiar from
+large projects, such as object orientation or strict type control of variables, play a
+subordinate role or cannot be implemented at all.
+/L50189Popular script languages are characterized by hu ge offering of commands or exten-
+sion modules. This diversity helps to pe rform basic operations (read and evaluate
+files, set up users, perform network operatio ns, etc.). When it comes to scripting, you
+don’t have time to reinvent the wheel! You should rather make use of a huge tool-
+box of existing components and building blocks as best you can.
+/L50189The code size of scripts is small, typically under 100 lines (not counting commentsand strings).
+In large software projects, an extremely im portant goal is that code be developed
+“cleanly”—that is, the code can be understo od by all members of the team and later
+extended or modified. In othe r words, all guidelines of modern software design are
+observed.
+Scripting, on the ot her hand, is about solving a sma ll problem quickly and pragmati-
+cally ( getting  things  done ). Of course, you shouldn’t go out of your way to develop
+sloppy scripts! Scripts should also use meaningful variable names, be documented
+with comments, contain basic error protection , and so on. But the priorities and devel-
+opment goals of a script that should be re ady within a day if possible are quite different
+from the priorities and development goals for a software project whose code may need
+to be maintained for a decade.
+1.1.2    Glue Languages and Glue Code
+In the context of scripting, sometimes, you’ll hear talk of “glue code.” Accordingly,
+scripting languages are some times referred to as “glue languages.” What do these
+terms mean?
+In larger projects, the proverbial glue  is often necessary to connect independent or
+incompatible software compon ents. In the simplest case, a script calls some external
+311.2 Scripting Languages
+commands that in themselves  have nothing to do with each other: One creates a
+backup of a database, the second encrypts th e resulting file, the third transfers the file
+to another server via HTTP, and so on. Each  of the commands used was developed inde-
+pendently of all the others. But by connect ing the commands through your script, a
+new meaningful component is created.
+Glue code is sometimes also necessary to efficiently apply modern software develop-
+ment tools. For example, let’s say your team  is developing a large project in JavaScript
+using tools like Git (version control) and Docker (contain ers for local testing environ-
+ments). Each time a team member completes (“checks in”) a new test version, the cur-
+rent code should be transferre d (“deployed”) to an external test server. This step could
+be performed by a small script.
+Theoretically, you can perform such tasks with any programming language. However,
+scripting languages are particularly well suited for these tasks because of their simplesyntaxes, minimal development overhead, and the fact that scripts create few (or even
+no) new project dependencies.
+1.1.3    Do One Thing and Do It Well
+Unix programs were developed according to the motto “ Do one thing  and  do it well ,”
+f o r m u l a t e d  b y  D o u g  M c I l r o y ,  a n d  t h e s e  p r o g r a m s  a r e  s t i l l  a s s e s s e d  b y  t h i s  s t a n d a r d
+today. When Unix became Linux and macOS,  what was then called a “program” is now
+called a “command.” But the principl e has not changed: A command like ls, grep , or
+find  is expected to perform a very specific task and to do that task really well.
+What does Unix’s motto have to do with scripting? On Linux and macOS, when you
+develop scripts in the Bash or Zsh languages,  you do so on a foundation of several hun-
+dred commands that meet the Unix recommendation. You would be well advised to
+adopt the motto for your own projects as well. Write scripts that perform one task
+neatly.
+1.2    Scripting Languages
+In purely formal terms, scri pting languages differ from other, “higher-level” program-
+ming languages in that the code is interpre ted. Thus, the code is formulated in a text
+file and then executed directly by an inte rpreter in Bash, PowerS hell, or Python. The
+code does not need to be compiled (i.e., converted to a binary representation) before-
+hand.
+This concept has an advantage in that sc ripts can be executed immediately without
+lengthy preparation work, which speeds up the development process.
+However, using an interpreter has a disadvan tage in that script s usually run somewhat
+more slowly than compiled programs. For this  reason, a scripting language is rarely the
+1 Scripting: Doing One Thing
+32ideal choice for developing computationally  intensive algorithms. Since many scripts
+consist mainly of calls to other commands, the loss of efficiency due to the missing
+compiler does not matter at all.
+All Linux shells are considered  “classic” scripting languages,  such as Bourne Shell, the
+Korn Shell, Bash, and Zsh. A shell is actua lly a command interprete r, that is, a program
+that accepts and executes co mmands. If several such commands are stored in a text
+file, the original form of a script is created.
+Over time, countless scriptin g languages were developed that offered more syntactic
+options than traditional shells  and were often optimized for specific tasks. These other
+languages include, for example, JavaScript, Python, PHP, and Tcl.
+In the Windows world, the unspeakable cmd.exe  program originally took over the role
+of the shell. Even now, *.bat  files based on this program are still in use today despite
+their extremely modest scripting capabiliti es. This program was followed by VBScript,
+the VBA language optimized for Microsof t Office, and finally PowerShell, which
+brought Microsoft the success they had been  hoping for: PowerS hell is now considered
+the language when it comes to maintainin g and administering large Windows network
+installations.
+Compilers for Scripting Languages
+The interpreter/compiler criterion was esta blished in the past to distinguish between
+scripting and other languages, but this dist inction is obsolete today. Compilers now
+exist for many languages whose code was init ially executed by an interpreter. These
+compilers are often just-in-time  compilers  that compile the code immediately before
+execution and are thus unnoticed by users. This invisibility is true for JavaScript, PHP,
+and Python, among others.
+1.2.1    Bash and Zsh
+Obviously, I cannot cover all popular scripting languages in this book. I’ll instead focus
+on three (with Zsh, four) languages that ar e most important for administrative tasks
+and in DevOps environments. In  the following sections, I’ll briefly introduce these lan-
+guages to you.
+The name Bash  is an abbreviation for Bourne  Again  Shell . The Bourne shell was
+immensely popular for Unix more than 30 years ago. However, this program was not
+available in an open-s ource license, which led to the development of the largely com-
+patible Bash, which later became the stan dard shell for most Linux distributions.
+When scripting  is mentioned in the context of a Linux environment without further
+explanation, the scripting language is almo st always Bash. Whether server processes
+are being started, network connections set up, or firewall rules changed, quite often
+331.2 Scripting Languages
+Bash scripts are already used at the operatin g system level for this  purpose. Therefore,
+also running your own tasks using Bash makes sense.
+The widespread use of Bash sometimes makes one overlook the fact that its roots and
+syntax are old. Accordingly, the syntax of  the language is sometimes inconsistent,
+sometimes simply atrocious. Instead of simple functions,  countless special characters
+must be used to perform quite trivial tasks (e.g., edit strings or perform calculations).
+Besides strings and arrays, no other data type s exist. Object orientation is an unknown
+concept in Bash anyway.
+On the plus side, an almost limitless select ion of Unix tools can be used and combined
+in scripts. So, the strength of Bash lies not in its linguistic capabilities but in its com-
+mands, which you can easily call in scripts.  (And as mentioned earlier, these commands
+were developed based on the motto “ do one thing ....”)
+However, I must mention also that beginne rs can find becoming accustomed to the
+world of Bash and Linux commands quite difficult. While (almost) every command is
+well documented on its own, no central overview exists.
+Bash versus Zsh
+Zsh is largely compatible with Bash. With regard to script programming, the differ-
+ences are minimal, and of course, you ca n call the same commands in both shells.
+However, when used interactively, Zsh stan ds out for its many advantages and better
+extensibility. Thus, Zsh is gaining more an d more fans in the Linux world and is even
+used as the default shell by some distribu tions. (For other distributions, Zsh can be
+installed in a few simple steps.)
+macOS switched from Bash to Zsh in 2019. A pple’s motivation had less to do with tech-
+nical merits and more to do with licensing issues: Current versions of Bash use the GPL
+3 license, which is avoided by Apple. Zsh, on  the other hand, has a more liberal, BSD-like
+license.
+As far as this book is concerned, whether yo u prefer Bash or Zsh doesn’t matter much.
+I’ll provide a brief overview of their main  advantages and disadvantages in Chapter 3 ,
+Section 3.4 .
+1.2.2    PowerShell
+Microsoft has long relied on GUIs, not only in the Microsoft Office area, but also for
+server administration. At first glance, this  reliance seemed to be an advantage com-
+pared to Linux: A few mouse clicks are easi er to understand than dubious configura-
+tion files.
+For administrators, however, th is choice has turned into a nightmare: The main prob-
+lem is that configuration work does not scal e. You need ten times longer to administer
+1 Scripting: Doing One Thing
+34ten servers with a single mouse click than to  administer just one server. In contrast to
+Linux, hardly any way existed to automate such work.
+This limitation changed with the launch of PowerShell 2006. Microsoft used this
+opportunity for a new beginning well: Comp ared to Bash, PowerShell scores major
+points with a much more logical syntax. From  a technical point of view, the most inter-
+esting feature of PowerShell is that data is  transported from one command to the next,
+not in text form, but as fu ll-fledged objects. This new approach enables far-reaching
+ways of processing by reading properties an d calling methods. However, the object-ori-
+ented approach only works with commands specially optimized fo r PowerShell, which
+Microsoft refers to as cmdlets . (Calling traditional commands  is also possible but is sub-
+ject to restrictions.)
+Another success factor for Po werShell can be found in its environment: Microsoft has
+started to make many Windows components  and server services fully configurable
+through cmdlets. In the past, only basic setti ngs could be changed via scripts, and other
+options could only be reached via mouse click. Now, the emphasis is on PowerShell  first .
+In addition to the cmdlets provided by default, countless extension modules with
+cmdlets for specific tasks are available on the internet. An active community has grown
+up around PowerShell. Since 2018, PowerShell has also been an open-source project and
+can also be installed on Linux and macOS. However, the cmdlet o fferings available out-
+side the Windows world is much smaller. Ty pical admin tasks (setting up users, chang-
+ing network configuration, etc.) only work  on Windows. Across platforms, PowerShell
+can only be used for tasks th at are not Windows specific.
+1.2.3    Python
+The first Python version was rele ased in 1991. Thus, Python is  almost as old as Bash, the
+first version of which appeared in 1989. Bu t unlike Bash, Python hardly shows its age:
+Python is characterized by an  elegant, well-designed syntax  that still sets standards
+today.
+Python is a scripting language in that its co de was originally execut ed by an interpreter.
+In current versions, however, th e code is first compiled into  an intermediate binary for-
+mat (called byte  code ) for performance reasons. You wo n’t notice any of this effort
+when using Python. In other words, Python behaves like an interpreted language, but it
+very much uses a compil er behind the scenes.
+Python was not primarily designed to automa te administrative op erations but instead
+is rather extremely general purpose. You can equally learn to program or solve AI prob-
+lems with Python!
+A basic concept behind Python is that the la nguage core is very compact. For this pur-
+pose, the language can be easily extended by modules, and these modules are exactly
+why Python is so popular today (also) as a sc ripting language in the sense of this book.
+351.3 The Agony of Choice
+Over time, more and more extension modu les have emerged to use cloud services,
+apply network functions, access databases, and more. For almost any admin task imag-
+inable, a suitable Python module  can be installed in no time!
+However, Python is only moderately suitab le for calling existi ng commands. In this
+respect, the modules are both  a curse and a blessing. Whil e you may already be familiar
+with the commands required for a Bash script, you’ll need  to learn about an adequate
+Python module with similar functions. Seve ral modules might be eligible, and you may
+not clearly see which module is more suitable or which one will be maintained in the
+future. In this respect, the us e of Python is worthwhile espe cially when the task is rea-
+sonably complex, when the advantages of Python compensate fo r the disadvantage of
+a longer familiarizat ion with a particular  additional module.
+1.2.4    Many Similarities, Even More Differences
+Describing three  scripting languages in one book is admittedly an intellectual chal-
+lenge—for the author as well as  for you, the reader! Of course, all three languages are
+characterized by many simila rities, especially true Bash and PowerShell. At the same
+time, however, countless syntactic variatio ns can make rapid switching between lan-
+guages tedious. Thus, one tip: You should use an editor that su pports the respective
+scripting language well because then the edit or will detect most errors or syntax mix-
+ups before your first test runs.
+1.3    The Agony of Choice
+If you’re just entering the world of scripting, you’d probably prefer it if I would tell younow, “Learn language Xxx, it’s good for ever ything.” Unfortunately, the IT world is not
+that simple. Which scripting language is the most suitable or the ideal solution for you
+depends greatly on the task and the operatin g system on which your script is supposed
+to run, for instance:
+/L50189For scripts to administer Windows computer s and networks, PowerShell is definitely
+the best choice. Many Windows-specific functions are best controlled by Power-
+Shell’s own commands and modules.
+/L50189Similarly, Bash (or, almost equivalently, Zsh)  is the ideal language if you want to run
+administrative scripts on Linux ma chines or servers and on macOS.
+/L50189For tasks that are platform-independent and do not depend on operating system-
+specific libraries, PowerShell, Bash, and Py thon are equally suitable. In that case, I
+pragmatically recommend the language you know best or whose environment
+(commands, extension modules) you know best.
+/L50189The greater the complexity of the task; th e more elaborate the control of the code
+(loops, branches, functions, etc.); and th e more extensive the expected amount of
+1 Scripting: Doing One Thing
+36code and the greater the number of variable s and data structures required, the stron-
+ger my tendency is towards Python.
+/L50189If your script runs the risk of turning into a “real” program, with several hundred
+lines of code, the advantages of Python (w ith its clearer syntax and better develop-
+ment tools) outweigh its disadvantages.  However, we’re then moving well beyond
+the scope of this book.
+You must start somewhere: If you’re at home in the Windows environment and want
+to run your scripts there, I would start usin g PowerShell. Similarly, I advise Linux and
+macOS fans to first learn the basics of Ba sh and Zsh, respective ly. (This recommenda-
+tion also applies if you use Windows as yo ur working environment, but you want your
+scripts to run on Linux server s. While this juggling sounds contradictory, in real life,
+this scenario is absolute ly common. Microsoft’s own Azure  cloud runs more Linux
+instances than Windows ones. Nothing wron g with combining the benefits of Win-
+dows on the desktop with th ose of Linux on the server.)
+Once you’re somewhat familiar with Bash  or PowerShell, you should get acquainted
+with Python. Python scores major points wi th its impressively elegant syntax and is
+miles superior to Bash as well as PowerShell in this respect. Howe ver, these advantages
+are more effective for complex,  platform-independent tasks. In this respect, Python is
+not quite a “classic” scripting language but ha s a much more universal objective. If your
+script is primarily intended to call elementary Linux tools (such as find , grep , adduser ,
+and gzip ) or to perform basic Windows admin tasks, Bash or PowerShell are better
+suited for this purpose th an Python, despite all th eir syntax peculiarities.
+Ultimately, the key is simply to start programm ing. In this context, don’t let yourself be
+influenced by the order in which the chapters  appear in this book but instead start with
+whatever chapter seems most logical to you.  When writing, I tried extremely hard to
+conceive all the chapters as  independently as possible. The PowerShell chapter does
+not assume any knowledge of Bash, or vice versa!
+To conclude these first reflections, I have made a very personal, thoroughly subjective
+evaluation of the languages presen ted in this book in Table 1.1 . You’ll notice that
+Python performs very well in this regard. Th is high score doesn’t change the fact that,
+for simple tasks, depending on the operatin g system, Bash or PowerShell are the tools
+that will accomplish your go als the fastest and are theref ore probably the ones you’ll
+use most often. (At least, that’s how I feel.)
+Criterion Bash/Zsh PowerShell Python
+Suitable for Windows 4 10 10
+Suitable for macOS 10 3 10
+Suitable for Linux 10 3 10
+Table 1.1  Personal Rating of Selected Script Languages (0 = Miserable; 10 = Great)
+371.3 The Agony of Choice
+Operating system-specific administrative tasks 10 10 5
+Platform-independent tasks 7 5 10
+Consistent syntax 3 6 10
+Simple call of external commands 10 9 5
+Toolbox size (commands, modules, etc.) 9 5 10
+Development tools/debugging 2 5 8
+Help system/documentation 2 6 8
+Simple, “classic” scripts 8 8 3
+Complex code 2 4 10Criterion Bash/Zsh PowerShell Python
+Table 1.1  Personal Rating of Selected Script Langua ges (0 = Miserable; 10 = Great) (Cont.)
+Security Relevance Score: 6
+Word Count: 3675
+Extracted: 2025-06-13 23:40:21
+
+---
+
+Scripting: Doing One Thing
+This short introductory chapter addresses th e question, “What is scripting?” We’ll cover
+the differences between “full-fledged” pr ogramming languages and classic scripting
+languages and show you right away how thes e boundaries (especially with Python) are
+fluid.
+In this chapter, I want to go into a bit of the background and philos ophy of scripting. I
+think this background is especially impo rtant if you’ve previously developed code
+using a language like Java or C#. You have learned to use the correct data types and to
+structure your code in an object-oriented wa y. You’ve followed all the rules of the art as
+best you can.
+At this point, you might be wondering: Wh at is wrong with also  developing a backup
+script or a test program for a REST API in a strictly ty ped programming language? What
+are the advantages of a syntac tically much more generous script language like Bash,
+which knows strings as the only data type ? Why make friends with PowerShell when it
+uses the same .NET foundation as C#? We’ll be answering these questions as we discuss
+the benefits of each scripting la nguage in the co ming sections. 
+1.1    What Does Scripting Mean?
+Scripting means the following: 
+/L50189You can write 20 lines of code to create a backup of your database once a day, includ-
+ing encrypting and uploading this data to cloud storage.
+/L50189With a tiny program, you can reduce co untless wedding photos to a maximum res-
+olution of 1024×768 pixels, including wate rmarking and uploadin g the files to a hid-
+den directory on your web server so that your customers can view and select their
+favorite images via your website.
+/L50189You can easily scan all the computers on your local network for a specific security
+vulnerability or an outdated software version.
+/L50189You can capture, for instance, the volume of  gas stored in Germany, the price fluctu-
+ations of the next notebook you want to buy, or the latest COVID-19 case numbers
+from public websites and repr esent this data in charts.
+/L50189You can filter out the 20 error messages relevant to you from a log file of 50,000
+lines.
+1 Scripting: Doing One Thing
+301.1.1    Scripting versus Programming
+Scripts, too, are “only” progra ms. However, they differ from  large software projects in
+the way they are programmed, the tools/ components used, and their objectives:
+/L50189Typically, scripts perform mana geable, relatively simple ta sks. They often help auto-
+mate administrative tasks or at least perform them more efficiently.
+/L50189Scripts are used in text mode (in the te rminal) or executed automatically in the
+background. No graphical user interface (GUI) exists.
+/L50189Special script languages are used for prog ramming, which make uncomplicated, effi-
+cient development possible. Script languages require neither elaborate develop-
+ment tools nor compilers. The syntax is  minimalistic (sometimes, unfortunately,
+also outdated and it can take some getting used to). Central principles familiar from
+large projects, such as object orientation or strict type control of variables, play a
+subordinate role or cannot be implemented at all.
+/L50189Popular script languages are characterized by hu ge offering of commands or exten-
+sion modules. This diversity helps to pe rform basic operations (read and evaluate
+files, set up users, perform network operatio ns, etc.). When it comes to scripting, you
+don’t have time to reinvent the wheel! You should rather make use of a huge tool-
+box of existing components and building blocks as best you can.
+/L50189The code size of scripts is small, typically under 100 lines (not counting commentsand strings).
+In large software projects, an extremely im portant goal is that code be developed
+“cleanly”—that is, the code can be understo od by all members of the team and later
+extended or modified. In othe r words, all guidelines of modern software design are
+observed.
+Scripting, on the ot her hand, is about solving a sma ll problem quickly and pragmati-
+cally ( getting  things  done ). Of course, you shouldn’t go out of your way to develop
+sloppy scripts! Scripts should also use meaningful variable names, be documented
+with comments, contain basic error protection , and so on. But the priorities and devel-
+opment goals of a script that should be re ady within a day if possible are quite different
+from the priorities and development goals for a software project whose code may need
+to be maintained for a decade.
+1.1.2    Glue Languages and Glue Code
+In the context of scripting, sometimes, you’ll hear talk of “glue code.” Accordingly,
+scripting languages are some times referred to as “glue languages.” What do these
+terms mean?
+In larger projects, the proverbial glue  is often necessary to connect independent or
+incompatible software compon ents. In the simplest case, a script calls some external
+311.2 Scripting Languages
+commands that in themselves  have nothing to do with each other: One creates a
+backup of a database, the second encrypts th e resulting file, the third transfers the file
+to another server via HTTP, and so on. Each  of the commands used was developed inde-
+pendently of all the others. But by connect ing the commands through your script, a
+new meaningful component is created.
+Glue code is sometimes also necessary to efficiently apply modern software develop-
+ment tools. For example, let’s say your team  is developing a large project in JavaScript
+using tools like Git (version control) and Docker (contain ers for local testing environ-
+ments). Each time a team member completes (“checks in”) a new test version, the cur-
+rent code should be transferre d (“deployed”) to an external test server. This step could
+be performed by a small script.
+Theoretically, you can perform such tasks with any programming language. However,
+scripting languages are particularly well suited for these tasks because of their simplesyntaxes, minimal development overhead, and the fact that scripts create few (or even
+no) new project dependencies.
+1.1.3    Do One Thing and Do It Well
+Unix programs were developed according to the motto “ Do one thing  and  do it well ,”
+f o r m u l a t e d  b y  D o u g  M c I l r o y ,  a n d  t h e s e  p r o g r a m s  a r e  s t i l l  a s s e s s e d  b y  t h i s  s t a n d a r d
+today. When Unix became Linux and macOS,  what was then called a “program” is now
+called a “command.” But the principl e has not changed: A command like ls, grep , or
+find  is expected to perform a very specific task and to do that task really well.
+What does Unix’s motto have to do with scripting? On Linux and macOS, when you
+develop scripts in the Bash or Zsh languages,  you do so on a foundation of several hun-
+dred commands that meet the Unix recommendation. You would be well advised to
+adopt the motto for your own projects as well. Write scripts that perform one task
+neatly.
+1.2    Scripting Languages
+In purely formal terms, scri pting languages differ from other, “higher-level” program-
+ming languages in that the code is interpre ted. Thus, the code is formulated in a text
+file and then executed directly by an inte rpreter in Bash, PowerS hell, or Python. The
+code does not need to be compiled (i.e., converted to a binary representation) before-
+hand.
+This concept has an advantage in that sc ripts can be executed immediately without
+lengthy preparation work, which speeds up the development process.
+However, using an interpreter has a disadvan tage in that script s usually run somewhat
+more slowly than compiled programs. For this  reason, a scripting language is rarely the
+1 Scripting: Doing One Thing
+32ideal choice for developing computationally  intensive algorithms. Since many scripts
+consist mainly of calls to other commands, the loss of efficiency due to the missing
+compiler does not matter at all.
+All Linux shells are considered  “classic” scripting languages,  such as Bourne Shell, the
+Korn Shell, Bash, and Zsh. A shell is actua lly a command interprete r, that is, a program
+that accepts and executes co mmands. If several such commands are stored in a text
+file, the original form of a script is created.
+Over time, countless scriptin g languages were developed that offered more syntactic
+options than traditional shells  and were often optimized for specific tasks. These other
+languages include, for example, JavaScript, Python, PHP, and Tcl.
+In the Windows world, the unspeakable cmd.exe  program originally took over the role
+of the shell. Even now, *.bat  files based on this program are still in use today despite
+their extremely modest scripting capabiliti es. This program was followed by VBScript,
+the VBA language optimized for Microsof t Office, and finally PowerShell, which
+brought Microsoft the success they had been  hoping for: PowerS hell is now considered
+the language when it comes to maintainin g and administering large Windows network
+installations.
+Compilers for Scripting Languages
+The interpreter/compiler criterion was esta blished in the past to distinguish between
+scripting and other languages, but this dist inction is obsolete today. Compilers now
+exist for many languages whose code was init ially executed by an interpreter. These
+compilers are often just-in-time  compilers  that compile the code immediately before
+execution and are thus unnoticed by users. This invisibility is true for JavaScript, PHP,
+and Python, among others.
+1.2.1    Bash and Zsh
+Obviously, I cannot cover all popular scripting languages in this book. I’ll instead focus
+on three (with Zsh, four) languages that ar e most important for administrative tasks
+and in DevOps environments. In  the following sections, I’ll briefly introduce these lan-
+guages to you.
+The name Bash  is an abbreviation for Bourne  Again  Shell . The Bourne shell was
+immensely popular for Unix more than 30 years ago. However, this program was not
+available in an open-s ource license, which led to the development of the largely com-
+patible Bash, which later became the stan dard shell for most Linux distributions.
+When scripting  is mentioned in the context of a Linux environment without further
+explanation, the scripting language is almo st always Bash. Whether server processes
+are being started, network connections set up, or firewall rules changed, quite often
+331.2 Scripting Languages
+Bash scripts are already used at the operatin g system level for this  purpose. Therefore,
+also running your own tasks using Bash makes sense.
+The widespread use of Bash sometimes makes one overlook the fact that its roots and
+syntax are old. Accordingly, the syntax of  the language is sometimes inconsistent,
+sometimes simply atrocious. Instead of simple functions,  countless special characters
+must be used to perform quite trivial tasks (e.g., edit strings or perform calculations).
+Besides strings and arrays, no other data type s exist. Object orientation is an unknown
+concept in Bash anyway.
+On the plus side, an almost limitless select ion of Unix tools can be used and combined
+in scripts. So, the strength of Bash lies not in its linguistic capabilities but in its com-
+mands, which you can easily call in scripts.  (And as mentioned earlier, these commands
+were developed based on the motto “ do one thing ....”)
+However, I must mention also that beginne rs can find becoming accustomed to the
+world of Bash and Linux commands quite difficult. While (almost) every command is
+well documented on its own, no central overview exists.
+Bash versus Zsh
+Zsh is largely compatible with Bash. With regard to script programming, the differ-
+ences are minimal, and of course, you ca n call the same commands in both shells.
+However, when used interactively, Zsh stan ds out for its many advantages and better
+extensibility. Thus, Zsh is gaining more an d more fans in the Linux world and is even
+used as the default shell by some distribu tions. (For other distributions, Zsh can be
+installed in a few simple steps.)
+macOS switched from Bash to Zsh in 2019. A pple’s motivation had less to do with tech-
+nical merits and more to do with licensing issues: Current versions of Bash use the GPL
+3 license, which is avoided by Apple. Zsh, on  the other hand, has a more liberal, BSD-like
+license.
+As far as this book is concerned, whether yo u prefer Bash or Zsh doesn’t matter much.
+I’ll provide a brief overview of their main  advantages and disadvantages in Chapter 3 ,
+Section 3.4 .
+1.2.2    PowerShell
+Microsoft has long relied on GUIs, not only in the Microsoft Office area, but also for
+server administration. At first glance, this  reliance seemed to be an advantage com-
+pared to Linux: A few mouse clicks are easi er to understand than dubious configura-
+tion files.
+For administrators, however, th is choice has turned into a nightmare: The main prob-
+lem is that configuration work does not scal e. You need ten times longer to administer
+1 Scripting: Doing One Thing
+34ten servers with a single mouse click than to  administer just one server. In contrast to
+Linux, hardly any way existed to automate such work.
+This limitation changed with the launch of PowerShell 2006. Microsoft used this
+opportunity for a new beginning well: Comp ared to Bash, PowerShell scores major
+points with a much more logical syntax. From  a technical point of view, the most inter-
+esting feature of PowerShell is that data is  transported from one command to the next,
+not in text form, but as fu ll-fledged objects. This new approach enables far-reaching
+ways of processing by reading properties an d calling methods. However, the object-ori-
+ented approach only works with commands specially optimized fo r PowerShell, which
+Microsoft refers to as cmdlets . (Calling traditional commands  is also possible but is sub-
+ject to restrictions.)
+Another success factor for Po werShell can be found in its environment: Microsoft has
+started to make many Windows components  and server services fully configurable
+through cmdlets. In the past, only basic setti ngs could be changed via scripts, and other
+options could only be reached via mouse click. Now, the emphasis is on PowerShell  first .
+In addition to the cmdlets provided by default, countless extension modules with
+cmdlets for specific tasks are available on the internet. An active community has grown
+up around PowerShell. Since 2018, PowerShell has also been an open-source project and
+can also be installed on Linux and macOS. However, the cmdlet o fferings available out-
+side the Windows world is much smaller. Ty pical admin tasks (setting up users, chang-
+ing network configuration, etc.) only work  on Windows. Across platforms, PowerShell
+can only be used for tasks th at are not Windows specific.
+1.2.3    Python
+The first Python version was rele ased in 1991. Thus, Python is  almost as old as Bash, the
+first version of which appeared in 1989. Bu t unlike Bash, Python hardly shows its age:
+Python is characterized by an  elegant, well-designed syntax  that still sets standards
+today.
+Python is a scripting language in that its co de was originally execut ed by an interpreter.
+In current versions, however, th e code is first compiled into  an intermediate binary for-
+mat (called byte  code ) for performance reasons. You wo n’t notice any of this effort
+when using Python. In other words, Python behaves like an interpreted language, but it
+very much uses a compil er behind the scenes.
+Python was not primarily designed to automa te administrative op erations but instead
+is rather extremely general purpose. You can equally learn to program or solve AI prob-
+lems with Python!
+A basic concept behind Python is that the la nguage core is very compact. For this pur-
+pose, the language can be easily extended by modules, and these modules are exactly
+why Python is so popular today (also) as a sc ripting language in the sense of this book.
+351.3 The Agony of Choice
+Over time, more and more extension modu les have emerged to use cloud services,
+apply network functions, access databases, and more. For almost any admin task imag-
+inable, a suitable Python module  can be installed in no time!
+However, Python is only moderately suitab le for calling existi ng commands. In this
+respect, the modules are both  a curse and a blessing. Whil e you may already be familiar
+with the commands required for a Bash script, you’ll need  to learn about an adequate
+Python module with similar functions. Seve ral modules might be eligible, and you may
+not clearly see which module is more suitable or which one will be maintained in the
+future. In this respect, the us e of Python is worthwhile espe cially when the task is rea-
+sonably complex, when the advantages of Python compensate fo r the disadvantage of
+a longer familiarizat ion with a particular  additional module.
+1.2.4    Many Similarities, Even More Differences
+Describing three  scripting languages in one book is admittedly an intellectual chal-
+lenge—for the author as well as  for you, the reader! Of course, all three languages are
+characterized by many simila rities, especially true Bash and PowerShell. At the same
+time, however, countless syntactic variatio ns can make rapid switching between lan-
+guages tedious. Thus, one tip: You should use an editor that su pports the respective
+scripting language well because then the edit or will detect most errors or syntax mix-
+ups before your first test runs.
+1.3    The Agony of Choice
+If you’re just entering the world of scripting, you’d probably prefer it if I would tell younow, “Learn language Xxx, it’s good for ever ything.” Unfortunately, the IT world is not
+that simple. Which scripting language is the most suitable or the ideal solution for you
+depends greatly on the task and the operatin g system on which your script is supposed
+to run, for instance:
+/L50189For scripts to administer Windows computer s and networks, PowerShell is definitely
+the best choice. Many Windows-specific functions are best controlled by Power-
+Shell’s own commands and modules.
+/L50189Similarly, Bash (or, almost equivalently, Zsh)  is the ideal language if you want to run
+administrative scripts on Linux ma chines or servers and on macOS.
+/L50189For tasks that are platform-independent and do not depend on operating system-
+specific libraries, PowerShell, Bash, and Py thon are equally suitable. In that case, I
+pragmatically recommend the language you know best or whose environment
+(commands, extension modules) you know best.
+/L50189The greater the complexity of the task; th e more elaborate the control of the code
+(loops, branches, functions, etc.); and th e more extensive the expected amount of
+1 Scripting: Doing One Thing
+36code and the greater the number of variable s and data structures required, the stron-
+ger my tendency is towards Python.
+/L50189If your script runs the risk of turning into a “real” program, with several hundred
+lines of code, the advantages of Python (w ith its clearer syntax and better develop-
+ment tools) outweigh its disadvantages.  However, we’re then moving well beyond
+the scope of this book.
+You must start somewhere: If you’re at home in the Windows environment and want
+to run your scripts there, I would start usin g PowerShell. Similarly, I advise Linux and
+macOS fans to first learn the basics of Ba sh and Zsh, respective ly. (This recommenda-
+tion also applies if you use Windows as yo ur working environment, but you want your
+scripts to run on Linux server s. While this juggling sounds contradictory, in real life,
+this scenario is absolute ly common. Microsoft’s own Azure  cloud runs more Linux
+instances than Windows ones. Nothing wron g with combining the benefits of Win-
+dows on the desktop with th ose of Linux on the server.)
+Once you’re somewhat familiar with Bash  or PowerShell, you should get acquainted
+with Python. Python scores major points wi th its impressively elegant syntax and is
+miles superior to Bash as well as PowerShell in this respect. Howe ver, these advantages
+are more effective for complex,  platform-independent tasks. In this respect, Python is
+not quite a “classic” scripting language but ha s a much more universal objective. If your
+script is primarily intended to call elementary Linux tools (such as find , grep , adduser ,
+and gzip ) or to perform basic Windows admin tasks, Bash or PowerShell are better
+suited for this purpose th an Python, despite all th eir syntax peculiarities.
+Ultimately, the key is simply to start programm ing. In this context, don’t let yourself be
+influenced by the order in which the chapters  appear in this book but instead start with
+whatever chapter seems most logical to you.  When writing, I tried extremely hard to
+conceive all the chapters as  independently as possible. The PowerShell chapter does
+not assume any knowledge of Bash, or vice versa!
+To conclude these first reflections, I have made a very personal, thoroughly subjective
+evaluation of the languages presen ted in this book in Table 1.1 . You’ll notice that
+Python performs very well in this regard. Th is high score doesn’t change the fact that,
+for simple tasks, depending on the operatin g system, Bash or PowerShell are the tools
+that will accomplish your go als the fastest and are theref ore probably the ones you’ll
+use most often. (At least, that’s how I feel.)
+Criterion Bash/Zsh PowerShell Python
+Suitable for Windows 4 10 10
+Suitable for macOS 10 3 10
+Suitable for Linux 10 3 10
+Table 1.1  Personal Rating of Selected Script Languages (0 = Miserable; 10 = Great)
+371.3 The Agony of Choice
+Operating system-specific administrative tasks 10 10 5
+Platform-independent tasks 7 5 10
+Consistent syntax 3 6 10
+Simple call of external commands 10 9 5
+Toolbox size (commands, modules, etc.) 9 5 10
+Development tools/debugging 2 5 8
+Help system/documentation 2 6 8
+Simple, “classic” scripts 8 8 3
+Complex code 2 4 10Criterion Bash/Zsh PowerShell Python
+Table 1.1  Personal Rating of Selected Script Langua ges (0 = Miserable; 10 = Great) (Cont.)
+
+39

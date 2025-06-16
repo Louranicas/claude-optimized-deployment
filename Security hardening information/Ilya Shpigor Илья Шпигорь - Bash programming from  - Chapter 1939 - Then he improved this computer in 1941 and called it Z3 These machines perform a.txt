@@ -1,0 +1,449 @@
+# Security Chapter Extract
+Book: Ilya Shpigor [Илья Шпигорь] - Bash programming from scratch (2021, leanpub.com) - libgen.li
+Chapter: 1939 - Then he improved this computer in 1941 and called it Z3. These machines perform a single
+¹¹https://en.wikipedia.org/wiki/Punched_card
+¹²https://en.wikipedia.org/wiki/Relay
+¹³https://en.wikipedia.org/wiki/Konrad_Zuse
+¹⁴https://en.wikipedia.org/wiki/Z2_(computer)
+GeneralInformation 5
+elementaryoperationinmilliseconds.Theyaremuchfasterthantabulators.Thisperformancegain
+happensthankstoapplyingrelaysinsteadofrotatingcylinders.
+TheincreasedcomputationspeedisthefirstfeatureofZuse’scomputers.Thesecondfeatureisthe
+conceptofacomputerprogram.Theideaoftheuniversalmachine,whichfollowsthe algorithm ¹⁵
+youchoose,wasfundamentallynewatthattime.
+Analgorithmisafinitesequenceofinstructionstoperformaparticularcalculationortask.
+Z3 computer uses two input devices in parallel for supporting programs. The first one is a receiver
+for punched cards that resembles the tabulator’s receiver. It reads the program to execute fromthe
+card.Thesecondinputdeviceisthekeyboard.Itallowstheusertotypeinputdatafortheprogram.
+Thecomputerswiththefeatureofchangingtheiralgorithmsbecameknownas programmable ¹⁶or
+general-purpose .
+Theinventionofprogrammablecomputerswasamilestoneinthedevelopmentofcomputerscience.
+Untilthismoment,machineswereabletoperformhighlyspecializedtasksonly.Theconstructionof
+thesemachineswastooexpensiveandunprofitable.Thiswasareasonwhycommercialinvestorsdid
+not join the projects to design new computers. Only governments invested money there. However,
+thissituationhaschangedsinceprogrammablecomputerscame.
+The next step in computer design is the construction of the ENIAC¹⁷(see Figure 1-2) computer
+in 1946 by John Eckert ¹⁸andJohn Mauchly ¹⁹. ENIAC uses a new type of element for performing
+computations. Vacuum tubes ²⁰replacedrelaysthere.Thetubeisapurelyelectronicdevice.Itdoes
+not have any mechanical component as the relay has. Therefore, when the electrical signal comes,
+thetube’sreactiontimeismuchfasterthantherelayone.ThischangeincreasedENIACperformance
+by order of magnitude comparing to relay-based machines. The new computer performs single
+elementaryoperationin200microsecondsinsteadofmilliseconds.
+¹⁵https://en.wikipedia.org/wiki/Algorithm
+¹⁶https://en.wikipedia.org/wiki/General_purpose_computer
+¹⁷https://en.wikipedia.org/wiki/ENIAC
+¹⁸https://en.wikipedia.org/wiki/J._Presper_Eckert
+¹⁹https://en.wikipedia.org/wiki/John_Mauchly
+²⁰https://en.wikipedia.org/wiki/Vacuum_tube
+GeneralInformation 6
+Figure 1-2. ENIAC
+Most computer engineers were skeptical about vacuum tubes in the 1940s. The tubes were known
+for their low reliability and high power consumption. Nobody believed that a tube-based machine
+couldworkatall.ENIACcontainsaround18,000vacuumtubes.Theyburnoutoften.However,the
+computerperformedthecalculationsefficientlybetweenthefailures.ENIACwasthefirstsuccessful
+case of applying vacuum tubes. This case convinced many engineers that such an approach works
+well.
+ENIAC is a programmable computer. You can set its algorithm using a combination of switches
+and jumpers on the control panels. This task requires considerable time and simultaneous work of
+severalpeople.Figure1-3showsoneofthepanelsforprogrammingENIAC.
+Figure 1-3. ENIAC control panel
+ENIACusespunchedcardsforreadinginputdataandtooutputresults.Thisisthesameapproach
+as previous models of computers have used. The new feature of ENIAC was storing intermediate
+resultsonthecards.
+GeneralInformation 7
+When the ENIAC should calculate a complex task, it can come to a leak of computation resources.
+However, you can split the task into several subtasks. Then the computer can solve each subtask
+separately. Storing the intermediate results on the cards helps you to move data from one subtask
+toanotherwhileyoureprogramthecomputer.
+Using ENIAC gave a new experience to engineers. It shows that all mechanical operations limit
+computer performance. These are the mechanical operations in ENIAC: manual reprogramming
+with switches and jumpers, reading and punching the cards. Each of these operations takes a
+significant time. Therefore, solving practical tasks with ENIAC is ineffective. The computer itself
+hadanunprecedentedperformanceatthattime.However,itwasidlingmostofthetimeandwaiting
+forreprogrammingorreceivinginputdata.Thesefindingsinitiatedthedevelopmentofnewdevices
+forbothdatainputandoutput.
+Thenextstepincomputerdesignisreplacingvacuumtubeswith transistors ²¹.Itagainincreasedthe
+computation speed by an order of magnitude. Transistors came together with new input/output ²²
+devices.Itallowedtoincreasetheloadingofthecomputersandreprogramthemmoreoften.
+Whentheepochoftransistorsstarted,computersspreadbeyondgovernmentandmilitaryprojects.
+Banks and corporations began to exploit machines too. It increases the number and variety of
+programsrunningoncomputerssignificantly.
+Commercialusageofcomputersbringsnewrequirements.Whenthecomputerworksinacompany,
+itshouldexecuteprogramsoneafteranotherwithoutanydelays.Otherwise,themachinedoesnot
+justifythemoneyspentonit.
+Newsolutionswereneededtomeetnewrequirements.Themosttime-consumingtaskwasswitching
+between programs.Therefore,engineers ofGeneral Motors andNorth American Aviationcame to
+an idea to automate it. They created the first commercial operating system GM-NAA I/O ²³. The
+primarygoalofthesystemwasmanagingtheexecutionofprograms.
+The heavy load of computers and the variety of their programs brought another new task. When
+the computer of that time loads a program, the program defines the hardware’s available features.
+Forexample,iftheprogramincludesacodetocontrolanoutputdevice,youcanuseit.Otherwise,
+thisdeviceisunavailable.
+Suppose that you are a company. You use a particular computer model all the time. The hardware
+alwaysstaysthesame.Therefore,youdonotchangethecodethatcontrolsyourhardware.Youjust
+copythiscodefromoneprogramtoanother.Ittakesextraefforts.
+Copying hardware-specific code brought engineers to an idea of a special service program. The
+serviceprogramloadstogetherwiththeuser’sapplicationandprovidesthehardwaresupport.These
+serviceprogramsbecamepartofthefirst-generationoperatingsystemsafterawhile.
+Nowitistimetocomebacktothequestion,whydoyouneedanOS.Wefoundoutthatapplications
+couldworkwithoutthemingeneral.Suchapplicationsarestillinusetoday.Forexample,theyare
+²¹https://en.wikipedia.org/wiki/Transistor
+²²https://en.wikipedia.org/wiki/Input/output
+²³https://en.wikipedia.org/wiki/GM-NAA_I/O
+GeneralInformation 8
+utilities²⁴formemorychecksanddiskpartitioning,antiviruses,recoverytools.However,developing
+such applications takes more time and efforts. They should include the code for supporting all
+requiredhardware.
+OS usually provides the code for supporting hardware. Why would you not use it? Most modern
+developers choose this way. It reduces the amount of work and speeds up the release of the
+applications.
+However,amodernOSisavastcomplexsystem.Itprovidesmuchmorefeaturesthanjusthardware
+support.Let’sconsiderthemtoo.
+OS Features
+Why did we start studying programming by considering the OS? OS features are the basis for the
+application.Let’sconsiderhowitworks.
+Figure1-4demonstratestheinteractionbetweentheOS,anapplicationandhardware.Applications
+areprogramsthatsolvepracticalusertasks.Examplesaretexteditor,calculator,browser.Hardware
+isallelectronicandmechanicalcomponentsofacomputer.Forexample,thesearekeyboard,monitor,
+centralprocessor,videocard.
+²⁴https://en.wikipedia.org/wiki/Utility_software
+GeneralInformation 9
+Figure 1-4. The interaction between the OS, an application and hardware
+AccordingtoFigure1-4,theapplicationdoesnotinteractwithhardwaredirectly.Theprogramdoes
+itthrough system libraries ²⁵.ThesystemlibrariesarepartoftheOS.Therearerulestoaccessthe
+systemlibraries.Eachapplicationshouldfollowthem.
+Application Programming Interface ²⁶orAPIistheinterfacethattheOSprovidestoanapplication
+tointeractwithsystemlibraries.Ingeneral,theAPItermmeansasetofagreementsforinteracting
+components of the information system. These agreements become a well-known standard often.
+Forexample,thePOSIXstandarddescribestheAPIforportableOSes.Thestandardguaranteesthe
+compatibilityoftheOSandapplications.
+OSkernel²⁷and device drivers ²⁸are part of OS. They dictate which hardware features the
+application can access. When the application interacts with system libraries, the libraries request
+capabilitiesofkernelanddrivers.IfyouneedthehardwarefeatureandOSdoesnotsupportit,you
+cannotuseit.
+When the application accesses the system library, it calls a library’s function²⁹. A function is a
+program fragment or an independent block of code that performs a certain task. You can imagine
+²⁵https://en.wikipedia.org/wiki/Library_(computing)
+²⁶https://en.wikipedia.org/wiki/API
+²⁷https://en.wikipedia.org/wiki/Kernel_(operating_system)
+²⁸https://en.wikipedia.org/wiki/Device_driver
+²⁹https://en.wikipedia.org/wiki/Subroutine
+GeneralInformation 10
+the API as a list of all available functions that the application can call. Besides that, API describes
+thefollowingaspectsoftheinteractionbetweentheOSandapplications:
+Security Relevance Score: 2
+Word Count: 1738
+Extracted: 2025-06-13 23:40:26
+
+---
+
+Then he improved this computer in 1941 and called it Z3. These machines perform a single
+¹¹https://en.wikipedia.org/wiki/Punched_card
+¹²https://en.wikipedia.org/wiki/Relay
+¹³https://en.wikipedia.org/wiki/Konrad_Zuse
+¹⁴https://en.wikipedia.org/wiki/Z2_(computer)
+GeneralInformation 5
+elementaryoperationinmilliseconds.Theyaremuchfasterthantabulators.Thisperformancegain
+happensthankstoapplyingrelaysinsteadofrotatingcylinders.
+TheincreasedcomputationspeedisthefirstfeatureofZuse’scomputers.Thesecondfeatureisthe
+conceptofacomputerprogram.Theideaoftheuniversalmachine,whichfollowsthe algorithm ¹⁵
+youchoose,wasfundamentallynewatthattime.
+Analgorithmisafinitesequenceofinstructionstoperformaparticularcalculationortask.
+Z3 computer uses two input devices in parallel for supporting programs. The first one is a receiver
+for punched cards that resembles the tabulator’s receiver. It reads the program to execute fromthe
+card.Thesecondinputdeviceisthekeyboard.Itallowstheusertotypeinputdatafortheprogram.
+Thecomputerswiththefeatureofchangingtheiralgorithmsbecameknownas programmable ¹⁶or
+general-purpose .
+Theinventionofprogrammablecomputerswasamilestoneinthedevelopmentofcomputerscience.
+Untilthismoment,machineswereabletoperformhighlyspecializedtasksonly.Theconstructionof
+thesemachineswastooexpensiveandunprofitable.Thiswasareasonwhycommercialinvestorsdid
+not join the projects to design new computers. Only governments invested money there. However,
+thissituationhaschangedsinceprogrammablecomputerscame.
+The next step in computer design is the construction of the ENIAC¹⁷(see Figure 1-2) computer
+in 1946 by John Eckert ¹⁸andJohn Mauchly ¹⁹. ENIAC uses a new type of element for performing
+computations. Vacuum tubes ²⁰replacedrelaysthere.Thetubeisapurelyelectronicdevice.Itdoes
+not have any mechanical component as the relay has. Therefore, when the electrical signal comes,
+thetube’sreactiontimeismuchfasterthantherelayone.ThischangeincreasedENIACperformance
+by order of magnitude comparing to relay-based machines. The new computer performs single
+elementaryoperationin200microsecondsinsteadofmilliseconds.
+¹⁵https://en.wikipedia.org/wiki/Algorithm
+¹⁶https://en.wikipedia.org/wiki/General_purpose_computer
+¹⁷https://en.wikipedia.org/wiki/ENIAC
+¹⁸https://en.wikipedia.org/wiki/J._Presper_Eckert
+¹⁹https://en.wikipedia.org/wiki/John_Mauchly
+²⁰https://en.wikipedia.org/wiki/Vacuum_tube
+GeneralInformation 6
+Figure 1-2. ENIAC
+Most computer engineers were skeptical about vacuum tubes in the 1940s. The tubes were known
+for their low reliability and high power consumption. Nobody believed that a tube-based machine
+couldworkatall.ENIACcontainsaround18,000vacuumtubes.Theyburnoutoften.However,the
+computerperformedthecalculationsefficientlybetweenthefailures.ENIACwasthefirstsuccessful
+case of applying vacuum tubes. This case convinced many engineers that such an approach works
+well.
+ENIAC is a programmable computer. You can set its algorithm using a combination of switches
+and jumpers on the control panels. This task requires considerable time and simultaneous work of
+severalpeople.Figure1-3showsoneofthepanelsforprogrammingENIAC.
+Figure 1-3. ENIAC control panel
+ENIACusespunchedcardsforreadinginputdataandtooutputresults.Thisisthesameapproach
+as previous models of computers have used. The new feature of ENIAC was storing intermediate
+resultsonthecards.
+GeneralInformation 7
+When the ENIAC should calculate a complex task, it can come to a leak of computation resources.
+However, you can split the task into several subtasks. Then the computer can solve each subtask
+separately. Storing the intermediate results on the cards helps you to move data from one subtask
+toanotherwhileyoureprogramthecomputer.
+Using ENIAC gave a new experience to engineers. It shows that all mechanical operations limit
+computer performance. These are the mechanical operations in ENIAC: manual reprogramming
+with switches and jumpers, reading and punching the cards. Each of these operations takes a
+significant time. Therefore, solving practical tasks with ENIAC is ineffective. The computer itself
+hadanunprecedentedperformanceatthattime.However,itwasidlingmostofthetimeandwaiting
+forreprogrammingorreceivinginputdata.Thesefindingsinitiatedthedevelopmentofnewdevices
+forbothdatainputandoutput.
+Thenextstepincomputerdesignisreplacingvacuumtubeswith transistors ²¹.Itagainincreasedthe
+computation speed by an order of magnitude. Transistors came together with new input/output ²²
+devices.Itallowedtoincreasetheloadingofthecomputersandreprogramthemmoreoften.
+Whentheepochoftransistorsstarted,computersspreadbeyondgovernmentandmilitaryprojects.
+Banks and corporations began to exploit machines too. It increases the number and variety of
+programsrunningoncomputerssignificantly.
+Commercialusageofcomputersbringsnewrequirements.Whenthecomputerworksinacompany,
+itshouldexecuteprogramsoneafteranotherwithoutanydelays.Otherwise,themachinedoesnot
+justifythemoneyspentonit.
+Newsolutionswereneededtomeetnewrequirements.Themosttime-consumingtaskwasswitching
+between programs.Therefore,engineers ofGeneral Motors andNorth American Aviationcame to
+an idea to automate it. They created the first commercial operating system GM-NAA I/O ²³. The
+primarygoalofthesystemwasmanagingtheexecutionofprograms.
+The heavy load of computers and the variety of their programs brought another new task. When
+the computer of that time loads a program, the program defines the hardware’s available features.
+Forexample,iftheprogramincludesacodetocontrolanoutputdevice,youcanuseit.Otherwise,
+thisdeviceisunavailable.
+Suppose that you are a company. You use a particular computer model all the time. The hardware
+alwaysstaysthesame.Therefore,youdonotchangethecodethatcontrolsyourhardware.Youjust
+copythiscodefromoneprogramtoanother.Ittakesextraefforts.
+Copying hardware-specific code brought engineers to an idea of a special service program. The
+serviceprogramloadstogetherwiththeuser’sapplicationandprovidesthehardwaresupport.These
+serviceprogramsbecamepartofthefirst-generationoperatingsystemsafterawhile.
+Nowitistimetocomebacktothequestion,whydoyouneedanOS.Wefoundoutthatapplications
+couldworkwithoutthemingeneral.Suchapplicationsarestillinusetoday.Forexample,theyare
+²¹https://en.wikipedia.org/wiki/Transistor
+²²https://en.wikipedia.org/wiki/Input/output
+²³https://en.wikipedia.org/wiki/GM-NAA_I/O
+GeneralInformation 8
+utilities²⁴formemorychecksanddiskpartitioning,antiviruses,recoverytools.However,developing
+such applications takes more time and efforts. They should include the code for supporting all
+requiredhardware.
+OS usually provides the code for supporting hardware. Why would you not use it? Most modern
+developers choose this way. It reduces the amount of work and speeds up the release of the
+applications.
+However,amodernOSisavastcomplexsystem.Itprovidesmuchmorefeaturesthanjusthardware
+support.Let’sconsiderthemtoo.
+OS Features
+Why did we start studying programming by considering the OS? OS features are the basis for the
+application.Let’sconsiderhowitworks.
+Figure1-4demonstratestheinteractionbetweentheOS,anapplicationandhardware.Applications
+areprogramsthatsolvepracticalusertasks.Examplesaretexteditor,calculator,browser.Hardware
+isallelectronicandmechanicalcomponentsofacomputer.Forexample,thesearekeyboard,monitor,
+centralprocessor,videocard.
+²⁴https://en.wikipedia.org/wiki/Utility_software
+GeneralInformation 9
+Figure 1-4. The interaction between the OS, an application and hardware
+AccordingtoFigure1-4,theapplicationdoesnotinteractwithhardwaredirectly.Theprogramdoes
+itthrough system libraries ²⁵.ThesystemlibrariesarepartoftheOS.Therearerulestoaccessthe
+systemlibraries.Eachapplicationshouldfollowthem.
+Application Programming Interface ²⁶orAPIistheinterfacethattheOSprovidestoanapplication
+tointeractwithsystemlibraries.Ingeneral,theAPItermmeansasetofagreementsforinteracting
+components of the information system. These agreements become a well-known standard often.
+Forexample,thePOSIXstandarddescribestheAPIforportableOSes.Thestandardguaranteesthe
+compatibilityoftheOSandapplications.
+OSkernel²⁷and device drivers ²⁸are part of OS. They dictate which hardware features the
+application can access. When the application interacts with system libraries, the libraries request
+capabilitiesofkernelanddrivers.IfyouneedthehardwarefeatureandOSdoesnotsupportit,you
+cannotuseit.
+When the application accesses the system library, it calls a library’s function²⁹. A function is a
+program fragment or an independent block of code that performs a certain task. You can imagine
+²⁵https://en.wikipedia.org/wiki/Library_(computing)
+²⁶https://en.wikipedia.org/wiki/API
+²⁷https://en.wikipedia.org/wiki/Kernel_(operating_system)
+²⁸https://en.wikipedia.org/wiki/Device_driver
+²⁹https://en.wikipedia.org/wiki/Subroutine
+GeneralInformation 10
+the API as a list of all available functions that the application can call. Besides that, API describes
+thefollowingaspectsoftheinteractionbetweentheOSandapplications:
+1.WhatactiondoestheOSperformwhentheapplicationcallsthespecificsystemfunction?
+2.Whatdatadoesthefunctionreceiveasinput?
+3.Whatdatadoesthefunctionreturnasaresult?
+Both the OS and application should follow the API agreements. It guarantees the compatibility of
+their current versions and future modifications. Such compatibility is impossible without a well-
+documentedandstandardizedinterface.
+We have discovered that some applications work without an OS. They are called bare-metal
+software³⁰.Thisapproachworkswellinsomecases.However,theOSprovidesready-madesolutions
+for interaction with the computer’s hardware. Without these solutions, developers should take
+responsibilityformanaginghardware.Itrequiressignificantefforts.Imaginethevarietyofdevicesof
+amoderncomputer.Theapplicationshouldsupportallpopularmodelsofeachdevice(forexample,
+videocards).Withoutsuchsupport,theapplicationwouldnotworkforallusers.
+Let’sconsiderthefeaturesthattheOSprovidesviatheAPI.Wecantreatthecomputer’shardware
+asresources.Theapplicationusestheseresourcesforperformingcalculations.TheAPIreflectsthe
+list of hardware features that the program can use. Also, the API dictates the order of interaction
+betweenseveralapplicationsandthehardware.
+There is an example. Two programs cannot write data to the same area of the hard disk³¹
+simultaneously.Therearetworeasonsforthat:
+1.Asinglemagneticheadrecordsdataontheharddisk.Theheadcandoonetaskatatime.
+2.One program can overwrite data of another program in the same memory area. It leads to
+losingdata.
+You should place all requests to write data on the disk in a queue because of these two problems.
+Theneachrequestshouldbeperformedseparately.TheOStakescareofthistask.
+The kernel (see Figure 1-4) of the OS provides a mechanism for managing access to the hard drive.
+This mechanism is called file system ³². Similarly, the OS manages access to all peripheral ³³and
+internal devices of the computer. Besides kernel, there are special programs called device drivers
+(seeFigure1-4).TheyhelptheOStocontroldevices.
+Wehavementionedperipheralandinternaldevices.Whatisthedifferencebetweenthem?Peripher-
+alsarealldevicesthatareresponsibleforinputting,outputting,andstoringdatapermanently.Here
+aretheexamples:
+³⁰https://www.quora.com/What-is-bare-metal-programming-in-Embedded-systems
+³¹https://en.wikipedia.org/wiki/Hard_disk_drive#Magnetic_recording
+³²https://en.wikipedia.org/wiki/File_system
+³³https://en.wikipedia.org/wiki/Peripheral
+GeneralInformation 11
+•Keyboard
+•Mouse
+•Microphone
+•Monitor
+•Speakers
+•Harddrive
+Internal devices are responsible for processing data, i.e. for executing programs. These are internal
+devices:
+•Central Processing Unit ³⁴(CPU)
+•Random-Access Memory ³⁵(RAM)
+•Video Card ³⁶(graphicsprocessingunitorGPU).
+TheOSprovidesaccesstothecomputer’shardware.Atthesametime,theOShassomethingbesides
+thehardwaremanagementtosharewithuser’sapplications.Thesystemlibrarieshavegrownfrom
+theprogrammodulestoservethedevices.However,somelibrariesofmodernOSesprovidecomplex
+algorithmsforprocessingdata.Let’sconsideranexample.
+There is the Windows OS component called Graphics Device Interface ³⁷(GDI). It provides
+algorithms for manipulating graphic objects. GDI allows you to create a user interface for your
+applicationwithminimalefforts.Thenyoucanusethemonitortodisplaythisinterface.
+The system libraries with useful algorithms (like GDI) are software resources of the OS. These
+resources are already installed on your computer. You just need to know how to use them. Besides
+that, the OS also provides access to third-party libraries and their algorithms. Youcan install these
+librariesseparatelyandusetheminyourapplications.
+The OS manages hardware and software resources. Also, it organizes the joint work of running
+programs. The OS performs several non-trivial tasks to launch an application. Then the OS tracks
+itswork.Iftheapplicationviolatessomeagreements(likememoryusage),theOSterminatesit.We
+willconsiderlaunchingandexecutingtheprogramindetailinthenextsection.
+If the OS is multi-user, it controls access to the data. It is an important security feature. Thanks
+to such control, each user can access his own files only. Therefore, they can work with the same
+computersafely.
+Hereisthesummary.ThemodernOShasallfollowingfeatures:
+1.Itprovidesandmanagesaccesstohardwareresourcesofthecomputer.
+2.Itprovidesitsownsoftwareresources.
+3.Itlaunchesapplications.
+³⁴https://en.wikipedia.org/wiki/Central_processing_unit
+³⁵https://en.wikipedia.org/wiki/Random-access_memory
+³⁶https://en.wikipedia.org/wiki/Video_card
+³⁷https://en.wikipedia.org/wiki/Graphics_Device_Interface
+GeneralInformation 12
+4.Itorganizestheinteractionofapplicationswitheachother.
+5.Itcontrolsaccesstousers’data.
+YoucanguessthatitisimpossibletolaunchseveralapplicationsinparallelwithouttheOS.Youare
+right. When you develop an application, you have no idea how a user will launch it. The user can
+launch your application together with another one. You cannot foresee this use case. However, the
+OSrespondsforlaunchingallapplications.ItmeansthattheOShasenoughinformationtoallocate
+computerresourcesproperly.
+Modern OSes
+We have reviewed the OS features in general. Now we will consider modern operating systems.
+TodayyoucanpickanyOSandgetverysimilarfeatures.However,theirdevelopersfollowdifferent
+approaches.Thisleadstoimplementationdifferencethatcanbeimportantforsomeusers.
+There is the software architecture ³⁸term. It means the implementation aspects of the specific
+softwareandthesolutionsthatledtothem.
+All modern OSes have two features that determine the way how users interact with them. These
+featuresaremultitaskingandthegraphicaluserinterface.Let’stakeacloserlookatthem.
+Multitasking
+All modern OSes support multitasking ³⁹. It means that they can execute multiple programs in
+parallel. The systems with this feature displaced OSes without it. Why does multitasking so
+important?
+Thechallengeofefficientusageofcomputerscameinthe1960s.Computerswereexpensiveatthat
+time. Only large companies and universities were able to buy them. These organizations counted
+every minute of working with their machines. They did not accept any idle time of the hardware
+becauseofitshugecost.
+Early operating systems executed programs one after another without delays. This approach saves
+timeforswitchingcomputertasks.IfyouusesuchanOS,youshouldprepareseveralprogramsand
+theirinputdatainadvance.Thenyoushouldwritethemonthestoragedevice(e.g.,magnetictape).
+Youloadthetapetothecomputer’sreadingdevice.Afterward,thecomputerexecutestheprograms
+sequentially and prints their results to an output device (e.g., a printer). This mode of operation is
+called batch processing ⁴⁰.
+Batch processing increased the efficiency of using computers in the 1960s. This approach has
+automated program loading. The human operators became unnecessary for this task. However,
+the computers still had the bottleneck ⁴¹. The computational power of processors was increasing
+³⁸https://en.wikipedia.org/wiki/Software_architecture
+³⁹https://en.wikipedia.org/wiki/Computer_multitasking
+⁴⁰https://en.wikipedia.org/wiki/Batch_processing
+⁴¹https://en.wikipedia.org/wiki/Bottleneck_(production)
+GeneralInformation 13
+significantlyeveryyear.Thespeedofperipheralshasremainedalmostthesame.ItledtoCPUidles
+allthetimewhilewaitingforinput/output.
+Bottleneck is a component or resource of an information system that limits its overall
+performanceorbandwidth.
+WhydoesCPUidleandwaitforperipheraldevices?Hereisanexample.Supposethatthecomputer
+fromthe1960srunsprogramsonebyone.Itreadsdatafromamagnetictapeandprintstheresults
+ontheprinter.TheOSloadseachprogramandexecutesitsinstructions.Thenitloadsthenextone,
+andsoon.
+Theproblemhappenswhenreadingdataandprintingtheresults.Thetimeforreadingdataonthe
+magnetic tape is huge on the CPU scale. This time is enough for the processor to perform many
+calculations. However, it does not do that. The reason for that is the currently loaded program
+occupiesallcomputerresources.ThesameCPUidlehappenswhenprintingtheresults.Theprinter
+isaslowmechanicaldevice.
+The CPU idle led OS developers to the concept of multiprogramming ⁴². This concept implies that
+OSloadsseveralprogramsintothecomputermemoryatthesametime.Thefirstprogramworksas
+longasallresourcesitneedsareavailable.Itstopsexecutingoncearequiredresourceisbusy.Then
+OSswitchestoanotherprogram.
+Hereisanexample.Supposethatyourapplicationwantstoreaddatafromyourharddisk.Whilethe
+diskcontrollerreadsthedata,itisbusy.Itcannotprocessthefollowingrequestsfromtheprogram.
+Thus,theapplicationwaitsforthecontroller.Inthiscase,OSstopsexecutingitandswitchestothe
+secondprogram.Thecomputerexecutesittotheendoruntilithasalltherequiredresources.When
+thesecondprogramfinishesorstops,OSswitchestasksagain.
+Multiprogramming differs from multitasking that modern OSes have. Multiprogramming fits the
+batchprocessingmodeverywell.However,thisloadbalancingconceptisnotsuitablefor interactive
+systems⁴³.Aninteractivesystemconsiderseachuseractionasanevent(forexample,akeystroke).
+Thesystemshouldprocesseventsimmediatelywhentheyhappen.Otherwise,theusercannotwork
+withthesystem.
+Hereisanexampleofworkflowwithaninteractivesystem.Supposethatyouaretypingtextinthe
+MS Office document. You press a key and expect to see this symbol on the screen. If the computer
+requires several seconds to process your keystroke and display the symbol, you cannot work like
+that. Most of the time, you will wait to check if the computer has processed your keystroke or not.
+Thisisinefficient.
+Multiprogramming cannot handle events in the interactive system. It happens because you cannot
+predictwhentaskswitchinghappensnexttime.OSswitchestaskswhenaprogramfinishesorwhen
+it requires a busy resource. Suppose that your text editor is not an active program now. Then you
+⁴²https://en.wikipedia.org/wiki/Computer_multitasking#Multiprogramming
+⁴³https://en.wikipedia.org/wiki/Interactivity#Computing_science
+GeneralInformation 14
+do not know when it can process your keystroke. It can happen in a second or in several minutes.
+Thisisunacceptableforagooduserinterface.
+The multitasking concept solves the task of processing events in interactive systems. There were
+several versions of multitasking before it comes to the current state. Modern OSes use displacing
+multitasking ⁴⁴with pseudo-parallel tasks processing. The idea behind it is to allow the OS to
+choose an appropriate task for executing at the moment. The OS takes into account the priorities
+of the running programs. Therefore, a higher priority program receives hardware resources more
+oftenthanalowerpriorityone.OSkernelprovidesthistask-switchingmechanism.Itiscalled task
+scheduler ⁴⁵.
+Pseudo-parallel processing means that the computer executes one task only at any given time.
+However,theOSswitchestaskssoquicklythatyoucansupposetheprocessingofseveralprograms
+atonce.ThisconceptallowstheOStoreactimmediatelytoanyevent.Eventhougheveryprogram
+andOScomponenthardwareresourcesatstrictlydefinedmoments.
+Therearecomputerswithmultipleprocessorsorwith multi-coreprocessors ⁴⁶.Onlythesecomputers
+can execute several programs at once. The number of the running programs equals the number of
+cores of all processors approximately. The preemptive multitasking mechanism with constant task
+switchingworksonsuchsystemswell.Itisuniversalandbalancestheloadregardlessofthenumber
+of cores. This way, the computer responds to the user’s actions quickly. The number of processor
+coresdoesnotmatter.
+User Interface
+ModernOSesareabletosolveawiderangeoftasks.Thesetasksdependonthecomputertypewhere
+youruntheOS.Herearethemaintypesofcomputers:
+•Personalcomputers ⁴⁷(PC)andnotebooks.
+•Smartphonesandtablets.
+•Servers.
+•Embeddedsystems ⁴⁸.
+WewillconsiderOSesforPCsandnotebooksonly.Apartfrommultitasking,theyprovide graphic
+user interface ⁴⁹(GUI). This interface means the way to interact with the system. You launch
+applications, configure computer devices and OS components via the user interface. Let’s take a
+lookatitshistoryandfindhowithasreachedthecurrentstate.
+Nobody works with commercial computers interactively before

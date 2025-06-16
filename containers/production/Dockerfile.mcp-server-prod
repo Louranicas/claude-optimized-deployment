@@ -1,0 +1,62 @@
+# MCP Server Production Container
+# Multi-stage build for secure and optimized MCP servers
+FROM node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    make \
+    g++ \
+    git
+
+WORKDIR /build
+
+# Copy package files
+COPY mcp_servers/package*.json ./
+RUN npm ci --only=production
+
+# Copy MCP server implementations
+COPY mcp_servers/ ./
+
+# Build TypeScript servers if any
+RUN if [ -f "tsconfig.json" ]; then npm run build; fi
+
+# Stage 2: Production runtime
+FROM node:20-alpine
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    python3 \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 1000 -S mcp && \
+    adduser -u 1000 -S mcp -G mcp
+
+# Create required directories
+RUN mkdir -p /app/servers /app/logs /app/data \
+    && chown -R mcp:mcp /app
+
+WORKDIR /app
+
+# Copy built artifacts from builder
+COPY --from=builder --chown=mcp:mcp /build/node_modules ./node_modules
+COPY --from=builder --chown=mcp:mcp /build/dist ./servers
+COPY --chown=mcp:mcp mcp_servers/config ./config
+
+# Security: Drop all capabilities
+USER mcp
+
+# Production environment variables
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=2048" \
+    MCP_LOG_LEVEL=warn
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Use PM2 for process management in production
+CMD ["pm2-runtime", "start", "config/ecosystem.config.js"]

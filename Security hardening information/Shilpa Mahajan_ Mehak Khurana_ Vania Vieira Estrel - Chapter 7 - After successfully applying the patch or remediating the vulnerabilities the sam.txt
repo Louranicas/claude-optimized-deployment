@@ -1,0 +1,43 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 7 - After successfully applying the patch or remediating the vulnerabilities, the sample response in JSON format for notification purposes is shown in Figure 5.8.
+AI Module: This module is used to train the entire system on how to respond and to initiate the mitigation of vulnerabilities on real time, with the help of underlying DevOps platform. DevOps module will do the execution but what sort of commands, and configuration files are to be loaded and which tools are to be used will be defined by this module. It will be in sync with various libraries like (nginx, apache2, httpd, tomcat, sshd, etc.). The idea is to create a set of secure configuration files when it comes to application security where all the findings are generally related to HTTP Headers, those configs are easily available over the internet, and AI module proposed in this system will leverage the NLP‐based module and will create a configuration bank out of that information available over the internet. Authors in this section are committed to make the usage of AI more effectively and work is in progress. Here for experimentation, authors have created arbitrary set of configuration files in the inventory, like nginx.conf[Web Server], apache2.conf[Web Server], sshd.conf [For SSHing to server], server.xml[Tomcat Web Server], server.js[Node.JS], config.php[PHP Framework], commands for uninstalling outdated software’s, command for upgrading package or system level kernels, and all these are mostly tested on Linux and Windows Server Environments as most of the Digital applications in enterprise systems are hosted these platforms only.
+Security Relevance Score: 7
+Word Count: 813
+Extracted: 2025-06-13 23:40:31
+
+---
+
+After successfully applying the patch or remediating the vulnerabilities, the sample response in JSON format for notification purposes is shown in Figure 5.8.
+AI Module: This module is used to train the entire system on how to respond and to initiate the mitigation of vulnerabilities on real time, with the help of underlying DevOps platform. DevOps module will do the execution but what sort of commands, and configuration files are to be loaded and which tools are to be used will be defined by this module. It will be in sync with various libraries like (nginx, apache2, httpd, tomcat, sshd, etc.). The idea is to create a set of secure configuration files when it comes to application security where all the findings are generally related to HTTP Headers, those configs are easily available over the internet, and AI module proposed in this system will leverage the NLP‐based module and will create a configuration bank out of that information available over the internet. Authors in this section are committed to make the usage of AI more effectively and work is in progress. Here for experimentation, authors have created arbitrary set of configuration files in the inventory, like nginx.conf[Web Server], apache2.conf[Web Server], sshd.conf [For SSHing to server], server.xml[Tomcat Web Server], server.js[Node.JS], config.php[PHP Framework], commands for uninstalling outdated software’s, command for upgrading package or system level kernels, and all these are mostly tested on Linux and Windows Server Environments as most of the Digital applications in enterprise systems are hosted these platforms only.
+
+
+Figure 5.7 Flow for validating the issue and closure of the same.
+
+
+
+
+Figure 5.8 Sample JSON Data for closure.
+
+
+Inventory: This is the store for all the commands that our system will going to trigger, all the configuration files that are to be loaded while mitigating the vulnerabilities, SSL Certificates, and build or replica of application that is deployed and running live. Other than that this module will also have an asset mapping file where the public IP, Intranet IP mapping/DNS mapping are being done, and what all services or applications are running on the systems are provided. This file will help in identifying where the patch or remediation will actually going to be applied as the system proposed by the authors will be running over the VLAN of the organization ideally. Further this system is configured in such a way that it can access all the servers or assets running in the system through various DevOps module which authors have taken into consideration.
+DevOps Module: This module is about using DevOps [8] technologies to automate every operation. What to execute is something that will be decided by AI Module as per the proposed methodologies by authors; however, here authors have created pre‐sets of configurations and have used certain flags for the experimentation purposes. Authors in this environment have majorly used containerized [9] environment to test the execution and also run the test cases against mitigation.
+Test Case Runner Module: This is one of the important aspects and feature of the entire proposed system. As for the business, it is very important to ensure whatever the changes that are being made in terms of vulnerability mitigation is not impacting the overall liveliness of the system, as if the system or application is not working as expected after applying the fix it will impact the overall business of an organization and may impact the revenue. So, this module will ensure to apply the patch or remediation to the live system only after testing the same in sandbox or containerized environment and also will run some test cases to ensure production/live system is working as expected.
+Authors have given an example to understand the overall workflow of all the modules explained above. Suppose a vulnerability is reported by CSRP saying X‐Frame‐Options Header is missing from the Application running URL https://test.example.com. Actually, X‐Frame‐Options Headers are used to prevent applications from Click‐jacking and UI Rendering attacks, it is given as Low to Medium Severity in OWASP Category, in this literature it is marked as Medium Severity Vulnerability. Now there will be an internal schema of the above URL, i.e., domain ‐ test.example.com must have been hosted over internet and is assigned some Public IPs which ideally is mapped to some Private IP (Virtual LAN IP of the organization’s internal network). Table – Sample Table 1.1 below illustrates the same.
+
+
+Sample Table 1.1
+
+
+
+
+Domain
+Public IP
+Internal/Private IP  
+
+
+test.example.com
+1.1.1.1
+10.X.X.X   
+
+All these details will be mentioned in the inventory like which Domain has been assigned which Public IP and which Public IP is mapped to which Internal IP, and the inventory will also hold other details like Web Application details like on which web server Web Application is running, and on which Operating system the Web Application is running, location of the build, etc., so the inventory details will look something like shown in Sample Table 1.

@@ -1,0 +1,149 @@
+# OpenTelemetry Collector Configuration
+# This configuration receives traces from applications and exports them to multiple backends
+
+receivers:
+  # OTLP receiver for traces, metrics, and logs
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "*"
+          allowed_headers:
+            - "*"
+
+  # Jaeger receiver (legacy)
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:14250
+      thrift_http:
+        endpoint: 0.0.0.0:14268
+      thrift_compact:
+        endpoint: 0.0.0.0:6831
+      thrift_binary:
+        endpoint: 0.0.0.0:6832
+
+  # Zipkin receiver
+  zipkin:
+    endpoint: 0.0.0.0:9411
+
+processors:
+  # Batch processor for better performance
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # Memory limiter to prevent OOM
+  memory_limiter:
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # Resource processor to add/modify resource attributes
+  resource:
+    attributes:
+      - key: environment
+        value: ${ENVIRONMENT}
+        action: upsert
+      - key: collector.name
+        value: "claude-otel-collector"
+        action: insert
+
+  # Attributes processor for span modification
+  attributes:
+    actions:
+      - key: sensitive_data
+        action: delete
+      - key: password
+        action: delete
+      - key: token
+        action: delete
+
+  # Probabilistic sampler
+  probabilistic_sampler:
+    sampling_percentage: 10
+
+  # Span processor for custom logic
+  span:
+    name:
+      # Rename long operation names
+      to_attributes:
+        rules:
+          - "^(.{50}).*$"
+      # Extract service names from span names
+      from_attributes:
+        - "service.name"
+
+exporters:
+  # Jaeger exporter
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
+  # Zipkin exporter  
+  zipkin:
+    endpoint: http://zipkin:9411/api/v2/spans
+
+  # Prometheus exporter for metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: "claude_tracing"
+    const_labels:
+      environment: ${ENVIRONMENT}
+
+  # Logging exporter for debugging
+  logging:
+    loglevel: info
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  # File exporter for backup
+  file:
+    path: /tmp/traces.json
+
+extensions:
+  # Health check extension
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+  # Performance profiler
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  # Memory ballast for stable memory usage
+  memory_ballast:
+    size_mib: 64
+
+service:
+  extensions: [health_check, pprof, memory_ballast]
+  
+  pipelines:
+    # Traces pipeline
+    traces:
+      receivers: [otlp, jaeger, zipkin]
+      processors: [memory_limiter, resource, attributes, batch]
+      exporters: [jaeger, zipkin, logging]
+
+    # Metrics pipeline
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [prometheus, logging]
+
+    # Logs pipeline
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [logging]
+
+  # Telemetry configuration
+  telemetry:
+    logs:
+      level: "info"
+    metrics:
+      address: 0.0.0.0:8888

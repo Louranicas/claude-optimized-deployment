@@ -1,0 +1,86 @@
+# Multi-stage Dockerfile for TypeScript MCP Servers
+# Optimized for production with security scanning and size optimization
+
+# Stage 1: Builder
+FROM node:20-alpine AS builder
+
+# Security: Install security updates
+RUN apk update && apk upgrade && apk add --no-cache \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies (including dev dependencies for build)
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy source code
+COPY src/ ./src/
+
+# Build TypeScript
+RUN npm run build && \
+    npm prune --production
+
+# Stage 2: Security Scanner
+FROM builder AS security-scan
+
+# Install security scanning tools
+RUN npm install -g npm-audit-ci-wrapper audit-ci
+RUN npm audit --audit-level=moderate
+
+# Stage 3: Production Runtime
+FROM node:20-alpine AS runtime
+
+# Security updates and minimal runtime dependencies
+RUN apk update && apk upgrade && apk add --no-cache \
+    dumb-init \
+    tini \
+    && rm -rf /var/cache/apk/* \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S mcp -u 1001 -G nodejs
+
+# Set work directory
+WORKDIR /app
+
+# Copy production dependencies and built application
+COPY --from=builder --chown=mcp:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=mcp:nodejs /app/dist ./dist
+COPY --from=builder --chown=mcp:nodejs /app/package*.json ./
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/logs /app/data /tmp/mcp && \
+    chown -R mcp:nodejs /app /tmp/mcp
+
+# Security: Switch to non-root user
+USER mcp
+
+# Security and performance environment variables
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=2048 --gc-interval=100 --optimize-for-size" \
+    UV_THREADPOOL_SIZE=4 \
+    MCP_LOG_LEVEL=info \
+    MCP_SECURITY_MODE=strict
+
+# Expose port (non-privileged)
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD node dist/health-check.js || exit 1
+
+# Use tini as PID 1 for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "dist/index.js"]
+
+# Labels for metadata
+LABEL maintainer="claude-deployment-team" \
+      description="Production MCP TypeScript Server" \
+      version="1.0.0" \
+      security.scan="true" \
+      org.opencontainers.image.source="https://github.com/your-org/claude-optimized-deployment"

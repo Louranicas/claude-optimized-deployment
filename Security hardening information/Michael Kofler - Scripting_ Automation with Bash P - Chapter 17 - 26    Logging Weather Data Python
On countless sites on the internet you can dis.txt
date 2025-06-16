@@ -1,0 +1,36 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 17 - 2.6    Logging Weather Data (Python)
+On countless sites on the internet, you can discover interesting data via what are called REST APIs. Many services require you to register first, however, and free use is often limited, as with https://www.weatherapi.com.
+The following script determines the weather in Graz, Austria, and logs this information into a file called weather.csv, which has the following structure (using a semicolon as the delimiter):
+2023-04-14 11:30;Light rain;5.02023-04-14 12:13;Light rain;6.0... 
+In this example, the three columns contain the time, a short description of the weather and the temperature. The associated script performs a GET request and turns the resulting JSON data into a Python data structure. The desired data can then be easily extracted from this data structure. Like the previous example, this script also requires the requests module.
+# Sample file log-weather.pyimport requestskey = "7901xxxx"location = "Graz"base = "https://api.weatherapi.com/v1/current.json"url = base + "?key=" + key + "&q=" + locationdata = requests.get(url).json()temp = data['current']['temp_c']condition = data['current']['condition']['text']time = data['location']['localtime']with open("weather.csv", 'a') as f:    f.write("%s;%s;%s\n" % (time, condition, temp)) 
+You also now have the option of automating the periodic invocation of this script using cron or the Microsoft Windows Task Scheduler (see Chapter 11). You should prefix the filename weather.csv with an absolute path. For instructions on how to use REST APIs in Python and PowerShell scripts, see Chapter 18.
+Security Relevance Score: 3
+Word Count: 390
+Extracted: 2025-06-13 23:41:06
+
+---
+
+2.6    Logging Weather Data (Python)
+On countless sites on the internet, you can discover interesting data via what are called REST APIs. Many services require you to register first, however, and free use is often limited, as with https://www.weatherapi.com.
+The following script determines the weather in Graz, Austria, and logs this information into a file called weather.csv, which has the following structure (using a semicolon as the delimiter):
+2023-04-14 11:30;Light rain;5.02023-04-14 12:13;Light rain;6.0... 
+In this example, the three columns contain the time, a short description of the weather and the temperature. The associated script performs a GET request and turns the resulting JSON data into a Python data structure. The desired data can then be easily extracted from this data structure. Like the previous example, this script also requires the requests module.
+# Sample file log-weather.pyimport requestskey = "7901xxxx"location = "Graz"base = "https://api.weatherapi.com/v1/current.json"url = base + "?key=" + key + "&q=" + locationdata = requests.get(url).json()temp = data['current']['temp_c']condition = data['current']['condition']['text']time = data['location']['localtime']with open("weather.csv", 'a') as f:    f.write("%s;%s;%s\n" % (time, condition, temp)) 
+You also now have the option of automating the periodic invocation of this script using cron or the Microsoft Windows Task Scheduler (see Chapter 11). You should prefix the filename weather.csv with an absolute path. For instructions on how to use REST APIs in Python and PowerShell scripts, see Chapter 18.
+
+
+
+
+
+
+
+
+
+2.7    Microsoft Hyper-V Cleanup (PowerShell)
+If you use Microsoft Hyper-V as a virtualization system, you run the risk of accumulating old snapshots that will eat up storage space. The following PowerShell script deletes all snapshots older than 30 days:
+# Sample file delete-old-snapshots.ps1$days = 30$aMonthAgo = (Get-Date).AddDays(-$days)foreach ($snapshot in Get-VMSnapshot -VMName *) {    if ($snapshot.CreationTime -lt $aMonthAgo) {       $vmname = $snapshot.VMName       $snapname = $snapshot.Name       Write-Output "Delete '$snapname' of VM '$vmname'"       Remove-VMSnapshot -VMName $vmname -Name $snapname -Confirm    }} 
+The script assumes that Hyper-V is installed with all the administration tools on your Windows machine, which automatically makes the Hyper-V PowerShell module available as well. The script also requires admin rights: In other words, you must first open a PowerShell terminal as an administrator before you can run the script in it.
+To be on the safe side, the cleanup script will ask for your confirmation before deleting each snapshot. These queries are omitted if you remove the -Confirm option. More examples of virtual machine administration with Hyper-V are described in

@@ -1,0 +1,135 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 8 - , you learned that the /etc directory hosts configuration files, which shouldn’t be changed regularly after a system is deployed. A FIM could detect modifications to files such as /etc/passwd and /etc/shadow, which could indicate that an attacker is attempting to backdoor a system. Open source–based FIM solutions include Open Source Tripwire, Advanced Intrusion Detection Environment (AIDE), and OSSEC.
+Extended Berkeley Packet Filter
+The Extended Berkeley Packet Filter (eBPF) kernel instrumentation software allows programmers to safely write sandboxed code in the kernel. The Linux kernel provides a logical place to implement tasks such as security monitoring, tracing, and logging, but prior to eBPF, doing all this came with stability risks. In a security context, eBPF can identify and mitigate malicious activity, hook into various system mechanisms, and provide defenders with greater visibility into the system.
+Security-Enhanced Linux and AppArmor
+Security-Enhanced Linux (SELinux) is a security mechanism used to enforce mandatory access control on Linux systems. Originally developed by the US National Security Agency, SELinux policies can restrict who and what can access files, processes, and applications on protected systems. AppArmor is a Linux security module that protects applications from taking potentially harmful actions by applying security profiles to them. These security profiles can dictate the application’s allowed actions, its capabilities, and any actions AppArmor needs to take when an application violates the policy.
+Host-based firewalls
+Companies often rely on only one network firewall at the perimeter, allowing all endpoints inside the network to communicate freely with one another. Host-based firewalls can help an organization make lateral movement harder and isolate potentially compromised machines. As their name suggests, these firewalls run locally, filtering unauthorized traffic coming into or out of the host by using predefined rule tables. Linux offers various firewalls, such as iptables, firewalld, nftables, and Uncomplicated Firewall (UFW).
+Security Relevance Score: 17
+Word Count: 989
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, you learned that the /etc directory hosts configuration files, which shouldn’t be changed regularly after a system is deployed. A FIM could detect modifications to files such as /etc/passwd and /etc/shadow, which could indicate that an attacker is attempting to backdoor a system. Open source–based FIM solutions include Open Source Tripwire, Advanced Intrusion Detection Environment (AIDE), and OSSEC.
+Extended Berkeley Packet Filter
+The Extended Berkeley Packet Filter (eBPF) kernel instrumentation software allows programmers to safely write sandboxed code in the kernel. The Linux kernel provides a logical place to implement tasks such as security monitoring, tracing, and logging, but prior to eBPF, doing all this came with stability risks. In a security context, eBPF can identify and mitigate malicious activity, hook into various system mechanisms, and provide defenders with greater visibility into the system.
+Security-Enhanced Linux and AppArmor
+Security-Enhanced Linux (SELinux) is a security mechanism used to enforce mandatory access control on Linux systems. Originally developed by the US National Security Agency, SELinux policies can restrict who and what can access files, processes, and applications on protected systems. AppArmor is a Linux security module that protects applications from taking potentially harmful actions by applying security profiles to them. These security profiles can dictate the application’s allowed actions, its capabilities, and any actions AppArmor needs to take when an application violates the policy.
+Host-based firewalls
+Companies often rely on only one network firewall at the perimeter, allowing all endpoints inside the network to communicate freely with one another. Host-based firewalls can help an organization make lateral movement harder and isolate potentially compromised machines. As their name suggests, these firewalls run locally, filtering unauthorized traffic coming into or out of the host by using predefined rule tables. Linux offers various firewalls, such as iptables, firewalld, nftables, and Uncomplicated Firewall (UFW).
+
+
+Application and API Security
+Modern applications and APIs require protection from a variety of attacks, such as data extraction and denial of service. As such, companies tend to rely on third-party applications to provide umbrella protection for their apps:
+Web application firewalls
+Web application firewalls (WAFs) are software- or hardware-based firewalls operating at Layer 7 of the OSI model (the application layer). Today, they’re often powerful cloud-based services that inspect requests and responses coming into an application. WAFs implement signature- and behavior-based heuristics to identify malicious traffic; they also use threat intelligence data to identify bad actors, often based on source IP addresses or browser fingerprints.
+Web application and API security
+An extension to traditional web application firewalls, web application and API security (WAAS) solutions address vulnerabilities within an organization’s ecosystem by inspecting its internal traffic, such as communications between microservices. WAAS solutions are often deployed on servers and consider the application and runtime environment.
+Runtime application self-protection
+Application firewalls don’t necessarily understand anything about the applications they’re protecting. Runtime application self-protection (RASP) solutions attempt to address this by keeping track of what applications are doing when they handle requests. For example, if a SQL injection attack manages to bypass the web application firewall sitting on the perimeter, the attacked application may send the SQL command to its database and return a response containing a large amount of personal data. Because they have insight into the code, RASP solutions may identify these attempts and block them.
+
+
+Network Security
+Companies often overlook network security, as they frequently protect against malicious traffic coming from the outside internet but neglect to do the same for internal traffic. The following solutions can address these gaps:
+Intrusion detection and prevention systems
+Intrusion detection and prevention systems (IDS/IPS) are software or hardware appliances that observe the network for signs of intrusion based on traffic patterns. These systems tend to use known-bad signatures along with other heuristics, and once they observe a malicious payload on the wire, they alert or block the traffic altogether. Some examples of IDS and IPS systems are Snort, Zeek, Suricata, and OSSEC.
+Network firewalls
+Network firewalls inspect incoming and outgoing traffic at critical points in a network architecture, filtering traffic originating from the internet and between internal networks. We often call modern firewalls next-generation firewalls because of all their additional capabilities, such as URL filtering, deep packet inspection, malware detection, built-in threat intelligence, and protocol or application identification.
+
+
+Honeypots
+Honeypots are designed to look like real production systems, but their true purpose is to detect threat actors attempting to breach a network or move laterally after a successful breach. Honeypots can also collect threat intelligence. By luring attackers into targeting particular systems, defenders can learn about their current tactics and techniques. This information can help strengthen security controls and focus on possible areas of weakness.
+
+
+Log Collection and Aggregation
+Logs are a critical asset for defenders, as they provide evidence of breaches both during an incident and after the fact. A system can collect logs from almost anything, including hosts, printers, network switches, firewalls, and applications. Endpoints often transmit logs to centralized security information and event management systems, where defenders can correlate events to identify anomalies. Examples of mechanisms that collect logs for security purposes include Auditd, Fluent Bit, and syslog clients. Logs from these components are often centralized in applications such as OSSEC and Wazuh.
+Table 12-1 lists several host-level controls and their unique characteristics, such as their process names and where they store their runtime files.
+Table 12-1: Security Controls and Their Identifiers
+
+
+
+Name
+Category
+Identifier type
+Identifier
+
+
+
+
+Auditd
+Security audit logging
+Process name
+auditd
+
+
+OSSEC
+Intrusion detection
+Process name
+ossec
+
+
+syslog
+Event data log protocol
+Process name
+syslogrsyslogsyslog-ng
+
+
+iptables
+Host-based firewall
+Process name
+iptables
+
+
+UFW
+Host-based firewall
+Process name
+ufw
+
+
+Open Source Tripwire
+File integrity monitoring
+Directory
+/etc/tripwire
+
+
+AIDE
+File integrity monitoring
+Directory
+/etc/aide
+
+
+AppArmor
+Application security profiling
+Directory
+/etc/apparmor.d
+
+
+chkrootkit
+Rootkit scanner
+Directory
+/etc/chkrootkit
+
+
+SELinux
+Mandatory access control enforcement
+Directory
+/etc/selinux
+
+
+Fluent Bit
+Log collection
+Directory
+/etc/fluent-bit
+
+
+Rootkit Hunter
+Rootkit scanner
+File
+/etc/rkhunter.conf
+
+
+
+This table primarily focuses on open source endpoint security controls. We’ll use it in Exercise

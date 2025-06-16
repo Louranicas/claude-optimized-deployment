@@ -1,0 +1,33 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 06 - Now take a look at the file’s contents to better understand how it should work when we upload it:
+import subprocess
+result = subprocess.check_output('id', shell=True)
+print(result.decode('utf-8'))
+Security Relevance Score: 2
+Word Count: 384
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Now take a look at the file’s contents to better understand how it should work when we upload it:
+import subprocess
+result = subprocess.check_output('id', shell=True)
+print(result.decode('utf-8'))
+
+This Python script uses the imported subprocess module to execute a bash command on the underlying operating system. We hardcode the id bash command in the subprocess.check_output() function, which executes the specified command in a subprocess and captures its output. The shell=True parameter allows the command to be executed through the shell, enabling the use of shell-specific functions and syntax. Finally, we print the results of the command to the console after decoding from a byte type to a string. When executed, this code should retrieve the user and group information for the user running the web application.
+Unfortunately, as you can see in Figure 6-2, we can’t upload the Python file to the web application. To check this yourself, click Choose File, browse to the saved web shell, then click Upload.
+
+Figure 6-2: A file-type upload error
+
+In the next section, you’ll learn about several file upload bypass techniques you can use to evade restrictions and hopefully execute code.
+
+
+Bypassing File Upload Controls
+To protect against arbitrary file uploads, developers frequently use validating functions. These functions can verify a file’s size, extension, and other properties. However, hackers can leverage several common techniques to bypass many of these file upload controls. Let’s consider some of these techniques.
+
+accept Attribute Modification
+Developers use the accept HTML attribute in file input elements to specify the types of files that the browser should allow users to select for upload. By default, this attribute restricts files based on their extensions or Multipurpose Internet Mail Extensions (MIME) types. For example, the following line of HTML uses the accept attribute to allow only specific file extensions:
+<input type="file" name="file" accept=".jpeg, .jpg, .gif, .png">
+But because this attribute is set on the client side, attackers can easily bypass the control to trick the application into accepting files with different extensions or MIME types. We can manipulate the accept attribute by using browser developer tools.
+By default, the ACME Hyper Branding web application doesn’t use accept attributes for the file upload input. To get a better understanding of how this control works, try modifying the client-side HTML to include the attribute, as shown in Figure 6-

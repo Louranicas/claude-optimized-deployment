@@ -1,0 +1,901 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 1 - 4.1 outlines the taxonomy design, 
+while Sect. 1.4.2 describes the design of the mapping study in detail. By conducting 
+a systematic protocol, we can effectively map the existing literature to identify gaps and overlaps in the ﬁeld, which helps inform the development of a comprehensive 
+and accurate taxonomy. 
+1.4.1 T axonomy Protocol 
+A taxonomy is a categorization system that aids in differentiating between various research categories for a speciﬁc topic. Its primary advantages include providing a systematic overview of the research domain and predicting future research 
+endeavors. The establishment of a taxonomy is supported by conducting a mapping study, which follows the guidelines presented by Usman et al. [
+13]. The steps 
+involved in executing a mapping study are as follows: 
+1.4.1.1 Planning 
+During this phase, we established the taxonomy design in accordance with the following steps: 
+• Deﬁne software engineering knowledge area: In [ 14], the software engineering 
+body of knowledge is categorized into 15 distinct areas. Our study, however, is orthogonal to these areas since it concentrates on software and hardware security. 
+• Objective of the taxonomy: The aim of this taxonomy is to establish relation-ships between methods for mitigating identiﬁed PLC vulnerabilities and the corresponding attacks and solutions. This taxonomy can prove useful to both 
+academics and practitioners, as it enables them to document their research on industrial PLC software in accordance with the established categories. 
+• Subject matter: The subject matter is a more speciﬁc deﬁnition of the knowledge 
+domain. In this study, the subject matter or units of classiﬁcation pertain to 
+security vulnerabilities, attacks, and solutions in industrial PLC software.
+8 E. P. Enoiu et al.
+• Classiﬁcation structure type: When constructing a taxonomy, there are four 
+potential structures that can be employed for the categorization process: 
+paradigm, faceted analysis, tree, and hierarchy. For this study, we have opted to use the faceted analysis structure, which includes multiple facets (e.g., 
+vulnerabilities, attacks, solutions), each with their own attributes. 
+• Classiﬁcation procedure type: The classiﬁcation procedures can be classiﬁed into two types: qualitative and quantitative. In this particular research, qualitative 
+classiﬁcation procedures are more appropriate since they rely on nominal scales. These nominal scales are utilized to allocate the subject matter types to the respective dimensions. 
+• Identify information sources: The mapping study described in Sect. 1.4.2 outlines 
+the sources of information from which the data is extracted. Additionally, the study presents the ﬁndings obtained from analyzing this information. 
+1.4.1.2 Identiﬁcation and Extraction 
+Once the design of the taxonomy has been planned, the subsequent step involves identifying and extracting the appropriate data. These two phases are carried out 
+through the execution of a mapping study. The following is a general description of each step: 
+• Extract terms: The terminology used for constructing this taxonomy is derived from the data extraction process of the mapping study. Relevant terms and concepts pertaining to vulnerabilities, attacks, and solutions in industrial PLC 
+software are included in a data extraction form. 
+• Terminology control: To prevent any inconsistencies, we ensured terminology control during the data extraction and analysis process. 
+1.4.1.3 Design 
+After extracting all relevant data, we must proceed to identify the dimensions, categories, and relationships using the following steps: 
+• Identify dimensions: For this taxonomy, we selected the faceted analysis classi-ﬁcation structure, which entails identifying multiple dimensions. The taxonomy comprises the following dimensions: vulnerabilities, attacks, and solutions. 
+• Identify categories: To identify the categories within each dimension, we must utilize either a top-down or bottom-up approach. In this study, we have employed a bottom-up approach, whereby the categories are identiﬁed during the data 
+extraction process of the mapping study. 
+• Identify relationships: The dimensions of the taxonomy are interconnected through their association with the security of PLC software. Vulnerabilities 
+and attacks are also linked since attacks exploit vulnerabilities, and similarly, there exists a relationship between attacks and solutions, as solutions aid in
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 9
+mitigating attacks. A more comprehensive understanding of this interdependence 
+is presented in Sect. 1.6.4 . 
+1.4.2 Mapping Study Protocol 
+A mapping study is utilized to organize data obtained on a speciﬁc subject, identify 
+research trends and gaps, and present ﬁndings. To conduct our mapping study, we adhere to the guidelines proposed by Petersen et al. [
+15] for mapping studies in 
+software engineering. Conducting a mapping study comprises various stages. Our initial step involves deﬁning the overall objective. We then proceed to formulate the search string, select appropriate digital libraries, establish selection criteria, execute 
+the query search, eliminate duplicates, screen papers based on their title and abstract using the selection criteria, screen the full text of papers using the selection criteria, conduct backward snowballing, deﬁne the classiﬁcation framework, extract data 
+from the studies, analyze the extracted data, and present the ﬁnal results. Figure 
+1.2 
+depicts this process. 
+1.4.2.1 Research Goal 
+The objective of this research is to establish a classiﬁcation of the most prominent security vulnerabilities in industrial PLC software, the most prevalent attacks that exploit these vulnerabilities, and potential solutions to enhance the security of 
+industrial PLC software. The ﬁndings of this study will serve as a foundation for understanding security vulnerabilities and their underlying causes in industrial PLC software. Thus, our overarching research objective is to establish a taxonomy for 
+categorizing security vulnerabilities, associated attacks, and preventive measures concerning industrial PLC software. 
+1.4.2.2 Research Questions 
+This study has formulated the following four research questions that will aid in achieving the deﬁned goal: 
+• Which categories of security vulnerabilities have been recognized for industrial PLC software? 
+• Which attacks are the most prevalent in exploiting these security vulnerabilities 
+in industrial PLC software? 
+• What are the primary solutions or preventive measures for addressing security 
+vulnerabilities in PLC software?
+10 E. P. Enoiu et al.
+Fig. 1.2 Research method used for the SMS 
+Table 1.1 PICO criteria 
+Population Industrial PLC software 
+Intervention Security vulnerabilities 
+Comparison Not applicable 
+Outcomes Classiﬁcation of studies based on the vulnerabilities they mention in the context 
+of PLCs 
+1.4.2.3 Keywords and Search String 
+The main focus of this study is on security vulnerabilities in industrial PLC software. 
+First, we used the Population, Intervention, Comparison and Outcomes (PICO) 
+criteria to create the search string. The PICO criteria is deﬁned in Table 1.1. 
+Next, we deﬁned the keywords and their corresponding synonyms and acronyms 
+shown in Table 1.2.
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 11
+Table 1.2 Keywords, 
+synon
+yms and acronyms Keywords Synonyms and acronyms 
+Programmable logic controller PLC 
+Security Security 
+Vulnerability Risk, threat 
+We used these keywords, wildcards (i.e., *), and Boolean operators (i.e., AND, 
+OR) and we created the following search string: 
+(“PLC*” OR “Programmable Logic Controller*”) AND (security) AND (“vul-
+nerabilit*” OR “risk*” OR “threat*”) 
+1.4.2.4 Digital Libraries 
+To obtain results for this study, we opted to search two primary digital libraries that 
+are 
+commonly utilized in PLC engineering: IEEE Xplore1 and Scopus.2 
+1.4.2.5 Selection Criteria 
+To establish the relevance of studies obtained from our search, we have developed a 
+set 
+of selection criteria, which are classiﬁed as either inclusion or exclusion criteria. 
+A study is deemed eligible if it meets all the inclusion criteria and none of the exclusion criteria. Conversely, a study is excluded if it meets at least one exclusion criterion or fails to meet all the inclusion criteria. The selection process is conducted 
+in two stages. In the ﬁrst stage, papers are assessed based on their title, abstract, and 
+keywords, and in the second stage, the full text of the papers is examined. Inclusion criteria are listed as follows: 
+• I1. Papers that identify one or more security vulnerabilities in industrial PLC 
+softw
+are. 
+• I2. Papers that are published in conferences or journals. 
+Exclusion 
+criteria are listed as follows: 
+• E1. Papers which are duplicative or outdated versions of prior papers. 
+• E2. Papers which are not peer-reviewed. 
+• E3. Papers which are secondary or tertiary studies. 
+• E4. Papers which are not accessible in English. 
+• E5. Papers which are not accessible in full text.
+1 https:// ieeexplore.ieee. org 
+2 https:// www. scopus. com/ 
+12 E. P. Enoiu et al.
+• E6. Papers which address security concerns in ICS but not explicitly in relation 
+to PLCs. 
+1.4.2.6 Query Search 
+After the search string and digital libraries are deﬁned, the search string is used in 
+those digital libraries to get the results from the automatic search. The following search strings are the speciﬁc ones for each library: 
+IEEE Xplore: (“PLC*” OR“Programmable Logic Controller*”) AND (security) AND (“vulnerabilit*” OR “risk*” OR “threat*”) 
+Scopus: (“PLC*”OR“Programmable Logic Controller*”) AND (security) AND (“vulnerabilit* ” OR “risk*”OR“threat*”) AND (LIMIT-TO (OA , “all”)) AND (LIMIT-TO(DOCTYPE, “ar”) OR LIMIT-TO (DOCTYPE , “cp”)) AND (LIMIT-
+TO(SUBJAREA ,“COMP”) OR LIMIT-TO (SUBJAREA , “ENGI”)) AND (LIMIT-TO(LANGUAGE , “English”)) AND (LIMIT-TO(PUBSTAGE ,“ﬁnal”)) AND (LIMIT-TO(SRCTYPE , “j”) OR LIMIT-TO (SRCTYPE , “p”)) 
+All the studies obtained through automated searches of the libraries have been 
+exported and subsequently examined in two distinct spreadsheets. 
+1.4.2.7 Selection Criteria Application 
+Following the elimination of duplicates, it becomes imperative to assess the pertinence of the remaining papers. Their relevancy is determined based on the 
+selection criteria outlined in Sect.
+1.4.2.5 . The process of selecting studies involves 
+two steps: ﬁrst, applying the selection criteria to the title, abstract, and keywords, and, second, applying the selection criteria to the full text. 
+1.4.2.8 Classiﬁcation, Extraction, and Analysis 
+Our inclusion of domain-speciﬁc information pertains speciﬁcally to topics about industrial PLC software. The classiﬁcation framework comprises a vulnerabilities 
+category, which is populated by extracting information on security vulnerabilities in industrial PLC software from the papers. Additionally, the framework encompasses both attacks and solutions categories. 
+During the analysis phase of data collection, the data extracted from the primary 
+studies is utilized to construct the taxonomy. Initially, the data for each category of the classiﬁcation scheme is scrutinized, and the quantity of studies in a particular 
+category is determined. Nevertheless, this data is solely applicable to each individual category, and it is crucial to examine how the categories are interlinked.
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 13
+1.5 Search Results 
+In this section, we present the number of papers that remain for each stage of 
+the study, starting from the digital library search to the ﬁnal set of papers, after 
+outlining all the required steps and components. Figure 1.3 provides a summary of 
+Fig. 1.3 Search and selection results
+14 E. P. Enoiu et al.
+Table 1.3 Search ResultDigital library Search results 
+IEEE XPlore 122 
+SCOPUS 432 
+Total 554 
+this process, and a thorough explanation of the process is provided subsequently. 
+As outlined in Sect. 1.4.2.6, the automatic search process involved the execution of 
+the 
+search string in two distinct digital libraries. Table 1.3 displays the results of 
+our 
+search, indicating the number of papers retrieved from both IEEE Xplore and 
+SCOPUS. Our search criteria matched 122 papers in IEEE Xplore and 432 papers in SCOPUS. By combining the results from both sources, we obtained a total of 554 
+papers. 
+We executed the removal of duplicates, which led to the elimination of 84 
+papers. 
+Initially, we applied the selection criteria to the papers’ titles, abstracts, and 
+keywords, resulting in the exclusion of 400 papers. Most of the excluded studies 
+either did not meet I1 or met E6. In the subsequent stage, we applied the selection criteria to the full text, excluded 34 studies, and retained 36 studies. The majority of 
+the papers excluded in this stage either met E5 or E6. Backward snowballing was 
+conducted to add more papers to the ﬁnal set to extract more relevant results. From the 36 papers, we collected 578 studies. From these 578 studies, 493 were excluded 
+based on the title and keywords, and 67 were excluded based on the abstract. From 
+applying the selection criteria to the full text, 15 studies were excluded. In total, from the backward snowballing process, we obtained three additional papers. Since 
+the snowballing process was the last process before the classiﬁcation framework 
+deﬁnition, our ﬁnal set of papers contains 39 studies that can be used to build this taxonomy. 
+1.6 Taxonomy Results 
+In this section, we present a summary of the ﬁndings from our data analysis. We 
+not only identify the different categories of PLC vulnerabilities but also explore 
+the interconnections among them, as well as between vulnerabilities, attacks, and solutions. 
+1.6.1 Security Vulnerabilities 
+During the data extraction process, ten primary categories of vulnerabilities were identiﬁed. While some of these categories are interconnected (e.g., lack of encryp-
+tion or authentication may stem from protocols’ lack of security when used on the
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 15
+Fig. 1.4 Vulnerabilities in PLC systems 
+Internet), we classiﬁed them separately as authentication, encryption, and network 
+to avoid any potential bias. Additionally, this categorization allows us to see how 
+many studies address networks generally versus speciﬁc areas. Figure 1.4 provides 
+a visual summary of the results. 
+The category with the highest number of publications is related to authentication, 
+with 19 studies dedicated to this topic. This category primarily discusses the vulner-
+abilities associated with hard-coded passwords, lack of two-factor authentication 
+mechanisms, and absence of passwords altogether. 
+The categories that receive the most attention in terms of publications are 
+authentication and encryption. This is mainly because communication protocols 
+used in ICS lack security features. Studies such as S4, S8, and S9 focus on this 
+issue. For instance, the Modbus communication protocol, which is one of the oldest 
+and most commonly used protocols in ICS, does not offer any authentication or 
+encryption. As a result, an attacker can easily obtain the necessary information for a 
+Modbus session to be valid (e.g., function code and address) from a network sniffer 
+like Wireshark and launch an attack. Moreover, Modbus messages are not encrypted 
+and are transmitted in plain text. This issue is not limited to Modbus, as other widely 
+used protocols such as Proﬁbus, Proﬁnet, EtherCAT, and more also lack encryption. 
+The absence of anomaly detection mechanisms is highlighted as a vulnerability 
+in ﬁve studies, as they emphasize that the inability to detect unusual behavior of 
+PLCs in real time can result in disastrous consequences. This vulnerability is not 
+only perilous because of the critical systems that are governed by PLCs but also 
+because it is challenging to identify the root cause of the attack while it spreads 
+throughout the system [ 16]. 
+Operating system security is identiﬁed as a vulnerability in four studies that 
+focus on industrial PLC software. Similar to other operating systems, the operating 
+systems used in these PLCs also have vulnerabilities that can be exploited by 
+attackers. For instance, some of the vulnerabilities mentioned in these studies
+16 E. P. Enoiu et al.
+include the Microsoft Windows server service vulnerability (MS-08-067), the 
+print spooler vulnerability (MS10-061), and the Microsoft Windows.LNK/.PIF 
+vulnerability (MS10-046), as noted in S33. 
+Four studies mention the buffer overﬂow vulnerability, which is associated with 
+memory 
+corruption. When this vulnerability is exploited, the attacker can modify 
+program execution [ 17]. Additionally, this vulnerability is closely connected to 
+another 
+vulnerability discussed in three studies, namely, the lack of input validation. 
+By validating input, the program will only accept values within an acceptable range, such as input character length, and prevent buffer overﬂow [ 17, 18]. 
+The three studies that discuss the lack of information about hardware and 
+ﬁrmw
+are present a conﬂicting situation. On the one hand, PLC vendors require 
+security research and measures to be taken against possible attacks. However, since the hardware and ﬁrmware they use are proprietary and not publicly available, 
+conducting research to obtain reliable results on how to mitigate the possibility of 
+attacks is nearly impossible [ 17, 19]. Therefore, this vulnerability is primarily due 
+to 
+the vendors’ choices rather than the system itself. 
+Human issues are mentioned as a vulnerability in three studies (S34-S36). This 
+cate
+gory encompasses inexperienced developers, naive users who might uninten-
+tionally make the system vulnerable to attacks, or personnel who may intentionally 
+try to attack the system. Access control, on the other hand, is the least frequently 
+mentioned vulnerability category, with only two papers discussing it. S1 and S43 focus on the importance of providing users with information based on their needs 
+and granting privileged access only to authorized users. Refer to Table 1.4 for the 
+papers 
+in each category. 
+Table 1.4 Vulnerabilities and studies 
+Vulnerabilities Studies 
+Encryption S1, S4, S7, S12, S20, S23, S24, S30, S34 
+Authentication S1–S4, S6–S9, S11, S13, S21–S23, S27, 
+S30–S32, S34, S37 
+No anomaly detection S12, S17, S19–S21 
+Access control S1, S27 
+Human issues S34–S36 
+Operating System S15, S19, S33, S34, S37–S39 
+Buffer Overﬂow S7, S19, S25–S27 
+Input validation S11, S14, S27 
+Lack of information about hardware and ﬁrmware S18, S24, S27 
+Network S5, S10, S15, S16, S27–S29
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 17
+The primary outcomes from the gathered data on security vulnerabilities in indus-
+trial PLC software are as follows: 
+The research on security vulnerabilities in industrial PLC software has a 
+signiﬁcant focus on issues related to authentication, encryption, networks, and 
+operating systems. 
+1.6.2 Attacks 
+The graphical representation of the number and type of attacks in industrial PLC 
+software can be seen in Fig. 1.5. 
+The most commonly mentioned attack that takes advantage of the security 
+weaknesses in industrial PLC software is denial of service (DoS), discussed in 11 
+studies. A system is designed to handle a certain amount of trafﬁc, and if more 
+trafﬁc is directed to a particular address with the intention of rendering the system 
+unavailable to users, it is considered a DoS attack [ 20]. In PLC industrial settings, 
+availability is a critical attribute, making the impact of this attack signiﬁcant. 
+Stuxnet is a worm that gained notoriety for infecting PLCs and taking control of 
+the gas centrifuges in Iran, causing them to spin at high speeds until they burned 
+out. The worm searched for an industrial automated software called SIMATIC Step 
+7 used by PLCs on infected PCs. Once it found this software, it would also ﬁnd a 
+PLC and inject malicious code into it. The worm was designed to send false data to 
+cover its tracks and avoid detection by controllers, making it difﬁcult to detect the 
+attack [ 21, 22]. 
+Fig. 1.5 Attacks
+18 E. P. Enoiu et al.
+The man-in-the-middle attack (MITM), which is mentioned in six studies, is 
+another well-known attack. In this type of attack, the attacker positions themselves 
+in between an HMI and a PLC and intercepts all the information that the HMI is attempting to send to the PLC. This allows the attacker to modify the data they 
+receive from the HMI and send it to the PLC, without the PLC being aware that the data has been tampered with. Additionally, the attacker can also observe or attempt to block the trafﬁc [
+20]. 
+A similar attack is the replay attack mentioned in four studies (i.e., S4, S16, 
+S27, S30). In this attack, the attacker also gets a copy of the information exchanged between the two hosts and can later use it by sending duplicate information. 
+The false data injection attack is mentioned in four studies (i.e., S3, S6, S11, 
+S17). The PLC receives information from sensors, and during the false data injection attack, this information is manipulated. When this happens, the PLC will output 
+commands according to the false data injected and not according to the real measurements from the sensor. That could lead to damaging incidents. 
+Two studies (S8 and S30) mention the brute force attack, which involves an 
+algorithm that attempts all possible combinations for a speciﬁc password until the correct password is identiﬁed and the necessary credentials are obtained to access the system. As a result, it is recommended to use passwords with a minimum number 
+of characters, as well as a combination of lowercase and uppercase letters, numbers, and special characters in most applications. A larger alphabet results in a larger number of possible combinations that must be tried to discover the correct password. 
+S8 describes a similar attack called the dictionary attack, in which the attacker uses a list of previously used or common passwords instead of trying all possible character combinations. 
+The authentication bypass attack is mentioned in two studies and takes advantage 
+of the lack of security in the protocol. An attacker can obtain an authentication packet from a validated user in the system and use it to authenticate themselves 
+[
+23]. All other attacks are only mentioned once in the reviewed studies. Table 1.5 
+presents the papers for each attack category. 
+The prevalent types of attacks that exploit security vulnerabilities in industrial PLC software include denial of service, Stuxnet, man-in-the-middle, replay attacks, and false data injection attacks. 
+1.6.3 Security Solutions 
+Figure 1.6 provides a visual depiction of the proposed solutions for mitigating 
+vulnerabilities and attacks in industrial PLC software. Of the 39 studies examined, only 19 (or approximately half) discuss potential solutions for mitigating attacks or
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 19
+Table 1.5 Attacks and studies 
+Attacks Studies 
+Denial of service S1, S5, S11, S12, S17, S21, S22, S14, S25, S28, S36 
+Stuxnet S11, S24, S28, S29, S31, S33, S36, S39 
+Man-in-the-middle S12, S13, S16, S22, S24, S30 
+Replay attack S4, S16, S27, S30 
+False data injection S3, S6, S11, S17 
+Brute force S8, S30 
+Authentication bypass attacks S5, S30, S34 
+Start stop attack S20, S34 
+Dictionary attack S8 
+Phishing S8 
+PLC-PC worm S10 
+SQL injection S11 
+Data execution attack S13 
+Control logic attack S13 
+Stealth command modiﬁcation attack S16 
+Interception attack S17 
+Maroochi attack S24 
+Duqu S29 
+Havex S24 
+Firmware modiﬁcation attack S38, S39 
+Fig. 1.6 Solutions for vulnerabilities 
+securing vulnerable system components. In total, we identiﬁed 13 distinct solutions, 
+with nine mentioned only once. 
+The solutions most frequently cited in the PLC literature involve detection 
+mechanisms. These mechanisms are designed to identify patterns or events that
+20 E. P. Enoiu et al.
+diverge from typical system behavior. By monitoring system behavior, changes that 
+indicate a potential attack can be detected and reported to a control center [24 , 25]. 
+Intrusion
+detection is mentioned in four of the nine papers (S2, S13, S17, S30), while 
+anomaly detection is mentioned in three of the nine papers (S7, S26, S29). Data tampering detection is mentioned in one paper (S6), as is attack model detection 
+(S15). While these mechanisms are all forms of detection, we have grouped them together. It is important to note that these detection mechanisms only serve to 
+identify attacks and do not provide a means of mitigating them. 
+One potential approach is encryption. Many commonly used communication 
+protocols 
+transmit messages in plain text, leaving them vulnerable to exploitation 
+by attackers. To address this issue, ﬁve papers recommend encrypting the content 
+of messages to ensure conﬁdentiality. Users can encrypt their messages, which can then be decrypted by the intended recipients with the proper decryption 
+key [ 21]. The underlying concept is to incorporate encryption mechanisms into 
+communication 
+protocols or replace existing protocols with ones that support 
+encryption. 
+Another potential solution is the implementation of demilitarized zones. As a 
+signiﬁcant 
+portion of cyber vulnerabilities and attacks stem from Internet connec-
+tions, the goal of demilitarized zones is to isolate the primary network from the Internet, which is generally deemed insecure. In the event of an attack, this setup 
+prevents the attacker from accessing the primary network, limiting their access to only the untrusted segment [ 2, 26]. This approach also allows for partitioning of the 
+netw
+ork into multiple zones, each with its own protective layer. If one zone becomes 
+infected, it is unable to spread the infection to other zones. 
+As the remaining solutions are mentioned only once, we do not offer a detailed 
+e
+xplanation of them. However, for interested readers, we have included the papers 
+that discuss these solutions in our data extraction form for further reference. The relevant papers for each category are listed in Table 1.6. 
+Table 1.6 Solutions and studies 
+Solutions Studies 
+Detection mechanisms S3, S6, S7, S13, S15, S17, S26, S29, S30 
+Encryption S16, S17, S24, S30, S31 
+Monitoring S20, S32 
+Demilitarized zones S30, S32 
+Challenge-response mechanism S8 
+Prediction model S10 
+User authentication S13 
+Deep packet inspection S13 
+Open PLC S18 
+SEABASS S22 
+Firewall S32 
+VPN S32 
+Firmware veriﬁcation tool S38
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 21
+Various techniques have been utilized in research to provide solutions for 
+security vulnerabilities in PLC software, including the implementation of detection mechanisms and encryption. 
+1.6.4 A T axonomy for PLC-Based Vulnerabilities, Attacks, 
+and Security Solutions 
+The data collected in the study was utilized to develop a taxonomy for organizing the vulnerabilities, attacks, and solutions in PLCs. Figure 
+1.7 displays a faceted 
+taxonomy that encompasses all of these elements. The root of the taxonomy 
+is the PLC, while the taxonomy’s dimensions consist of vulnerabilities, attacks, 
+and solutions. Each dimension includes multiple categories, with ten categories identiﬁed for vulnerabilities, 20 for attacks, and 13 for solutions. 
+Since we are connecting the vulnerabilities, attacks, and solutions for industrial 
+PLC software into a single taxonomy, in Fig. 1.8 we describe the relationship 
+between these three dimensions. As mentioned throughout this study, vulnerabilities 
+are weaknesses of the PLC system. They pose a risk to the PLC system as they lead 
+to a different attack that exploits these vulnerabilities. These attacks are resolved by different solution mechanisms that mitigate the corresponding vulnerabilities. 
+Table 1.7 presents a mapping of the security vulnerabilities found in the previous 
+study to their corresponding attacks and solutions. It can be observed that each vulnerability can result in multiple attacks and each attack can have multiple 
+solutions. The majority of the reported attacks were related to PLC network security, indicating that more research is needed in this area to develop effective PLC security mechanisms. This tabular taxonomy provides a comprehensive framework that 
+includes the dimensions of vulnerabilities, attacks, and solutions. The vulnerabilities dimension is divided into 10 categories, the attacks dimension into 20 categories, and the solutions dimension into 13 categories. 
+Figure 1.9 illustrates the relationship between vulnerabilities, attacks, and solu-
+tions, focusing only on attacks that exploit a vulnerability and have a possible solution. Attacks serve as the connecting point between vulnerabilities and solu-
+tions. For instance, with respect to FDIA, authentication is the most commonly identiﬁed vulnerability, whereas detection mechanisms and encryption are the most frequently employed solutions. Regarding the MITM attack, the lack of 
+encryption is the predominant vulnerability, while encryption mechanisms are the most common solutions. Similarly, for the replay attack, the primary vulnerabilities are the lack of authentication, encryption, and network issues, while encryption 
+mechanisms are the main solutions. 
+The taxonomy developed in this study provides several contributions. Firstly, the 
+process used to create this taxonomy can serve as a model for other researchers
+22 E. P. Enoiu et al.
+Fig. 1.7 Security taxonomy for PLCs
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 23
+Fig. 1.8 Generic vulnerabilities, attacks, and solutions cycle 
+to create taxonomies in similar contexts. Additionally, the taxonomy can aid in 
+examining the security of PLSs from multiple perspectives. Secondly, academics 
+can beneﬁt from this taxonomy by identifying security trends and patterns in PLCs 
+and using them to organize their research outcomes. Industry professionals can also 
+use the taxonomy to target frequent PLC vulnerabilities, analyze existing solutions, 
+and improve security measures. The taxonomy can also serve as a checklist to 
+ensure a system is free of vulnerabilities mentioned in the taxonomy, indicating 
+improved security. While this taxonomy already classiﬁes vulnerabilities, attacks, 
+and solutions in industrial PLC software, its signiﬁcance will increase as researchers 
+expand it to include other unknown categories. 
+In our taxonomy, the relation most frequently mentioned is the one between 
+authentication vulnerabilities and the exploitation of these vulnerabilities by denial 
+of service (DoS) attacks. A correct authentication mechanism is necessary for 
+identifying legitimate users in the system. Without it, attackers can intrude into the 
+PLC system and launch a DoS attack, where more trafﬁc is sent to the system than 
+it can handle. 
+The DoS attack also uses encryption vulnerabilities and a lack of anomaly 
+detection. Encryption vulnerabilities are exploited because sensitive information, 
+such as passwords, is sent in clear text instead of encrypted format, enabling 
+the attacker to enter the PLC system. The lack of a detection mechanism allows 
+attackers to use a DoS attack, and the system is unaware of it because it does not 
+implement detection mechanisms to identify abnormal trafﬁc and restrict it.
+24 E. P. Enoiu et al.
+Table 1.7 PLC security vulnerabilities, attacks, and solution mapping
+Security Relevance Score: 22
+Word Count: 5733
+Extracted: 2025-06-13 23:40:22
+
+---
+
+4.1 outlines the taxonomy design, 
+while Sect. 1.4.2 describes the design of the mapping study in detail. By conducting 
+a systematic protocol, we can effectively map the existing literature to identify gaps and overlaps in the ﬁeld, which helps inform the development of a comprehensive 
+and accurate taxonomy. 
+1.4.1 T axonomy Protocol 
+A taxonomy is a categorization system that aids in differentiating between various research categories for a speciﬁc topic. Its primary advantages include providing a systematic overview of the research domain and predicting future research 
+endeavors. The establishment of a taxonomy is supported by conducting a mapping study, which follows the guidelines presented by Usman et al. [
+13]. The steps 
+involved in executing a mapping study are as follows: 
+1.4.1.1 Planning 
+During this phase, we established the taxonomy design in accordance with the following steps: 
+• Deﬁne software engineering knowledge area: In [ 14], the software engineering 
+body of knowledge is categorized into 15 distinct areas. Our study, however, is orthogonal to these areas since it concentrates on software and hardware security. 
+• Objective of the taxonomy: The aim of this taxonomy is to establish relation-ships between methods for mitigating identiﬁed PLC vulnerabilities and the corresponding attacks and solutions. This taxonomy can prove useful to both 
+academics and practitioners, as it enables them to document their research on industrial PLC software in accordance with the established categories. 
+• Subject matter: The subject matter is a more speciﬁc deﬁnition of the knowledge 
+domain. In this study, the subject matter or units of classiﬁcation pertain to 
+security vulnerabilities, attacks, and solutions in industrial PLC software.
+8 E. P. Enoiu et al.
+• Classiﬁcation structure type: When constructing a taxonomy, there are four 
+potential structures that can be employed for the categorization process: 
+paradigm, faceted analysis, tree, and hierarchy. For this study, we have opted to use the faceted analysis structure, which includes multiple facets (e.g., 
+vulnerabilities, attacks, solutions), each with their own attributes. 
+• Classiﬁcation procedure type: The classiﬁcation procedures can be classiﬁed into two types: qualitative and quantitative. In this particular research, qualitative 
+classiﬁcation procedures are more appropriate since they rely on nominal scales. These nominal scales are utilized to allocate the subject matter types to the respective dimensions. 
+• Identify information sources: The mapping study described in Sect. 1.4.2 outlines 
+the sources of information from which the data is extracted. Additionally, the study presents the ﬁndings obtained from analyzing this information. 
+1.4.1.2 Identiﬁcation and Extraction 
+Once the design of the taxonomy has been planned, the subsequent step involves identifying and extracting the appropriate data. These two phases are carried out 
+through the execution of a mapping study. The following is a general description of each step: 
+• Extract terms: The terminology used for constructing this taxonomy is derived from the data extraction process of the mapping study. Relevant terms and concepts pertaining to vulnerabilities, attacks, and solutions in industrial PLC 
+software are included in a data extraction form. 
+• Terminology control: To prevent any inconsistencies, we ensured terminology control during the data extraction and analysis process. 
+1.4.1.3 Design 
+After extracting all relevant data, we must proceed to identify the dimensions, categories, and relationships using the following steps: 
+• Identify dimensions: For this taxonomy, we selected the faceted analysis classi-ﬁcation structure, which entails identifying multiple dimensions. The taxonomy comprises the following dimensions: vulnerabilities, attacks, and solutions. 
+• Identify categories: To identify the categories within each dimension, we must utilize either a top-down or bottom-up approach. In this study, we have employed a bottom-up approach, whereby the categories are identiﬁed during the data 
+extraction process of the mapping study. 
+• Identify relationships: The dimensions of the taxonomy are interconnected through their association with the security of PLC software. Vulnerabilities 
+and attacks are also linked since attacks exploit vulnerabilities, and similarly, there exists a relationship between attacks and solutions, as solutions aid in
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 9
+mitigating attacks. A more comprehensive understanding of this interdependence 
+is presented in Sect. 1.6.4 . 
+1.4.2 Mapping Study Protocol 
+A mapping study is utilized to organize data obtained on a speciﬁc subject, identify 
+research trends and gaps, and present ﬁndings. To conduct our mapping study, we adhere to the guidelines proposed by Petersen et al. [
+15] for mapping studies in 
+software engineering. Conducting a mapping study comprises various stages. Our initial step involves deﬁning the overall objective. We then proceed to formulate the search string, select appropriate digital libraries, establish selection criteria, execute 
+the query search, eliminate duplicates, screen papers based on their title and abstract using the selection criteria, screen the full text of papers using the selection criteria, conduct backward snowballing, deﬁne the classiﬁcation framework, extract data 
+from the studies, analyze the extracted data, and present the ﬁnal results. Figure 
+1.2 
+depicts this process. 
+1.4.2.1 Research Goal 
+The objective of this research is to establish a classiﬁcation of the most prominent security vulnerabilities in industrial PLC software, the most prevalent attacks that exploit these vulnerabilities, and potential solutions to enhance the security of 
+industrial PLC software. The ﬁndings of this study will serve as a foundation for understanding security vulnerabilities and their underlying causes in industrial PLC software. Thus, our overarching research objective is to establish a taxonomy for 
+categorizing security vulnerabilities, associated attacks, and preventive measures concerning industrial PLC software. 
+1.4.2.2 Research Questions 
+This study has formulated the following four research questions that will aid in achieving the deﬁned goal: 
+• Which categories of security vulnerabilities have been recognized for industrial PLC software? 
+• Which attacks are the most prevalent in exploiting these security vulnerabilities 
+in industrial PLC software? 
+• What are the primary solutions or preventive measures for addressing security 
+vulnerabilities in PLC software?
+10 E. P. Enoiu et al.
+Fig. 1.2 Research method used for the SMS 
+Table 1.1 PICO criteria 
+Population Industrial PLC software 
+Intervention Security vulnerabilities 
+Comparison Not applicable 
+Outcomes Classiﬁcation of studies based on the vulnerabilities they mention in the context 
+of PLCs 
+1.4.2.3 Keywords and Search String 
+The main focus of this study is on security vulnerabilities in industrial PLC software. 
+First, we used the Population, Intervention, Comparison and Outcomes (PICO) 
+criteria to create the search string. The PICO criteria is deﬁned in Table 1.1. 
+Next, we deﬁned the keywords and their corresponding synonyms and acronyms 
+shown in Table 1.2.
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 11
+Table 1.2 Keywords, 
+synon
+yms and acronyms Keywords Synonyms and acronyms 
+Programmable logic controller PLC 
+Security Security 
+Vulnerability Risk, threat 
+We used these keywords, wildcards (i.e., *), and Boolean operators (i.e., AND, 
+OR) and we created the following search string: 
+(“PLC*” OR “Programmable Logic Controller*”) AND (security) AND (“vul-
+nerabilit*” OR “risk*” OR “threat*”) 
+1.4.2.4 Digital Libraries 
+To obtain results for this study, we opted to search two primary digital libraries that 
+are 
+commonly utilized in PLC engineering: IEEE Xplore1 and Scopus.2 
+1.4.2.5 Selection Criteria 
+To establish the relevance of studies obtained from our search, we have developed a 
+set 
+of selection criteria, which are classiﬁed as either inclusion or exclusion criteria. 
+A study is deemed eligible if it meets all the inclusion criteria and none of the exclusion criteria. Conversely, a study is excluded if it meets at least one exclusion criterion or fails to meet all the inclusion criteria. The selection process is conducted 
+in two stages. In the ﬁrst stage, papers are assessed based on their title, abstract, and 
+keywords, and in the second stage, the full text of the papers is examined. Inclusion criteria are listed as follows: 
+• I1. Papers that identify one or more security vulnerabilities in industrial PLC 
+softw
+are. 
+• I2. Papers that are published in conferences or journals. 
+Exclusion 
+criteria are listed as follows: 
+• E1. Papers which are duplicative or outdated versions of prior papers. 
+• E2. Papers which are not peer-reviewed. 
+• E3. Papers which are secondary or tertiary studies. 
+• E4. Papers which are not accessible in English. 
+• E5. Papers which are not accessible in full text.
+1 https:// ieeexplore.ieee. org 
+2 https:// www. scopus. com/ 
+12 E. P. Enoiu et al.
+• E6. Papers which address security concerns in ICS but not explicitly in relation 
+to PLCs. 
+1.4.2.6 Query Search 
+After the search string and digital libraries are deﬁned, the search string is used in 
+those digital libraries to get the results from the automatic search. The following search strings are the speciﬁc ones for each library: 
+IEEE Xplore: (“PLC*” OR“Programmable Logic Controller*”) AND (security) AND (“vulnerabilit*” OR “risk*” OR “threat*”) 
+Scopus: (“PLC*”OR“Programmable Logic Controller*”) AND (security) AND (“vulnerabilit* ” OR “risk*”OR“threat*”) AND (LIMIT-TO (OA , “all”)) AND (LIMIT-TO(DOCTYPE, “ar”) OR LIMIT-TO (DOCTYPE , “cp”)) AND (LIMIT-
+TO(SUBJAREA ,“COMP”) OR LIMIT-TO (SUBJAREA , “ENGI”)) AND (LIMIT-TO(LANGUAGE , “English”)) AND (LIMIT-TO(PUBSTAGE ,“ﬁnal”)) AND (LIMIT-TO(SRCTYPE , “j”) OR LIMIT-TO (SRCTYPE , “p”)) 
+All the studies obtained through automated searches of the libraries have been 
+exported and subsequently examined in two distinct spreadsheets. 
+1.4.2.7 Selection Criteria Application 
+Following the elimination of duplicates, it becomes imperative to assess the pertinence of the remaining papers. Their relevancy is determined based on the 
+selection criteria outlined in Sect.
+1.4.2.5 . The process of selecting studies involves 
+two steps: ﬁrst, applying the selection criteria to the title, abstract, and keywords, and, second, applying the selection criteria to the full text. 
+1.4.2.8 Classiﬁcation, Extraction, and Analysis 
+Our inclusion of domain-speciﬁc information pertains speciﬁcally to topics about industrial PLC software. The classiﬁcation framework comprises a vulnerabilities 
+category, which is populated by extracting information on security vulnerabilities in industrial PLC software from the papers. Additionally, the framework encompasses both attacks and solutions categories. 
+During the analysis phase of data collection, the data extracted from the primary 
+studies is utilized to construct the taxonomy. Initially, the data for each category of the classiﬁcation scheme is scrutinized, and the quantity of studies in a particular 
+category is determined. Nevertheless, this data is solely applicable to each individual category, and it is crucial to examine how the categories are interlinked.
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 13
+1.5 Search Results 
+In this section, we present the number of papers that remain for each stage of 
+the study, starting from the digital library search to the ﬁnal set of papers, after 
+outlining all the required steps and components. Figure 1.3 provides a summary of 
+Fig. 1.3 Search and selection results
+14 E. P. Enoiu et al.
+Table 1.3 Search ResultDigital library Search results 
+IEEE XPlore 122 
+SCOPUS 432 
+Total 554 
+this process, and a thorough explanation of the process is provided subsequently. 
+As outlined in Sect. 1.4.2.6, the automatic search process involved the execution of 
+the 
+search string in two distinct digital libraries. Table 1.3 displays the results of 
+our 
+search, indicating the number of papers retrieved from both IEEE Xplore and 
+SCOPUS. Our search criteria matched 122 papers in IEEE Xplore and 432 papers in SCOPUS. By combining the results from both sources, we obtained a total of 554 
+papers. 
+We executed the removal of duplicates, which led to the elimination of 84 
+papers. 
+Initially, we applied the selection criteria to the papers’ titles, abstracts, and 
+keywords, resulting in the exclusion of 400 papers. Most of the excluded studies 
+either did not meet I1 or met E6. In the subsequent stage, we applied the selection criteria to the full text, excluded 34 studies, and retained 36 studies. The majority of 
+the papers excluded in this stage either met E5 or E6. Backward snowballing was 
+conducted to add more papers to the ﬁnal set to extract more relevant results. From the 36 papers, we collected 578 studies. From these 578 studies, 493 were excluded 
+based on the title and keywords, and 67 were excluded based on the abstract. From 
+applying the selection criteria to the full text, 15 studies were excluded. In total, from the backward snowballing process, we obtained three additional papers. Since 
+the snowballing process was the last process before the classiﬁcation framework 
+deﬁnition, our ﬁnal set of papers contains 39 studies that can be used to build this taxonomy. 
+1.6 Taxonomy Results 
+In this section, we present a summary of the ﬁndings from our data analysis. We 
+not only identify the different categories of PLC vulnerabilities but also explore 
+the interconnections among them, as well as between vulnerabilities, attacks, and solutions. 
+1.6.1 Security Vulnerabilities 
+During the data extraction process, ten primary categories of vulnerabilities were identiﬁed. While some of these categories are interconnected (e.g., lack of encryp-
+tion or authentication may stem from protocols’ lack of security when used on the
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 15
+Fig. 1.4 Vulnerabilities in PLC systems 
+Internet), we classiﬁed them separately as authentication, encryption, and network 
+to avoid any potential bias. Additionally, this categorization allows us to see how 
+many studies address networks generally versus speciﬁc areas. Figure 1.4 provides 
+a visual summary of the results. 
+The category with the highest number of publications is related to authentication, 
+with 19 studies dedicated to this topic. This category primarily discusses the vulner-
+abilities associated with hard-coded passwords, lack of two-factor authentication 
+mechanisms, and absence of passwords altogether. 
+The categories that receive the most attention in terms of publications are 
+authentication and encryption. This is mainly because communication protocols 
+used in ICS lack security features. Studies such as S4, S8, and S9 focus on this 
+issue. For instance, the Modbus communication protocol, which is one of the oldest 
+and most commonly used protocols in ICS, does not offer any authentication or 
+encryption. As a result, an attacker can easily obtain the necessary information for a 
+Modbus session to be valid (e.g., function code and address) from a network sniffer 
+like Wireshark and launch an attack. Moreover, Modbus messages are not encrypted 
+and are transmitted in plain text. This issue is not limited to Modbus, as other widely 
+used protocols such as Proﬁbus, Proﬁnet, EtherCAT, and more also lack encryption. 
+The absence of anomaly detection mechanisms is highlighted as a vulnerability 
+in ﬁve studies, as they emphasize that the inability to detect unusual behavior of 
+PLCs in real time can result in disastrous consequences. This vulnerability is not 
+only perilous because of the critical systems that are governed by PLCs but also 
+because it is challenging to identify the root cause of the attack while it spreads 
+throughout the system [ 16]. 
+Operating system security is identiﬁed as a vulnerability in four studies that 
+focus on industrial PLC software. Similar to other operating systems, the operating 
+systems used in these PLCs also have vulnerabilities that can be exploited by 
+attackers. For instance, some of the vulnerabilities mentioned in these studies
+16 E. P. Enoiu et al.
+include the Microsoft Windows server service vulnerability (MS-08-067), the 
+print spooler vulnerability (MS10-061), and the Microsoft Windows.LNK/.PIF 
+vulnerability (MS10-046), as noted in S33. 
+Four studies mention the buffer overﬂow vulnerability, which is associated with 
+memory 
+corruption. When this vulnerability is exploited, the attacker can modify 
+program execution [ 17]. Additionally, this vulnerability is closely connected to 
+another 
+vulnerability discussed in three studies, namely, the lack of input validation. 
+By validating input, the program will only accept values within an acceptable range, such as input character length, and prevent buffer overﬂow [ 17, 18]. 
+The three studies that discuss the lack of information about hardware and 
+ﬁrmw
+are present a conﬂicting situation. On the one hand, PLC vendors require 
+security research and measures to be taken against possible attacks. However, since the hardware and ﬁrmware they use are proprietary and not publicly available, 
+conducting research to obtain reliable results on how to mitigate the possibility of 
+attacks is nearly impossible [ 17, 19]. Therefore, this vulnerability is primarily due 
+to 
+the vendors’ choices rather than the system itself. 
+Human issues are mentioned as a vulnerability in three studies (S34-S36). This 
+cate
+gory encompasses inexperienced developers, naive users who might uninten-
+tionally make the system vulnerable to attacks, or personnel who may intentionally 
+try to attack the system. Access control, on the other hand, is the least frequently 
+mentioned vulnerability category, with only two papers discussing it. S1 and S43 focus on the importance of providing users with information based on their needs 
+and granting privileged access only to authorized users. Refer to Table 1.4 for the 
+papers 
+in each category. 
+Table 1.4 Vulnerabilities and studies 
+Vulnerabilities Studies 
+Encryption S1, S4, S7, S12, S20, S23, S24, S30, S34 
+Authentication S1–S4, S6–S9, S11, S13, S21–S23, S27, 
+S30–S32, S34, S37 
+No anomaly detection S12, S17, S19–S21 
+Access control S1, S27 
+Human issues S34–S36 
+Operating System S15, S19, S33, S34, S37–S39 
+Buffer Overﬂow S7, S19, S25–S27 
+Input validation S11, S14, S27 
+Lack of information about hardware and ﬁrmware S18, S24, S27 
+Network S5, S10, S15, S16, S27–S29
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 17
+The primary outcomes from the gathered data on security vulnerabilities in indus-
+trial PLC software are as follows: 
+The research on security vulnerabilities in industrial PLC software has a 
+signiﬁcant focus on issues related to authentication, encryption, networks, and 
+operating systems. 
+1.6.2 Attacks 
+The graphical representation of the number and type of attacks in industrial PLC 
+software can be seen in Fig. 1.5. 
+The most commonly mentioned attack that takes advantage of the security 
+weaknesses in industrial PLC software is denial of service (DoS), discussed in 11 
+studies. A system is designed to handle a certain amount of trafﬁc, and if more 
+trafﬁc is directed to a particular address with the intention of rendering the system 
+unavailable to users, it is considered a DoS attack [ 20]. In PLC industrial settings, 
+availability is a critical attribute, making the impact of this attack signiﬁcant. 
+Stuxnet is a worm that gained notoriety for infecting PLCs and taking control of 
+the gas centrifuges in Iran, causing them to spin at high speeds until they burned 
+out. The worm searched for an industrial automated software called SIMATIC Step 
+7 used by PLCs on infected PCs. Once it found this software, it would also ﬁnd a 
+PLC and inject malicious code into it. The worm was designed to send false data to 
+cover its tracks and avoid detection by controllers, making it difﬁcult to detect the 
+attack [ 21, 22]. 
+Fig. 1.5 Attacks
+18 E. P. Enoiu et al.
+The man-in-the-middle attack (MITM), which is mentioned in six studies, is 
+another well-known attack. In this type of attack, the attacker positions themselves 
+in between an HMI and a PLC and intercepts all the information that the HMI is attempting to send to the PLC. This allows the attacker to modify the data they 
+receive from the HMI and send it to the PLC, without the PLC being aware that the data has been tampered with. Additionally, the attacker can also observe or attempt to block the trafﬁc [
+20]. 
+A similar attack is the replay attack mentioned in four studies (i.e., S4, S16, 
+S27, S30). In this attack, the attacker also gets a copy of the information exchanged between the two hosts and can later use it by sending duplicate information. 
+The false data injection attack is mentioned in four studies (i.e., S3, S6, S11, 
+S17). The PLC receives information from sensors, and during the false data injection attack, this information is manipulated. When this happens, the PLC will output 
+commands according to the false data injected and not according to the real measurements from the sensor. That could lead to damaging incidents. 
+Two studies (S8 and S30) mention the brute force attack, which involves an 
+algorithm that attempts all possible combinations for a speciﬁc password until the correct password is identiﬁed and the necessary credentials are obtained to access the system. As a result, it is recommended to use passwords with a minimum number 
+of characters, as well as a combination of lowercase and uppercase letters, numbers, and special characters in most applications. A larger alphabet results in a larger number of possible combinations that must be tried to discover the correct password. 
+S8 describes a similar attack called the dictionary attack, in which the attacker uses a list of previously used or common passwords instead of trying all possible character combinations. 
+The authentication bypass attack is mentioned in two studies and takes advantage 
+of the lack of security in the protocol. An attacker can obtain an authentication packet from a validated user in the system and use it to authenticate themselves 
+[
+23]. All other attacks are only mentioned once in the reviewed studies. Table 1.5 
+presents the papers for each attack category. 
+The prevalent types of attacks that exploit security vulnerabilities in industrial PLC software include denial of service, Stuxnet, man-in-the-middle, replay attacks, and false data injection attacks. 
+1.6.3 Security Solutions 
+Figure 1.6 provides a visual depiction of the proposed solutions for mitigating 
+vulnerabilities and attacks in industrial PLC software. Of the 39 studies examined, only 19 (or approximately half) discuss potential solutions for mitigating attacks or
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 19
+Table 1.5 Attacks and studies 
+Attacks Studies 
+Denial of service S1, S5, S11, S12, S17, S21, S22, S14, S25, S28, S36 
+Stuxnet S11, S24, S28, S29, S31, S33, S36, S39 
+Man-in-the-middle S12, S13, S16, S22, S24, S30 
+Replay attack S4, S16, S27, S30 
+False data injection S3, S6, S11, S17 
+Brute force S8, S30 
+Authentication bypass attacks S5, S30, S34 
+Start stop attack S20, S34 
+Dictionary attack S8 
+Phishing S8 
+PLC-PC worm S10 
+SQL injection S11 
+Data execution attack S13 
+Control logic attack S13 
+Stealth command modiﬁcation attack S16 
+Interception attack S17 
+Maroochi attack S24 
+Duqu S29 
+Havex S24 
+Firmware modiﬁcation attack S38, S39 
+Fig. 1.6 Solutions for vulnerabilities 
+securing vulnerable system components. In total, we identiﬁed 13 distinct solutions, 
+with nine mentioned only once. 
+The solutions most frequently cited in the PLC literature involve detection 
+mechanisms. These mechanisms are designed to identify patterns or events that
+20 E. P. Enoiu et al.
+diverge from typical system behavior. By monitoring system behavior, changes that 
+indicate a potential attack can be detected and reported to a control center [24 , 25]. 
+Intrusion
+detection is mentioned in four of the nine papers (S2, S13, S17, S30), while 
+anomaly detection is mentioned in three of the nine papers (S7, S26, S29). Data tampering detection is mentioned in one paper (S6), as is attack model detection 
+(S15). While these mechanisms are all forms of detection, we have grouped them together. It is important to note that these detection mechanisms only serve to 
+identify attacks and do not provide a means of mitigating them. 
+One potential approach is encryption. Many commonly used communication 
+protocols 
+transmit messages in plain text, leaving them vulnerable to exploitation 
+by attackers. To address this issue, ﬁve papers recommend encrypting the content 
+of messages to ensure conﬁdentiality. Users can encrypt their messages, which can then be decrypted by the intended recipients with the proper decryption 
+key [ 21]. The underlying concept is to incorporate encryption mechanisms into 
+communication 
+protocols or replace existing protocols with ones that support 
+encryption. 
+Another potential solution is the implementation of demilitarized zones. As a 
+signiﬁcant 
+portion of cyber vulnerabilities and attacks stem from Internet connec-
+tions, the goal of demilitarized zones is to isolate the primary network from the Internet, which is generally deemed insecure. In the event of an attack, this setup 
+prevents the attacker from accessing the primary network, limiting their access to only the untrusted segment [ 2, 26]. This approach also allows for partitioning of the 
+netw
+ork into multiple zones, each with its own protective layer. If one zone becomes 
+infected, it is unable to spread the infection to other zones. 
+As the remaining solutions are mentioned only once, we do not offer a detailed 
+e
+xplanation of them. However, for interested readers, we have included the papers 
+that discuss these solutions in our data extraction form for further reference. The relevant papers for each category are listed in Table 1.6. 
+Table 1.6 Solutions and studies 
+Solutions Studies 
+Detection mechanisms S3, S6, S7, S13, S15, S17, S26, S29, S30 
+Encryption S16, S17, S24, S30, S31 
+Monitoring S20, S32 
+Demilitarized zones S30, S32 
+Challenge-response mechanism S8 
+Prediction model S10 
+User authentication S13 
+Deep packet inspection S13 
+Open PLC S18 
+SEABASS S22 
+Firewall S32 
+VPN S32 
+Firmware veriﬁcation tool S38
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 21
+Various techniques have been utilized in research to provide solutions for 
+security vulnerabilities in PLC software, including the implementation of detection mechanisms and encryption. 
+1.6.4 A T axonomy for PLC-Based Vulnerabilities, Attacks, 
+and Security Solutions 
+The data collected in the study was utilized to develop a taxonomy for organizing the vulnerabilities, attacks, and solutions in PLCs. Figure 
+1.7 displays a faceted 
+taxonomy that encompasses all of these elements. The root of the taxonomy 
+is the PLC, while the taxonomy’s dimensions consist of vulnerabilities, attacks, 
+and solutions. Each dimension includes multiple categories, with ten categories identiﬁed for vulnerabilities, 20 for attacks, and 13 for solutions. 
+Since we are connecting the vulnerabilities, attacks, and solutions for industrial 
+PLC software into a single taxonomy, in Fig. 1.8 we describe the relationship 
+between these three dimensions. As mentioned throughout this study, vulnerabilities 
+are weaknesses of the PLC system. They pose a risk to the PLC system as they lead 
+to a different attack that exploits these vulnerabilities. These attacks are resolved by different solution mechanisms that mitigate the corresponding vulnerabilities. 
+Table 1.7 presents a mapping of the security vulnerabilities found in the previous 
+study to their corresponding attacks and solutions. It can be observed that each vulnerability can result in multiple attacks and each attack can have multiple 
+solutions. The majority of the reported attacks were related to PLC network security, indicating that more research is needed in this area to develop effective PLC security mechanisms. This tabular taxonomy provides a comprehensive framework that 
+includes the dimensions of vulnerabilities, attacks, and solutions. The vulnerabilities dimension is divided into 10 categories, the attacks dimension into 20 categories, and the solutions dimension into 13 categories. 
+Figure 1.9 illustrates the relationship between vulnerabilities, attacks, and solu-
+tions, focusing only on attacks that exploit a vulnerability and have a possible solution. Attacks serve as the connecting point between vulnerabilities and solu-
+tions. For instance, with respect to FDIA, authentication is the most commonly identiﬁed vulnerability, whereas detection mechanisms and encryption are the most frequently employed solutions. Regarding the MITM attack, the lack of 
+encryption is the predominant vulnerability, while encryption mechanisms are the most common solutions. Similarly, for the replay attack, the primary vulnerabilities are the lack of authentication, encryption, and network issues, while encryption 
+mechanisms are the main solutions. 
+The taxonomy developed in this study provides several contributions. Firstly, the 
+process used to create this taxonomy can serve as a model for other researchers
+22 E. P. Enoiu et al.
+Fig. 1.7 Security taxonomy for PLCs
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 23
+Fig. 1.8 Generic vulnerabilities, attacks, and solutions cycle 
+to create taxonomies in similar contexts. Additionally, the taxonomy can aid in 
+examining the security of PLSs from multiple perspectives. Secondly, academics 
+can beneﬁt from this taxonomy by identifying security trends and patterns in PLCs 
+and using them to organize their research outcomes. Industry professionals can also 
+use the taxonomy to target frequent PLC vulnerabilities, analyze existing solutions, 
+and improve security measures. The taxonomy can also serve as a checklist to 
+ensure a system is free of vulnerabilities mentioned in the taxonomy, indicating 
+improved security. While this taxonomy already classiﬁes vulnerabilities, attacks, 
+and solutions in industrial PLC software, its signiﬁcance will increase as researchers 
+expand it to include other unknown categories. 
+In our taxonomy, the relation most frequently mentioned is the one between 
+authentication vulnerabilities and the exploitation of these vulnerabilities by denial 
+of service (DoS) attacks. A correct authentication mechanism is necessary for 
+identifying legitimate users in the system. Without it, attackers can intrude into the 
+PLC system and launch a DoS attack, where more trafﬁc is sent to the system than 
+it can handle. 
+The DoS attack also uses encryption vulnerabilities and a lack of anomaly 
+detection. Encryption vulnerabilities are exploited because sensitive information, 
+such as passwords, is sent in clear text instead of encrypted format, enabling 
+the attacker to enter the PLC system. The lack of a detection mechanism allows 
+attackers to use a DoS attack, and the system is unaware of it because it does not 
+implement detection mechanisms to identify abnormal trafﬁc and restrict it.
+24 E. P. Enoiu et al.
+Table 1.7 PLC security vulnerabilities, attacks, and solution mapping
+
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 25
+
+26 E. P. Enoiu et al. 
+Fig. 1.9 Relational display of vulnerabilities, attacks, and solutions 
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 27 
+The man-in-the-middle and replay attacks also exploit encryption vulnerabilities. 
+The attacks are executed by intercepting the communication between two devices 
+and either listening or modifying the information being sent. Without encryption, attackers can easily read the data, although they cannot necessarily compromise the 
+system. However, if the communication is encrypted, the data in the packet would require decryption by the user, making it much more difﬁcult for attackers to access the PLC system. 
+The absence of an authentication mechanism makes it possible for false data 
+injection attacks to exploit the authentication vulnerability. This is because it is 
+difﬁcult to determine if the exchanged messages are authentic or false without such 
+a mechanism in place. Implementing cryptographic signatures can help authen-
+ticate messages, ensuring the data is valid. In addition to exploiting encryption vulnerabilities, the man-in-the-middle and replay attacks also exploit authentica-
+tion vulnerabilities. Although challenge-response authentication mechanisms can mitigate encryption vulnerabilities, they are currently lacking. Attackers exploit this vulnerability to launch successful attacks. Another type of attack that exploits 
+authentication vulnerabilities is the brute force attack. Since single-factor authen-tication is typically used, a brute-force attack can be successful by simply ﬁnding the password. The lack of a two-factor authentication mechanism can make such 
+attacks successful. 
+The prevalent vulnerabilities identiﬁed in the context of FDIA are authentication 
+and lack of anomaly detection. Correspondingly, detection mechanisms and encryp-
+tion are the commonly suggested solutions. In contrast, the primary vulnerability in the case of MITM attack is the absence of encryption, and most solutions revolve around encryption mechanisms. The replay attack is vulnerable to several issues, 
+including lack of authentication, lack of encryption, and network problems. The most popular countermeasures focus on encryption mechanisms. 
+1.7 Validity Threats 
+In this section, we discuss the potential validity threats that may arise in our study and the measures we have taken to mitigate them. According to Wohlin’s 
+categorization [
+27], validity threats are broadly classiﬁed into four types: construct 
+validity, internal validity, external validity, and conclusion validity. We discuss each 
+of these threats and the steps we have taken to minimize their impact on our study. 
+Construct validity Construct validity refers to the relationship between the data 
+collected and the research questions. In our study, we mitigated this threat by 
+deﬁning a search string using the PICO criteria to ensure that the extracted data would answer our research questions. Additionally, we included all relevant 
+keywords related to our study in the search string. The two libraries we selected are reputable sources in the ﬁeld of PLC engineering, further increasing the construct validity of our study. 
+28 E. P. Enoiu et al. 
+Internal validity To address internal validity, we established protocols for both 
+the mapping study and the taxonomy, following established guidelines as a 
+blueprint for conducting the study. This helps to control for external variables that may affect the outcomes of the study. 
+External validity To ensure external validity, we aimed to collect a comprehen-
+sive set of papers relevant to our study by using both automatic search and snowballing methods. This approach allowed us to include a wide range of 
+publications that covered different aspects of PLC security, thus increasing the generalizability of our ﬁndings to other studies. 
+Conclusion validity To address the threat of conclusion validity, we took several 
+measures. Firstly, we documented our study’s process systematically and trans-parently, allowing others to repeat it and obtain the same results. Additionally, we aimed to minimize the potential impact of any new information that might 
+be added during the time gap between our searches. Moreover, we deﬁned a comprehensive data extraction form and classiﬁcation framework to ensure that the study’s results could be replicated. 
+1.8 Conclusions and Relation to DevOps 
+To get an overview of the existing research on security vulnerabilities, attacks, and security solutions in industrial PLC software, we performed a mapping study 
+and developed a taxonomy for PLC-based security vulnerabilities, attacks, and solutions. The main goal of this work was to bring to the forefront the main vulnerabilities that malicious actors could exploit to gain access and attack the PLC 
+system. This study can beneﬁt academics and researchers who work with PLCs and focus on security. The taxonomy can help with an initial categorization of the most common vulnerabilities, attacks, and solutions. 
+Our results can be used by engineers working with security in DevOps. Using 
+speciﬁc solutions and monitors identiﬁed using our taxonomy, one can use these prior to deployment in the design phase as predictors or oracles. For example, one 
+can use speciﬁc detection mechanisms to perform test assessment and veriﬁcation during development and to ensure security during the operational phase. This happens in DevOps when missing and vague security requirements identiﬁed by 
+the monitors are added to the security requirements. The main advantage of the DevOps approach using our taxonomy is that it can be used further for tighter integration between design veriﬁcation activities on executable PLC systems and 
+runtime monitoring of such industrial systems. 
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 29 
+1.9 Annex: Primary Studies 
+[S1] Jeong, E., Park, J., Oh, I., Kim, M., and Yim, K. (2020, July). Analysis on 
+Account Hijacking and Remote Dos Vulnerability in the CODESYS-Based 
+PLC Runtime. In International Conference on Innovative Mobile and Internet 
+Services in Ubiquitous Computing (pp. 457–467). Springer, Cham. 
+[S2] Sarkar, E., Benkraouda, H., and Maniatakos, M. (2020, October). I came, 
+I saw, I hacked: Automated Generation of Process-independent Attacks 
+for Industrial Control Systems. In Proceedings of the 15th ACM Asia Conference on Computer and Communications Security (pp. 744–758). 
+[S3] Gönen, S., Sayan, H. H., Yılmaz, E. N., Üstünsoy, F., and Karacayılmaz, G. 
+(2020). False data injection attacks and the insider threat in smart systems. 
+Computers and Security, 97,

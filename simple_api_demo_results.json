@@ -1,0 +1,66 @@
+{
+  "tavily_key_valid": true,
+  "smithery_key_valid": false,
+  "brave_key_valid": true,
+  "tavily_search": {
+    "success": true,
+    "time": 2.5058956146240234
+  },
+  "brave_search": {
+    "success": true,
+    "time": 0.7555036544799805
+  },
+  "smithery_enhance_1": {
+    "success": false,
+    "error": "Cannot connect to host api.smithery.ai:443 ssl:default [Domain name not found]"
+  },
+  "smithery_enhance_2": {
+    "success": false,
+    "error": "Cannot connect to host api.smithery.ai:443 ssl:default [Domain name not found]"
+  },
+  "concurrent_requests": {
+    "total_time": 1.8283970355987549,
+    "results": {
+      "tavily": {
+        "success": true,
+        "time": 1.827646255493164
+      },
+      "smithery": {
+        "success": false,
+        "error": "Cannot connect to host api.smithery.ai:443 ssl:default [Domain name not found]"
+      },
+      "brave": {
+        "success": false,
+        "error": {
+          "id": "14e6e14b-c412-4b75-a584-5b9d88d411bb",
+          "status": 429,
+          "code": "RATE_LIMITED",
+          "detail": "Request rate limit exceeded for plan.",
+          "meta": {
+            "plan": "Free",
+            "rate_limit": 1,
+            "rate_current": 1,
+            "quota_limit": 2000,
+            "quota_current": 14,
+            "component": "rate_limiter"
+          }
+        }
+      }
+    }
+  },
+  "error_handling": {
+    "success": true,
+    "handled_invalid_key": true
+  },
+  "fallback_mechanism": {
+    "primary_failed": true,
+    "fallback_success": true
+  },
+  "summary": {
+    "total_time": 10.281577348709106,
+    "successful_tests": 3,
+    "total_tests": 7,
+    "success_rate": "42.9%",
+    "timestamp": 1749359068.2234125
+  }
+}

@@ -1,0 +1,155 @@
+# Security Scanner MCP Server Configuration
+
+name: security-scanner
+server_type: security
+description: "Security scanning and vulnerability assessment server"
+
+base_config:
+  # Server settings
+  enabled: true
+  timeout_seconds: 120  # Longer timeout for security scans
+  retry_attempts: 2
+  retry_delay_seconds: 5
+  
+  # Scanner configuration
+  scanner:
+    # Supported scan types
+    file_scan: true
+    dependency_scan: true
+    container_scan: true
+    network_scan: false  # Disabled by default
+    
+    # Scan settings
+    max_file_size_mb: 100
+    max_scan_depth: 10
+    exclude_patterns:
+      - "*.tmp"
+      - "*.log"
+      - "node_modules/*"
+      - ".git/*"
+      - "__pycache__/*"
+    
+    # Vulnerability databases
+    databases:
+      - "nvd"      # National Vulnerability Database
+      - "snyk"     # Snyk vulnerability database
+      - "osv"      # Open Source Vulnerabilities
+  
+  # Security policies
+  security:
+    # Severity levels to report
+    report_severity:
+      - "critical"
+      - "high"
+      - "medium"
+    
+    # CVSS score thresholds
+    cvss_threshold: 4.0  # Medium and above
+    
+    # Scan policies
+    policies:
+      # File scanning
+      file_scan_policy:
+        scan_executables: true
+        scan_archives: true
+        scan_scripts: true
+        check_file_permissions: true
+        
+      # Dependency scanning
+      dependency_scan_policy:
+        check_outdated: true
+        check_vulnerabilities: true
+        check_licenses: true
+        recursive_dependencies: true
+        
+      # Container scanning
+      container_scan_policy:
+        scan_base_images: true
+        scan_layers: true
+        check_secrets: true
+        check_misconfigurations: true
+  
+  # Output configuration
+  output:
+    format: "json"
+    include_details: true
+    include_remediation: true
+    
+    # Report settings
+    generate_reports: true
+    report_retention_days: 90
+  
+  # Integration settings
+  integrations:
+    # SAST tools
+    bandit_enabled: true
+    semgrep_enabled: true
+    
+    # Dependency tools
+    safety_enabled: true
+    npm_audit_enabled: true
+    
+    # Container tools
+    trivy_enabled: true
+    clair_enabled: false
+  
+  # Monitoring
+  monitoring:
+    health_check_enabled: true
+    health_check_interval: 120
+    metrics_enabled: true
+    scan_metrics: true
+
+environment_overrides:
+  production:
+    timeout_seconds: 300  # 5 minutes for production scans
+    scanner:
+      network_scan: true  # Enable network scanning in production
+      max_scan_depth: 15
+      databases:
+        - "nvd"
+        - "snyk"
+        - "osv"
+        - "ghsa"  # GitHub Security Advisories
+    security:
+      cvss_threshold: 3.0  # Lower threshold in production
+      report_severity:
+        - "critical"
+        - "high"
+        - "medium"
+        - "low"
+    output:
+      report_retention_days: 365
+    integrations:
+      clair_enabled: true
+  
+  development:
+    timeout_seconds: 60
+    scanner:
+      max_scan_depth: 5
+      exclude_patterns:
+        - "*.tmp"
+        - "*.log"
+        - "node_modules/*"
+        - ".git/*"
+        - "__pycache__/*"
+        - "test/*"
+        - "tests/*"
+    security:
+      cvss_threshold: 7.0  # Higher threshold in development
+      report_severity:
+        - "critical"
+        - "high"
+    output:
+      report_retention_days: 30
+      include_details: false
+
+templates:
+  timeout: "{{ config.timeout_seconds }}"
+  scan_depth: "{{ config.scanner.max_scan_depth }}"
+  cvss_threshold: "{{ config.security.cvss_threshold }}"
+
+validation_rules:
+  - "required:scanner.file_scan"
+  - "format:timeout_seconds:^[0-9]+$"
+  - "format:security.cvss_threshold:^[0-9]+(\\.[0-9]+)?$"

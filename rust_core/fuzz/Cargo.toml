@@ -1,0 +1,39 @@
+[package]
+name = "code_rust_core-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.claude_optimized_deployment_rust]
+path = ".."
+features = ["testing"]
+
+[[bin]]
+name = "fuzz_command_parser"
+path = "fuzz_targets/fuzz_command_parser.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_actor_messages"
+path = "fuzz_targets/fuzz_actor_messages.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_memory_operations"
+path = "fuzz_targets/fuzz_memory_operations.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_mcp_protocol"
+path = "fuzz_targets/fuzz_mcp_protocol.rs"
+test = false
+doc = false

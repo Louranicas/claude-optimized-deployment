@@ -1,0 +1,347 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 2 - While the standard input file descriptor holds for 0.
+If you want to change the direction of the output information, you can use the > or > > symbol to redirect the output information to a file. Use 1 > or 1 > > to redirect standard output information to a file (1 can be ignored without writing, the default value is 1), or use 2 > or 2 > > to redirect wrong output information to a file.
+Here, use the > symbol to redirect the output information to the file. If the file does not exist, the system will automatically create the file. If the file already exists, the system will overwrite all the contents of the file (the original data will be lost!).
+Use the > > symbol to redirect the output information to the file. If the file does not exist, the system will automatically create the file. If the file already exists, the system will append the output information to the end of the original information of the file.
+In the following example, the echo command would have displayed the data output on the screen, but if redirection is used, the output information can be exported to a file.
+Security Relevance Score: 3
+Word Count: 4318
+Extracted: 2025-06-13 23:40:27
+
+---
+
+While the standard input file descriptor holds for 0.
+If you want to change the direction of the output information, you can use the > or > > symbol to redirect the output information to a file. Use 1 > or 1 > > to redirect standard output information to a file (1 can be ignored without writing, the default value is 1), or use 2 > or 2 > > to redirect wrong output information to a file.
+Here, use the > symbol to redirect the output information to the file. If the file does not exist, the system will automatically create the file. If the file already exists, the system will overwrite all the contents of the file (the original data will be lost!).
+Use the > > symbol to redirect the output information to the file. If the file does not exist, the system will automatically create the file. If the file already exists, the system will append the output information to the end of the original information of the file.
+In the following example, the echo command would have displayed the data output on the screen, but if redirection is used, the output information can be exported to a file.
+
+root@server : echo “ This is a sample” > sample.txt
+
+
+// This exports the file to a text file named sample
+
+The previous echo command will not give an error message.However, when using ls command, the final output information is divided into standard output and error output according to whether the file exists or not. At this time, if we only use > or > >, we cannot redirect and export the error information to a file.
+Here we need to use 2 > or 2 > > to redirect the error output.
+If a command has both standard output (correct output) and error output, how to redirect it?
+In fact, we can redirect standard output and error output to different files, or redirect them to the same file at the same time. Use the &> symbol to redirect both standard output and error output to one file (overwrite), or use the &> > symbol to achieve additional redirection.
+Finally, we can also use 2 >&1 to redirect error output to standard correct output, or 1 >&2 to redirect standard correct output to error output.Although the following commands all show the results on the screen.Although the first command is an error message, it is displayed on the screen from the standard correct channel.
+
+root@server : ls -l /something >2 sample.txt
+
+While the second command has no error message originally, the final hello is displayed on the screen through the error output channel by redirecting the correct information to the error output.
+Under normal circumstances, because the system does not have a /something file, the ls command will report an error, and the error information will be transmitted to the display through the error output channel.
+
+root@server : ls -l /etc/home > sample.txt 2> err.txt
+
+However, when we use the 2 >&1 command, the error message will be redirected to the standard correct output. Although the screen will eventually display the error message, it is transmitted to the monitor through the standard output channel.
+Under normal circumstances, the echo command displays messages on the screen through standard output.When we use 1 >&2, the system will redirect the correct output information to the wrong output, although the screen will eventually. Hello is also displayed, but it is transmitted to the monitor through the wrong output channel.Finally, the correct and wrong information is imported into the file.
+Note:
+There is a special device /dev/null in Linux system, which is like a black hole.
+
+root@server : echo “sample” > /dev/null
+
+No matter how much data is written in this file, it will be swallowed and discarded by the system.If there is some output information that we no longer need, we can use redirection to import the output information into the device file.
+Note:
+Once the data is imported into the black hole, it will not be retrieved.In addition to redirecting the output, you can also redirect the input.
+The default standard input is keyboard and mouse.But the keyboard needs human interaction to complete the input.
+For example, the following mail command, after executing the command, the program will enter the state of waiting for the user to input the mail content. As long as the user does not input the content and uses an independent line to indicate the end of the mail content, the mail program will stay in this state.
+
+root@server : mail -s Thisislatest
+
+All the above email texts need to be manually entered, but in the future, when we need to use scripts to send emails automatically, there will be problems.
+To solve this problem, we can use the < symbol for input redirection.< the symbol needs to be followed by a file name, so that the program can read the data from the file instead of reading the input data from the keyboard.
+
+root@server : mail -s < /etc/home
+
+
+// This is an input redirection
+
+If we want to send emails automatically and interactively without preparing files in advance, can we?
+You can use the << symbol to achieve the same effect.In this way, the script can run independently without depending on the file of the mail content.Use the << symbol to redirect data content to the previous command as the input of the command.
+
+root@server : mail -s warning << EOF
+
+The << symbol (also called Here Document) means that the content you need is here.Let's take a look at an example where cat reads data through Here Document and then exports the data to a file through output redirection.
+Here is the script:
+
+#! /bin/bash
+
+Mail -s error
+This is where we want to send
+<< fax.txt
+
+# Ends the program after an input redirection
+
+In Linux system, fdisk command is often used to partition disks, but this command is interactive, and now we need to write scripts to realize automatic partition, automatic format, automatic mount of partitions and so on.To solve this problem, Here Document can also be used.Let's write such an automatic partition script.
+Warning:
+This script will delete all data on the disk, and all data will be lost!
+Here is the script:
+
+#! /bin/bash
+
+mkfs.xfs /dev/sdb
+# This is used to format
+EOF
+
+mount -a
+
+In order to improve the readability of the code when writing scripts, it is often necessary to add extra indents to the code.However, when using << to import data into a program, if there is indentation in the content, it will be passed to the program along with the indented content.
+At this time, the Tab key only serves as indentation, and we don't want to pass it to the program.If necessary, you can use the <<-symbol to redirect the input, so that the system will ignore all data contents and Tab key in front of EOF.In this way, only the Tab key can be ignored, and if the body content of Here Document is indented with spaces, it is invalid.
+
+cat << EOF
+
+With this, we have completed a brief introduction to the redirection of input and output statements in Shell programming with the help of linux system commands. Before proceeding to discuss about variables and other advanced concepts we will talk about the posture of various equation marks while dealing with shell scripts. This may usually cause mistakes even being a steep learning curve. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Four
+
+
+
+Different Quotation marks for Shell Scripting
+
+
+
+
+
+Programming languages
+ often use quotation marks to display the end of the line in a program or will be used to determine the indentation principles of the programming language. In shell, we also use different type of quotation marks to improve the efficiency of the program. In this chapter, we will describe some of these using examples. Follow along!
+Correct use posture of various quotation marks
+1) single quotation marks and double quotation marks
+We often need quotation marks when writing scripts. Shell supports various quotation marks, such as ""(double quotation marks),'' ‘(single quotation marks)’, (reverse quotation marks) and \ (escape symbols).
+Here are some commands :
+
+root@server : touch x y z
+
+// This is without quotation marks
+root@server : touch “ x y z “
+
+// This is with quotation marks
+
+Under what circumstances are so many symbols used?
+Let's look at a few cases.It can be seen here that the function of double quotation marks is to quote a whole, and the computer will treat all the contents in quotation marks as a whole.Instead of using double quotes, three different files are created.When files need to be deleted later, similar problems will occur. So, we need to use the first command instead of the second command as they are individual files.
+
+root@server : rm -rf x y z
+
+// This will delete all the three files created
+root@server : rm x y z
+
+// This will display an error
+
+Also we should analyse how many files are there here?What exactly is the file name?
+
+root@server : rm “ x y z”
+
+Because double quotation marks are not used here, the system understands that three files X, Y and Z need to be deleted, but in fact, there is only one file named “x y z” in the system, and the space is also a part of the file name.
+In the next section, we will further discuss about how files can be deleted in practical terms.
+How files can be deleted?
+The files usually are successfully deleted by using double quotation marks.In Linux system, besides double quotation marks, single quotation marks can also be used to quote a whole. At the same time, single quotation marks have another function, that is, special symbols can be shielded (the special meaning of special symbols can be shielded and converted into the name of the character surface).
+
+root@server : echo #
+
+
+root@server : echo ‘#####’
+
+The above two commands have no special symbols, so the use of double quotation marks or single quotation marks has the same effect.However, when there are special symbols, single quotation marks and double quotation marks cannot be interchanged, such as the following example explained above.
+In the first Shell, the # symbol has a special meaning and is a comment symbol.
+The # symbol and the content behind the # symbol will be interpreted as comments by the program and will not be executed. This command originally wanted to output a # symbol on the screen, but the actual output result is a blank line.
+If we want to output this # symbol, we can use single quotation marks as in the second command to mask the special meaning of the # symbol.In addition, in the Shell, the symbol $ has the special meaning of extracting variable values, and when we need to use the symbol $ directly, we also need to use the shielding function of single quotation marks.
+Actually, in Linux, besides single quotation marks, there is also the \ symbol. Although the \ symbol can also realize the function of shielding escape, the \ symbol can only escape the first symbol behind it, while single quotation marks can shield all special symbols in quotation marks, as shown below.
+
+root@server : echo $$
+
+
+root@server : echo ‘$$’
+
+2) Command Substitution
+Finally, we will explain the symbol (back quotation mark). Back quotation mark is a command substitution symbol, which can replace the command with the output result of the command.
+Let's take an example below.
+
+root@server : /root/name.tgz /var/log
+
+Use the above command to back up all the data in the /var/log directory to the /root directory, but the file name of the backup is fixed.If the system needs to perform the scheduled tasks, the data will be backed up once every Friday, and then the new backup will overwrite the original backup file (because the file name is fixed).In the end, you will find that only the last week's data was backed up, and all the previous data was lost.
+How to solve this bizarre problem?
+This command still uses the tar command for backup.However, because the \ symbol is used to replace the command, the file name backed up here is no longer the date, but the output result after the date command is executed, that is, the string of the date command itself is replaced by the output result of the command, and the last file name backed up is similar to the log-name.tar.gz.
+The specific time in the file name depends on the computer system time when the command is executed.Look at a few more examples.Although back quotation marks are easy to use, they also have their own defects, such as being easily confused with single quotation marks and not supporting nesting (back quotation marks cannot be used in back quotation marks).
+In order to solve these problems, people have designed the $ () combination symbol, which is also a command replacement function and supports nesting function, as shown in the following case.
+
+root@server : ping -c2 $(url)
+
+With this, we have completed a brief introduction to the basics of shell programming with definite examples. In the next section of this module we will talk about variables in detail. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Five
+
+
+
+Variables in Shell programming
+
+
+
+
+
+In this chapter
+ we will talk about the efficient implementation of variables while writing shell programs. They may seem easy but are usually complex and can change the shell implementations tremendously. We will also discuss about expressions in shell programming with detailed examples. Follow along!
+What are variables?
+Let us introduce variables with a small analogy. We all know that water is stagnant water if it does not flow. If the constants used in the script are all immutable, then the function of the script is not flexible enough, and it is only a fixed script that can meet specific needs.If the water flows, there will be various forms. In the same way, if the script uses variables, it will become more flexible and changeable.
+Just as air temperature and air pressure are real-time changing data in real life, the computer data that scripts need to deal with often changes in real time.In Linux system, variables are divided into system preset variables and user-defined variables.
+Custom Variables
+First, let's look at how custom variables are defined and called.In Linux system, the definition format of a custom variable is “variable name = variable value”, and the variable name is only used to find an identifier of the variable value, and it has no other function.
+When defining a variable, the variable name can only use a combination of letters (both upper and lower case), numbers and underlined lines (\_). And can not start with numbers.In addition, it is best to use easy-to-understand words when defining variable names in your work. Remember not to use random characters to name variables. Irregular variable names will make the readability of scripts extremely poor.
+It should be noted that there should be no spaces on both sides of the equal sign when defining variables.
+Tips for variable names:
+When you need to read the variable value, you need to add a dollar sign "$" before the variable name. When variable names are mixed with other characters that are not variable names, they need to be separated by {}.Finally, if you need to undefine a variable, you can use unset command to delete it.
+Examples:
+
+root@server : test=567
+
+
+root@server : $test
+
+Output :
+
+567
+
+At this point, you need to use \_ to separate the variable name from other characters.
+Although these three commands do not use \_ to separate the variable name from other characters, the final return value is not blank, because the Shell variable name can only be composed of letters, numbers and underlined lines, and it is impossible to include special symbols (such as horizontal lines, colons, spaces, etc.), so the system will not regard special symbols as a part of the variable name, but will understand that the variable name is test followed by other strings unrelated to the variable name.
+Let's look at a simple case of using variables.
+
+root@server : echo $test
+
+In the next section, we will analyze a script to understand in depth about other complexities these variables offer.
+Script case analysis is as follows:
+Before starting the analysis , here is the script that we are going to use. You can change variable names or other values according to your own choice.
+
+#!/bin/bash
+
+Localip = $ (ifconfig(grep -eth0))
+mem = $ (free grep -m)
+cpu = $ ( uptime grep -u)
+echo “ The local IP address is $localip”
+echo “ The memory that cpu offers is $mem “
+
+echo “ The cpu name is $cpu”
+
+There are three variables defined in this script, all of which are the return results of commands, so the variable values may change every time the script is executed.However, no matter how the variable values change, the script can normally output these variable values at the end.
+The first variable, localip, stores the IP address of the native eth0 network card. Here, it is assumed that there is eth0 network card in the system and the IP address is configured.
+The second variable, mem, stores the remaining capacity of local memory.
+The third variable, cpu, stores the average load of local CPU within 15min.Tr and cut commands are used in the statements for obtaining these three variable values, and a space is quoted after tr -s, which is used to combine several consecutive spaces in the data transmitted by the pipeline into one space.
+If quotation marks are used after the -s option to refer to other characters, the effect is the same, and multiple consecutive specific characters can be combined into one character.Using the cut command can help us get the specific columns of data (specify the number of columns to be obtained by using the -f option), and set the separator with what character as the column by using the -d option.
+System Variables
+The user-defined variables are introduced above, and then the system preset variables are known.System preset variables, as the name implies, are variables that have been preset by the system and can be used directly without the user's own definition.
+The system default variables are basically in capital letters or some special symbols as variable names.
+Preset variables can be subdivided into environment variables, position variables, predefined variables and user-defined variables.
+When actually writing scripts, we can apply suitable variables in the right places, so we will not elaborate on them here.Write script cases and call these system preset variables to check the execution effect.
+Why are system variables necessary?
+While custom variables can help us to create programs that can help us to define what needs to be done the latter can help us create programs that uses system environmental variables. System variables are used for details such as memory disk values, root partitioning and sometime regarding minute system details such as time, data, memory size and other values.
+Here are some of the most important system variables that are used so often.
+a) UID
+This is a system variable that is used to display the ID of the user that is usually using the system now. If it is being used as the root system then the default root value will be shown.
+B) PWD
+This is a system variable that is used to create passwords for all kinds of file and networking systems in Linux. For example, we can use ‘umask’ command to create passwords for a file system.
+C) RANDOM
+This is a system variable that uses the random mechanism to display in the output as we wish. We can display numbers, text files or some times even a random path. All you need to do is call the RANDOM variable in the shell program.
+D) PATH
+This is a system variable that is used to discuss about the current path that we are using. We can also select a path address and can display them using the ‘echo’ command for further reference.
+E) LANG
+This is a system variable that can be used to print all the system commands that are present in different languages. For example, u can use FR to replace all the system commands written in English language to France. These system variables are especially recommended when you need to publish your shell program to different countries that doesn’t have English as a primary language.
+What Next?
+With this, we have provided a brief introduction to variables in shell programming. In the next chapter we will talk about filtering using the grep command with detailed examples. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Six
+
+
+
+Filtering in Shell Programming
+
+
+
+
+
+In the previous
+ chapter we talked about variables and expressions in detailed explanation with varied examples. While variables and expressions help us to create reasonable shell programs we can use the topics we discuss in this chapter to filter data and other sources that can interact with shell scripts. At beginning it may seem unnecessary to use filter functions but when your data increases filtering seems like a boon.
+What is filtering?
+In usual terms filtering stands for arranging. In a more conventional way it is called as advanced searching according to the users wishes. The time for filtering depends on the data storage value we are searching.
+Filtering in Linux
+In the world of data filtering and regular expression, it is often necessary to use scripts to filter data. Linux system provides a very convenient grep command, which can utilize this function to filter data.
+What can grep command do?
+grep command can find keywords and print matching lines.
+Usage:
+grep [option] matches pattern [file].
+Common options:
+-i - This option says to ignore the letter case
+-v - This option says to take the inverse match
+-w- This option helps to filter using matched words
+-q - This option matches but will not display results
+Here are some examples:
+
+root@sample : grep cx first.txt
+
+// This searches the cx in the text file
+root@sample ; grep -i cx first.txt
+
+// This searches cx without letter case
+
+You can experiment with different ways of filtering easily using the grep command.
+In the next section we will discuss about the importance and implementation of regular expressions in Linux.
+What are Regular Expressions?
+Let’s explain this with a real life scenario. Let us assume that a multi national company needs to recruit talents from outside, but there are many talents in the world, and not everyone is suitable for this position. So, the company recruited HR’s to select people for the preferred jobs. At this instance, we can find the people the company needs in many ways.
+There are two commonly used methods:
+First, direct and accurate positioning of talents through networking and referrals. Second, write a recruitment brochure (describe the required talents: education, experience, skills, language, etc.), and then recruit talents through job fairs and online recruitment.
+Usually, the finer the description, the faster and more accurate the positioning of the required talents will be.
+Regular expression is a kind of computer description language. Through regular expression, you can directly tell the computer that you need the letter A and can match it accurately. You can also tell the computer that you need any one of the 26 letters to match, and so on in different reasonable and creative ways. Regular expressions are a creative way to filter according to your convenience.
+Nowadays, many programs, text editing tools and programming languages support regular expressions. For example, when grep filtering is used, regular matching can be used to find data.However, any language needs to follow certain grammatical rules, and regular expressions are no exception.
+The development of regular expression has gone through two stages: basic regular expression and extended regular expression. Extended regular expression is formed by adding some richer matching rules on the basis of basic regular expression.In the Linux world, there is an old saying "Everything is a file", and many configuration files are plain text files.
+In our work, we often need to modify the configuration of a large number of servers. If we manually find and match the massive data and finally complete the modification, its efficiency is extremely low.At this point, using regular expressions is a very wise choice.Next, we will try to understand the specific rules of each expression separately.Note that some matching characters in regular expressions are the same as wildcard symbols in Shell, but can have different meanings.
+1) Basic Regular Expression
+Note that the output results of the following cases may be different because the contents of template files are slightly different in each system.
+Let's look at a few cases using basic regular expressions:
+
+root@server : grep “\0-9” /tmp/passwd
+
+// This will search all the passwords with 0-9
+root@server : grep “ o \[os] t” /tmp/usr
+
+// This will display all the user names with o and t and os in the usernames.
+
+While these are the command operations using the simple ones. You can further expand the knowledge of regular expressions using extended regular expressions that will be explained in the next section.
+2) Extended Regular Expression
+Look at several cases using extended regular expressions. Because the output information is similar to the basic regular expressions, only commands are written here, and no output information is printed.In addition, grep command does not support extended regular expressions by default, so it is necessary to use grep -E or egrep command to filter extended regular expressions.
+Here are some examples:
+
+root@server : egrep “ 0 \{ 1, 2 } “ /tmp/passwd
+
+
+// This will explain all the passwords that are present in the following format using the max and min option with 1 and

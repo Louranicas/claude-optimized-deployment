@@ -1,0 +1,39 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 4 - Similarly, we can extract the IP address. Just swap the HTTPServer key with the IP key:
+$ whatweb 172.16.10.10:8081 --log-json=/dev/stdout --quiet | jq '.[0].plugins.IP.string[0]'
+Security Relevance Score: 3
+Word Count: 107
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Similarly, we can extract the IP address. Just swap the HTTPServer key with the IP key:
+$ whatweb 172.16.10.10:8081 --log-json=/dev/stdout --quiet | jq '.[0].plugins.IP.string[0]'
+
+"172.16.10.10"
+
+Go ahead and run WhatWeb against every web server we’ve identified to see the technologies they run.
+
+
+
+Summary
+In this chapter, we put bash to use in many ways. We created dynamic target host lists; used multiple tools to perform host discovery, port scanning, and banner grabbing; created an automated script to notify us of newly discovered hosts; and parsed various tool results. In the next chapter, we’ll run vulnerability scanners and fuzzers against these targets.
+
+
+
+
+
+
+
+
+
+
+
+
+5
+VULNERABILITY SCANNING AND FUZZING
+
+
+
+In

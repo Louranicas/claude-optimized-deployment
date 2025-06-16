@@ -1,0 +1,76 @@
+# Python API Production Container
+# Multi-stage build for secure production deployment
+FROM python:3.11-slim-bullseye AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Install Python dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+
+# Stage 2: Runtime
+FROM python:3.11-slim-bullseye
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r claude && useradd -r -g claude -u 1000 claude && \
+    mkdir -p /app/logs /app/data /app/tmp && \
+    chown -R claude:claude /app
+
+# Copy wheels from builder
+COPY --from=builder /wheels /wheels
+
+# Install Python packages
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --no-index --find-links=/wheels /wheels/* && \
+    rm -rf /wheels
+
+WORKDIR /app
+
+# Copy application code
+COPY --chown=claude:claude src ./src
+COPY --chown=claude:claude scripts ./scripts
+
+# Create necessary directories
+RUN mkdir -p /app/src/static /app/src/templates && \
+    chown -R claude:claude /app
+
+USER claude
+
+# Production environment variables
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONHASHSEED=random \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
+
+# Use gunicorn for production
+CMD ["gunicorn", "src.api.main:app", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "4", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--timeout", "120", \
+     "--keep-alive", "5", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "50", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-"]

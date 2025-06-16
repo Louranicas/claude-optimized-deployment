@@ -6,13 +6,15 @@ use pyo3::prelude::*;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::net::{TcpStream, SocketAddr, IpAddr};
+use std::net::{TcpStream, SocketAddr};
 use std::time::Duration;
 use std::sync::Arc;
 use dashmap::DashMap;
-use tracing::{info, debug, warn};
+use tokio::net::TcpStream as AsyncTcpStream;
+use tracing::{info, debug};
 
 use crate::{CoreError, CoreResult};
+
 
 /// Register infrastructure functions with Python module
 pub fn register_module(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -47,9 +49,19 @@ impl ServiceScanner {
     }
     
     /// Scan multiple services in parallel
-    fn scan_services(&self, _py: Python, targets: Vec<(String, u16)>) -> PyResult<Vec<bool>> {
+    fn scan_services(&self, py: Python, targets: Vec<(String, u16)>) -> PyResult<Vec<bool>> {
         info!("Scanning {} services", targets.len());
         
+        // For large numbers of targets, use adaptive parallelism
+        if targets.len() > 1000 {
+            self.scan_services_adaptive(py, targets)
+        } else {
+            self.scan_services_basic(py, targets)
+        }
+    }
+    
+    /// Basic parallel scanning for moderate workloads
+    fn scan_services_basic(&self, _py: Python, targets: Vec<(String, u16)>) -> PyResult<Vec<bool>> {
         // Configure thread pool
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.max_threads)
@@ -60,7 +72,7 @@ impl ServiceScanner {
         let timeout = Duration::from_millis(self.timeout_ms);
         let cache = Arc::clone(&self.results_cache);
         
-        let results = pool.install(|| {
+        let results: Vec<bool> = pool.install(|| {
             targets
                 .par_iter()
                 .map(|(host, port)| {
@@ -84,11 +96,179 @@ impl ServiceScanner {
                     cache.insert(key, is_up);
                     is_up
                 })
-                .collect()
+                .collect::<Vec<bool>>()
         });
         
         debug!("Scan complete: {} services checked", results.len());
         Ok(results)
+    }
+    
+    /// Adaptive parallel scanning for large workloads
+    fn scan_services_adaptive(&self, py: Python, targets: Vec<(String, u16)>) -> PyResult<Vec<bool>> {
+        py.allow_threads(|| {
+            let runtime = tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(self.max_threads)
+                .enable_all()
+                .build()
+                .map_err(|e| CoreError::Infrastructure(format!("Tokio runtime error: {}", e)))?;
+                
+            runtime.block_on(async move {
+                // Run async scan implementation synchronously
+                let timeout = Duration::from_millis(self.timeout_ms);
+                let cache = Arc::clone(&self.results_cache);
+                let semaphore = Arc::new(tokio::sync::Semaphore::new(self.max_threads));
+                
+                let tasks: Vec<_> = targets
+                    .into_iter()
+                    .map(|(host, port)| {
+                        let cache = cache.clone();
+                        let semaphore = semaphore.clone();
+                        
+                        tokio::spawn(async move {
+                            let _permit = semaphore.acquire().await.unwrap();
+                            let key = format!("{}:{}", host, port);
+                            
+                            // Check cache first
+                            if let Some(cached) = cache.get(&key) {
+                                return *cached.value();
+                            }
+                            
+                            // Perform async scan
+                            let addr = format!("{}:{}", host, port);
+                            let is_up = match addr.parse::<SocketAddr>() {
+                                Ok(socket_addr) => {
+                                    tokio::time::timeout(timeout, AsyncTcpStream::connect(socket_addr))
+                                        .await
+                                        .is_ok()
+                                }
+                                Err(_) => false,
+                            };
+                            
+                            // Cache result
+                            cache.insert(key, is_up);
+                            is_up
+                        })
+                    })
+                    .collect::<Vec<_>>();
+                
+                let mut results = Vec::with_capacity(tasks.len());
+                for task in tasks {
+                    match task.await {
+                        Ok(result) => results.push(result),
+                        Err(_) => results.push(false),
+                    }
+                }
+                
+                debug!("Async scan complete: {} services checked", results.len());
+                Ok(results)
+            })
+        })
+    }
+    
+    
+    /// Advanced port scanning with service detection
+    fn scan_ports_with_detection(&self, py: Python, targets: Vec<String>, port_ranges: Vec<(u16, u16)>) -> PyResult<HashMap<String, Vec<(u16, String)>>> {
+        py.allow_threads(|| {
+            let mut results = HashMap::new();
+            let cache = Arc::clone(&self.results_cache);
+            let timeout = Duration::from_millis(self.timeout_ms);
+            
+            // Generate all host-port combinations
+            let mut all_targets = Vec::new();
+            for host in &targets {
+                for (start_port, end_port) in &port_ranges {
+                    for port in *start_port..=*end_port {
+                        all_targets.push((host.clone(), port));
+                    }
+                }
+            }
+            
+            info!("Scanning {} total host-port combinations", all_targets.len());
+            
+            // Scan in parallel chunks to avoid overwhelming the system
+            let chunk_size = 1000;
+            for chunk in all_targets.chunks(chunk_size) {
+                let chunk_results: Vec<_> = chunk
+                    .par_iter()
+                    .filter_map(|(host, port)| {
+                        let key = format!("{}:{}", host, port);
+                        
+                        // Check cache first
+                        if let Some(cached) = cache.get(&key) {
+                            return if *cached.value() {
+                                Some((host.clone(), *port, self.detect_service(*port)))
+                            } else {
+                                None
+                            };
+                        }
+                        
+                        // Perform scan
+                        let addr = format!("{}:{}", host, port);
+                        let is_up = match addr.parse::<SocketAddr>() {
+                            Ok(socket_addr) => {
+                                TcpStream::connect_timeout(&socket_addr, timeout).is_ok()
+                            }
+                            Err(_) => false,
+                        };
+                        
+                        // Cache result
+                        cache.insert(key, is_up);
+                        
+                        if is_up {
+                            Some((host.clone(), *port, self.detect_service(*port)))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<(String, u16, String)>>();
+                
+                // Group results by host
+                for (host, port, service) in chunk_results {
+                    results
+                        .entry(host)
+                        .or_insert_with(Vec::new)
+                        .push((port, service));
+                }
+            }
+            
+            debug!("Port scan complete: {} hosts scanned", results.len());
+            Ok(results)
+        })
+    }
+    
+    /// Simple service detection based on common ports
+    fn detect_service(&self, port: u16) -> String {
+        match port {
+            21 => "FTP".to_string(),
+            22 => "SSH".to_string(),
+            23 => "Telnet".to_string(),
+            25 => "SMTP".to_string(),
+            53 => "DNS".to_string(),
+            80 => "HTTP".to_string(),
+            110 => "POP3".to_string(),
+            143 => "IMAP".to_string(),
+            443 => "HTTPS".to_string(),
+            993 => "IMAPS".to_string(),
+            995 => "POP3S".to_string(),
+            1433 => "MSSQL".to_string(),
+            3306 => "MySQL".to_string(),
+            5432 => "PostgreSQL".to_string(),
+            5672 => "AMQP".to_string(),
+            6379 => "Redis".to_string(),
+            8080 => "HTTP-Alt".to_string(),
+            9200 => "Elasticsearch".to_string(),
+            27017 => "MongoDB".to_string(),
+            _ => "Unknown".to_string(),
+        }
+    }
+    
+    /// Get scanning statistics
+    fn get_stats(&self) -> PyResult<HashMap<String, usize>> {
+        let mut stats = HashMap::new();
+        stats.insert("cache_size".to_string(), self.results_cache.len());
+        stats.insert("timeout_ms".to_string(), self.timeout_ms as usize);
+        stats.insert("max_threads".to_string(), self.max_threads);
+        Ok(stats)
     }
     
     /// Clear the results cache
@@ -100,7 +280,7 @@ impl ServiceScanner {
 
 /// Python function for quick service scanning
 #[pyfunction]
-fn scan_services_py(_py: Python, services: Vec<(String, u16)>) -> PyResult<HashMap<String, bool>> {
+pub fn scan_services_py(_py: Python, services: Vec<(String, u16)>) -> PyResult<HashMap<String, bool>> {
     let scanner = ServiceScanner::new(Some(500), Some(50));
     let results = scanner.scan_services(_py, services.clone())?;
     
@@ -150,7 +330,7 @@ impl ConfigParser {
             .map_err(|e| CoreError::Serialization(format!("YAML parse error: {}", e)))?;
         
         // Validate configuration
-        self.validate_config(&config)?;
+        self.validate_config_internal(&config)?;
         
         // Cache validated config
         let config_id = uuid::Uuid::new_v4().to_string();
@@ -163,9 +343,12 @@ impl ConfigParser {
         
         Ok(json)
     }
-    
-    /// Validate infrastructure configuration
-    fn validate_config(&self, config: &InfrastructureConfig) -> CoreResult<()> {
+}
+
+// Internal implementation methods for ConfigParser
+impl ConfigParser {
+    /// Validate infrastructure configuration (internal method)
+    fn validate_config_internal(&self, config: &InfrastructureConfig) -> CoreResult<()> {
         for (name, service) in &config.services {
             // Validate resources
             if service.cpu_millicores < 100 {
@@ -197,12 +380,9 @@ impl ConfigParser {
 
 /// Python function for quick config parsing
 #[pyfunction]
-fn parse_config_py(yaml_content: &str) -> PyResult<HashMap<String, serde_json::Value>> {
+pub fn parse_config_py(yaml_content: &str) -> PyResult<String> {
     let parser = ConfigParser::new();
-    let json_str = parser.parse_yaml(yaml_content)?;
-    let config: HashMap<String, serde_json::Value> = serde_json::from_str(&json_str)
-        .map_err(|e| CoreError::Serialization(e.to_string()))?;
-    Ok(config)
+    parser.parse_yaml(yaml_content)
 }
 
 // ========================= Log Analyzer =========================
@@ -322,7 +502,7 @@ impl LogAnalyzer {
 
 /// Python function for quick log analysis
 #[pyfunction]
-fn analyze_logs_py(_py: Python, log_content: &str) -> PyResult<HashMap<String, usize>> {
+pub fn analyze_logs_py(_py: Python, log_content: &str) -> PyResult<HashMap<String, usize>> {
     let mut analyzer = LogAnalyzer::new();
     analyzer.analyze_logs(_py, log_content)
 }

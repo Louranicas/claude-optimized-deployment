@@ -1,0 +1,136 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 71855426 - 18    Using REST APIsIn the introduction to Chapter 17, I made it clear that web scraping is only a stopgap measure. The exchange of information between websites or with external services is much more reliable if an application programming interface (API) can be used for this purpose. REST APIs have become established in recent decades. Representational state transfer (REST) is based on data exchange via established HTTP requests such as GET, PUT, or POST. The data is predominantly transferred in JSON format or, fortunately much less frequently, as XML. Some APIs also require authentication, with various methods to choose from (Basic, Bearer, Digest, OAuth, and so on).In this chapter, I will demonstrate how you can use REST APIs, and I will show you some elementary programming techniques.
+Prerequisites for This Chapter
+The sample scripts use all three programming languages covered in this book. In addition, an important prerequisite for reading this chapter is Chapter 10. JSON is ubiquitous as a REST data format.
+You’ll benefit from this chapter only if you have a basic knowledge regarding HTTP and REST. If you’re not familiar with typical request types such as GET, PUT, or POST, or have never heard of Bearer authentication, you should first do some research.
+Security Relevance Score: 5
+Word Count: 1323
+Extracted: 2025-06-13 23:41:06
+
+---
+
+18    Using REST APIsIn the introduction to Chapter 17, I made it clear that web scraping is only a stopgap measure. The exchange of information between websites or with external services is much more reliable if an application programming interface (API) can be used for this purpose. REST APIs have become established in recent decades. Representational state transfer (REST) is based on data exchange via established HTTP requests such as GET, PUT, or POST. The data is predominantly transferred in JSON format or, fortunately much less frequently, as XML. Some APIs also require authentication, with various methods to choose from (Basic, Bearer, Digest, OAuth, and so on).In this chapter, I will demonstrate how you can use REST APIs, and I will show you some elementary programming techniques.
+Prerequisites for This Chapter
+The sample scripts use all three programming languages covered in this book. In addition, an important prerequisite for reading this chapter is Chapter 10. JSON is ubiquitous as a REST data format.
+You’ll benefit from this chapter only if you have a basic knowledge regarding HTTP and REST. If you’re not familiar with typical request types such as GET, PUT, or POST, or have never heard of Bearer authentication, you should first do some research.
+
+18.1    Tools
+As I will show you momentarily, the curl or wget commands are sufficient to test REST APIs. But it’s not exactly fun. You should definitely install a graphical user interface (GUI) for running HTTP requests to analyze foreign APIs as well as for debugging. My recommendation is Postman (https://postman.com), but Swagger UI, the Insomnia REST client, or RapidAPI (formerly Paw, for macOS only) are also good alternatives. Various browser extensions also exist to try out REST APIs in a web browser.
+
+
+
+
+
+
+
+
+
+18.2    Sample APIs to Try Out
+To practice using REST APIs, you’ll need a playground. On the following pages, you’ll find APIs that you can try out for free (although some only free to a limited extent):
+
+
+https://httpbin.org
+
+
+https://restcountries.com
+
+
+https://www.postman.com/explore
+
+
+https://apipheny.io/free-api
+
+
+https://github.com/public-apis/public-apis
+
+
+To simulate a real API in a straightforward way, you can use WireMock (https://wiremock.org). Basically, WireMock is an open-source project. However, the use of the associated cloud service is only free of charge with major restrictions and is aimed more at large companies that want to test APIs away from productive operation.
+
+
+
+
+
+
+
+
+
+18.3    Implementing Custom REST APIs
+Using Bash or PowerShell, implementing your own REST APIs is nearly impossible. The situation is different for Python, where Flask and Django are two widely used frameworks for server programming. Possible alternatives include FastAPI, Pyramid, or Bottle. However, both designing and implementing APIs are well beyond the scope of this book, with its focus on typically short scripts.
+
+
+
+
+
+
+
+
+
+18.4    curl and wget
+Linux users especially are familiar with the curl and wget commands. These commands are primarily used to download files in the terminal. curl displays the contents of the downloaded file by default; however, the output can be saved to a file by using -o (an “oh”/not a “zero”). wget saves the file to the local directory by default. If the filename is not clear from the URL, the site’s default home page filename is used (often index.html). To display the file in standard output, you should use -O (“oh” again) followed by the desired filename or - for standard output.
+$ curl https://example.com/some/file.txt -o file.txt$ wget https://example.com/some/file.txt 
+
+Installation
+On Linux and macOS, curl is available by default. wget can be installed using the usual package management tools (i.e., apt/dnf/brew install wget).
+curl for Windows can be downloaded from https://curl.se/windows; wget, from https://eternallybored.org/misc/wget.
+
+18.4.1    curl
+curl and wget execute a GET request by default and do not require authentication. However, both commands can also upload local data (PUT/POST), support various authentication types, and so on. In this section, I will focus on curl and briefly summarize the most important options in the REST context:
+
+
+-X or --request GET/POST/PUT... specifies the desired request type (GET by default).
+
+
+-H or --header 'txt' passes the desired HTTP header, for example, -H "Content-Type: application/json". The option can be repeated if multiple headers are required. -H @file.txt reads the headers from a file.
+
+
+-d or --data 'data' sends the specified data with the request. For --data, the following alternatives are available: --data-binary, --data-raw, and --data-urlencode. In any case, the data can also be read from the specified file via @file.
+
+
+-u or --user name:pw passes a username and the corresponding password.
+
+
+-n or --netrc tells curl to read the login information from the .netrc file. Using --netrc-file file.txt, you can alternatively specify a different location for this file. Both variants are more secure than the password transfer via -u.
+
+
+--oauth2-bearer 'token' sends the specified Bearer token along with the request. 
+
+
+-L or --location allows curl to run an HTTP redirect. So if the server indicates that the page is now in a different location, this redirection will be followed.
+
+
+-k or --insecure does not check the SSH or HTTPS certificates. (This is unsafe!)
+
+
+-v or --verbose displays comprehensive debugging information during the execution of the request.
+
+
+-I or --head returns only the header of the response as a result. This option is convenient, for example, if you’re only interested in the HTTP status code, not in the other data from the response.
+
+
+The following examples refer to https://httpbin.org. The purpose of this website is to test REST tools or scripts. For example, a GET request of the /headers address returns a JSON document with all transferred headers:
+$ curl https://httpbin.org/headers -H 'myheader1: lorem' \                                   -H 'myheader2: ipsum'  {    "headers": {      "Accept": "*/*",      "Host": "httpbin.org",      "Myheader1": "lorem",      "Myheader2": "ipsum",      "User-Agent": "curl/8.0.1",      "X-Amzn-Trace-Id": "Root=1-64228236-74fe..."    }  } 
+In the second example, you first create the tiny local JSON file called mydata.json. Then, you use PUT to transfer this file to the /put address. The website responds with the sent data, so you can control if everything works:
+$ cat > mydata.json << EOF{    "firstName": "John",    "lastName": "Doe"}EOF$ curl -X PUT https://httpbin.org/put?para=123 -d @mydata.json  \       -H "Content-Type: application/json"  {    "args": {      "para": "123"    },    "data": "{ \"firstName\": \"John\",  \"lastName\": \"Doe\"}",    "json": {      "firstName": "John",      "lastName": "Doe"    }, ...  } 
+For debugging purposes, an often useful approach is to compile requests in a GUI.
+In the final example, you’ll test the basic authentication. In this test, you specify the login data with /basic-auth/name/pw. Then, the website checks if this data matches that of -u 'name:pw'. With -I, the status code of the response will be displayed: In the first case, that’s 200 (successful authentication); in the second case, 401 (unsuccessful authentication).
+$ curl -X GET "https://httpbin.org/basic-auth/maria/topsecret" \       -u 'maria:topsecret' -I  HTTP/2 200$ curl -X GET "https://httpbin.org/basic-auth/maria/topsecret" \       -u 'maria:wrong' -I  HTTP/2 401 
+
+Figure 18.1    
+            PUT Request Executed Using Postman
+A reference of all httpbin.org functions and more curl examples can be found at the following links:
+
+
+https://httpbin.org
+
+
+https://www.naleid.com/2017/11/26/using-http-apis-on-the-command-line-1-curl.html
+
+
+18.4.2    wget
+wget basically supports the same functions as curl, but the options have different names. It is a matter of personal preference whether you prefer using wget or curl. I will refrain from describing the options in this section (you can read man wget if needed!) and just describe two examples. The first command is a simple GET request. httpbin.org responds with a UUID wrapped in a JSON document. Because of -O -, the return is directly displayed in the terminal. In turn, -q (quiet) prevents the output of status information.
+$ wget https://httpbin.org/uuid -O - -q  {    "uuid": "9672f6c6-a27e-4059-8d87-35f0dc171bc7"  } 
+The second example tests the transfer of JSON data by means of a POST request:
+$ wget --header "Content-Type: application/json" \       --post-data '{"firstName": "John", "lastName": "Doe"}' \       https://httpbin.org/post -O -  { ...    "json": {      "firstName": "John",      "lastName": "Doe"    }, ...  } 
+18.4.3    Using REST APIs in Bash Scripts
+Bash is not the ideal scripting language for REST applications. Using Python or PowerShell, you can formulate your scripts better, more efficiently, and more reliably. For simple tasks, however, the combination of curl/wget plus jq (see

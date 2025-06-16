@@ -1,0 +1,244 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 6 - Let’s also use dirsearch to look for attack vectors in what looked like an empty folder on p-ftp-01, at http://172.16.10.11/backup/acme-impact-alliance:
+$ dirsearch -u http://172.16.10.11/backup/acme-impact-alliance/
+Security Relevance Score: 8
+Word Count: 2233
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Let’s also use dirsearch to look for attack vectors in what looked like an empty folder on p-ftp-01, at http://172.16.10.11/backup/acme-impact-alliance:
+$ dirsearch -u http://172.16.10.11/backup/acme-impact-alliance/
+
+--snip--
+Extensions: php, aspx, jsp, html, js | HTTP method: GET | Threads: 30 | Wordlist size: 10927
+Target: http://172.16.10.11/backup/acme-impact-alliance/
+--snip--
+[22:49:53] Starting:
+[22:49:53] 301 -  337B  - /backup/acme-impact-alliance/js  ->  http://172.16.10.11/backup/
+acme-impact-alliance/js/
+[22:49:53] 301 -  339B  - /backup/acme-impact-alliance/.git  ->  http://172.16.10.11/backup/
+acme-impact-alliance/.git/
+--snip--
+[22:49:53] 200 -   92B  - /backup/acme-impact-alliance/.git/config
+--snip--
+
+dirsearch inspects responses returned from the web server to identify interesting behaviors that could indicate the existence of an asset. For example, the tool might note whether a certain URL redirects to a new location (specified by an HTTP status code 301) and the response size in bytes. Sometimes you can infer information and observe behaviors solely by inspecting this data.
+This time, we’ve identified a subfolder within the acme-impact-alliance folder named .git. A folder with this name usually indicates the existence of a Git repository on the server. Git is a source code management tool, and in this case, it likely manages code running locally on the remote server.
+Use dirsearch again to perform brute forcing against the second directory, /backup/acme-hyper-branding. Save the results into their own folder, then check them. You should find a Git repository there too.
+
+
+Exploring Git Repositories
+When you find a Git repository, it’s often useful to run a specialized Git cloner that pulls the repository and all its associated metadata so you can inspect it locally. For this task, we’ll use Gitjacker.
+
+Cloning the Repository
+Gitjacker’s command is pretty simple. The first argument is a URL, and the -o (output) argument takes a folder name into which the data will be saved if Gitjacker succeeds at pulling the repository:
+$ gitjacker http://172.16.10.11/backup/acme-impact-alliance/ -o acme-impact-alliance-git
+
+--snip--
+Target:     http://172.16.10.11/backup/acme-impact-alliance/
+Output Dir: acme-impact-alliance-git
+Operation complete.
+
+Status:            Success
+Retrieved Objects: 3242
+--snip--
+
+As you can see, the tool returned a successful status and a few thousand objects. At this point, you should have a folder named acme-impact-alliance-git:
+$ ls -la ./acme-impact-alliance-git
+
+--snip--
+128 -rw-r--r--  1 kali kali 127309 Mar 17 23:15 comment.php
+ 96 -rw-r--r--  1 kali kali  96284 Mar 17 23:15 comment-template.php
+ 16 -rw-r--r--  1 kali kali  15006 Mar 17 23:15 compat.php
+  4 drwxr-xr-x  2 kali kali   4096 Mar 17 23:15 customize
+--snip--
+ 12 -rw-r--r--  1 kali kali  10707 Mar 17 23:15 customize.php
+  4 -rw-r--r--  1 kali kali    705 Mar 17 23:15 donate.php
+  4 -rw-r--r--  1 kali kali    355 Mar 17 23:15 robots.txt
+--snip--
+
+Notice some familiar filenames in this list? We saw donate.php and robots.txt earlier, when we scanned the 172.16.10.12 (p-web-02) host.
+
+
+Viewing Commits with git log
+When you run into a Git repository, you should attempt a git log command to see the history of Git code commits made to the repository, as they may include interesting data we could use as attackers. In source code management, a commit is a snapshot of the code’s state that is taken before the code is pushed to the main repository and made permanent. Commit information could include details about who made the commit and a description of the change (such as whether it was a code addition or deletion):
+$ cd acme-impact-alliance-git
+$ git log
+
+commit 3822fd7a063f3890e78051e56bd280f00cc4180c (HEAD -> master)
+Author: Kevin Peterson <kpeterson@acme-impact-alliance.com>
+--snip--
+
+    commit code
+
+We’ve identified a person who has committed code to the Git repository: Kevin Peterson, at kpeterson@acme-impact-alliance.com. Take note of this information because this account could exist in other places found during the penetration test.
+Try running Gitjacker again to hijack the Git repository that lives on the second folder, at /backup/acme-hyper-branding. Then execute another git log command to see who committed code to this repository, as we did before. The log should reveal the identity of a second person: Melissa Rogers, at mrogers@acme-hyper-branding.com.
+You may sometimes run into Git repositories with many contributors and many commits. We can use Git’s built-in --pretty=format option to easily extract all this metadata, like so:
+$ git log --pretty=format:"%an %ae"
+The %ae (author name) and %ae (email) fields are built-in placeholders in Git that allow you to specify values of interest to include in the output. For the list of all available variables, see https://git-scm.com/docs/pretty-formats#_pretty_formats.
+
+
+Filtering git log Information
+Even without the pretty formatting, bash can filter git log output with a single line:
+$ git log | grep Author | grep -oP '(?<=Author:).*' | sort -u | tr -d '<>'
+This bash code runs git log, uses grep to search for any lines that start with the word Author, and then pipes the results to another grep command, which uses regular expressions (-oP) to filter anything after the word Author: and print only the words that matched. This filtering leaves us with the Git commit author’s name and email.
+Because the same author could have made multiple commits, we use sort to sort the list and use the -u option to remove any duplicated lines, leaving us with a list free of duplicated entries. Finally, since the email is surrounded by the characters <> by default, we trim these characters by using tr -d '<>'.
+
+
+Inspecting Repository Files
+The repository contains a file called app.py. Let’s inspect its contents by viewing it in a text editor. You should see that the file contains web server code written with Python’s Flask library:
+import os, subprocess
+
+from flask import (
+    Flask,
+    send_from_directory,
+    send_file,
+    render_template,
+    request
+)
+
+@app.route('/')
+
+--snip--
+
+@app.route('/files/<path:path>')
+
+--snip--
+
+@app.route('/upload', methods = ['GET', 'POST'])
+
+--snip--
+
+@app.route('/uploads', methods=['GET'])
+
+--snip--
+
+@app.route('/uploads/<path:file_name>', methods=['GET'])
+
+--snip--
+
+The interesting parts here are the endpoints that are exposed via @app.route(). You can see that the application exposes endpoints such as /, /files, /upload, and /uploads.
+When we scanned the target IP address range with dirsearch and Nikto, we saw two endpoints, named /upload and /uploads, on p-web-01 (172.16.10.10:8081). Because this Python file includes the same endpoints, this source code likely belongs to the application running on the server.
+You may be asking yourself why we didn’t find the /files endpoint in our scans. Well, web scanners often rely on response status codes returned by web servers to determine whether certain endpoints exist. If you run the following curl command with the -I (HEAD request) option, you’ll see that the /files endpoint returns the HTTP status code 404 Not Found:
+$ curl -I http://172.16.10.10:8081/files
+
+HTTP/1.1 404 NOT FOUND
+--snip--
+
+Web scanners interpret these 404 errors as indicating that an endpoint doesn’t exist. Yet the reason we get 404 errors here is that, when called directly, /files doesn’t serve any requests. Instead, it serves requests for web paths appended to /files, such as /files/abc.jpg or /files/salary.docx.
+
+
+
+Vulnerability Scanning with Nuclei
+Nuclei is one of the most impressive open source vulnerability scanners released in recent years. Its advantage over other tools stems from its community-powered templating system, which reduces false positives by matching known patterns against responses it receives from network services and files. It also reduces barriers to writing vulnerability checks, as it doesn’t require learning how to code. You can also easily extend it to do custom security checks.
+Nuclei naturally supports common network services, such as HTTP, DNS, and network sockets, as well as local file scanning. You can use it to send HTTP requests, DNS queries, and raw bytes over the network. Nuclei can even scan files to find credentials (for example, when you’ve identified an open Git repository and want to pull it locally to find secrets).
+As of this writing, Nuclei has more than 8,000 templates in its database. In this section, we’ll introduce Nuclei and how to use it.
+
+Understanding Templates
+Nuclei templates are based on YAML files with the following high-level structure:
+ID A unique identifier for the template
+Metadata Information about the template, such as a description, the author, the severity, and tags (arbitrary labels that can group multiple templates, such as injection or denial of service)
+Protocol The mechanism that the template uses to make its requests; for example, http is a protocol type that uses HTTP for web requests
+Operators Used for matching patterns against responses received by a template execution (matchers) and extracting data (extractors), similarly to the filtering performed by tools like grep
+Here is a simple example of a Nuclei template that uses HTTP to find the default Apache HTML welcome page. Navigate to http://172.16.10.11/ to see what this page looks like.
+id: detect-apache-welcome-page
+
+❶ info:
+  name: Apache2 Ubuntu Default Page
+  author: Dolev Farhi and Nick Aleks
+  severity: info
+  tags: apache
+
+http:
+  - method: GET
+    path:
+    ❷ - '{{BaseURL}}'
+  ❸ matchers:
+      - type: word
+        words:
+          - "Apache2 Ubuntu Default Page: It works"
+        part: body
+
+We define the template metadata, such as the template’s name, author, severity, and so on ❶. We then instruct Nuclei to use an HTTP client when executing this template ❷. We also declare that the template should use the GET method. Next, we define a variable that will be swapped with the target URL we’ll provide to Nuclei on the command line at scan time. Then, we define a single matcher of type word ❸ and a search pattern to match against the HTTP response body coming back from the server, defined by part: body.
+As a result, when Nuclei performs a scan against an IP address that runs some form of a web server, this template will make a GET request to its base URL (/) and look for the string Apache2 ubuntu Default Page: It works in the response. If it finds this string in the response’s body, the check will be considered successful because the pattern matched.
+We encourage you to explore Nuclei’s templating system at https://docs.projectdiscovery.io/introduction, as you can easily use Nuclei with bash to perform continuous assessments.
+
+
+Writing a Custom Template
+Let’s write a simple template that finds the Git repositories we discovered earlier, on p-ftp-01 (172.16.10.11). We’ll define multiple BaseURL paths to represent the two paths we’ve identified. Then, using Nuclei’s matchers, we’ll define a string ref: refs/heads/master to match the response body returned by the scanned server:
+git-finder.yaml
+id: detect-git-repository
+
+info:
+  name: Git Repository Finder
+  author: Dolev Farhi and Nick Aleks
+  severity: info
+  tags: git
+
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/backup/acme-hyper-branding/.git/HEAD'
+      - '{{BaseURL}}/backup/acme-impact-alliance/.git/HEAD'
+    matchers:
+      - type: word
+        words:
+          - "ref: refs/heads/master"
+        part: body
+
+This template works just like the one in the previous example, except this time we provide two paths to check against: /backup/acme-hyper-branding/.git/HEAD and /backup/acme-impact-alliance/.git/HEAD. The matcher defines the string we expect to see in the HEAD file. You can confirm the match by making a curl request to the Git repository at 172.16.10.11:
+$ curl http://172.16.10.11/backup/acme-hyper-branding/.git/HEAD
+
+ref: refs/heads/master
+
+Download this custom Nuclei template from the book’s GitHub repository.
+
+
+Applying the Template
+Let’s run Nuclei against p-ftp-01 (172.16.10.11) with the custom template we just wrote. Nuclei stores its built-in templates in the folder ~/.local/nuclei-templates. First, run the following command to update Nuclei’s template database:
+$ nuclei -ut
+Next, save the custom template into the folder ~/.local/nuclei-templates/custom and give it a name such as git-finder.yaml.
+In the following command, the -u (URL) option specifies the address, and -t (template) specifies the path to the template:
+$ nuclei -u 172.16.10.11 -t ~/.local/nuclei-templates/custom/git-finder.yaml
+
+--snip--
+[INF] Targets loaded for scan: 1
+[INF] Running httpx on input host
+[INF] Found 1 URL from httpx
+[detect-git-repository] [http] [info] http://172.16.10.11/backup/acme-hyper-branding/.git/HEAD
+[detect-git-repository] [http] [info] http://172.16.10.11/backup/acme-impact-alliance/.git/HEAD
+
+As you can see, we were able to identify the two Git repositories with the custom template.
+
+
+Running a Full Scan
+When not provided with a specific template, Nuclei will use its built-in templates during the scan. Running Nuclei is noisy, so we recommend tailoring the execution to a specific target. For instance, if you know a server is running Apache, you could select just the Apache-related templates by specifying the -tags option:
+$ nuclei -tags apache,git -u 172.16.10.11
+Run nuclei -tl to get a list of all available templates.
+Let’s run a full Nuclei scan against the three IP addresses in the 172.16.10.0/24 network by using all its built-in templates:
+$ nuclei -u 172.16.10.10:8081
+$ nuclei -u 172.16.10.11
+$ nuclei -u 172.16.10.12
+
+--snip--
+[tech-detect:google-font-api] [http] [info] http://172.16.10.10:8081
+[tech-detect:python] [http] [info] http://172.16.10.10:8081
+[http-missing-security-headers:access-control-allow-origin] [http] [info]
+http://172.16.10.10:8081
+[http-missing-security-headers:content-security-policy] [http] [info]
+http://172.16.10.10:8081
+--snip--
+
+Nuclei tries to optimize the number of total requests made by using clustering. When multiple templates call the same web path (such as /backup), Nuclei consolidates these into a single request to reduce network overhead. However, Nuclei could still send thousands of requests during a single scan. You can control the number of requests sent by specifying the rate limit option (-rl), followed by an integer indicating the number of allowed requests per second.
+The full scan results in a lot of findings, so append the output to a file (using >>) so that you can examine them one by one. As you’ll see, Nuclei can identify vulnerabilities, but it can also fingerprint the target server and the technologies running on it. Nuclei should have highlighted findings seen previously, as well as a few new ones. Here are some of the issues it detected:
+
+An FTP server with anonymous access enabled on 172.16.10.11 port 21
+A WordPress login page at 172.16.10.12/wp-login.php
+A WordPress user-enumeration vulnerability (CVE-2017-5487) at http://172.16.10.12/?rest_route=/wp/v2/users/
+
+Let’s manually confirm these three findings to ensure there are no false positives. Connect to the identified FTP server at 172.16.10.11 by issuing the following ftp command. This command will connect to the server by using the anonymous user and an empty password:
+$ ftp ftp://anonymous:@172.16.10.11
+
+Connected to 172.16.10.

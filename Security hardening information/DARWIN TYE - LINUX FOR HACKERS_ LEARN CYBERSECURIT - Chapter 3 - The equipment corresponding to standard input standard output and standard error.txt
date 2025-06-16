@@ -1,0 +1,27 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 3 - The equipment corresponding to standard input, standard output and standard error output of websrv program is "136,3".Among them, "136" indicates that this is a fake terminal;"3" indicates that it is the third pseudo terminal, i.e. /dev/pts/3.
+For FIFO-type files, such as pipes and socket, this field will display the address of a kernel reference target file, or its inode number.If the field is displayed as "0t" or "0x", it means that it is an offset value, otherwise it means that it is a file size.It is meaningless to define the file size for a character device or FIFO type file, so this field will display an offset value.
+For socket, it shows the protocol type, such as "TCP".Name, the name of the file.If we use the telnet command to initiate a connection to the websrv server, when we execute the lsof command again,The following line will be added to its output.
+Security Relevance Score: 2
+Word Count: 483
+Extracted: 2025-06-13 23:40:27
+
+---
+
+The equipment corresponding to standard input, standard output and standard error output of websrv program is "136,3".Among them, "136" indicates that this is a fake terminal;"3" indicates that it is the third pseudo terminal, i.e. /dev/pts/3.
+For FIFO-type files, such as pipes and socket, this field will display the address of a kernel reference target file, or its inode number.If the field is displayed as "0t" or "0x", it means that it is an offset value, otherwise it means that it is a file size.It is meaningless to define the file size for a character device or FIFO type file, so this field will display an offset value.
+For socket, it shows the protocol type, such as "TCP".Name, the name of the file.If we use the telnet command to initiate a connection to the websrv server, when we execute the lsof command again,The following line will be added to its output.
+
+websrv6346shuang5u IPv4 442880t0tcp localhost: 13579-> localhost: 48215 (ESTABLISHED).
+
+This output indicates that the server has opened a socket of IPv4 type with a value of 5 and it is in established state.The local socket address of the connection corresponding to this socket is (127.0.0.1, 13579), and the remote socket address is (127.0.0.1, 48215).
+While it may not have advanced capabilities like tcpdump, lsof still serves the purpose it is made for. In the next section of this chapter we will talk about nectar in detail. Follow along!
+nc(netcat)
+netcat command is short, capable and powerful, and has the reputation of "Swiss Army Knife".It is mainly used to quickly build network connections.We can make it run as a server, listen to a port and receive client connections, so it can be used to debug client programs.We can also make it run as a client, initiate a connection to the server and send and receive data, so it can be used to debug the server program, which is a bit like a telnet program.
+The transport layer protocol used by nc command by default is TCP protocol.-w, if the nc client does not detect any input within the specified time, exit.-x, which specifies the communication protocol used between nc client and proxy server when they communicate.At present, the proxy protocols supported by nc include "4" (socks v.4), "5" (socks v.5) and "connect" (https proxy).The proxy protocol used by nc by default is SOCKS v.5.-x, specify the IP address and port number of the target proxy server.
+For example, to connect to squid proxy server on laptop from source and access Web services in www.google.com through it, you can use the following command.
+root@server : $ NC-x source: 1080-x Connect www.google.com 80-z, and scan whether one or some services on the target machine are turned on (port scanning).
+For example, to scan services with port numbers between 20 and 50 on the machine ernest-laptop, you can use the following command.
+
+root@server : $nc-z source 20-

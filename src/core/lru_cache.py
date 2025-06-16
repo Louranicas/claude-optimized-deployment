@@ -21,6 +21,18 @@ from typing import Any, Dict, Generic, Iterator, Optional, TypeVar, Union, Calla
 from threading import RLock
 import logging
 
+__all__ = [
+    "CacheConfig",
+    "CacheEntry", 
+    "CacheStats",
+    "LRUCache",
+    "TTLCache",
+    "TTLDict",
+    "create_lru_cache",
+    "create_ttl_dict"
+]
+
+
 logger = logging.getLogger(__name__)
 
 K = TypeVar('K')  # Key type
@@ -509,3 +521,7 @@ def create_ttl_dict(
         max_size=max_size,
         cleanup_interval=cleanup_interval
     )
+
+
+# Alias for compatibility
+TTLCache = LRUCache

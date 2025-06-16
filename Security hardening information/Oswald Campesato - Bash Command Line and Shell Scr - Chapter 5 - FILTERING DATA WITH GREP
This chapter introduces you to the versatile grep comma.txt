@@ -1,0 +1,204 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 5 - FILTERING DATA WITH GREP
+This chapter introduces you to the versatile grep command, whose purpose is to take a stream of text data and reduce it to only the parts that you care about. The grep command is useful not only by itself but also in conjunction with other commands, especially the find command. This chapter contains many short code samples that illustrate various options of the grep command. Some code samples illustrate how to combine the grep command with commands from previous chapters.
+The first part of this chapter introduces the grep command used in isolation, combined with the regular expression metacharacters (from Chapter 2) and also with code snippets that illustrate how to use some of the options of the grep command. Next, you will learn how to match ranges of lines, how to use the so-called “back references” in grep, and how to “escape” metacharacters in grep.
+The second part of this chapter shows you how to use the grep command in order to find empty lines and common lines in datasets, as well as the use of keys to match rows in datasets. Next, you will learn how to use character classes with the grep command, as well as the backslash “\” character, and how to specify multiple matching patterns. Next, you will learn how to combine the grep command with the find command and the xargs command, which is useful for matching a pattern in files that reside in different directories. This section also contains some examples of common mistakes that people make with the grep command.
+The third section briefly discusses the egrep command and the fgrep command, which are related commands that provide additional functionality that is unavailable in the standard grep utility. The final section contains a use case that illustrates how to use the grep command in order to find matching lines that are then merged in order to create a new dataset.
+WHAT IS THE GREP COMMAND?
+The grep (“Global Regular Expression Print”) command is useful for finding substrings in one or more files. Several examples are here:
+grep abc *sh displays all the lines of abc in files with suffix sh
+grep –i abc *sh is the same as the preceding query, but case-insensitive
+grep –l abc *sh displays all the filenames with suffix sh that contain abc
+grep –n abc *sh displays all the line numbers of the occurrences of the string abc in files with suffix sh
+You can perform logical AND and logical OR operations with this syntax:
+grep abc *sh |grep def matches lines containing abc AND def
+grep "abc\|def" *sh matches lines containing abc OR def
+You can combine switches as well: the following command displays the names of the files that contain the string abc (case insensitive):
+Security Relevance Score: 2
+Word Count: 1672
+Extracted: 2025-06-13 23:40:50
+
+---
+
+FILTERING DATA WITH GREP
+This chapter introduces you to the versatile grep command, whose purpose is to take a stream of text data and reduce it to only the parts that you care about. The grep command is useful not only by itself but also in conjunction with other commands, especially the find command. This chapter contains many short code samples that illustrate various options of the grep command. Some code samples illustrate how to combine the grep command with commands from previous chapters.
+The first part of this chapter introduces the grep command used in isolation, combined with the regular expression metacharacters (from Chapter 2) and also with code snippets that illustrate how to use some of the options of the grep command. Next, you will learn how to match ranges of lines, how to use the so-called “back references” in grep, and how to “escape” metacharacters in grep.
+The second part of this chapter shows you how to use the grep command in order to find empty lines and common lines in datasets, as well as the use of keys to match rows in datasets. Next, you will learn how to use character classes with the grep command, as well as the backslash “\” character, and how to specify multiple matching patterns. Next, you will learn how to combine the grep command with the find command and the xargs command, which is useful for matching a pattern in files that reside in different directories. This section also contains some examples of common mistakes that people make with the grep command.
+The third section briefly discusses the egrep command and the fgrep command, which are related commands that provide additional functionality that is unavailable in the standard grep utility. The final section contains a use case that illustrates how to use the grep command in order to find matching lines that are then merged in order to create a new dataset.
+WHAT IS THE GREP COMMAND?
+The grep (“Global Regular Expression Print”) command is useful for finding substrings in one or more files. Several examples are here:
+grep abc *sh displays all the lines of abc in files with suffix sh
+grep –i abc *sh is the same as the preceding query, but case-insensitive
+grep –l abc *sh displays all the filenames with suffix sh that contain abc
+grep –n abc *sh displays all the line numbers of the occurrences of the string abc in files with suffix sh
+You can perform logical AND and logical OR operations with this syntax:
+grep abc *sh |grep def matches lines containing abc AND def
+grep "abc\|def" *sh matches lines containing abc OR def
+You can combine switches as well: the following command displays the names of the files that contain the string abc (case insensitive):
+
+grep –il abc *sh
+
+In other words, the preceding command matches filenames that contain abc, Abc, ABc, ABC, abC, and so forth.
+Another (less efficient way) to display the lines containing abc (case insensitive) is here:
+
+cat file1 |grep –i abc
+
+The preceding command involves two processes, whereas the “grep using –l switch instead of cat to input the files you want” approach involves a single process. The execution time is roughly the same for small text files, but the execution time can become more significant if you are working with multiple large text files.
+You can combine the sort command, the pipe symbol, and the grep command. For example, the following command displays the files with a “Jan” date in increasing size:
+
+ls -l |grep " Jan " | sort -n
+
+A sample output from the preceding command is here:
+
+-rw-r--r-- 1  oswaldcampesato2  staff   3 Sep 27
+2013 abc.txt
+-rw-r--r-- 1 oswaldcampesato2   staff   6 Sep 21
+2013 control1.txt
+-rw-r--r-- 1 oswaldcampesato2   staff   27 Sep 28
+2013 fiblist.txt
+-rw-r--r-- 1 oswaldcampesato2   staff   28 Sep 14
+2013 dest
+-rw-r--r-- 1 oswaldcampesato2   staff   36 Sep 14
+2013 source
+-rw-r--r-- 1 oswaldcampesato2   staff   195 Sep 28
+2013 Divisors.py
+-rw-r--r-- 1 oswaldcampesato2   staff   267 Sep 28
+2013 Divisors2.py
+
+METACHARACTERS AND THE GREP COMMAND
+The fundamental building blocks are the regular expressions that match a single character. Most characters, including all letters and digits, are regular expressions that match themselves. Any metacharacter with special meaning may be quoted by preceding it with a backslash.
+A regular expression may be followed by one of several repetition operators, as shown below.
+“.” matches any single character:
+“?” indicates that the preceding item is optional and will be matched at most once: Z? matches Z or ZZ.
+“*” indicates that the preceding item will be matched zero or more times: Z* matches Z, ZZ, ZZZ, and so forth.
+“+” indicates that the preceding item will be matched one or more times: Z+ matches ZZ, ZZZ, and so forth.
+“{n}” indicates that the preceding item is matched exactly n times: Z{3} matches ZZZ.
+“{n,}” indicates that the preceding item is matched n or more times: Z{3} matches ZZZ, ZZZZ, and so forth.
+“{,m}” indicates that the preceding item is matched at most m times: Z{,3} matches Z, ZZ, and ZZZ.
+“{n,m}” indicates that the preceding item is matched at least n times, but not more than m times: Z{2,4} matches ZZ, ZZZ, and ZZZZ.
+The empty regular expression matches the empty string (i.e., a line in the input stream with no data). Two regular expressions may be joined by the infix operator “|”. When used in this manner, the infix operator behaves exactly like a logical “OR” statement, which directs the grep command to return any line that matches either regular expression.
+ESCAPING METACHARACTERS WITH THE GREP COMMAND
+Listing 5.1 displays the contents of lines.txt that contains lines with characters and some lines with metacharacters.
+Listing 5.1: lines.txt
+
+abcd
+ab
+abc
+cd
+defg
+.*.
+..
+
+The following grep command lists the lines of length 2 (using the ^ begin with and $ end with operators to restrict length) in lines.txt:
+
+grep '^..$' lines.txt
+
+The following command lists the lines of length two in lines.txt that contain two dots (the backslash tells grep to interpret the dots as actual dots, not as metacharacters):
+
+grep '^\.\.$' lines.txt
+
+The result is shown here:
+
+ab
+cd
+..
+
+The following command also displays lines of length two that begin and end with a dot (the * matches any text of any length, including no text at all and is used as a metacharacter because it is not preceded with a backslash):
+
+grep '^\.*\.$' lines.txt
+
+The following command lists the lines that contain a period, followed by an asterisk, and then another period (the * is now a character that must be matched because it is preceded by a backslash):
+
+grep '^\.\*\.$' lines.txt
+
+USEFUL OPTIONS FOR THE GREP COMMAND
+There are many types of pattern matching possibilities with the grep command, and this section contains an eclectic mix of such commands that handle common scenarios.
+In the following examples, we have four text files (two .sh files and two .txt files) and two Word documents in a directory. The string abc is found on one line in abc1.txt and three lines in abc3.sh. The string ABC is found on 2 lines in ABC2.txt and 4 lines in ABC4.sh. Notice that abc is not found in ABC files, and ABC is not found in abc files.
+
+
+ls *
+
+
+ABC.doc      ABC4.sh     abc1.txt
+ABC2.txt     abc.doc     abc3.sh
+
+The following code snippet searches for occurrences of the string abc in all the files in the current directory that have sh as a suffix:
+
+grep	abc *sh
+abc3.sh:abc at start
+abc3.sh:ends with -abc
+abc3.sh:the abc is in the middle
+
+The “-c” option counts the number of occurrences of a string (note that even though ABC4.sh has no matches, it still counts them and returns zero):
+
+grep –c abc *sh
+
+The output of the preceding command is here:
+
+ABC4.sh:0
+abc3.sh:3
+
+The “-e” option lets you match patterns that would otherwise cause syntax problems (the “–“ character normally is interpreted as an argument for grep):
+
+grep –e "-abc" *sh
+abc3.sh:ends with -abc
+
+The “-e” option also lets you match multiple patterns.
+
+grep –e "-abc" -e "comment" *sh
+ABC4.sh:# ABC in a comment
+abc3.sh:ends with -abc
+The "-i" option is to perform a case insensitive match:
+grep –i abc *sh
+ABC4.sh:ABC at start
+ABC4.sh:ends with ABC
+ABC4.sh:the ABC is in the middle
+ABC4.sh:# ABC in a comment
+abc3.sh:abc at start
+abc3.sh:ends with -abc
+abc3.sh:the abc is in the middle
+
+The “-v” option “inverts” the matching string, which means that the output consists of the lines that do not contain the specified string (ABC doesn’t match because -i is not used, and ABC4.sh has an entirely empty line):
+
+grep –v abc *sh
+
+Use the “-iv” options to display the lines that do not contain a specified string using a case insensitive match:
+
+grep –iv abc *sh
+ABC4.sh:
+abc3.sh:this line won't match
+
+The “-l” option is to list only the filenames that contain a successful match (note this matches the contents of the files, not the filenames). The Word document matches because the actual text is still visible to grep, it is just surrounded by proprietary formatting gibberish. You can do similar things with other formats that contain text, such as XML, HTML, .csv, and so forth:
+
+grep -l abc *
+
+
+abc1.txt
+abc3.sh
+abc.doc
+
+The “–l” option is to list only the filenames that contain a successful match:
+
+grep –l abc *sh
+
+Use the “-il” options to display the filenames that contain a specified string using a case insensitive match:
+
+grep –il abc *doc
+
+The preceding command is very useful when you want to check for the occurrence of a string in Word documents.
+The “-n” option specifies line numbers of any matching file:
+
+grep –n abc *sh
+abc3.sh:1:abc at start
+abc3.sh:2:ends with -abc
+abc3.sh:3:the abc is in the middle
+
+The “-h” option suppresses the display of the filename for a successful match:
+
+grep –h abc *sh
+abc at start
+ends with -abc
+the abc is in the middle
+
+For the next series of examples, we will use columns4.txt as shown in Listing 5.

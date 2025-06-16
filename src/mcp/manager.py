@@ -11,8 +11,15 @@ from typing import Dict, Any, List, Optional, Set
 from dataclasses import dataclass, field
 import time
 
-from src.mcp.servers import MCPServerRegistry, MCPServer, BraveMCPServer
-from src.mcp.protocols import MCPTool, MCPError, MCPServerInfo
+from src.mcp.registry import MCPServerRegistry, get_server_registry
+from src.mcp.protocols import MCPTool, MCPError, MCPServerInfo, MCPServer
+__all__ = [
+    "MCPToolCall",
+    "MCPContext",
+    "MCPManager",
+    "get_mcp_manager"
+]
+
 from src.core.exceptions import (
     MCPError as MCPException,
     MCPServerNotFoundError,
@@ -115,9 +122,20 @@ class MCPManager:
     - Error handling and retries
     """
     
-    def __init__(self):
+    def __init__(self, permission_checker=None):
         """Initialize MCP Manager."""
-        self.registry = MCPServerRegistry()
+        # Create a default permission checker if none provided
+        if permission_checker is None:
+            class DefaultPermissionChecker:
+                def check_permission(self, user, resource, action):
+                    return True
+                def __bool__(self):
+                    return True
+                def register_resource_permission(self, resource_type, resource_id, initial_permissions):
+                    pass
+            permission_checker = DefaultPermissionChecker()
+        
+        self.registry = get_server_registry(permission_checker)
         
         # Use TTL dict for contexts (TTL: 1 hour, max: 200 contexts)
         self.contexts = create_ttl_dict(
@@ -609,3 +627,54 @@ def get_mcp_manager() -> MCPManager:
     if _mcp_manager is None:
         _mcp_manager = MCPManager()
     return _mcp_manager
+
+# Authentication Integration
+from .security.auth_integration import setup_mcp_authentication, MCPAuthMiddleware
+from ..auth.middleware import AuthMiddleware
+from ..auth.rbac import RBACManager
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError,
+    ConfigurationError,
+    CircuitBreakerError,
+    RateLimitError
+)
+
+class AuthenticatedMCPManager(MCPManager):
+    """MCP Manager with authentication integration."""
+    
+    def __init__(self):
+        super().__init__()
+        self.auth_middleware = None
+        self.rbac_manager = None
+        self.authenticated_servers = {}
+    
+    async def setup_authentication(self, auth_middleware: AuthMiddleware, rbac_manager: RBACManager):
+        """Set up authentication for all MCP servers."""
+        self.auth_middleware = auth_middleware
+        self.rbac_manager = rbac_manager
+        
+        # Integrate authentication with all servers
+        self.authenticated_servers = await setup_mcp_authentication(
+            self.servers, auth_middleware, rbac_manager
+        )
+        
+        print(f"Authentication integrated with {len(self.authenticated_servers)} MCP servers")
+    
+    async def call_authenticated_tool(self, server_name: str, tool_name: str, 
+                                    arguments: Dict[str, Any], user: Any) -> Any:
+        """Call MCP tool with authentication."""
+        if server_name not in self.authenticated_servers:
+            raise ValueError(f"Server {server_name} not found or not authenticated")
+        
+        server = self.authenticated_servers[server_name]
+        
+        # Inject user context
+        if hasattr(server, '_current_user'):
+            server._current_user = user
+        
+        return await server.call_tool(tool_name, arguments)

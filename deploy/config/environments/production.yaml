@@ -1,0 +1,107 @@
+# Production Environment Configuration
+
+variables:
+  # Database settings
+  db_host: "{{ env('DB_HOST') or 'localhost' }}"
+  db_port: 5432
+  db_name: "claude_deployment_prod"
+  db_ssl_mode: "require"
+  
+  # Redis settings
+  redis_host: "{{ env('REDIS_HOST') or 'localhost' }}"
+  redis_port: 6379
+  redis_db: 0
+  redis_ssl: true
+  
+  # API settings
+  api_host: "0.0.0.0"
+  api_port: 8000
+  api_workers: 4
+  api_timeout: 30
+  
+  # Security settings
+  cors_origins: 
+    - "https://app.example.com"
+    - "https://admin.example.com"
+  jwt_algorithm: "RS256"
+  session_timeout: 3600
+  
+  # Monitoring settings
+  metrics_enabled: true
+  metrics_port: 9090
+  log_level: "INFO"
+  
+  # Performance settings
+  max_connections: 100
+  connection_timeout: 30
+  request_timeout: 60
+  worker_memory_limit: "2Gi"
+
+secrets:
+  # Database credentials
+  db_username: "DB_USERNAME"
+  db_password: "DB_PASSWORD"
+  
+  # Redis auth
+  redis_password: "REDIS_PASSWORD"
+  
+  # JWT signing keys
+  jwt_private_key: "JWT_PRIVATE_KEY"
+  jwt_public_key: "JWT_PUBLIC_KEY"
+  
+  # API keys
+  brave_api_key: "BRAVE_API_KEY"
+  slack_webhook_url: "SLACK_WEBHOOK_URL"
+  
+  # Cloud credentials
+  aws_access_key_id: "AWS_ACCESS_KEY_ID"
+  aws_secret_access_key: "AWS_SECRET_ACCESS_KEY"
+
+resource_limits:
+  cpu_cores: 4
+  memory_gb: 8
+  disk_gb: 100
+  max_file_descriptors: 65536
+  max_processes: 256
+
+networking:
+  load_balancer: true
+  ssl_termination: true
+  health_check_path: "/health"
+  health_check_interval: 30
+  health_check_timeout: 10
+  
+  # Rate limiting
+  rate_limit_per_minute: 1000
+  burst_limit: 100
+  
+  # Firewall rules
+  allowed_ips:
+    - "10.0.0.0/8"    # Internal network
+    - "172.16.0.0/12" # Docker network
+    - "192.168.0.0/16" # Private network
+
+security_policies:
+  # Authentication
+  require_mfa: true
+  password_policy:
+    min_length: 12
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_symbols: true
+  
+  # Authorization
+  rbac_enabled: true
+  default_permissions: "read"
+  admin_approval_required: true
+  
+  # Encryption
+  encrypt_at_rest: true
+  encrypt_in_transit: true
+  key_rotation_days: 90
+  
+  # Auditing
+  audit_logging: true
+  audit_retention_days: 365
+  security_scan_enabled: true

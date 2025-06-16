@@ -1,0 +1,138 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 5 - The most commonly mentioned attack that takes advantage of the security 
+weaknesses in industrial PLC software is denial of service (DoS), discussed in 11 
+studies. A system is designed to handle a certain amount of trafﬁc, and if more 
+trafﬁc is directed to a particular address with the intention of rendering the system 
+unavailable to users, it is considered a DoS attack [ 20]. In PLC industrial settings, 
+availability is a critical attribute, making the impact of this attack signiﬁcant. 
+Stuxnet is a worm that gained notoriety for infecting PLCs and taking control of 
+the gas centrifuges in Iran, causing them to spin at high speeds until they burned 
+out. The worm searched for an industrial automated software called SIMATIC Step 
+7 used by PLCs on infected PCs. Once it found this software, it would also ﬁnd a 
+PLC and inject malicious code into it. The worm was designed to send false data to 
+cover its tracks and avoid detection by controllers, making it difﬁcult to detect the 
+attack [ 21, 22]. 
+Fig. 1.5 Attacks
+18 E. P. Enoiu et al.
+The man-in-the-middle attack (MITM), which is mentioned in six studies, is 
+another well-known attack. In this type of attack, the attacker positions themselves 
+in between an HMI and a PLC and intercepts all the information that the HMI is attempting to send to the PLC. This allows the attacker to modify the data they 
+receive from the HMI and send it to the PLC, without the PLC being aware that the data has been tampered with. Additionally, the attacker can also observe or attempt to block the trafﬁc [
+20]. 
+A similar attack is the replay attack mentioned in four studies (i.e., S4, S16, 
+S27, S30). In this attack, the attacker also gets a copy of the information exchanged between the two hosts and can later use it by sending duplicate information. 
+The false data injection attack is mentioned in four studies (i.e., S3, S6, S11, 
+S17). The PLC receives information from sensors, and during the false data injection attack, this information is manipulated. When this happens, the PLC will output 
+commands according to the false data injected and not according to the real measurements from the sensor. That could lead to damaging incidents. 
+Two studies (S8 and S30) mention the brute force attack, which involves an 
+algorithm that attempts all possible combinations for a speciﬁc password until the correct password is identiﬁed and the necessary credentials are obtained to access the system. As a result, it is recommended to use passwords with a minimum number 
+of characters, as well as a combination of lowercase and uppercase letters, numbers, and special characters in most applications. A larger alphabet results in a larger number of possible combinations that must be tried to discover the correct password. 
+S8 describes a similar attack called the dictionary attack, in which the attacker uses a list of previously used or common passwords instead of trying all possible character combinations. 
+The authentication bypass attack is mentioned in two studies and takes advantage 
+of the lack of security in the protocol. An attacker can obtain an authentication packet from a validated user in the system and use it to authenticate themselves 
+[
+23]. All other attacks are only mentioned once in the reviewed studies. Table 1.5 
+presents the papers for each attack category. 
+The prevalent types of attacks that exploit security vulnerabilities in industrial PLC software include denial of service, Stuxnet, man-in-the-middle, replay attacks, and false data injection attacks.
+Security Relevance Score: 11
+Word Count: 1122
+Extracted: 2025-06-13 23:40:22
+
+---
+
+The most commonly mentioned attack that takes advantage of the security 
+weaknesses in industrial PLC software is denial of service (DoS), discussed in 11 
+studies. A system is designed to handle a certain amount of trafﬁc, and if more 
+trafﬁc is directed to a particular address with the intention of rendering the system 
+unavailable to users, it is considered a DoS attack [ 20]. In PLC industrial settings, 
+availability is a critical attribute, making the impact of this attack signiﬁcant. 
+Stuxnet is a worm that gained notoriety for infecting PLCs and taking control of 
+the gas centrifuges in Iran, causing them to spin at high speeds until they burned 
+out. The worm searched for an industrial automated software called SIMATIC Step 
+7 used by PLCs on infected PCs. Once it found this software, it would also ﬁnd a 
+PLC and inject malicious code into it. The worm was designed to send false data to 
+cover its tracks and avoid detection by controllers, making it difﬁcult to detect the 
+attack [ 21, 22]. 
+Fig. 1.5 Attacks
+18 E. P. Enoiu et al.
+The man-in-the-middle attack (MITM), which is mentioned in six studies, is 
+another well-known attack. In this type of attack, the attacker positions themselves 
+in between an HMI and a PLC and intercepts all the information that the HMI is attempting to send to the PLC. This allows the attacker to modify the data they 
+receive from the HMI and send it to the PLC, without the PLC being aware that the data has been tampered with. Additionally, the attacker can also observe or attempt to block the trafﬁc [
+20]. 
+A similar attack is the replay attack mentioned in four studies (i.e., S4, S16, 
+S27, S30). In this attack, the attacker also gets a copy of the information exchanged between the two hosts and can later use it by sending duplicate information. 
+The false data injection attack is mentioned in four studies (i.e., S3, S6, S11, 
+S17). The PLC receives information from sensors, and during the false data injection attack, this information is manipulated. When this happens, the PLC will output 
+commands according to the false data injected and not according to the real measurements from the sensor. That could lead to damaging incidents. 
+Two studies (S8 and S30) mention the brute force attack, which involves an 
+algorithm that attempts all possible combinations for a speciﬁc password until the correct password is identiﬁed and the necessary credentials are obtained to access the system. As a result, it is recommended to use passwords with a minimum number 
+of characters, as well as a combination of lowercase and uppercase letters, numbers, and special characters in most applications. A larger alphabet results in a larger number of possible combinations that must be tried to discover the correct password. 
+S8 describes a similar attack called the dictionary attack, in which the attacker uses a list of previously used or common passwords instead of trying all possible character combinations. 
+The authentication bypass attack is mentioned in two studies and takes advantage 
+of the lack of security in the protocol. An attacker can obtain an authentication packet from a validated user in the system and use it to authenticate themselves 
+[
+23]. All other attacks are only mentioned once in the reviewed studies. Table 1.5 
+presents the papers for each attack category. 
+The prevalent types of attacks that exploit security vulnerabilities in industrial PLC software include denial of service, Stuxnet, man-in-the-middle, replay attacks, and false data injection attacks. 
+1.6.3 Security Solutions 
+Figure 1.6 provides a visual depiction of the proposed solutions for mitigating 
+vulnerabilities and attacks in industrial PLC software. Of the 39 studies examined, only 19 (or approximately half) discuss potential solutions for mitigating attacks or
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 19
+Table 1.5 Attacks and studies 
+Attacks Studies 
+Denial of service S1, S5, S11, S12, S17, S21, S22, S14, S25, S28, S36 
+Stuxnet S11, S24, S28, S29, S31, S33, S36, S39 
+Man-in-the-middle S12, S13, S16, S22, S24, S30 
+Replay attack S4, S16, S27, S30 
+False data injection S3, S6, S11, S17 
+Brute force S8, S30 
+Authentication bypass attacks S5, S30, S34 
+Start stop attack S20, S34 
+Dictionary attack S8 
+Phishing S8 
+PLC-PC worm S10 
+SQL injection S11 
+Data execution attack S13 
+Control logic attack S13 
+Stealth command modiﬁcation attack S16 
+Interception attack S17 
+Maroochi attack S24 
+Duqu S29 
+Havex S24 
+Firmware modiﬁcation attack S38, S39 
+Fig. 1.6 Solutions for vulnerabilities 
+securing vulnerable system components. In total, we identiﬁed 13 distinct solutions, 
+with nine mentioned only once. 
+The solutions most frequently cited in the PLC literature involve detection 
+mechanisms. These mechanisms are designed to identify patterns or events that
+20 E. P. Enoiu et al.
+diverge from typical system behavior. By monitoring system behavior, changes that 
+indicate a potential attack can be detected and reported to a control center [24 , 25]. 
+Intrusion
+detection is mentioned in four of the nine papers (S2, S13, S17, S30), while 
+anomaly detection is mentioned in three of the nine papers (S7, S26, S29). Data tampering detection is mentioned in one paper (S6), as is attack model detection 
+(S15). While these mechanisms are all forms of detection, we have grouped them together. It is important to note that these detection mechanisms only serve to 
+identify attacks and do not provide a means of mitigating them. 
+One potential approach is encryption. Many commonly used communication 
+protocols 
+transmit messages in plain text, leaving them vulnerable to exploitation 
+by attackers. To address this issue, ﬁve papers recommend encrypting the content 
+of messages to ensure conﬁdentiality. Users can encrypt their messages, which can then be decrypted by the intended recipients with the proper decryption 
+key [ 21]. The underlying concept is to incorporate encryption mechanisms into 
+communication 
+protocols or replace existing protocols with ones that support 
+encryption. 
+Another potential solution is the implementation of demilitarized zones. As a 
+signiﬁcant 
+portion of cyber vulnerabilities and attacks stem from Internet connec-
+tions, the goal of demilitarized zones is to isolate the primary network from the Internet, which is generally deemed insecure. In the event of an attack, this setup 
+prevents the attacker from accessing the primary network, limiting their access to only the untrusted segment [ 2, 26]. This approach also allows for partitioning of the 
+netw
+ork into multiple zones, each with its own protective layer. If one zone becomes 
+infected, it is unable to spread the infection to other zones. 
+As the remaining solutions are mentioned only once, we do not offer a detailed 
+e
+xplanation of them. However, for interested readers, we have included the papers 
+that discuss these solutions in our data extraction form for further reference. The relevant papers for each category are listed in Table 1.

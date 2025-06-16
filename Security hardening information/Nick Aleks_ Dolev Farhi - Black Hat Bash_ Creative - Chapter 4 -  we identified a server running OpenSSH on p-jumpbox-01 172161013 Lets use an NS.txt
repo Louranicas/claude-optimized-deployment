@@ -1,0 +1,25 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 4 - , we identified a server running OpenSSH on p-jumpbox-01 (172.16.10.13). Let’s use an NSE script tailored to SSH servers to see what we can discover about the supported authentication methods:
+$ nmap --script=ssh-auth-methods 172.16.10.13
+Security Relevance Score: 4
+Word Count: 112
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we identified a server running OpenSSH on p-jumpbox-01 (172.16.10.13). Let’s use an NSE script tailored to SSH servers to see what we can discover about the supported authentication methods:
+$ nmap --script=ssh-auth-methods 172.16.10.13
+
+Starting Nmap (https://nmap.org) at 03-19 01:53 EDT
+--snip--
+PORT   STATE SERVICE
+22/tcp open  ssh
+| ssh-auth-methods:
+|   Supported authentication methods:
+|     publickey
+|_    password
+
+Nmap done: 1 IP address (1 host up) scanned in 0.26 seconds
+
+The ssh-auth-methods NSE script enumerates the authentication methods offered by the SSH server. If password is one of them, this means that the server accepts passwords as an authentication mechanism. SSH servers that allow password authentication are prone to brute-force attacks. In

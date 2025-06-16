@@ -1,0 +1,465 @@
+# Production CI/CD Pipeline for MCP Servers
+# Comprehensive pipeline with security scanning, testing, and blue-green deployment
+
+name: MCP Production Deployment
+
+on:
+  push:
+    branches: [ main, release/* ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+  DOCKER_BUILDKIT: 1
+  BUILDKIT_PROGRESS: plain
+
+jobs:
+  # Security and Vulnerability Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    outputs:
+      security-score: ${{ steps.security-assessment.outputs.score }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install security tools
+      run: |
+        pip install bandit safety pip-audit semgrep
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo apt-get update && sudo apt-get install -y docker-ce-cli
+
+    - name: Run Bandit security scan
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        echo "BANDIT_SCORE=$(jq '.metrics._totals.SEVERITY.MEDIUM + .metrics._totals.SEVERITY.HIGH * 2 + .metrics._totals.SEVERITY.HIGH * 3' bandit-report.json || echo 0)" >> $GITHUB_ENV
+
+    - name: Run Safety dependency scan
+      run: |
+        safety check --json --output safety-report.json || true
+        echo "SAFETY_SCORE=$(jq 'if .vulnerabilities then (.vulnerabilities | length) else 0 end' safety-report.json)" >> $GITHUB_ENV
+
+    - name: Run pip-audit
+      run: |
+        pip-audit --format=json --output=pip-audit-report.json || true
+
+    - name: Run Semgrep
+      run: |
+        semgrep --config=auto --json --output=semgrep-report.json . || true
+
+    - name: Security assessment
+      id: security-assessment
+      run: |
+        TOTAL_SCORE=$((BANDIT_SCORE + SAFETY_SCORE))
+        echo "score=$TOTAL_SCORE" >> $GITHUB_OUTPUT
+        echo "Security Score: $TOTAL_SCORE"
+        if [ $TOTAL_SCORE -gt 10 ]; then
+          echo "::error::Security scan failed with score $TOTAL_SCORE"
+          exit 1
+        fi
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+          pip-audit-report.json
+          semgrep-report.json
+
+  # Build and Test
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: security-scan
+    strategy:
+      matrix:
+        service: [typescript-api, learning-system, rust-server]
+    outputs:
+      test-results: ${{ steps.test-results.outputs.results }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/mcp-${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.${{ matrix.service }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+    - name: Run container security scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/mcp-${{ matrix.service }}:${{ github.sha }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Comprehensive Testing Suite
+  comprehensive-testing:
+    name: Comprehensive Testing
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt -r requirements-dev.txt
+        npm install
+
+    - name: Run MCP Testing Framework
+      run: |
+        python tests/run_all_mcp_tests.py --comprehensive
+        echo "TEST_RESULTS=$(cat tests/comprehensive_test_results/latest_summary.json)" >> $GITHUB_ENV
+
+    - name: Load testing
+      run: |
+        python tests/mcp_stress_testing.py --load-pattern constant --duration 300
+        echo "LOAD_TEST_PASSED=true" >> $GITHUB_ENV
+
+    - name: Chaos engineering
+      run: |
+        python tests/mcp_stress_testing.py --chaos-mode --duration 180
+        echo "CHAOS_TEST_PASSED=true" >> $GITHUB_ENV
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: |
+          tests/comprehensive_test_results/
+          tests/stress_test_results/
+          tests/security_assessment_results/
+
+  # Blue-Green Deployment
+  blue-green-deployment:
+    name: Blue-Green Deployment
+    runs-on: ubuntu-latest
+    needs: [security-scan, build-and-test, comprehensive-testing]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    environment: 
+      name: ${{ github.event.inputs.environment || 'staging' }}
+      url: https://${{ steps.deployment.outputs.url }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+    - name: Deploy to blue environment
+      id: blue-deploy
+      run: |
+        # Deploy to blue environment
+        kubectl apply -f k8s/mcp-deployment.yaml
+        kubectl set image deployment/mcp-typescript-api mcp-typescript-api=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/mcp-typescript-api:${{ github.sha }} -n mcp-production
+        kubectl set image deployment/mcp-learning-system mcp-learning-system=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/mcp-learning-system:${{ github.sha }} -n mcp-production
+        kubectl set image deployment/mcp-rust-server mcp-rust-server=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/mcp-rust-server:${{ github.sha }} -n mcp-production
+        
+        # Wait for rollout
+        kubectl rollout status deployment/mcp-typescript-api -n mcp-production --timeout=600s
+        kubectl rollout status deployment/mcp-learning-system -n mcp-production --timeout=600s
+        kubectl rollout status deployment/mcp-rust-server -n mcp-production --timeout=600s
+
+    - name: Health check blue environment
+      run: |
+        # Wait for pods to be ready
+        kubectl wait --for=condition=ready pod -l app=mcp-typescript-api -n mcp-production --timeout=300s
+        kubectl wait --for=condition=ready pod -l app=mcp-learning-system -n mcp-production --timeout=300s
+        kubectl wait --for=condition=ready pod -l app=mcp-rust-server -n mcp-production --timeout=300s
+        
+        # Run health checks
+        python scripts/production_health_check.py --environment blue
+
+    - name: Run production smoke tests
+      run: |
+        python tests/production_smoke_tests.py --target blue
+
+    - name: Switch traffic to blue (green deployment)
+      id: traffic-switch
+      run: |
+        # Update service selectors to point to new deployment
+        kubectl patch service mcp-typescript-api-service -n mcp-production -p '{"spec":{"selector":{"deployment":"blue"}}}'
+        echo "Traffic switched to blue environment"
+        
+        # Verify traffic switch
+        python scripts/verify_traffic_switch.py --target blue
+
+    - name: Monitor deployment
+      run: |
+        # Monitor for 5 minutes
+        python scripts/deployment_monitor.py --duration 300 --environment blue
+
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "Deployment failed, rolling back..."
+        kubectl rollout undo deployment/mcp-typescript-api -n mcp-production
+        kubectl rollout undo deployment/mcp-learning-system -n mcp-production
+        kubectl rollout undo deployment/mcp-rust-server -n mcp-production
+        
+        # Wait for rollback
+        kubectl rollout status deployment/mcp-typescript-api -n mcp-production
+        kubectl rollout status deployment/mcp-learning-system -n mcp-production
+        kubectl rollout status deployment/mcp-rust-server -n mcp-production
+
+    - name: Clean up old deployment
+      if: success()
+      run: |
+        # Remove old green environment resources
+        kubectl delete deployment mcp-green-typescript-api -n mcp-production --ignore-not-found
+        kubectl delete deployment mcp-green-learning-system -n mcp-production --ignore-not-found
+        kubectl delete deployment mcp-green-rust-server -n mcp-production --ignore-not-found
+
+  # Performance Testing
+  performance-testing:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: blue-green-deployment
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install performance testing tools
+      run: |
+        pip install locust pytest-benchmark
+        sudo apt-get update && sudo apt-get install -y apache2-utils
+
+    - name: Run load testing
+      run: |
+        # Start load testing
+        locust -f tests/performance/locustfile.py --host=https://api.mcp-production.com \
+               --users=1000 --spawn-rate=10 --run-time=300s --headless \
+               --html=performance-report.html
+
+    - name: Benchmark API endpoints
+      run: |
+        ab -n 10000 -c 100 https://api.mcp-production.com/health
+        ab -n 5000 -c 50 https://api.mcp-production.com/api/v1/status
+
+    - name: Performance validation
+      run: |
+        python scripts/validate_performance_sla.py --report performance-report.html
+
+    - name: Upload performance reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-reports
+        path: |
+          performance-report.html
+          benchmark-results.txt
+
+  # Compliance and Security Validation
+  compliance-validation:
+    name: Compliance Validation
+    runs-on: ubuntu-latest
+    needs: blue-green-deployment
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run SOC2 compliance check
+      run: |
+        python scripts/soc2_compliance_check.py --environment production
+
+    - name: Run GDPR compliance check
+      run: |
+        python scripts/gdpr_compliance_check.py --environment production
+
+    - name: Run security posture assessment
+      run: |
+        python scripts/security_posture_assessment.py --environment production
+
+    - name: Generate compliance report
+      run: |
+        python scripts/generate_compliance_report.py --output compliance-report.pdf
+
+    - name: Upload compliance reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: compliance-reports
+        path: |
+          compliance-report.pdf
+          soc2-checklist.json
+          gdpr-assessment.json
+
+  # Production Readiness Report
+  production-readiness-report:
+    name: Generate Production Readiness Report
+    runs-on: ubuntu-latest
+    needs: [security-scan, comprehensive-testing, performance-testing, compliance-validation]
+    if: always()
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Generate production readiness report
+      run: |
+        python scripts/generate_production_readiness_report.py \
+          --security-reports security-reports/ \
+          --test-results test-results/ \
+          --performance-reports performance-reports/ \
+          --compliance-reports compliance-reports/ \
+          --output production-readiness-report.json
+
+    - name: Validate production readiness
+      id: readiness-check
+      run: |
+        READY=$(python scripts/validate_production_readiness.py production-readiness-report.json)
+        echo "ready=$READY" >> $GITHUB_OUTPUT
+        
+        if [ "$READY" = "false" ]; then
+          echo "::error::System is not ready for production deployment"
+          exit 1
+        fi
+
+    - name: Upload production readiness report
+      uses: actions/upload-artifact@v3
+      with:
+        name: production-readiness-report
+        path: |
+          production-readiness-report.json
+          production-deployment-checklist.md
+
+    - name: Create deployment issue
+      if: steps.readiness-check.outputs.ready == 'false'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Production Deployment Blocked - Readiness Check Failed',
+            body: `
+            ## Production Readiness Check Failed
+            
+            The automated production readiness check has failed for commit ${context.sha}.
+            
+            ### Required Actions:
+            - Review security scan results
+            - Address test failures
+            - Validate performance requirements
+            - Complete compliance requirements
+            
+            ### Artifacts:
+            - Security Reports: Available in workflow artifacts
+            - Test Results: Available in workflow artifacts
+            - Performance Reports: Available in workflow artifacts
+            - Compliance Reports: Available in workflow artifacts
+            
+            **Deployment is blocked until all issues are resolved.**
+            `,
+            labels: ['production', 'deployment-blocked', 'high-priority']
+          })
+
+  # Notification and Cleanup
+  notification:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [blue-green-deployment, performance-testing, compliance-validation]
+    if: always()
+    steps:
+    - name: Notify on success
+      if: needs.blue-green-deployment.result == 'success'
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"✅ MCP Production Deployment Successful - '"${{ github.sha }}"'"}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"❌ MCP Production Deployment Failed - '"${{ github.sha }}"'"}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Clean up temporary resources
+      if: always()
+      run: |
+        # Clean up any temporary testing resources
+        kubectl delete namespace mcp-testing --ignore-not-found
+        docker system prune -f

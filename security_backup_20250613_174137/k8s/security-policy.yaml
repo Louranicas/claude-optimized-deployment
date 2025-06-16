@@ -1,0 +1,186 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: claude-deployment-pod
+  namespace: claude-deployment
+spec:
+  # Security context for the entire pod
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 2000
+    fsGroup: 2000
+    seccompProfile:
+      type: RuntimeDefault
+  
+  containers:
+  - name: claude-deployment
+    image: claude-deployment:latest
+    
+    # Container-specific security context
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000
+      capabilities:
+        drop:
+        - ALL
+        add:
+        - NET_BIND_SERVICE  # Only if needed for binding to ports < 1024
+    
+    # Resource limits
+    resources:
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+        ephemeral-storage: "2Gi"
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+        ephemeral-storage: "1Gi"
+    
+    # Volume mounts for writable directories
+    volumeMounts:
+    - name: tmp
+      mountPath: /tmp
+    - name: app-logs
+      mountPath: /app/logs
+    - name: app-data
+      mountPath: /app/data
+    
+    # Liveness and readiness probes
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 8000
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+  
+  # Volumes for writable directories
+  volumes:
+  - name: tmp
+    emptyDir: {}
+  - name: app-logs
+    emptyDir: {}
+  - name: app-data
+    emptyDir: {}
+
+---
+# Network Policy for secure communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: claude-deployment-netpol
+  namespace: claude-deployment
+spec:
+  podSelector:
+    matchLabels:
+      app: claude-deployment
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: claude-deployment
+    ports:
+    - protocol: TCP
+      port: 8000
+  
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: 53  # DNS
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+
+---
+# Pod Security Policy (if PSP is enabled)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: claude-deployment-psp
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+  - ALL
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+  readOnlyRootFilesystem: true
+
+---
+# RBAC for Pod Security Policy
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-deployment-psp-user
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - claude-deployment-psp
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-deployment-psp-all-serviceaccounts
+roleRef:
+  kind: ClusterRole
+  name: claude-deployment-psp-user
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: claude-deployment

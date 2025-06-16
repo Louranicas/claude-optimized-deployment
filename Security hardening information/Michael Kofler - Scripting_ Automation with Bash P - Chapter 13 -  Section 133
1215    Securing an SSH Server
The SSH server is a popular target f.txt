@@ -1,0 +1,28 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 13 - , Section 13.3).
+12.1.5    Securing an SSH Server
+The SSH server is a popular target for hackers who often try to guess a combination of login name and password. (The attack is not carried out manually, of course, but by automated tools.) The most popular attack target on Linux servers is the root account. 
+Some elementary safeguards you should keep in mind include the following:
+Security Relevance Score: 3
+Word Count: 114
+Extracted: 2025-06-13 23:41:06
+
+---
+
+, Section 13.3).
+12.1.5    Securing an SSH Server
+The SSH server is a popular target for hackers who often try to guess a combination of login name and password. (The attack is not carried out manually, of course, but by automated tools.) The most popular attack target on Linux servers is the root account. 
+Some elementary safeguards you should keep in mind include the following:
+
+
+Use good passwords (at least 10 characters) for all accounts.
+
+
+Block the root login (PermitRootLogin no in /etc/ssh/sshd_config).
+
+
+Install the Fail2ban program, which blocks IP addresses for a few minutes after several failed login attempts.
+
+
+Use an authentication with keys instead of passwords, which we will discuss further in

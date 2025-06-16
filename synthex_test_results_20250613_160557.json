@@ -1,0 +1,173 @@
+{
+  "timestamp": "2025-06-13T16:05:57.869215",
+  "total_duration": 6.238155126571655,
+  "agent_count": 10,
+  "results_by_agent": {
+    "1": {
+      "results": [
+        {
+          "category": "Rust Components",
+          "status": "FAIL",
+          "duration": 6.238039016723633,
+          "findings_count": 2,
+          "errors_count": 1,
+          "metrics": {}
+        }
+      ]
+    },
+    "2": {
+      "results": [
+        {
+          "category": "Python Components",
+          "status": "FAIL",
+          "duration": 0.0757131576538086,
+          "findings_count": 0,
+          "errors_count": 1,
+          "metrics": {}
+        }
+      ]
+    },
+    "3": {
+      "results": [
+        {
+          "category": "MCP Protocol",
+          "status": "ERROR",
+          "duration": 0.0004868507385253906,
+          "findings_count": 0,
+          "errors_count": 1,
+          "metrics": {}
+        }
+      ]
+    },
+    "4": {
+      "results": [
+        {
+          "category": "Search Agents",
+          "status": "ERROR",
+          "duration": 0.00040268898010253906,
+          "findings_count": 0,
+          "errors_count": 1,
+          "metrics": {}
+        }
+      ]
+    },
+    "5": {
+      "results": [
+        {
+          "category": "Performance",
+          "status": "ERROR",
+          "duration": 0.0003902912139892578,
+          "findings_count": 0,
+          "errors_count": 1,
+          "metrics": {}
+        }
+      ]
+    },
+    "6": {
+      "results": [
+        {
+          "category": "Security",
+          "status": "FAIL",
+          "duration": 5.3602986335754395,
+          "findings_count": 4,
+          "errors_count": 0,
+          "metrics": {}
+        }
+      ]
+    },
+    "7": {
+      "results": [
+        {
+          "category": "Integration",
+          "status": "FAIL",
+          "duration": 0.0008676052093505859,
+          "findings_count": 4,
+          "errors_count": 0,
+          "metrics": {}
+        }
+      ]
+    },
+    "8": {
+      "results": [
+        {
+          "category": "Error Handling",
+          "status": "PASS",
+          "duration": 5.252402305603027,
+          "findings_count": 5,
+          "errors_count": 0,
+          "metrics": {}
+        }
+      ]
+    },
+    "9": {
+      "results": [
+        {
+          "category": "Resource Management",
+          "status": "PASS",
+          "duration": 5.357910871505737,
+          "findings_count": 6,
+          "errors_count": 0,
+          "metrics": {
+            "cpu_percent": 0.0,
+            "memory_mb": 39.5078125,
+            "open_files": 0,
+            "num_threads": 1
+          }
+        }
+      ]
+    },
+    "10": {
+      "results": [
+        {
+          "category": "Documentation",
+          "status": "WARN",
+          "duration": 5.35793399810791,
+          "findings_count": 7,
+          "errors_count": 0,
+          "metrics": {
+            "documentation_coverage": 57.14285714285714
+          }
+        }
+      ]
+    }
+  },
+  "overall_status": "FAIL",
+  "statistics": {
+    "total_tests": 10,
+    "passed": 2,
+    "failed": 4,
+    "errors": 3,
+    "warnings": 11
+  },
+  "critical_findings": [
+    {
+      "agent": "Security Scanner",
+      "category": "Security",
+      "finding": {
+        "type": "input_validation",
+        "severity": "HIGH",
+        "message": "Unsafe input handling detected",
+        "details": "src/synthex/mcp_server.py:135:                        \"description\": \"List of queries to execute\"\nsrc/synthex/mcp_server.py:250:                \"execution_time_ms\": result.execution_time_ms,\nsrc/synthex/engine.py:28:    execution_time_ms: int\nsrc/synthex/engine.py:173:            execution_time = int((datetime.now() - start_time).total_seconds() * 1000)\nsrc/synthex/engine.py:178:                execution_time_ms=execution_time,\n"
+      }
+    },
+    {
+      "agent": "Security Scanner",
+      "category": "Security",
+      "finding": {
+        "type": "secrets_exposure",
+        "severity": "HIGH",
+        "message": "Potential hardcoded secrets found",
+        "details": "src/synthex/agents.py:        if self.config.brave_api_key:\nsrc/synthex/agents.py:            \"X-Subscription-Token\": self.config.brave_api_key\nsrc/synthex/agents.py:                \"brave_enabled\": b"
+      }
+    }
+  ],
+  "recommendations": [
+    "Conduct thorough security review",
+    "Address critical security vulnerabilities immediately",
+    "Investigate and resolve test execution errors",
+    "Improve documentation coverage",
+    "Optimize parallel execution performance",
+    "Review and address warning-level issues",
+    "Fix failing tests before deployment"
+  ]
+}

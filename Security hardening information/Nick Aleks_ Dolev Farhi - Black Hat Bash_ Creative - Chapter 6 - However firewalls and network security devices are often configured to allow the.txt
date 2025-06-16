@@ -1,0 +1,18 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 6 - However, firewalls and network security devices are often configured to allow the outbound (egress) connections necessary for performing normal internet activity. When establishing a reverse shell, the compromised system initiates an egress connection to the attacker’s machine that is usually allowed by default. The firewall may perceive this egress connection as a legitimate action and won’t trigger alarms or security alerts.
+Once the reverse shell connection is established, it should allow the attacker to maintain control over the compromised system. Mature environments may block outbound traffic to untrusted network addresses, but implementing this kind of restriction often isn’t a straightforward task, especially when certain machines on a network need access to wide ranges of network addresses.
+Security Relevance Score: 7
+Word Count: 312
+Extracted: 2025-06-13 23:40:57
+
+---
+
+However, firewalls and network security devices are often configured to allow the outbound (egress) connections necessary for performing normal internet activity. When establishing a reverse shell, the compromised system initiates an egress connection to the attacker’s machine that is usually allowed by default. The firewall may perceive this egress connection as a legitimate action and won’t trigger alarms or security alerts.
+Once the reverse shell connection is established, it should allow the attacker to maintain control over the compromised system. Mature environments may block outbound traffic to untrusted network addresses, but implementing this kind of restriction often isn’t a straightforward task, especially when certain machines on a network need access to wide ranges of network addresses.
+
+
+Shell Payloads and Listeners
+You’ll need two tools to set up a reverse shell: a payload and a listener. The payload runs on the target machine. You’ll use different reverse shell payloads depending on the technologies and programming languages available on your target, as well as the type of platform it runs on. In this chapter, we’ll create a reverse shell payload with bash, but you can find a list of different reverse shell payloads at https://github.com/nicholasaleks/reverse-shells.
+A shell listener is a program that runs on the attacker machine to receive incoming reverse shell connections from compromised target systems. When a reverse shell payload is executed on a target system, the payload attempts to connect to the attacker’s machine. The shell listener program acts as the handler for these incoming connections; it listens on a specific port, waiting for the connection to be established, and provides an interactive shell session in which the attacker can enter commands to send to the compromised server, letting the attacker control the compromised server as if they were directly accessing the machine’s shell.
+One of the most popular shell listeners used in penetration tests is Netcat. We used it in

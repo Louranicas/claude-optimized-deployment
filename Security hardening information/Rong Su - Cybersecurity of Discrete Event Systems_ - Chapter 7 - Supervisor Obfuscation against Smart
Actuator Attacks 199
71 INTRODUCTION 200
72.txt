@@ -1,0 +1,2333 @@
+# Security Chapter Extract
+Book: Rong Su - Cybersecurity of Discrete Event Systems_ From Smart Attacks to Resilient Defence (2024, CRC Press) - libgen.li
+Chapter: 7 - ■Supervisor Obfuscation against Smart
+Actuator Attacks 199
+7.1 INTRODUCTION 200
+7.2
+PRELIMINARIES 203
+xii■Conten
+ts
+7.3 SMART ACTUATOR ATTACK – AN INSIGHT VIEW 203
+7.4 COMPONENT MODELS AND PROBLEM
+FORMULATION 212
+7.5 MAIN IDEA OF SOLUTION METHODOLOGY 218
+7.6 BEHAVIOR-PRESERVING STRUCTURE CONSTRUCTION 219
+7.6.1 Equivalent Behavior Computation 219
+7.6.2 Feasible Control Commands Completion 220
+7.6.3 Structure Refinement 223
+7.7 SYNTHESIS OF OBFUSCATED SUPERVISORS 228
+7.7.1 Identification of Covert Damage Strings 228
+7.7.2 Pruning of Illegal Control Commands 235
+7.7.3 Synthesis of Obfuscated Supervisors 238
+7.8 CONCLUSIONS 246
+NOTES 247
+Bibliography 248
+Index 261
+P
+reface
+“Internet
+gives us access to everything; but it also gives everything
+access to us.”
+– James Veitch
+We are in an era of networks. Every year billions of new devices
+are connected to the global network. This unprecedented connectivity
+makes cybersecurity an issue that affects everyone on this planet.
+According to USA Cybersecurity & Infrastructure Security Agency
+(CISA), cybersecurity is the art of protecting networks, devices, and
+data from unauthorized access or criminal use and the practice of
+ensuring confidentiality, integrity, and availability of information. In a
+report by Steve Morgan [1], the estimated cybercrime damage cost the
+world $3 trillion in 2015 and is expected to reach $10.5 trillion annually
+by 2025. It is critically important to develop suitable knowledge and
+technology to ensure cybersecurity.
+This indisputably important subject has been drawing lots of
+attention from both industry and academia. Researchers in the
+discrete-event system (DES) community are not immune to this
+curiosity. A DES can be defined as a group of agents that influence
+their own or any other agent’s state transitions by conducting relevant
+actions (or events). For each specific instance of a DES, each agent’s
+state space could be either discrete or continuous, and each action
+(or event) could be either asynchronous or concurrent and could take
+either no time or some time before finishing. DES theories can be used
+for system modeling, analysis, control and performance optimization,
+and have found applications in many areas such as manufacturing,
+logistics, communication and transportation. However, research on
+cybersecurity analysis and resilient control has only recently become
+popular in the community, due to its growing importance. This book
+aims to present a suite of latest frameworks that describe several
+types of smart cyberattacks and corresponding defending strategies
+via resilient supervisory control. Some key questions to be answered in
+xiii
+xiv■Preface
+thisb
+ook include, e.g., what are smart sensor and/or actuator attacks,
+how to identify the existence of a smart attack in a given closed-loop
+system, does there exist a resilient supervisor against ALL possible
+smart attacks of a certain type, and in case an answer to the previous
+question is positive, how to synthesize one such resilient supervisor.
+The idea of smart attacks introduced in this book was first
+conceived in February 2016, when I visited Stephane Lafortune
+at University of Michigan. My original plan was to discuss with
+Stephane and Feng Lin, who was also there for a short visit, about
+networked DES control. Due to some reason, the discussion was forked
+into cyberattacks, as Stephane was collaborating with some brilliant
+researchers such as Lilian Kawakami Carvalho and Raymond Kwong
+on supervisory control against actuator enablement attack, which later
+appeared in WODES2016. Compared with the existing works, the key
+novelty of this new concept of smart attack is to associate an attack
+with certain characteristics of intelligence in order to distinguish it
+from indigenous uncontrollable events like faults that cause system
+functional changes. Some commonly used characteristics of intelligence
+include covertness (orstealthiness) and feasibility of damage infliction
+- the former describes the capability of an attacker to hide an attack
+from being detected before (irreversible) damage can be inflicted, and
+the latter captures the desirable attack consequence, either guaranteed
+damage or a chance play.
+After imposing such characteristics of intelligence, this line of
+research becomes much more intrigue than fault diagnosis or opacity
+analysis, which have been actively studied in the DES community.
+A system designer basically needs to play two antagonistic roles
+simultaneously. On one hand, the designer needs to put himself in an
+attacker’s shoes about what can be done to identify most vulnerable
+system assets and maximize damage to a target system with minimum
+costs; on the other hand, the designer needs to think from a defender’s
+viewpoint about how to ward off such smart attacks. Ultimately, the
+goal is to enhance system resilience against cyberattacks. But only after
+we fully understand an opponent’s best moves, we can come up with
+the best defense measures.
+Since the idea of smart attack was conceived in 2016, there have
+been many follow-up works. Some fundamental questions such as
+decidability of existence of smart sensor attacks, existence of resilient
+supervisors against smart sensor attacks, and existence of smart
+actuator attacks have been satisfactorily answered, which however rely
+Preface ■xv
+onan
+assumption of having perfect prior knowledge about a target
+system. Recently, new results have started to appear that rely on
+learning system behaviors to gain required knowledge about a target
+system, upon which attack or defense schemes could be synthesized.
+Are we able to see more fruitful results on computationally feasible
+cybersecurity solutions adopted by industry in the next few years? I
+feel positive about this.
+This book is based on inspiring ideas from several past publications
+jointly written with my current and former PhD students Ruochen
+Tai, Liyong Lin, and Yuting Zhu. I had so many wonderful moments
+when discussing with them. Some early idea on smart actuator attacks
+was conceived when Sander Thuijsman from Eindhoven University of
+Technology (TUE) visited me at Nanyang Technological University for
+an 11-week training program in early 2018. Our collaboration led to a
+conference publication at ACC’19, together with his supervisor Michel
+Renier. My deep gratitude goes to Joao Carlos Basilio, Christoforos
+Hadjicostis, Stephane Lafortune, and Feng Lin for their constructive
+comments and suggestions in the past few years when we worked
+together on different occasions such as a book project with Basilio and
+Christoforos, and a tutorial session at IEEE CDC’22 with Christoforos,
+Stephane and Feng. I would also like to express my deep gratitude
+to Walter Murray Wonham, who, as my MASc and PhD thesis
+supervisor, brought me into the DES community and equipped me
+with all necessary knowledge and tools, without which this book would
+never be possible. I will also use this opportunity to thank Andrew
+Stow from CRC Press who provided me with this book project and,
+with many other staff at CRC Press like Kasturi Ghosh, has been
+patiently working with me to make the whole preparation journey an
+unforgettable memory for me.
+Finally, I would like to express my deepest gratitude to my wife
+Lijuan and three children, Gabriel, Michael, and Raphael, for their
+continuous support and encouragement, without which this project
+would never even start.
+Rong Su
+Nanyang Technological University, Singapore
+October 2023
+Co
+ntributors
+Liyong
+Lin
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Ruochen Tai
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Yuting Zhu
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+xvi
+Sy
+mbols
+SYMBOL DESCRIPTION
+Σ
+finite alphabet
+Σ∗monoid with
+concatenation
+ϵ empty string
+Σϵalphabet Σ ∪ {ϵ}
+Σo observable alphabet
+Σϵ
+o Σo∪ {ϵ}
+Σuo unobservable alphabet
+Σc controllable alphabet
+Σuc uncontrollable
+alphabet
+Σo,a attackable observable
+alphabet
+Σc,a attackable
+controllable alphabet
+Γ control pattern set
+σ∈Σ event σfrom Σ
+∥s∥ length of string s
+s↑last event of string s
+s≤t prefix substring soft
+st concatenation of s
+andt
+L⊆Σ∗language Lfrom Σ
+EnL(s) enabled events after s
+inL
+L prefix closure
+ofL
+G plant automaton
+EnG(x) enabled events at xin
+GEnG(s) enabled events after s
+inG
+L(G) closed behavior of G.
+Lm(G) marked behavior of
+G.
+URG,Σ(x) unobservable state
+reach in Gfrom x
+with events in Σ
+V supervisory control
+function
+V/G controlled plant
+automaton
+S supervisory control
+function
+S/G controlled plant
+automaton
+S supervisor automaton
+As sensor attack function
+As sensor attack
+automaton
+Ac actuator attack
+function
+Ac actuator attack
+automaton
+BT bipartite supervisor
+automaton
+BTAcbipartite supervisor
+automaton under
+attack
+xvii
+xviii ■Symb
+ols
+CE command execution
+automaton
+CEAccommand execution
+automaton under
+attack
+BPS behavior preserving
+structure
+BPNS nondeterministic BPS
+BPNSAcattacked BPNS
+M dynamic mask
+automaton
+E edit automaton
+I intruder automatonPΣ,Σ′ natural projection
+Po natural projection to
+Σ∗
+o
+Po,a natural projection to
+Σ∗
+o,a
+|A| Cardinality of set A
+N natural number set
+G×S parallel composition
+L1||L2 synchronous product
+f1◦f2 composition of
+functions
+∧ logic AND
+∨ logic OR
+DOI: 10.1201/9781003333883-1 1CH
+A P T E R1
+In
+troduction to
+Cybersecurity in
+Discrete Event Systems
+1.1 INTRODUCTION
+According to
+Merriam-Webster [8], “a system is a regularly interacting
+or interdependent group of items forming a unified whole ”. If we adopt
+this generic concept of system, then a discrete-event system (DES) can
+be defined as a group of agents that influence their own or any other
+agent’s state transitions by conducting relevant actions (or events).
+For each specific instance of a DES, each agent’s state space could be
+either discrete or continuous, and each action (or event) could be either
+asynchronous or concurrent and could take either no time or some
+time before finishing. Regarding forms of inter-agent interactions, they
+could be either behavior oriented , where detailed steps of an interaction
+are specified, or function oriented, where the consequence, rather than
+procedure, of an interaction is modeled. One example of a behavior-
+oriented agent interaction can be found in parallel composition of
+formal process models such as calculus of communicating systems
+(CCS) by Robin Milner [9], where each interaction includes a sending
+action and a receiving action. One example of a function-oriented
+agent interaction can be found in parallel composition of finite-state
+automata [3,10], where a single event execution triggers all agents
+2■Cybersecurit
+y of Discrete Event Systems
+(modeled by automata) that permit this event to make state transitions
+simultaneously. Occasionally, we also use discrete-event dynamical
+system (DEDS) in the monograph to refer to a DES whose transitional
+behavior (partially) depends on time, which could be considered either
+as one special event or part of some prerequisite conditions that
+trigger a state transition. According to Ref. [2], almost all man-made
+systems contain some components that can be described by DES, such
+as software systems, manufacturing systems, communication systems,
+logistic systems, and transportation systems.
+In a general sense, cybersecurity is the practice of protecting
+systems, networks, and programs from digital attacks, which aim
+at accessing, changing, or destroying sensitive information; extorting
+financial benefits from users; or interrupting normal operational
+processes. There are many different types of cybersecurity based
+on concerned assets such as network security, cloud security, end-
+point security, mobile security, IoT security, application security,
+and zero trust. The corresponding cybersecurity threats have also
+evolved for several generations, triggering continuous advancement
+of cybersecurity measures. For example, in the late 1980s, virus
+attacks against standalone computers inspired the creation of the
+first antivirus solutions. As cyberattacks began to come over the
+Internet, the firewall was developed to identify and block them.
+Later, exploitation of vulnerabilities within applications caused the
+mass adoption of intrusion prevention systems. As malware became
+more targeted and able to evade signature-based defenses, anti-bot
+and sandboxing solutions were necessary to detect novel threats.
+The latest generation of cybersecurity threats uses large-scale, multi-
+vector attacks, making advanced threat prevention solutions a priority.
+The systems and control community mainly focus on application-
+based cybersecurity threats, aiming to identify vulnerability of existing
+application functions and design suitable defense measures [49,131,132,
+137–140,167–173].
+In this monograph, we focus on one specific type of application-
+based cyberattack cast in a DES framework, where an attacker aims to
+inflict damage on a target system by disrupting its control loop. This
+could be achieved either by intercepting and changing the controller’s
+input signals (such as sensor measurements or operational references or
+requirements) or by intercepting and changing the controller’s output
+Intro
+duction to Cybersecurity in Discrete Event Systems ■3
+Figure 1.1The
+Ramadge-Wonham supervisory control architecture.
+signals (such as control commands or state feedback information for
+system monitoring), or by completely blocking the data transmission
+between the controller and the plant (in terms of, e.g., denial-
+of-service attacks). An attack can be either brute force, e.g., via
+hardware destruction or signal jamming, or covert (or stealthy), i.e.,
+the attacking process is hidden from the controller or any other
+monitoring mechanism. We adopt the control system setup introduced
+in the Ramadge-Wonham supervisory control paradigm [3,12], which is
+depicted in Figure 1.1. In this paradigm, the plant generates observable
+outputs, received by the supervisor via an observation channel, and
+each control command specified as a set of allowable events is generated
+by the supervisor and fed to the plant via a command channel.
+The plant will nondeterministically pick one event from the control
+command and execute it. Unlike attacks in time-driven systems, attacks
+under consideration in a DES aim to change the order of events in
+specific system runs. There are two different streams of research on
+cyberattacks and resilient control. The first stream is to treat each
+attack as a fault that alters event orders in the system by either
+removing existing events or inserting fictitious events. In this case,
+research focuses firstly on how to decide the existence of an attack
+in the system based on a finite number of observations, similar to
+verifying diagnosability in fault diagnosis, and secondly on how to
+ensure sufficient control abilities to stop the propagation of the attack
+effect, e.g., by shutting down the entire system. Partial observation
+and existence of uncontrollable events complicate the synthesis process.
+The second stream is to develop a specific “smart” attack model that
+ensures certain intuitive properties such as covertness and guaranteed
+(strong or weak) damage infliction. Under such a smart attack model,
+4■Cybersecurit
+y of Discrete Event Systems
+the research focuses on analyzing how the attack may affect the
+closed-loop behavior, deciding whether the system is vulnerable to such
+an attack, and finally computing a supervisor that is resilient to the
+concerned attack. In this monograph, we will provide a detailed account
+of existing state-of-the-art modeling and resiliency results associated
+with smart attacks and point out challenges for future exploration.
+In the following sections, we will provide some real cyberattack
+cases and illustrate how they could be considered in a DES framework.
+This will provide motivations for technical developments introduced
+in this monograph and also provide future research topics that the
+community may consider. After that, we provide a brief overview
+of existing DES cybersecurity research and some mathematical
+preliminaries on DES supervisory control theory, which will be used
+in the remainder of this monograph.
+1.2 MOTIVATION EXAMPLES OF CYBERATTACKS
+1.2.1 Stuxnet
+– The First Known Cyber Weapon
+Stuxnet is a malicious computer worm first uncovered in 2010 and
+thought to have been in development since at least 2005. Stuxnet
+targets supervisory control and data acquisition (SCADA) systems
+and is believed to be responsible for causing substantial damage to the
+nuclear program of Iran. There are lots of stories and reports about this
+attack, which have been well disseminated in the media and academic
+communities. Here, we are interested in a high-level overview of its
+attack mechanism.
+According to a report by Kim Zetter [5], Stuxnet attack targeted
+at the following SCADA architecture depicted in Figure 1.2. In
+a normal operational condition, Siemens’ WinCC/PCS7 SCADA
+control software [75] (Step 7) issued relevant control commands,
+including information about operational frequencies of centrifuges,
+to Programmable Logic Controller (PLC), via a key communication
+library of WinCC called s7otbxdx.dll. The PLC also sent the system’s
+operational conditions back to Step 7 via s7otbxdx.dll. Normally,
+centrifuges operate at a frequency well above 1,000 Hz. Any drastic
+change of operational frequencies might damage centrifuges, which was
+a known fact to experts.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■5
+Figure 1.2The
+control architecture targeted by Stuxnet attack.
+A group of attackers managed to install Stuxnet code in the
+system. According to researcher Ralph Langner [6], once installed on
+a Windows system Stuxnet infected project files belonging to Step 7,
+and subverted the key communication library s7otbxdx.dll, by firstly
+inserting a malicious wrapper code between Step 7 and s7otbxdx.dll,
+and then renaming s7otbxdx.dll to s7otbxsx.dll, and passing the
+original name s7otbxdx.dll to the inserted malicious wrapper code. To
+successfully achieve this wrapping goal, attackers utilized a security
+vulnerability published by Siemens only one year before the attack,
+which however had not caused any public notice. This malicious code
+was able to intercept communications between the WinCC software
+running under Windows and the target Siemens PLC devices, when the
+two were connected via a data cable. Basically, the malicious code could
+change the operational frequency issued by Step 7 before passing to the
+PLC, possibly via the original but renamed communication library.
+To make the entire attack moves stealthy, the frequency changes were
+only done from time to time to avoid being detected. It was reported
+that when the malicious code caused centrifuges to operate at a much
+lowered frequency, a false fault alarm was sent to the system to ensure
+that such a low-frequency operation was due to some temporary sensor
+fault; thus, no emergency actions such as system shutdown would be
+taken by the system operators. Each feedback information from the
+6■Cybersecurit
+y of Discrete Event Systems
+PLC about the system’s operational conditions was also intercepted by
+the malicious code and modified before being passed to Step 7, making
+Step 7 believe that nothing abnormal happened in the system. The
+actual details are very complicated. However, a simplified high-level
+illustration of the attack scheme is shown in Figure 1.3.
+It was believed that periodic changes of operational frequencies of
+centrifuges eventually caused irreversible damage to centrifuges. The
+whole attack process took a long period to complete, making each
+attack move unnoticed by the system monitor. This is one typical
+example of a smart attack, which will be cast in a DES framework
+and addressed in this monograph. If we consider the PLC as a plant
+to be controlled, then Step 7 becomes a supervisor. The original
+communication library s7otbxdx.dll essentially creates communication
+channels between the plant and supervisor. The Stuxnet attack
+basically attacks both the information feedback channel from the plant
+to the supervisor and the control command channel from the supervisor
+to the plant, which is depicted in Figure 1.4. Later in this monograph,
+we will dub this type of smart attacks as sensor-actuator attacks, as
+Figure 1.3Illustration
+of Stuxnet attack mechanism.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■7
+Figure 1.4A
+DES view of Stuxnet attack mechanism.
+it attacks both the information channel and the command channel.
+From an attacker’s viewpoint, one fundamental question is how to
+ensure a successful cyberattack. In the Stuxnet attack, we can see
+that attackers had two pieces of knowledge. Firstly, they had a clear
+attack goal, namely to adjust operational frequencies of centrifuges
+to damage centrifuges. Secondly, they knew how to achieve their
+goal by exploiting functional vulnerabilities of the original Siemens
+control system to deploy malicious code to hijack the information and
+command channels and, most importantly, to operate attack moves
+in a stealthy manner. These two features, i.e., guarantee of damage
+infliction and attack stealthiness (or covertness), will be used in this
+monograph to characterize so-called smart attacks. On the other hand,
+from a defender’s viewpoint, one fundamental question is how to design
+system functions that deprive any potential attacker from attaining
+sufficient system resources for a successful attack, especially a stealthy
+attack. For example, in the Stuxnet attack case, if the Siemens control
+system vulnerability were fully aware of earlier, it would be much more
+difficult, if still possible, for the attackers to deploy their attack code.
+Basically, how to identify system vulnerabilities or critical assets and
+how to protect them are interesting and potential important topics for
+research, which will be addressed in this monograph.
+8■Cybersecurit
+y of Discrete Event Systems
+1.2.2 SQL Injection Attack
+An SQL injection attack is a technique that attackers use to gain
+unauthorized access to a web application database by adding a string of
+malicious code to a database query. It is considered as one of the most
+common web attack mechanisms used by attackers to steal sensitive
+data from organizations, alter data and access database servers with
+operating system privileges, and use these permissions to access other
+sensitive systems. In a report dated back to 2015 by Alastair Stevenson
+[7], A hacker group, known online as Team GhostShell, claims it
+successfully hacked over 300 websites and has posted over 13,000 users’
+personal details online. The actually number of victims could be much
+bigger. In 2014, security researchers publicized that they were able to
+breach the website of Tesla using SQL injection, gain administrative
+privileges, and steal user data. In 2018, a SQL injection vulnerability
+was found in Cisco Prime License Manager. The vulnerability allowed
+attackers to gain shell access to systems on which the license manager
+was deployed. Cisco has patched the vulnerability. Fortnite is an online
+game with over 350 million users. In 2019, a SQL injection vulnerability
+was discovered, which could let attackers access user accounts. The
+vulnerability was patched. Although SQL injection attacks have been
+discovered for more than a quarter of century, it is still included in the
+Open Worldwide Application Security Project (OWASP) Top 10 list
+of security vulnerabilities.
+There are many different types of SQL injection attacks, among
+which the Union-based SQL injection attack is the most popular type,
+which uses the UNION statement that represents the combination of
+two select statements to retrieve data from the database. We use a
+simple example to illustrate one such attack. Figure 1.5 illustrates one
+database, which consists of information of different products. The last
+column denotes whether a concerned row is publicly accessible: value
+1 indicates “yes”, and value 0 indicates “no”. Assume that each user is
+assigned with a specific access authorization grade, which is associated
+with a set of predetermined accessible product categories. An example
+of an SQL query command is shown below:
+SELECT * FROM product where Category=‘Sports’ AND released=1
+which states that this user is allowed to inquire information about
+all products in the Sports category, which is accessible to this user
+Intro
+duction to Cybersecurity in Discrete Event Systems ■9
+Figure 1.5A
+simple database.
+Figure 1.6A
+normal query command and three injection attacks.
+(denoted by “released=1”). This query command is susceptible to
+SQL injection attacks. There are at least three different injections by
+an attacker that could allow unauthorized information access, which
+are depicted in Figure 1.6. The first attack replaces the argument
+‘Category=‘Sports” with a new argument ‘Category=‘Sports’ OR
+True –’, which will trick the SQL database to bypass the last
+condition check of ‘Released=1’, namely allowing the attacker to access
+product information in the Sports category, which is originally not
+accessible to the attacker. The second attack replaces the argument
+‘Category=‘Sports’ ’ with a new argument ‘Category=‘Sports’ OR
+True’, which allows the attacker to access the information of all
+products. The last attack replaces the argument ‘Category=‘Sports’ ’
+with a new argument ‘True’, which leads to the same attack effect
+as that of the second attack. Although the above three injection
+attacks can be easily avoided by using the latest techniques such
+10■Cybersecurit
+y of Discrete Event Systems
+Figure 1.7A
+DES model of possible injection attacks.
+as restricting certain parameters and keywords, one fundamental
+question has not been properly addressed, that is, how to effectively
+identify existing loopholes in a database, which might permit injection
+attacks. To answer this question, one idea is to provide a formal
+model of database inquiry process, upon which any query that may
+violate formal requirements may be revealed. A DES framework
+could be one option for such a formal model. For example, Figure
+1.7 depicts one transitional model, which describes different attack
+sequences that could be applied to a legal query sequence. In this
+formal model, the backbone of the transition structure is the list
+of all possible sequences of keywords highlighted in blue. Others
+in black are arguments of each relevant keyword, which could be
+potentially altered by an injection attack. Each string from the initial
+state to a final state denotes one information query. There are a
+fixed number of sequences of keywords, with possibly an indefinite
+number of arguments. Intuitively, an attacker aims to use an injection
+attack on one query of a specific sequence of keywords to derive
+another sequence of keywords that allows the attacker to access
+some sensitive information. Upon this understanding, this model
+indicates that, in principle, it is possible to enumerate different
+possibilities of imposing an injection attack, which preserves an
+order of a standard query keywords, although keyword skipping
+is allowed. With this model, it might be possible to develop a
+systematic procedure to identify relevant injection vulnerabilities,
+which will help database designers find ways to eliminate such
+vulnerabilities.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■11
+1.3 OVERVIEW OF DES CYBERSECURITY RESEARCH
+Cybersecurit
+y is a very broad subject. So far, the DES community
+mainly focuses on problems related to two cybersecurity topics, that
+is,information confidentiality , which is cast as system opacity under
+eavesdropping, and functional integrity, which is captured as event
+integrity under cyberattacks. In this section, we aim to provide a
+brief chronicle account of major idea conceptions, hoping that this
+could provide readers with motivations for technical treatments in
+subsequent chapters. The actual detailed literature review, however,
+will be presented in each subsequent chapter.
+As mentioned previously, in a generic sense, cybersecurity is about
+the practice of protecting systems against digital attacks. In this
+type of problems, there are always two players: an attacker and a
+defender. We study such problems only aiming to make defenders
+smart, even though frequently we look at a system from an attacker’s
+viewpoint. This thinking method is certainly not new. More than two
+thousand years ago, one famous Chinese strategist, Sun Tse, shown in
+Figure 1.8, said that “if you know the enemy and know yourself, you
+need not fear the result of a hundred battles ”. Intuitively, a defender
+needs to answer several questions, when analyzing system cybersecurity
+vulnerability and designing a defense approach. Firstly, what system
+components can be attacked, how can they be attacked, and why
+are they attacked? Secondly, are there any observable symptoms to
+Figure 1.8A
+famous quote from Sun Tse. [The picture is taken from
+highlander.fandom.com/wiki/Sun_Tzu.]
+12■Cybersecurit
+y of Discrete Event Systems
+manifest the existence of an attack? Thirdly, are there any preventive
+means to deter an attacker? The first two questions are essentially
+related to attack modeling, which is closely related to existing works on
+anomaly detection such as fault diagnosis. Therefore, it is not surprising
+to see early cybersecurity-related works cast in a framework similar to
+fault diagnosis, which heavily relies on state estimation.
+The earliest influential works on fault diagnosis in a DES framework
+can be dated back to 1994–1995 [44,45], where the key concept of
+diagnosability in the DES framework was introduced. Since then,
+this topic has become one of the most published topics in the DES
+community and is still active nowadays. In such frameworks, each
+fault, considered as an undesirable functional deviation, is modeled
+by an unobservable event, whose occurrence will take a system to
+an undesirable state, either permanently [45] or temporarily [46].
+The key solution strategies for fault diagnosis mainly rely on subset
+construction under partial observation [10] to identify sets of states that
+cannot be distinguished from observable behaviors – a system becomes
+diagnosable if after each (unobservable) fault occurrence, its presence
+can be unambiguously confirmed by a state estimator (or observer)
+within a finite number of event occurrences. When fault tolerance is
+under consideration, all faults are assumed to be feasible in the system,
+making the solution methods follow a worst-case strategy, commonly
+seen in robust control. A good survey article on this subject can be
+found in Refs. [4,47].
+In contrast to fault diagnosis, where system functional deviations
+are under investigation, opacity is an information-flow property used in
+confidentiality and security applications. Intuitively, a dynamic system
+is opaque if an external observer with possibly prior knowledge about
+the system model cannot decide whether certain secret information
+about the system, such as an initial state or the current state, has
+been confirmed. The earliest influential works on this topic can be
+traced back to 2005–2008 [21–24]. This line of research has emerged as
+one of the most active research topics in the DES community, along
+with the rising concerns of data confidentiality and personal privacy
+[141–167]. A good summary of opacity research can be found in Refs.
+[4,25].
+There were few works before 2016 to mention cyberattacks from
+a defender’s viewpoint, e.g., a game-theoretical supervisory control
+Intro
+duction to Cybersecurity in Discrete Event Systems ■13
+framework was reported in Ref. [118], discrete event simulation of
+cyberattacks was reported in Refs. [119–121], Petri net models were
+adopted for detecting cyberattacks on supervisory control and data
+acquisition (SCADA) systems or computer systems. In about 2016–
+2018, researchers in the DES community started to be more active
+in addressing cyberattacks, which aim to deliberately drive a target
+system toward an undesirable state. Some influential works can be
+found in Refs. [51,53,55,56,79,80]. There is a clear bifurcation of
+two different types of technical treatments on this topic. The works
+presented in Refs. [51,53] treat each attack instance as a set of
+undesirable event changes that bear large similarity to fault occurrence
+on sensor events. An attacker has no intention to hide each attack
+move, just like each fault event occurrence in a system. In contrast, in
+Refs. [55,56,58,59], an attacker is considered as an intelligent foe, who,
+with prior knowledge about a target system and controller, can craft
+a stealthy (or covert) attack strategy that, if existing, can hide each
+attack move until some state is reached, where damage is irreversible.
+Such stealthy attacks are called smart attacks. Only after a smart
+attack strategy is understood, a defense strategy can be designed, which
+aims to prevent any understood smart attack. Following this line of
+thinking, there is always a dual problem to be analyzed and solved,
+namely a best attack strategy and a best defense strategy against the
+best attack strategy. Figure 1.9 depicts an intuitive architecture of
+smart attacks. An attacker can either attack the observation channel
+and replace true observations with “fake” ones, thus, affecting the input
+of the supervisor, or attack the command channel and replace each true
+Figure 1.9In
+tuitive architecture of smart cyberattack.
+14■Cybersecurit
+y of Discrete Event Systems
+control command issued by the supervisor with a “fake” one, thus,
+affecting the output of the supervisor. In many cases, the attacker may
+be able to attack both the observation channel and command channel.
+The earliest smart attacks on observation channels, dubbed as
+smart sensor attacks , appeared in 2017–2018 [55,56,79]. The basic
+idea is intuitive, that is, each event (or function) that is susceptible
+to cyberattacks can be replaced by another event or even a string of
+events, including an empty string representing event erasure. By doing
+this, an attacker aims to influence the input of a supervisor and trick
+it to issue inappropriate control commands that could lead the plant
+to an undesirable state. By using proper modeling techniques, e.g.,
+event relabeling in Ref. [79–82] and an I/O transducer model in Ref.
+[55,56], an attack synthesis problem can be transformed into a form
+similar to supervisor synthesis [3]. Ultimately, we want to know whether
+there exists a supervisor, which is resilient to all possible smart sensor
+attacks. This question has been answered in Ref. [57], which confirms
+that the existence of a supervisor resilient to all smart sensor attacks
+is decidable. This result is different from those considering the worst-
+case scenario [60] with all attacks not necessarily smart in the sense
+that each supervisor that is robust to all attacks must be robust to all
+smart attacks, but the opposite may not be true. This means that a
+supervisor robust to smart attacks has a higher chance to exist than
+that of a supervisor robust to all attacks.
+In contrast to smart sensor attacks, so far, there are few works on
+smart attacks of command channels, dubbed as smart actuator attacks,
+possibly due to the fact that an attacker has few attack options, i.e.,
+either enabling or disabling some events to cause damage. For example,
+to prevent the plant from reaching some special states, or to lead the
+plant to go through a specific legal path towards a state, where an
+illegal event may be actuated, an attacker may disable events to limit
+the firing choices for the plant, which is called a disabling attack (or
+disablement attack ). On the other hand, to move the plant out of its
+legal behavior set, the attacker will enable events at some states of
+the plant originally disabled by the supervisor. This type of attack
+is called enabling attacks (orenablement attacks). The earliest works
+on smart actuator attacks appeared in 2019–2020. In Ref. [62], the
+authors introduce an enablement attack, which smartly chooses a state
+to enable an event, originally disabled by the supervisor at that state,
+Intro
+duction to Cybersecurity in Discrete Event Systems ■15
+to lead the plant to reach a damage state irreversibly, and ensure that,
+even when an actuator attack move is not successful due to inaccurate
+state estimation, the supervisor will not be aware of the existence of
+the actuator attack. The latter property is called attack covertness. In
+Ref. [70], the authors present a systematic transformation procedure
+to convert a smart actuator attack synthesis problem into a standard
+supervisor synthesis problem. From a defense viewpoint, in Ref. [71],
+the authors present a novel supervisor obfuscation strategy to “fool”
+an actuator attacker from achieving an informative state estimate that
+might permit a smart actuator attack. The culmination of this line
+of research is achieved in Ref. [72], where the authors prove that the
+existence of an obfuscated (or fortified) supervisor robust to all smart
+actuator attacks is decidable.
+Apart from early works on worst-case scenarios in supervisory
+control against sensor-actuator attacks, e.g., [51,53], in 2019, the
+authors in Ref. [64] presented an approach for synthesizing robust
+supervisors against smart sensor-actuator attacks, where an attacker
+tries to hide attack moves until a state is reached where damage is
+unavoidable. In this framework, an attacker can partially observe the
+input of a supervisor and fully observe the supervisor’s output control
+commands. The authors present a novel algorithm, which transforms
+the concerned robust supervisor synthesis problem into a problem
+of solving quantified Boolean formulas (QBF), which are extensions
+of Boolean formulas where each variable can be quantified either
+universally or existentially. The quantified Boolean formula is true if
+and only if there is an n-bounded resilient supervisor against all smart
+sensor-actuator attacks; in particular, if the formula is true, such an
+n-bounded supervisor can be extracted from the assignment on the
+existentially quantified Boolean variables that witnesses the validity of
+the formula. SAT solvers can be used to attain assignments satisfying
+those QBFs [174–176]. The proposed transformation only works when
+the number of states of each concerned robust supervisor is uniformly
+bounded with a known value. However, the article does not discuss how
+to solve the QBF problem efficiently, and how to address properties
+beyond safety. The smart sensor-actuator attack synthesis problem
+can also be formulated and solved in a standard supervisor synthesis
+framework, as introduced in, e.g., [63,67,68].
+16■Cybersecurit
+y of Discrete Event Systems
+Figure 1.10 Timeline
+of major new frameworks about DES cybersecurity.
+All previous works assume that an attacker has perfect knowledge
+about the plant and supervisor models, which may not be feasible
+in reality. Thus, starting in 2021, more and more interests are channeled
+into model learning part, where an attacker needs to decide, based
+on learned plant or supervisor’s behavior, whether it is possible to
+carry out a covert attack. One such framework is introduced in Refs.
+[65,69,84,116]. A defender, on the other hand, needs to know which
+part of the system information is critical for a successful smart attack,
+thus, requires special protections. In Ref. [66], the authors present a
+method to identify key system assets required by a specific smart attack
+strategy to carry out a convert sensor attack. This method relies on an
+automaton-based model reduction approach, whose idea was originally
+developed for supervisor reduction that manifests key control actions
+in a given supervisor [135].
+As a closing remark of this section, we use the following timeline
+shown in Figure 1.10, which is derived based on the existing literature,
+to illustrate how ideas of cybersecurity in the DES framework evolves
+over time, which we hope could shed light on future research directions.
+The timeline is not meant for providing a comprehensive overview of
+all relevant works up to the date, but rather for sketching some major
+ideas that result in a good number of follow-up activities in the DES
+community. Detailed literature reviews and historical accounts will be
+provided in each relevant chapter.
+1.4 PRELIMINARIES ON SUPERVISORY CONTROL THEORY
+Inthis
+section, we introduce basic concepts and notations that will
+be used in the remainder of this monograph to facilitate discussions
+of resilient control in DES. We will start with the concepts of
+Intro
+duction to Cybersecurity in Discrete Event Systems ■17
+regular languages and finite-state automata, and relevant language
+operations such as natural projection and synchronous product. After
+that, we provide a detailed account of Ramadge-Wonham (RW)
+supervisory control theory. We first introduce the closed-loop control
+architecture, the concepts of controllability and observability, and
+relevant assumptions about information generated by the plant and
+available for the supervisor. Then we present the supervisor existence
+conditions relying on the concepts of controllability and observability.
+Finally, we present the supervisor synthesis problem and some state-
+of-the-art synthesis frameworks. This section only aims to provide
+a concise overview of the RW framework and introduce standard
+notations which will be used consistently throughout this monograph.
+For a comprehensive introduction of the RW framework, we refer
+readers to Ref. [3]. For more advanced topics on languages and
+finite-state automata, we refer readers to Ref. [10,114].
+1.4.1 Languages and Finite-State Automata
+LetNbe the set of natural numbers and R+the set of all non-negative
+reals. Let Σ be a finite set of symbols. Each symbol denotes an event (or
+action) that can occur in a given DES. The occurrence of each event in
+Σ is assumed to be instantaneous, unless stated otherwise. Each finite
+sequence of events from Σ forms a finite string, including a special
+string ϵ, which denotes the empty string, whose length is considered
+as 0. String s=σ1σ2. . . σ ncan be concatenated with another string
+t= ˆσ1ˆσ2. . .ˆσm, to form the string
+st:=σ1σ2. . . σ nˆσ1ˆσ2. . .ˆσm,
+which captures the sequence of events in sfollowed by the sequence
+of events in t. We use Σ∗to denote the set of all finite strings, and
+for any s∈Σ∗we have sϵ=ϵs=s. Formally, Σ∗is the free monoid
+over Σ, whose unit element is ϵand the binary operation involved is
+concatenation. Given two strings s, t∈Σ∗, we say sis aprefix substring
+oft, denoted as s≤t, if there exists u∈Σ∗such that su=t. We use |s|
+to denote the length of s; by convention, |ϵ|= 0. We use s↑to denote
+the last symbol of s; by convention, ϵ↑=ϵ. We use σ∈sto denote
+that event σappears at least once in s.
+Any subset of Σ∗, say L⊆Σ∗, is a language. The prefix closure of
+L, denoted as L,is
+defined as the collection of strings, each of which
+18■Cybersecurit
+y of Discrete Event Systems
+is a prefix substring of some string in L, that is, L:={s∈Σ∗|(∃t∈
+L)s≤t}.IfL=L,then Lis
+called prefix closed . Let
+EnL:L→2Σ:s7→EnL(
+s) :={σ∈Σ|sσ∈L}
+be
+a mapping that maps each string s∈Ltothe
+set of events allowed
+after sinL.W
+e call EnL(s) the enabled event set after sinL.F
+or each
+s∈Σ∗, we use L/s:={t∈Σ∗|st∈L}to denote the suffix string set of
+sinL. Given two languages L1andL2, one can talk about the union
+of the two languages L1∪L2or the intersection of the two languages
+L1∩L2in terms of the usual set operations:
+For notational simplicity, we will use “ ∧” to denote the logical
+conjunction “AND”, and “ ∨” for logical disjunction “OR”. In addition,
+we use L1L2:={st∈Σ∗|s∈L1∧t∈L2}to denote the concatenation
+of two languages. We use |A|to denote the size (i.e., the cardinality or
+number of elements) of an arbitrary set A.
+We also use standard regular expression notations to describe a
+set of strings (subset of Σ∗) that follow a particular pattern. More
+specifically, we make use of the following operators:
+1. The superscriptn(where nis a positive integer) is used to denote
+nrepetitions of its argument. For example, given a string s,s3
+denotes the singleton set {sss} or sometimes, abusing notation,
+the string sssitself. Similarly, abncdenotes the singleton set
+{abb..bc }(or string abb..bc ) where bappears ntimes.
+2. Given a string s,s∗denotes the set of strings that involve
+arbitrary (but finite) repetitions of s, including no repetition, i.e.,
+s∗={ϵ, s, ss, sss, . . . }. Similarly, ab∗cdenotes the set of strings
+that involve an a, followed by zero, one or more occurrences of b,
+followed by c, i.e., ab∗c={ac, abc, abbc, abbbc, . . .}.
+3. The + operator is used to denote unions of two sets of strings.
+For example, a∗+bc∗ddenotes the set of strings of the form
+aa . . . a (where aappears zero, one or more times) or bfollowed
+by zero, one or more occurrences of c, followed by d. In other
+words, a∗+bc∗d={ϵ, a, aa, aaa, . . . , bd, bcd, bccd, . . . }.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■19
+The above operations can be combined. For example, ( a+b)∗c(d+e)∗
+denotes the following set of strings (ordered according to their length):
+{c, ac, bc, cd, ce, acd, ace, bcd, bce, aac, bbc, abc, bac, cdd, cee, cde, ced, . . . }.
+Let Σ′⊆Σ. A mapping P: Σ∗→Σ′∗is called the natural projection
+with respect to (Σ ,Σ′), if
+1.P(ϵ) = ϵ,
+2. (∀σ∈Σ)P(σ) :=σifσ∈Σ′,
+ϵotherwise,
+3. (∀sσ∈Σ∗)P(sσ) =P(s)P(σ).
+Given a language L⊆Σ∗,P(L) := {P(s)∈Σ′∗|s∈L}. The inverse
+image mapping of Pis defined as:
+P−1: 2Σ′∗→2Σ∗:L7→P−1(L) := {s∈Σ∗|P(s)∈L}.
+Given L1⊆Σ∗
+1andL2⊆Σ∗
+2, the synchronous product ofL1andL2
+is defined as L1||L2:=P−1
+1(L1)∩P−1
+2(L2), where P1: (Σ 1∪Σ2)∗→
+Σ∗
+1andP2: (Σ 1∪Σ2)∗→Σ∗
+2are natural projections. Clearly, ||is
+commutative and associative.
+Definition 1.1 Adeterministic finite-state automaton (DFSA or
+simply FSA) is captured by G= (X,Σ, ξ, x 0, Xm), where Xis a finite
+set of states, x0∈Xan initial state, Xm⊆Xa set of marker (or
+final) states, and Σ a finite alphabet, ξ:X×Σ→Xa (partial) state
+transition function. For each x∈Xandσ∈Σ, we use ξ(x, σ)! to
+denote that there exists an outgoing transition at state x, labeled by
+event σ. □
+For simplicity of analysis, we can extend the domain of ξfrom X×Σ
+toX×Σ∗in the following manner:
+1. (∀x∈X)ξ(x, ϵ) := x;
+2. (∀x∈X)(∀s∈Σ∗)(∀σ∈Σ)ξ(x, sσ ) :=ξ(ξ(x, s), σ ).
+Let
+EnG:X→2Σ:x7→EnG(x) :={σ∈Σ|ξ(x, σ)!
+20■Cybersecurit
+y of Discrete Event Systems
+be a mapping that maps each state x∈Xto the set of events allowed
+atxinG. We call EnG(x) the enabled event set atxinG.Gis called
+reachable if
+(∀x∈X)(∃s∈Σ∗)ξ(x0, s) =x,
+namely, each state can be reached from the initial state; and
+coreachable if
+(∀x∈X)(∃s∈Σ∗)ξ(x, s)∈Xm,
+namely, from each state there is a directed path towards one marker
+state. Gis called trimmed if it is both reachable and coreachable.
+Asub-automaton ofGis an automaton Gsub= (X sub,Σ, ξsub, x0,
+Xm,sub ), not necessarily trimmed, such that Xsub⊆X,Xm,sub⊆Xm
+and
+(∀x, x′∈X)(∀σ∈Σ)ξsub(x, σ) =x′⇒ξ(x, σ) =x′,
+that is, each transition of Gsubmust be a transition in G. However,
+the opposite may not be true.
+The language generated by FSA G(or the closed behaviour ofG)
+captures all allowable sequences of events and is defined as
+L(G) := {s∈Σ∗|ξ(x0, s)!}.
+The language recognized byG(or the marked behaviour ofG) is
+defined as
+Lm(G) := {s∈L(G)|ξ (x0, s)∈Xm}.
+Later, we will interpret each string s∈L(G) as a task, either completed
+or uncompleted, and each string t∈Lm(G) will denote only a
+completed task.
+If we let L(G, x ) denote the set of all traces that originate from
+state xofG(i.e., L(G, x ) :={s∈Σ∗|ξ(x, s)!}), then we have L(G) =
+L(G, x 0).
+In contrast to a DFSA, occasionally, in this book, we also use an
+automaton, whose initial state is not unique and transition mapping
+is also not deterministic in the sense that there may be more than
+one target state for each transition, in order to represent a non-
+deterministic outcomes. To this end, we introduce the concept of
+nondeterministic finite-state automaton .
+Intro
+duction to Cybersecurity in Discrete Event Systems ■21
+Definition 1.2 Anondeterministic finite-state automaton (NFSA) is
+captured by G= (X, Σ, ξ, X 0, Xm), where Xis a finite set of states,
+X0⊆Xa set of initial states, Xm⊆Xa set of marker (or final) states,
+and Σ a finite alphabet, ξ:X×Σ∗→2Xa (total) state transition
+function, where for all x∈X, we have ξ(x, ϵ) := {x}and for all s∈Σ∗
+andσ∈Σ, we have ξ(x, sσ ) =∪x′∈ξ(x,s)ξ(x′, σ). □
+For an NFSA G, its closed behavior isL(G) := {s∈Σ∗|(∃x 0∈
+X0)ξ(x0, s)̸=∅}, and its marked behavior isLm(G) := {s∈Σ∗|(∃x 0∈
+X0)ξ(x0, s)∩Xm̸=∅}. Similarly, we write EnG(x) := {sigma ∈
+Σ|ξ(x, σ)̸=∅}to denote the enabled event set at state xin an FSA
+G, and use L(G, x ) :={s∈Σ∗|ξ(x, s) ̸=∅}to denote the set of
+all traces that originate from state xofG. In the remainder of this
+monograph, if we do not explicitly state that an FSA is an NFSA, by
+default, it is deterministic.
+Given two FSAs Gi= (X i,Σi, ξi, xi,0, Xi,m) (i = 1, 2), their
+parallel composition is denoted as G1×G2:= (X1×X2,Σ1∪Σ2, ξ1×
+ξ2,(x1,0, x2,0), X1,m×X2,m), where the (partial) transition function
+ξ1×ξ2is defined as follows, for all ( x1, x2)∈X1×X2andσ∈Σ =
+Σ1∪Σ2:
+ξ1×ξ2(x1, x2, σ) :=
+
+(ξ1(x1, σ), ξ2(x2, σ))σ∈Σ1∩Σ2∧ξ1(x1, σ)
+!∧ξ2(x2, σ)!,
+(ξ1(x1, σ), x2) σ∈Σ1\Σ2∧ξ1(x1, σ)!,
+(x1, ξ2(x2, σ)) σ∈Σ2\Σ1∧ξ2(x2, σ)!,
+undefined otherwise.
+Definition 1.3 Given two FSAs Gi= (Xi,Σ, ξi, xi,0, Xi,m) (i= 1,2),
+we say G1isDES-isomorphic toG2if there exists a bijection θ:X1→
+X2such that the following hold:
+1.θ(x1,0) =x2,0,
+2.θ(X1,m) =X2,m,
+3. (∀x, x′∈X1)(∀σ∈Σ)ξ1(x, σ) =x′⇐⇒ ξ2(θ(x), σ) =θ(x′).□
+We can check that automaton parallel composition is commutative
+and associative under DES-isomorphism. In addition, it has been
+shown in Ref. [3] that L(G 1×G2) =L(G 1)||L(G 2) and Lm(G1×
+G2) = Lm(G1)||Lm(G2). If we consider two languages L(G) and
+22■Cybersecurit
+y of Discrete Event Systems
+Figure 1.11 Relationship
+between automaton parallel composition and
+language synchronous product
+Lm(G) as the result of applying two mappings LandLmonG
+that map an automaton Gto two subsets in Σ∗, respectively, then
+the following commutative diagram in Figure 1.11 clearly displays
+the relationship between automaton parallel composition and the
+corresponding language synchronous product.
+In a special case, when Σ 1= Σ 2, the parallel composition of G1
+andG2is called meet, denoted as G1∧G2, where L(G 1∧G2) =
+L(G 1)∩L(G 2) and Lm(G1∧G2) =Lm(G1)∩Lm(G2).
+A weighted FSA is a 2-tuple (G = (X, Σ, ξ, x 0, Xm), f), where
+Gis an FSA and f:X×Σ→R+∪ {∞} is the (partial)
+weight function. Given two finite-state weighted automata (G 1=
+(X1,Σ1, ξ1, x1,0, X1,m), f1) and (G 2= (X 2,Σ2, ξ2, x2,0, X2,m), f2), the
+weighted parallel composition of ( G1, f1) and (G 2, f2), denoted as
+(G1, f1)×(G2, f2), is a finite-state weighted automaton ( G=G1×
+G2, f), where f:X1×X2×(Σ1∪Σ2)→R+∪{∞} is defined as follows:
+for any x1∈X1,x2∈X2andσ∈Σ,
+f((x1, x2), σ) :=
+
+g(f1(x1, σ), f2(x2, σ)) if σ∈EnG1(q1)∩EnG2(q2),
+f1(x1, σ) ifσ∈EnG1(q1)\Σ2,
+f2(x2, σ) ifσ∈EnG2(q2)\Σ1,
+undefined otherwise.
+where g: (R+∪ {∞}) ×(R+∪ {∞}) →(R+∪ {∞}) is a function to
+specify the weight of a transition, whose definition is dependent on the
+type of optimization objective and would be specified later.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■23
+1.4.2 Supervisory Control
+Next, we introduce the basic concepts of the Ramadge-Wonham
+supervisory control paradigm [12]. A plant is modeled as an FSA
+G= (X,Σ, δ, x 0, Xm), which generates event outputs that may
+be externally observed. The plant alphabet Σ is partitioned into
+controllable anduncontrollable alphabets, represented by Σ cand Σ uc,
+respectively. Each controllable event σ∈Σcdenotes one plant action
+(or function) that can be disabled externally, typically by a controller,
+whereas each uncontrollable event σ′∈Σucdenotes an action (or
+function) whose occurrence cannot be stopped by the controller. Some
+examples of controllable actions include turning on or off a machine
+in manufacturing, opening or closing a valve in access control, and
+dispatching or retrieving AGVs in robotic operations. Some examples
+of uncontrollable actions include component failures, completion of a
+chemical reaction, sensor output values, or cyber attacks, which are
+beyond the reach of the controller. To capture observability of the
+plant output, the alphabet Σ is also partitioned into observable and
+unobservable alphabets, represented by Σ oand Σ uo, respectively. Each
+observable event is typically associated with an action (or function)
+whose execution can be monitored by the controller via suitable
+sensors, whereas an unobservable event denotes an action (or function)
+whose execution cannot be detected externally by the controller.
+LetPo: Σ∗→Σ∗
+obe the natural projection. A supervisor is
+modeled by a mapping
+V:Po(L(G)) →Γ :={γ⊆Σ|Σuc⊆γ},
+where Γ is the set of all control patterns (orcontrol commands ), and
+each control pattern γ∈Γ must contain all uncontrollable events,
+i.e., Σ uc⊆γ. In the Ramadge-Wonham paradigm, the supervisor
+sends a control pattern to the plant G, instead of a single event
+typically seen in the systems and control literature. This is mainly
+due to the existence of uncontrollable events, which does not allow
+the supervisor to generate a unique control input to the plant G. By
+adopting this nondeterministic execution mechanism, the plant Gis
+expected to choose one event from the control pattern and execute it.
+The details of this nondeterministic choice are not explicitly explained
+in the original Ramadge-Wonham paradigm, but could play a key role
+24■Cybersecurit
+y of Discrete Event Systems
+Figure 1.12 The
+Ramadge-Wonham supervisory control architecture.
+in the networked control frameworks with imperfect communication
+channels [177], and cyber security analysis and control, which will be
+discussed in subsequent chapters.
+The standard Ramadge-Wonham supervisory control architecture
+is depicted in Figure 1.12, where event executions in the plant G
+are assumed to be instantaneous and asynchronous, i.e., at any
+time instant there can be no more than one event being executed.
+Although these assumptions have been relaxed in works on time-
+weighted automata and product systems that allow non-zero durations
+for event occurrences and concurrent event occurrences, respectively, in
+this monograph, we keep these assumptions to make relevant analyses
+and synthesis simple and easily comprehensible.
+If we carefully look at the definition of the supervisory control
+mapping V, we can see that the definition imposes two constraints on
+the supervisor. That is, first of all, the supervisor cannot disable any
+uncontrollable events, which is reflected in the property that Σ uc⊆γ
+for each control pattern γ∈Γ, and secondly, if two strings s, s′∈L(G)
+are observably identical, i.e., Po(s) = Po(s′), then the resulting control
+patterns must be identical, which is reflected in the domain of Vthat
+is defined over Po(L(G)). Under the influence of V, the closed-loop
+system is denoted as V/G. The closed behaviour of V/G is defined as
+follows:
+1.ϵ∈L(V/G),
+2. (∀s∈L(V/G))(∀σ ∈Σ)[sσ ∈L(G)∧σ∈V(Po(s))]⇒sσ∈
+L(V/G),
+3. All strings in L(V/G) are generated in Steps (1)–(2).
+Intro
+duction to Cybersecurity in Discrete Event Systems ■25
+Figure 1.13 Automaton
+realization of V.
+The marked behaviour of V/G is defined as follows:
+Lm(V/G) = L(V/G) ∩Lm(G).
+In the case that L(V/G) is regular (i.e., it can be generated by a finite
+state automaton), there exists an FSA S= (Z,Σ, η, z 0, Zm) such that
+L(V/G) = L(S∧G) and Lm(V/G) = Lm(S∧G).
+Figure 1.13 depicts the realization of Vby automaton S, where
+the output control pattern of Sfor each observation input Po(s)∈
+Po(L(G)) is simply the collection of all outgoing transitions after Po(s)
+inS, i.e., EnS(Po(s)) := {σ∈Σ|Po(s)σ∈L(S)}.
+There are two fundamental questions in the Ramadge-Wonham
+paradigm, which are listed below:
+Problem 1.1 What language K⊆Lm(G)admits a supervisor Vsuch
+thatK=Lm(V/G)?
+Problem 1.2 How can one synthesize a supervisor Vsuch that
+Lm(V/G) ⊆E⊆Lm(G), where Eis a requirement language, and
+the closed-loop system is nonblocking (to ensure that every incomplete
+task may be completed later), i.e., L(V/G) = Lm(V/
+G)?
+To answer the first question, two fundamental concepts are
+introduced, i.e., controllability and observability.
+Definition 1.4 (Controllability) A language K⊆Lm(G) is
+controllable with respect to Gand Σ uc, ifKΣuc∩L(G)⊆K. □
+26■Cybersecurit
+y of Discrete Event Systems
+Definition 1.5 (Observability) [11] A language K⊆L(G) is
+observable with respect to GandPo, if
+(∀s, s′∈K)(∀σ∈Σ)[
+sσ∈K∧s′σ∈L(G)∧P o(s)=Po(
+s′)]⇒s′σ∈K.
+A
+language K⊆L(G) is (prefix) normal with respect to GandPo, if
+P−1
+o(Po(K))∩L(G) =K.
+A
+language K⊆C⊆L(G) is relatively observable [125] with respect
+toC,GandPo,or
+simply C-observable, if
+for all s∈K,s′∈Cand
+σ∈Σ,
+[sσ∈K∧s′σ∈L(G)∧Po(s)=Po(
+s′)]⇒s′σ∈K.
+□
+It
+is known that observability is not closed under the set union,
+unlike (prefix) normality and C-observ abilit
+y. It has been shown that
+(prefix) normality implies observability, and observability together with
+the condition that Σ c⊆Σoimplies (prefix) normality. Because K⊆C,
+we can see that C-observ ab
+ility implies observability. On the other
+hand, when Kis (prefix) normal with respect to GandPo,Kis also C-
+observ able,
+namely (prefix) normality implies C-observ abilit
+y. With the
+concepts of controllability and observability, a sufficient and necessary
+condition to ensure the existence of a supervisory control mapping for
+a given language K⊆Lm(G) is given in the following theorem.
+Theorem 1.1 A language K⊆Lm(G) is realizable by a supervisory
+control mapping V, i.e., K=Lm(V/G), if and only if Kis controllable
+with respect to Gand Σ uc, and observable with respect to GandPo,
+andLm(G)-closed, i.e., K∩Lm(G)=K. □
+In
+tuitively, controllability of Kensures the existence of a supervisor
+Vthat does not disable any uncontrollable event, and observability of
+Kensures that Vcan be defined over Po(L(G)). The last condition of
+being Lm(G)-closed is to ensure that any string s∈Kcan be identified
+(via only the marking information of the plant) when it occurs. Since
+the supervisor Vdoes not carry any marking information, to recognize
+Intro
+duction to Cybersecurity in Discrete Event Systems ■27
+a string in K, we can only rely on the marking of the plant G, i.e., we
+need to ensure that, under the influence of V, a string s∈Kholds if
+and only if s∈L(V/G) and s∈Lm(G).
+To answer the second question, we need to find a controllable,
+observable, and nonblocking sublanguage of E. A solution is typically
+not unique. This may cause practical issues, as sometimes trivial
+solutions may be generated. To avoid this unpleasant situation, it has
+been shown that, controllable and observable languages form a partially
+ordered set (poset) with the partial order induced by the set inclusion.
+Thus, typically a maximal controllable and observable sublanguage
+within a given requirement language Eis sought in synthesis. When
+observability is strengthened as relative observability or normality, the
+poset becomes an upper semilattice and a unique supremal element
+exists, which is sought in most supervisor synthesis literature. Tools
+are available to synthesize such supremal controllable and normal
+(or relatively observable) sublanguages, see, e.g., SuSYNA developed
+at Nanyang Technological University (https://personal.ntu.edu.sg/
+rsu/Downloads.htm), TCT [122] (https://www.control.utoronto.ca/
+∼wonham/Research.html) developed at the University of Toronto,
+and Supremica [123] (https://supremica.org/) developed at Chalmers
+University of Technology .
+This section is not meant to provide a thorough overview of
+supervisory control theory, which would fit in a separate monograph.
+More advanced supervisory control theory, e.g., decentralized control,
+modular control, distributed control, hierarchical control, symbolic
+synthesis, etc., can be found in Refs. [2,3].
+Security Relevance Score: 18
+Word Count: 9552
+Extracted: 2025-06-13 23:40:25
+
+---
+
+■Supervisor Obfuscation against Smart
+Actuator Attacks 199
+7.1 INTRODUCTION 200
+7.2
+PRELIMINARIES 203
+xii■Conten
+ts
+7.3 SMART ACTUATOR ATTACK – AN INSIGHT VIEW 203
+7.4 COMPONENT MODELS AND PROBLEM
+FORMULATION 212
+7.5 MAIN IDEA OF SOLUTION METHODOLOGY 218
+7.6 BEHAVIOR-PRESERVING STRUCTURE CONSTRUCTION 219
+7.6.1 Equivalent Behavior Computation 219
+7.6.2 Feasible Control Commands Completion 220
+7.6.3 Structure Refinement 223
+7.7 SYNTHESIS OF OBFUSCATED SUPERVISORS 228
+7.7.1 Identification of Covert Damage Strings 228
+7.7.2 Pruning of Illegal Control Commands 235
+7.7.3 Synthesis of Obfuscated Supervisors 238
+7.8 CONCLUSIONS 246
+NOTES 247
+Bibliography 248
+Index 261
+P
+reface
+“Internet
+gives us access to everything; but it also gives everything
+access to us.”
+– James Veitch
+We are in an era of networks. Every year billions of new devices
+are connected to the global network. This unprecedented connectivity
+makes cybersecurity an issue that affects everyone on this planet.
+According to USA Cybersecurity & Infrastructure Security Agency
+(CISA), cybersecurity is the art of protecting networks, devices, and
+data from unauthorized access or criminal use and the practice of
+ensuring confidentiality, integrity, and availability of information. In a
+report by Steve Morgan [1], the estimated cybercrime damage cost the
+world $3 trillion in 2015 and is expected to reach $10.5 trillion annually
+by 2025. It is critically important to develop suitable knowledge and
+technology to ensure cybersecurity.
+This indisputably important subject has been drawing lots of
+attention from both industry and academia. Researchers in the
+discrete-event system (DES) community are not immune to this
+curiosity. A DES can be defined as a group of agents that influence
+their own or any other agent’s state transitions by conducting relevant
+actions (or events). For each specific instance of a DES, each agent’s
+state space could be either discrete or continuous, and each action
+(or event) could be either asynchronous or concurrent and could take
+either no time or some time before finishing. DES theories can be used
+for system modeling, analysis, control and performance optimization,
+and have found applications in many areas such as manufacturing,
+logistics, communication and transportation. However, research on
+cybersecurity analysis and resilient control has only recently become
+popular in the community, due to its growing importance. This book
+aims to present a suite of latest frameworks that describe several
+types of smart cyberattacks and corresponding defending strategies
+via resilient supervisory control. Some key questions to be answered in
+xiii
+xiv■Preface
+thisb
+ook include, e.g., what are smart sensor and/or actuator attacks,
+how to identify the existence of a smart attack in a given closed-loop
+system, does there exist a resilient supervisor against ALL possible
+smart attacks of a certain type, and in case an answer to the previous
+question is positive, how to synthesize one such resilient supervisor.
+The idea of smart attacks introduced in this book was first
+conceived in February 2016, when I visited Stephane Lafortune
+at University of Michigan. My original plan was to discuss with
+Stephane and Feng Lin, who was also there for a short visit, about
+networked DES control. Due to some reason, the discussion was forked
+into cyberattacks, as Stephane was collaborating with some brilliant
+researchers such as Lilian Kawakami Carvalho and Raymond Kwong
+on supervisory control against actuator enablement attack, which later
+appeared in WODES2016. Compared with the existing works, the key
+novelty of this new concept of smart attack is to associate an attack
+with certain characteristics of intelligence in order to distinguish it
+from indigenous uncontrollable events like faults that cause system
+functional changes. Some commonly used characteristics of intelligence
+include covertness (orstealthiness) and feasibility of damage infliction
+- the former describes the capability of an attacker to hide an attack
+from being detected before (irreversible) damage can be inflicted, and
+the latter captures the desirable attack consequence, either guaranteed
+damage or a chance play.
+After imposing such characteristics of intelligence, this line of
+research becomes much more intrigue than fault diagnosis or opacity
+analysis, which have been actively studied in the DES community.
+A system designer basically needs to play two antagonistic roles
+simultaneously. On one hand, the designer needs to put himself in an
+attacker’s shoes about what can be done to identify most vulnerable
+system assets and maximize damage to a target system with minimum
+costs; on the other hand, the designer needs to think from a defender’s
+viewpoint about how to ward off such smart attacks. Ultimately, the
+goal is to enhance system resilience against cyberattacks. But only after
+we fully understand an opponent’s best moves, we can come up with
+the best defense measures.
+Since the idea of smart attack was conceived in 2016, there have
+been many follow-up works. Some fundamental questions such as
+decidability of existence of smart sensor attacks, existence of resilient
+supervisors against smart sensor attacks, and existence of smart
+actuator attacks have been satisfactorily answered, which however rely
+Preface ■xv
+onan
+assumption of having perfect prior knowledge about a target
+system. Recently, new results have started to appear that rely on
+learning system behaviors to gain required knowledge about a target
+system, upon which attack or defense schemes could be synthesized.
+Are we able to see more fruitful results on computationally feasible
+cybersecurity solutions adopted by industry in the next few years? I
+feel positive about this.
+This book is based on inspiring ideas from several past publications
+jointly written with my current and former PhD students Ruochen
+Tai, Liyong Lin, and Yuting Zhu. I had so many wonderful moments
+when discussing with them. Some early idea on smart actuator attacks
+was conceived when Sander Thuijsman from Eindhoven University of
+Technology (TUE) visited me at Nanyang Technological University for
+an 11-week training program in early 2018. Our collaboration led to a
+conference publication at ACC’19, together with his supervisor Michel
+Renier. My deep gratitude goes to Joao Carlos Basilio, Christoforos
+Hadjicostis, Stephane Lafortune, and Feng Lin for their constructive
+comments and suggestions in the past few years when we worked
+together on different occasions such as a book project with Basilio and
+Christoforos, and a tutorial session at IEEE CDC’22 with Christoforos,
+Stephane and Feng. I would also like to express my deep gratitude
+to Walter Murray Wonham, who, as my MASc and PhD thesis
+supervisor, brought me into the DES community and equipped me
+with all necessary knowledge and tools, without which this book would
+never be possible. I will also use this opportunity to thank Andrew
+Stow from CRC Press who provided me with this book project and,
+with many other staff at CRC Press like Kasturi Ghosh, has been
+patiently working with me to make the whole preparation journey an
+unforgettable memory for me.
+Finally, I would like to express my deepest gratitude to my wife
+Lijuan and three children, Gabriel, Michael, and Raphael, for their
+continuous support and encouragement, without which this project
+would never even start.
+Rong Su
+Nanyang Technological University, Singapore
+October 2023
+Co
+ntributors
+Liyong
+Lin
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Ruochen Tai
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Yuting Zhu
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+xvi
+Sy
+mbols
+SYMBOL DESCRIPTION
+Σ
+finite alphabet
+Σ∗monoid with
+concatenation
+ϵ empty string
+Σϵalphabet Σ ∪ {ϵ}
+Σo observable alphabet
+Σϵ
+o Σo∪ {ϵ}
+Σuo unobservable alphabet
+Σc controllable alphabet
+Σuc uncontrollable
+alphabet
+Σo,a attackable observable
+alphabet
+Σc,a attackable
+controllable alphabet
+Γ control pattern set
+σ∈Σ event σfrom Σ
+∥s∥ length of string s
+s↑last event of string s
+s≤t prefix substring soft
+st concatenation of s
+andt
+L⊆Σ∗language Lfrom Σ
+EnL(s) enabled events after s
+inL
+L prefix closure
+ofL
+G plant automaton
+EnG(x) enabled events at xin
+GEnG(s) enabled events after s
+inG
+L(G) closed behavior of G.
+Lm(G) marked behavior of
+G.
+URG,Σ(x) unobservable state
+reach in Gfrom x
+with events in Σ
+V supervisory control
+function
+V/G controlled plant
+automaton
+S supervisory control
+function
+S/G controlled plant
+automaton
+S supervisor automaton
+As sensor attack function
+As sensor attack
+automaton
+Ac actuator attack
+function
+Ac actuator attack
+automaton
+BT bipartite supervisor
+automaton
+BTAcbipartite supervisor
+automaton under
+attack
+xvii
+xviii ■Symb
+ols
+CE command execution
+automaton
+CEAccommand execution
+automaton under
+attack
+BPS behavior preserving
+structure
+BPNS nondeterministic BPS
+BPNSAcattacked BPNS
+M dynamic mask
+automaton
+E edit automaton
+I intruder automatonPΣ,Σ′ natural projection
+Po natural projection to
+Σ∗
+o
+Po,a natural projection to
+Σ∗
+o,a
+|A| Cardinality of set A
+N natural number set
+G×S parallel composition
+L1||L2 synchronous product
+f1◦f2 composition of
+functions
+∧ logic AND
+∨ logic OR
+DOI: 10.1201/9781003333883-1 1CH
+A P T E R1
+In
+troduction to
+Cybersecurity in
+Discrete Event Systems
+1.1 INTRODUCTION
+According to
+Merriam-Webster [8], “a system is a regularly interacting
+or interdependent group of items forming a unified whole ”. If we adopt
+this generic concept of system, then a discrete-event system (DES) can
+be defined as a group of agents that influence their own or any other
+agent’s state transitions by conducting relevant actions (or events).
+For each specific instance of a DES, each agent’s state space could be
+either discrete or continuous, and each action (or event) could be either
+asynchronous or concurrent and could take either no time or some
+time before finishing. Regarding forms of inter-agent interactions, they
+could be either behavior oriented , where detailed steps of an interaction
+are specified, or function oriented, where the consequence, rather than
+procedure, of an interaction is modeled. One example of a behavior-
+oriented agent interaction can be found in parallel composition of
+formal process models such as calculus of communicating systems
+(CCS) by Robin Milner [9], where each interaction includes a sending
+action and a receiving action. One example of a function-oriented
+agent interaction can be found in parallel composition of finite-state
+automata [3,10], where a single event execution triggers all agents
+2■Cybersecurit
+y of Discrete Event Systems
+(modeled by automata) that permit this event to make state transitions
+simultaneously. Occasionally, we also use discrete-event dynamical
+system (DEDS) in the monograph to refer to a DES whose transitional
+behavior (partially) depends on time, which could be considered either
+as one special event or part of some prerequisite conditions that
+trigger a state transition. According to Ref. [2], almost all man-made
+systems contain some components that can be described by DES, such
+as software systems, manufacturing systems, communication systems,
+logistic systems, and transportation systems.
+In a general sense, cybersecurity is the practice of protecting
+systems, networks, and programs from digital attacks, which aim
+at accessing, changing, or destroying sensitive information; extorting
+financial benefits from users; or interrupting normal operational
+processes. There are many different types of cybersecurity based
+on concerned assets such as network security, cloud security, end-
+point security, mobile security, IoT security, application security,
+and zero trust. The corresponding cybersecurity threats have also
+evolved for several generations, triggering continuous advancement
+of cybersecurity measures. For example, in the late 1980s, virus
+attacks against standalone computers inspired the creation of the
+first antivirus solutions. As cyberattacks began to come over the
+Internet, the firewall was developed to identify and block them.
+Later, exploitation of vulnerabilities within applications caused the
+mass adoption of intrusion prevention systems. As malware became
+more targeted and able to evade signature-based defenses, anti-bot
+and sandboxing solutions were necessary to detect novel threats.
+The latest generation of cybersecurity threats uses large-scale, multi-
+vector attacks, making advanced threat prevention solutions a priority.
+The systems and control community mainly focus on application-
+based cybersecurity threats, aiming to identify vulnerability of existing
+application functions and design suitable defense measures [49,131,132,
+137–140,167–173].
+In this monograph, we focus on one specific type of application-
+based cyberattack cast in a DES framework, where an attacker aims to
+inflict damage on a target system by disrupting its control loop. This
+could be achieved either by intercepting and changing the controller’s
+input signals (such as sensor measurements or operational references or
+requirements) or by intercepting and changing the controller’s output
+Intro
+duction to Cybersecurity in Discrete Event Systems ■3
+Figure 1.1The
+Ramadge-Wonham supervisory control architecture.
+signals (such as control commands or state feedback information for
+system monitoring), or by completely blocking the data transmission
+between the controller and the plant (in terms of, e.g., denial-
+of-service attacks). An attack can be either brute force, e.g., via
+hardware destruction or signal jamming, or covert (or stealthy), i.e.,
+the attacking process is hidden from the controller or any other
+monitoring mechanism. We adopt the control system setup introduced
+in the Ramadge-Wonham supervisory control paradigm [3,12], which is
+depicted in Figure 1.1. In this paradigm, the plant generates observable
+outputs, received by the supervisor via an observation channel, and
+each control command specified as a set of allowable events is generated
+by the supervisor and fed to the plant via a command channel.
+The plant will nondeterministically pick one event from the control
+command and execute it. Unlike attacks in time-driven systems, attacks
+under consideration in a DES aim to change the order of events in
+specific system runs. There are two different streams of research on
+cyberattacks and resilient control. The first stream is to treat each
+attack as a fault that alters event orders in the system by either
+removing existing events or inserting fictitious events. In this case,
+research focuses firstly on how to decide the existence of an attack
+in the system based on a finite number of observations, similar to
+verifying diagnosability in fault diagnosis, and secondly on how to
+ensure sufficient control abilities to stop the propagation of the attack
+effect, e.g., by shutting down the entire system. Partial observation
+and existence of uncontrollable events complicate the synthesis process.
+The second stream is to develop a specific “smart” attack model that
+ensures certain intuitive properties such as covertness and guaranteed
+(strong or weak) damage infliction. Under such a smart attack model,
+4■Cybersecurit
+y of Discrete Event Systems
+the research focuses on analyzing how the attack may affect the
+closed-loop behavior, deciding whether the system is vulnerable to such
+an attack, and finally computing a supervisor that is resilient to the
+concerned attack. In this monograph, we will provide a detailed account
+of existing state-of-the-art modeling and resiliency results associated
+with smart attacks and point out challenges for future exploration.
+In the following sections, we will provide some real cyberattack
+cases and illustrate how they could be considered in a DES framework.
+This will provide motivations for technical developments introduced
+in this monograph and also provide future research topics that the
+community may consider. After that, we provide a brief overview
+of existing DES cybersecurity research and some mathematical
+preliminaries on DES supervisory control theory, which will be used
+in the remainder of this monograph.
+1.2 MOTIVATION EXAMPLES OF CYBERATTACKS
+1.2.1 Stuxnet
+– The First Known Cyber Weapon
+Stuxnet is a malicious computer worm first uncovered in 2010 and
+thought to have been in development since at least 2005. Stuxnet
+targets supervisory control and data acquisition (SCADA) systems
+and is believed to be responsible for causing substantial damage to the
+nuclear program of Iran. There are lots of stories and reports about this
+attack, which have been well disseminated in the media and academic
+communities. Here, we are interested in a high-level overview of its
+attack mechanism.
+According to a report by Kim Zetter [5], Stuxnet attack targeted
+at the following SCADA architecture depicted in Figure 1.2. In
+a normal operational condition, Siemens’ WinCC/PCS7 SCADA
+control software [75] (Step 7) issued relevant control commands,
+including information about operational frequencies of centrifuges,
+to Programmable Logic Controller (PLC), via a key communication
+library of WinCC called s7otbxdx.dll. The PLC also sent the system’s
+operational conditions back to Step 7 via s7otbxdx.dll. Normally,
+centrifuges operate at a frequency well above 1,000 Hz. Any drastic
+change of operational frequencies might damage centrifuges, which was
+a known fact to experts.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■5
+Figure 1.2The
+control architecture targeted by Stuxnet attack.
+A group of attackers managed to install Stuxnet code in the
+system. According to researcher Ralph Langner [6], once installed on
+a Windows system Stuxnet infected project files belonging to Step 7,
+and subverted the key communication library s7otbxdx.dll, by firstly
+inserting a malicious wrapper code between Step 7 and s7otbxdx.dll,
+and then renaming s7otbxdx.dll to s7otbxsx.dll, and passing the
+original name s7otbxdx.dll to the inserted malicious wrapper code. To
+successfully achieve this wrapping goal, attackers utilized a security
+vulnerability published by Siemens only one year before the attack,
+which however had not caused any public notice. This malicious code
+was able to intercept communications between the WinCC software
+running under Windows and the target Siemens PLC devices, when the
+two were connected via a data cable. Basically, the malicious code could
+change the operational frequency issued by Step 7 before passing to the
+PLC, possibly via the original but renamed communication library.
+To make the entire attack moves stealthy, the frequency changes were
+only done from time to time to avoid being detected. It was reported
+that when the malicious code caused centrifuges to operate at a much
+lowered frequency, a false fault alarm was sent to the system to ensure
+that such a low-frequency operation was due to some temporary sensor
+fault; thus, no emergency actions such as system shutdown would be
+taken by the system operators. Each feedback information from the
+6■Cybersecurit
+y of Discrete Event Systems
+PLC about the system’s operational conditions was also intercepted by
+the malicious code and modified before being passed to Step 7, making
+Step 7 believe that nothing abnormal happened in the system. The
+actual details are very complicated. However, a simplified high-level
+illustration of the attack scheme is shown in Figure 1.3.
+It was believed that periodic changes of operational frequencies of
+centrifuges eventually caused irreversible damage to centrifuges. The
+whole attack process took a long period to complete, making each
+attack move unnoticed by the system monitor. This is one typical
+example of a smart attack, which will be cast in a DES framework
+and addressed in this monograph. If we consider the PLC as a plant
+to be controlled, then Step 7 becomes a supervisor. The original
+communication library s7otbxdx.dll essentially creates communication
+channels between the plant and supervisor. The Stuxnet attack
+basically attacks both the information feedback channel from the plant
+to the supervisor and the control command channel from the supervisor
+to the plant, which is depicted in Figure 1.4. Later in this monograph,
+we will dub this type of smart attacks as sensor-actuator attacks, as
+Figure 1.3Illustration
+of Stuxnet attack mechanism.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■7
+Figure 1.4A
+DES view of Stuxnet attack mechanism.
+it attacks both the information channel and the command channel.
+From an attacker’s viewpoint, one fundamental question is how to
+ensure a successful cyberattack. In the Stuxnet attack, we can see
+that attackers had two pieces of knowledge. Firstly, they had a clear
+attack goal, namely to adjust operational frequencies of centrifuges
+to damage centrifuges. Secondly, they knew how to achieve their
+goal by exploiting functional vulnerabilities of the original Siemens
+control system to deploy malicious code to hijack the information and
+command channels and, most importantly, to operate attack moves
+in a stealthy manner. These two features, i.e., guarantee of damage
+infliction and attack stealthiness (or covertness), will be used in this
+monograph to characterize so-called smart attacks. On the other hand,
+from a defender’s viewpoint, one fundamental question is how to design
+system functions that deprive any potential attacker from attaining
+sufficient system resources for a successful attack, especially a stealthy
+attack. For example, in the Stuxnet attack case, if the Siemens control
+system vulnerability were fully aware of earlier, it would be much more
+difficult, if still possible, for the attackers to deploy their attack code.
+Basically, how to identify system vulnerabilities or critical assets and
+how to protect them are interesting and potential important topics for
+research, which will be addressed in this monograph.
+8■Cybersecurit
+y of Discrete Event Systems
+1.2.2 SQL Injection Attack
+An SQL injection attack is a technique that attackers use to gain
+unauthorized access to a web application database by adding a string of
+malicious code to a database query. It is considered as one of the most
+common web attack mechanisms used by attackers to steal sensitive
+data from organizations, alter data and access database servers with
+operating system privileges, and use these permissions to access other
+sensitive systems. In a report dated back to 2015 by Alastair Stevenson
+[7], A hacker group, known online as Team GhostShell, claims it
+successfully hacked over 300 websites and has posted over 13,000 users’
+personal details online. The actually number of victims could be much
+bigger. In 2014, security researchers publicized that they were able to
+breach the website of Tesla using SQL injection, gain administrative
+privileges, and steal user data. In 2018, a SQL injection vulnerability
+was found in Cisco Prime License Manager. The vulnerability allowed
+attackers to gain shell access to systems on which the license manager
+was deployed. Cisco has patched the vulnerability. Fortnite is an online
+game with over 350 million users. In 2019, a SQL injection vulnerability
+was discovered, which could let attackers access user accounts. The
+vulnerability was patched. Although SQL injection attacks have been
+discovered for more than a quarter of century, it is still included in the
+Open Worldwide Application Security Project (OWASP) Top 10 list
+of security vulnerabilities.
+There are many different types of SQL injection attacks, among
+which the Union-based SQL injection attack is the most popular type,
+which uses the UNION statement that represents the combination of
+two select statements to retrieve data from the database. We use a
+simple example to illustrate one such attack. Figure 1.5 illustrates one
+database, which consists of information of different products. The last
+column denotes whether a concerned row is publicly accessible: value
+1 indicates “yes”, and value 0 indicates “no”. Assume that each user is
+assigned with a specific access authorization grade, which is associated
+with a set of predetermined accessible product categories. An example
+of an SQL query command is shown below:
+SELECT * FROM product where Category=‘Sports’ AND released=1
+which states that this user is allowed to inquire information about
+all products in the Sports category, which is accessible to this user
+Intro
+duction to Cybersecurity in Discrete Event Systems ■9
+Figure 1.5A
+simple database.
+Figure 1.6A
+normal query command and three injection attacks.
+(denoted by “released=1”). This query command is susceptible to
+SQL injection attacks. There are at least three different injections by
+an attacker that could allow unauthorized information access, which
+are depicted in Figure 1.6. The first attack replaces the argument
+‘Category=‘Sports” with a new argument ‘Category=‘Sports’ OR
+True –’, which will trick the SQL database to bypass the last
+condition check of ‘Released=1’, namely allowing the attacker to access
+product information in the Sports category, which is originally not
+accessible to the attacker. The second attack replaces the argument
+‘Category=‘Sports’ ’ with a new argument ‘Category=‘Sports’ OR
+True’, which allows the attacker to access the information of all
+products. The last attack replaces the argument ‘Category=‘Sports’ ’
+with a new argument ‘True’, which leads to the same attack effect
+as that of the second attack. Although the above three injection
+attacks can be easily avoided by using the latest techniques such
+10■Cybersecurit
+y of Discrete Event Systems
+Figure 1.7A
+DES model of possible injection attacks.
+as restricting certain parameters and keywords, one fundamental
+question has not been properly addressed, that is, how to effectively
+identify existing loopholes in a database, which might permit injection
+attacks. To answer this question, one idea is to provide a formal
+model of database inquiry process, upon which any query that may
+violate formal requirements may be revealed. A DES framework
+could be one option for such a formal model. For example, Figure
+1.7 depicts one transitional model, which describes different attack
+sequences that could be applied to a legal query sequence. In this
+formal model, the backbone of the transition structure is the list
+of all possible sequences of keywords highlighted in blue. Others
+in black are arguments of each relevant keyword, which could be
+potentially altered by an injection attack. Each string from the initial
+state to a final state denotes one information query. There are a
+fixed number of sequences of keywords, with possibly an indefinite
+number of arguments. Intuitively, an attacker aims to use an injection
+attack on one query of a specific sequence of keywords to derive
+another sequence of keywords that allows the attacker to access
+some sensitive information. Upon this understanding, this model
+indicates that, in principle, it is possible to enumerate different
+possibilities of imposing an injection attack, which preserves an
+order of a standard query keywords, although keyword skipping
+is allowed. With this model, it might be possible to develop a
+systematic procedure to identify relevant injection vulnerabilities,
+which will help database designers find ways to eliminate such
+vulnerabilities.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■11
+1.3 OVERVIEW OF DES CYBERSECURITY RESEARCH
+Cybersecurit
+y is a very broad subject. So far, the DES community
+mainly focuses on problems related to two cybersecurity topics, that
+is,information confidentiality , which is cast as system opacity under
+eavesdropping, and functional integrity, which is captured as event
+integrity under cyberattacks. In this section, we aim to provide a
+brief chronicle account of major idea conceptions, hoping that this
+could provide readers with motivations for technical treatments in
+subsequent chapters. The actual detailed literature review, however,
+will be presented in each subsequent chapter.
+As mentioned previously, in a generic sense, cybersecurity is about
+the practice of protecting systems against digital attacks. In this
+type of problems, there are always two players: an attacker and a
+defender. We study such problems only aiming to make defenders
+smart, even though frequently we look at a system from an attacker’s
+viewpoint. This thinking method is certainly not new. More than two
+thousand years ago, one famous Chinese strategist, Sun Tse, shown in
+Figure 1.8, said that “if you know the enemy and know yourself, you
+need not fear the result of a hundred battles ”. Intuitively, a defender
+needs to answer several questions, when analyzing system cybersecurity
+vulnerability and designing a defense approach. Firstly, what system
+components can be attacked, how can they be attacked, and why
+are they attacked? Secondly, are there any observable symptoms to
+Figure 1.8A
+famous quote from Sun Tse. [The picture is taken from
+highlander.fandom.com/wiki/Sun_Tzu.]
+12■Cybersecurit
+y of Discrete Event Systems
+manifest the existence of an attack? Thirdly, are there any preventive
+means to deter an attacker? The first two questions are essentially
+related to attack modeling, which is closely related to existing works on
+anomaly detection such as fault diagnosis. Therefore, it is not surprising
+to see early cybersecurity-related works cast in a framework similar to
+fault diagnosis, which heavily relies on state estimation.
+The earliest influential works on fault diagnosis in a DES framework
+can be dated back to 1994–1995 [44,45], where the key concept of
+diagnosability in the DES framework was introduced. Since then,
+this topic has become one of the most published topics in the DES
+community and is still active nowadays. In such frameworks, each
+fault, considered as an undesirable functional deviation, is modeled
+by an unobservable event, whose occurrence will take a system to
+an undesirable state, either permanently [45] or temporarily [46].
+The key solution strategies for fault diagnosis mainly rely on subset
+construction under partial observation [10] to identify sets of states that
+cannot be distinguished from observable behaviors – a system becomes
+diagnosable if after each (unobservable) fault occurrence, its presence
+can be unambiguously confirmed by a state estimator (or observer)
+within a finite number of event occurrences. When fault tolerance is
+under consideration, all faults are assumed to be feasible in the system,
+making the solution methods follow a worst-case strategy, commonly
+seen in robust control. A good survey article on this subject can be
+found in Refs. [4,47].
+In contrast to fault diagnosis, where system functional deviations
+are under investigation, opacity is an information-flow property used in
+confidentiality and security applications. Intuitively, a dynamic system
+is opaque if an external observer with possibly prior knowledge about
+the system model cannot decide whether certain secret information
+about the system, such as an initial state or the current state, has
+been confirmed. The earliest influential works on this topic can be
+traced back to 2005–2008 [21–24]. This line of research has emerged as
+one of the most active research topics in the DES community, along
+with the rising concerns of data confidentiality and personal privacy
+[141–167]. A good summary of opacity research can be found in Refs.
+[4,25].
+There were few works before 2016 to mention cyberattacks from
+a defender’s viewpoint, e.g., a game-theoretical supervisory control
+Intro
+duction to Cybersecurity in Discrete Event Systems ■13
+framework was reported in Ref. [118], discrete event simulation of
+cyberattacks was reported in Refs. [119–121], Petri net models were
+adopted for detecting cyberattacks on supervisory control and data
+acquisition (SCADA) systems or computer systems. In about 2016–
+2018, researchers in the DES community started to be more active
+in addressing cyberattacks, which aim to deliberately drive a target
+system toward an undesirable state. Some influential works can be
+found in Refs. [51,53,55,56,79,80]. There is a clear bifurcation of
+two different types of technical treatments on this topic. The works
+presented in Refs. [51,53] treat each attack instance as a set of
+undesirable event changes that bear large similarity to fault occurrence
+on sensor events. An attacker has no intention to hide each attack
+move, just like each fault event occurrence in a system. In contrast, in
+Refs. [55,56,58,59], an attacker is considered as an intelligent foe, who,
+with prior knowledge about a target system and controller, can craft
+a stealthy (or covert) attack strategy that, if existing, can hide each
+attack move until some state is reached, where damage is irreversible.
+Such stealthy attacks are called smart attacks. Only after a smart
+attack strategy is understood, a defense strategy can be designed, which
+aims to prevent any understood smart attack. Following this line of
+thinking, there is always a dual problem to be analyzed and solved,
+namely a best attack strategy and a best defense strategy against the
+best attack strategy. Figure 1.9 depicts an intuitive architecture of
+smart attacks. An attacker can either attack the observation channel
+and replace true observations with “fake” ones, thus, affecting the input
+of the supervisor, or attack the command channel and replace each true
+Figure 1.9In
+tuitive architecture of smart cyberattack.
+14■Cybersecurit
+y of Discrete Event Systems
+control command issued by the supervisor with a “fake” one, thus,
+affecting the output of the supervisor. In many cases, the attacker may
+be able to attack both the observation channel and command channel.
+The earliest smart attacks on observation channels, dubbed as
+smart sensor attacks , appeared in 2017–2018 [55,56,79]. The basic
+idea is intuitive, that is, each event (or function) that is susceptible
+to cyberattacks can be replaced by another event or even a string of
+events, including an empty string representing event erasure. By doing
+this, an attacker aims to influence the input of a supervisor and trick
+it to issue inappropriate control commands that could lead the plant
+to an undesirable state. By using proper modeling techniques, e.g.,
+event relabeling in Ref. [79–82] and an I/O transducer model in Ref.
+[55,56], an attack synthesis problem can be transformed into a form
+similar to supervisor synthesis [3]. Ultimately, we want to know whether
+there exists a supervisor, which is resilient to all possible smart sensor
+attacks. This question has been answered in Ref. [57], which confirms
+that the existence of a supervisor resilient to all smart sensor attacks
+is decidable. This result is different from those considering the worst-
+case scenario [60] with all attacks not necessarily smart in the sense
+that each supervisor that is robust to all attacks must be robust to all
+smart attacks, but the opposite may not be true. This means that a
+supervisor robust to smart attacks has a higher chance to exist than
+that of a supervisor robust to all attacks.
+In contrast to smart sensor attacks, so far, there are few works on
+smart attacks of command channels, dubbed as smart actuator attacks,
+possibly due to the fact that an attacker has few attack options, i.e.,
+either enabling or disabling some events to cause damage. For example,
+to prevent the plant from reaching some special states, or to lead the
+plant to go through a specific legal path towards a state, where an
+illegal event may be actuated, an attacker may disable events to limit
+the firing choices for the plant, which is called a disabling attack (or
+disablement attack ). On the other hand, to move the plant out of its
+legal behavior set, the attacker will enable events at some states of
+the plant originally disabled by the supervisor. This type of attack
+is called enabling attacks (orenablement attacks). The earliest works
+on smart actuator attacks appeared in 2019–2020. In Ref. [62], the
+authors introduce an enablement attack, which smartly chooses a state
+to enable an event, originally disabled by the supervisor at that state,
+Intro
+duction to Cybersecurity in Discrete Event Systems ■15
+to lead the plant to reach a damage state irreversibly, and ensure that,
+even when an actuator attack move is not successful due to inaccurate
+state estimation, the supervisor will not be aware of the existence of
+the actuator attack. The latter property is called attack covertness. In
+Ref. [70], the authors present a systematic transformation procedure
+to convert a smart actuator attack synthesis problem into a standard
+supervisor synthesis problem. From a defense viewpoint, in Ref. [71],
+the authors present a novel supervisor obfuscation strategy to “fool”
+an actuator attacker from achieving an informative state estimate that
+might permit a smart actuator attack. The culmination of this line
+of research is achieved in Ref. [72], where the authors prove that the
+existence of an obfuscated (or fortified) supervisor robust to all smart
+actuator attacks is decidable.
+Apart from early works on worst-case scenarios in supervisory
+control against sensor-actuator attacks, e.g., [51,53], in 2019, the
+authors in Ref. [64] presented an approach for synthesizing robust
+supervisors against smart sensor-actuator attacks, where an attacker
+tries to hide attack moves until a state is reached where damage is
+unavoidable. In this framework, an attacker can partially observe the
+input of a supervisor and fully observe the supervisor’s output control
+commands. The authors present a novel algorithm, which transforms
+the concerned robust supervisor synthesis problem into a problem
+of solving quantified Boolean formulas (QBF), which are extensions
+of Boolean formulas where each variable can be quantified either
+universally or existentially. The quantified Boolean formula is true if
+and only if there is an n-bounded resilient supervisor against all smart
+sensor-actuator attacks; in particular, if the formula is true, such an
+n-bounded supervisor can be extracted from the assignment on the
+existentially quantified Boolean variables that witnesses the validity of
+the formula. SAT solvers can be used to attain assignments satisfying
+those QBFs [174–176]. The proposed transformation only works when
+the number of states of each concerned robust supervisor is uniformly
+bounded with a known value. However, the article does not discuss how
+to solve the QBF problem efficiently, and how to address properties
+beyond safety. The smart sensor-actuator attack synthesis problem
+can also be formulated and solved in a standard supervisor synthesis
+framework, as introduced in, e.g., [63,67,68].
+16■Cybersecurit
+y of Discrete Event Systems
+Figure 1.10 Timeline
+of major new frameworks about DES cybersecurity.
+All previous works assume that an attacker has perfect knowledge
+about the plant and supervisor models, which may not be feasible
+in reality. Thus, starting in 2021, more and more interests are channeled
+into model learning part, where an attacker needs to decide, based
+on learned plant or supervisor’s behavior, whether it is possible to
+carry out a covert attack. One such framework is introduced in Refs.
+[65,69,84,116]. A defender, on the other hand, needs to know which
+part of the system information is critical for a successful smart attack,
+thus, requires special protections. In Ref. [66], the authors present a
+method to identify key system assets required by a specific smart attack
+strategy to carry out a convert sensor attack. This method relies on an
+automaton-based model reduction approach, whose idea was originally
+developed for supervisor reduction that manifests key control actions
+in a given supervisor [135].
+As a closing remark of this section, we use the following timeline
+shown in Figure 1.10, which is derived based on the existing literature,
+to illustrate how ideas of cybersecurity in the DES framework evolves
+over time, which we hope could shed light on future research directions.
+The timeline is not meant for providing a comprehensive overview of
+all relevant works up to the date, but rather for sketching some major
+ideas that result in a good number of follow-up activities in the DES
+community. Detailed literature reviews and historical accounts will be
+provided in each relevant chapter.
+1.4 PRELIMINARIES ON SUPERVISORY CONTROL THEORY
+Inthis
+section, we introduce basic concepts and notations that will
+be used in the remainder of this monograph to facilitate discussions
+of resilient control in DES. We will start with the concepts of
+Intro
+duction to Cybersecurity in Discrete Event Systems ■17
+regular languages and finite-state automata, and relevant language
+operations such as natural projection and synchronous product. After
+that, we provide a detailed account of Ramadge-Wonham (RW)
+supervisory control theory. We first introduce the closed-loop control
+architecture, the concepts of controllability and observability, and
+relevant assumptions about information generated by the plant and
+available for the supervisor. Then we present the supervisor existence
+conditions relying on the concepts of controllability and observability.
+Finally, we present the supervisor synthesis problem and some state-
+of-the-art synthesis frameworks. This section only aims to provide
+a concise overview of the RW framework and introduce standard
+notations which will be used consistently throughout this monograph.
+For a comprehensive introduction of the RW framework, we refer
+readers to Ref. [3]. For more advanced topics on languages and
+finite-state automata, we refer readers to Ref. [10,114].
+1.4.1 Languages and Finite-State Automata
+LetNbe the set of natural numbers and R+the set of all non-negative
+reals. Let Σ be a finite set of symbols. Each symbol denotes an event (or
+action) that can occur in a given DES. The occurrence of each event in
+Σ is assumed to be instantaneous, unless stated otherwise. Each finite
+sequence of events from Σ forms a finite string, including a special
+string ϵ, which denotes the empty string, whose length is considered
+as 0. String s=σ1σ2. . . σ ncan be concatenated with another string
+t= ˆσ1ˆσ2. . .ˆσm, to form the string
+st:=σ1σ2. . . σ nˆσ1ˆσ2. . .ˆσm,
+which captures the sequence of events in sfollowed by the sequence
+of events in t. We use Σ∗to denote the set of all finite strings, and
+for any s∈Σ∗we have sϵ=ϵs=s. Formally, Σ∗is the free monoid
+over Σ, whose unit element is ϵand the binary operation involved is
+concatenation. Given two strings s, t∈Σ∗, we say sis aprefix substring
+oft, denoted as s≤t, if there exists u∈Σ∗such that su=t. We use |s|
+to denote the length of s; by convention, |ϵ|= 0. We use s↑to denote
+the last symbol of s; by convention, ϵ↑=ϵ. We use σ∈sto denote
+that event σappears at least once in s.
+Any subset of Σ∗, say L⊆Σ∗, is a language. The prefix closure of
+L, denoted as L,is
+defined as the collection of strings, each of which
+18■Cybersecurit
+y of Discrete Event Systems
+is a prefix substring of some string in L, that is, L:={s∈Σ∗|(∃t∈
+L)s≤t}.IfL=L,then Lis
+called prefix closed . Let
+EnL:L→2Σ:s7→EnL(
+s) :={σ∈Σ|sσ∈L}
+be
+a mapping that maps each string s∈Ltothe
+set of events allowed
+after sinL.W
+e call EnL(s) the enabled event set after sinL.F
+or each
+s∈Σ∗, we use L/s:={t∈Σ∗|st∈L}to denote the suffix string set of
+sinL. Given two languages L1andL2, one can talk about the union
+of the two languages L1∪L2or the intersection of the two languages
+L1∩L2in terms of the usual set operations:
+For notational simplicity, we will use “ ∧” to denote the logical
+conjunction “AND”, and “ ∨” for logical disjunction “OR”. In addition,
+we use L1L2:={st∈Σ∗|s∈L1∧t∈L2}to denote the concatenation
+of two languages. We use |A|to denote the size (i.e., the cardinality or
+number of elements) of an arbitrary set A.
+We also use standard regular expression notations to describe a
+set of strings (subset of Σ∗) that follow a particular pattern. More
+specifically, we make use of the following operators:
+1. The superscriptn(where nis a positive integer) is used to denote
+nrepetitions of its argument. For example, given a string s,s3
+denotes the singleton set {sss} or sometimes, abusing notation,
+the string sssitself. Similarly, abncdenotes the singleton set
+{abb..bc }(or string abb..bc ) where bappears ntimes.
+2. Given a string s,s∗denotes the set of strings that involve
+arbitrary (but finite) repetitions of s, including no repetition, i.e.,
+s∗={ϵ, s, ss, sss, . . . }. Similarly, ab∗cdenotes the set of strings
+that involve an a, followed by zero, one or more occurrences of b,
+followed by c, i.e., ab∗c={ac, abc, abbc, abbbc, . . .}.
+3. The + operator is used to denote unions of two sets of strings.
+For example, a∗+bc∗ddenotes the set of strings of the form
+aa . . . a (where aappears zero, one or more times) or bfollowed
+by zero, one or more occurrences of c, followed by d. In other
+words, a∗+bc∗d={ϵ, a, aa, aaa, . . . , bd, bcd, bccd, . . . }.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■19
+The above operations can be combined. For example, ( a+b)∗c(d+e)∗
+denotes the following set of strings (ordered according to their length):
+{c, ac, bc, cd, ce, acd, ace, bcd, bce, aac, bbc, abc, bac, cdd, cee, cde, ced, . . . }.
+Let Σ′⊆Σ. A mapping P: Σ∗→Σ′∗is called the natural projection
+with respect to (Σ ,Σ′), if
+1.P(ϵ) = ϵ,
+2. (∀σ∈Σ)P(σ) :=σifσ∈Σ′,
+ϵotherwise,
+3. (∀sσ∈Σ∗)P(sσ) =P(s)P(σ).
+Given a language L⊆Σ∗,P(L) := {P(s)∈Σ′∗|s∈L}. The inverse
+image mapping of Pis defined as:
+P−1: 2Σ′∗→2Σ∗:L7→P−1(L) := {s∈Σ∗|P(s)∈L}.
+Given L1⊆Σ∗
+1andL2⊆Σ∗
+2, the synchronous product ofL1andL2
+is defined as L1||L2:=P−1
+1(L1)∩P−1
+2(L2), where P1: (Σ 1∪Σ2)∗→
+Σ∗
+1andP2: (Σ 1∪Σ2)∗→Σ∗
+2are natural projections. Clearly, ||is
+commutative and associative.
+Definition 1.1 Adeterministic finite-state automaton (DFSA or
+simply FSA) is captured by G= (X,Σ, ξ, x 0, Xm), where Xis a finite
+set of states, x0∈Xan initial state, Xm⊆Xa set of marker (or
+final) states, and Σ a finite alphabet, ξ:X×Σ→Xa (partial) state
+transition function. For each x∈Xandσ∈Σ, we use ξ(x, σ)! to
+denote that there exists an outgoing transition at state x, labeled by
+event σ. □
+For simplicity of analysis, we can extend the domain of ξfrom X×Σ
+toX×Σ∗in the following manner:
+1. (∀x∈X)ξ(x, ϵ) := x;
+2. (∀x∈X)(∀s∈Σ∗)(∀σ∈Σ)ξ(x, sσ ) :=ξ(ξ(x, s), σ ).
+Let
+EnG:X→2Σ:x7→EnG(x) :={σ∈Σ|ξ(x, σ)!
+20■Cybersecurit
+y of Discrete Event Systems
+be a mapping that maps each state x∈Xto the set of events allowed
+atxinG. We call EnG(x) the enabled event set atxinG.Gis called
+reachable if
+(∀x∈X)(∃s∈Σ∗)ξ(x0, s) =x,
+namely, each state can be reached from the initial state; and
+coreachable if
+(∀x∈X)(∃s∈Σ∗)ξ(x, s)∈Xm,
+namely, from each state there is a directed path towards one marker
+state. Gis called trimmed if it is both reachable and coreachable.
+Asub-automaton ofGis an automaton Gsub= (X sub,Σ, ξsub, x0,
+Xm,sub ), not necessarily trimmed, such that Xsub⊆X,Xm,sub⊆Xm
+and
+(∀x, x′∈X)(∀σ∈Σ)ξsub(x, σ) =x′⇒ξ(x, σ) =x′,
+that is, each transition of Gsubmust be a transition in G. However,
+the opposite may not be true.
+The language generated by FSA G(or the closed behaviour ofG)
+captures all allowable sequences of events and is defined as
+L(G) := {s∈Σ∗|ξ(x0, s)!}.
+The language recognized byG(or the marked behaviour ofG) is
+defined as
+Lm(G) := {s∈L(G)|ξ (x0, s)∈Xm}.
+Later, we will interpret each string s∈L(G) as a task, either completed
+or uncompleted, and each string t∈Lm(G) will denote only a
+completed task.
+If we let L(G, x ) denote the set of all traces that originate from
+state xofG(i.e., L(G, x ) :={s∈Σ∗|ξ(x, s)!}), then we have L(G) =
+L(G, x 0).
+In contrast to a DFSA, occasionally, in this book, we also use an
+automaton, whose initial state is not unique and transition mapping
+is also not deterministic in the sense that there may be more than
+one target state for each transition, in order to represent a non-
+deterministic outcomes. To this end, we introduce the concept of
+nondeterministic finite-state automaton .
+Intro
+duction to Cybersecurity in Discrete Event Systems ■21
+Definition 1.2 Anondeterministic finite-state automaton (NFSA) is
+captured by G= (X, Σ, ξ, X 0, Xm), where Xis a finite set of states,
+X0⊆Xa set of initial states, Xm⊆Xa set of marker (or final) states,
+and Σ a finite alphabet, ξ:X×Σ∗→2Xa (total) state transition
+function, where for all x∈X, we have ξ(x, ϵ) := {x}and for all s∈Σ∗
+andσ∈Σ, we have ξ(x, sσ ) =∪x′∈ξ(x,s)ξ(x′, σ). □
+For an NFSA G, its closed behavior isL(G) := {s∈Σ∗|(∃x 0∈
+X0)ξ(x0, s)̸=∅}, and its marked behavior isLm(G) := {s∈Σ∗|(∃x 0∈
+X0)ξ(x0, s)∩Xm̸=∅}. Similarly, we write EnG(x) := {sigma ∈
+Σ|ξ(x, σ)̸=∅}to denote the enabled event set at state xin an FSA
+G, and use L(G, x ) :={s∈Σ∗|ξ(x, s) ̸=∅}to denote the set of
+all traces that originate from state xofG. In the remainder of this
+monograph, if we do not explicitly state that an FSA is an NFSA, by
+default, it is deterministic.
+Given two FSAs Gi= (X i,Σi, ξi, xi,0, Xi,m) (i = 1, 2), their
+parallel composition is denoted as G1×G2:= (X1×X2,Σ1∪Σ2, ξ1×
+ξ2,(x1,0, x2,0), X1,m×X2,m), where the (partial) transition function
+ξ1×ξ2is defined as follows, for all ( x1, x2)∈X1×X2andσ∈Σ =
+Σ1∪Σ2:
+ξ1×ξ2(x1, x2, σ) :=
+
+(ξ1(x1, σ), ξ2(x2, σ))σ∈Σ1∩Σ2∧ξ1(x1, σ)
+!∧ξ2(x2, σ)!,
+(ξ1(x1, σ), x2) σ∈Σ1\Σ2∧ξ1(x1, σ)!,
+(x1, ξ2(x2, σ)) σ∈Σ2\Σ1∧ξ2(x2, σ)!,
+undefined otherwise.
+Definition 1.3 Given two FSAs Gi= (Xi,Σ, ξi, xi,0, Xi,m) (i= 1,2),
+we say G1isDES-isomorphic toG2if there exists a bijection θ:X1→
+X2such that the following hold:
+1.θ(x1,0) =x2,0,
+2.θ(X1,m) =X2,m,
+3. (∀x, x′∈X1)(∀σ∈Σ)ξ1(x, σ) =x′⇐⇒ ξ2(θ(x), σ) =θ(x′).□
+We can check that automaton parallel composition is commutative
+and associative under DES-isomorphism. In addition, it has been
+shown in Ref. [3] that L(G 1×G2) =L(G 1)||L(G 2) and Lm(G1×
+G2) = Lm(G1)||Lm(G2). If we consider two languages L(G) and
+22■Cybersecurit
+y of Discrete Event Systems
+Figure 1.11 Relationship
+between automaton parallel composition and
+language synchronous product
+Lm(G) as the result of applying two mappings LandLmonG
+that map an automaton Gto two subsets in Σ∗, respectively, then
+the following commutative diagram in Figure 1.11 clearly displays
+the relationship between automaton parallel composition and the
+corresponding language synchronous product.
+In a special case, when Σ 1= Σ 2, the parallel composition of G1
+andG2is called meet, denoted as G1∧G2, where L(G 1∧G2) =
+L(G 1)∩L(G 2) and Lm(G1∧G2) =Lm(G1)∩Lm(G2).
+A weighted FSA is a 2-tuple (G = (X, Σ, ξ, x 0, Xm), f), where
+Gis an FSA and f:X×Σ→R+∪ {∞} is the (partial)
+weight function. Given two finite-state weighted automata (G 1=
+(X1,Σ1, ξ1, x1,0, X1,m), f1) and (G 2= (X 2,Σ2, ξ2, x2,0, X2,m), f2), the
+weighted parallel composition of ( G1, f1) and (G 2, f2), denoted as
+(G1, f1)×(G2, f2), is a finite-state weighted automaton ( G=G1×
+G2, f), where f:X1×X2×(Σ1∪Σ2)→R+∪{∞} is defined as follows:
+for any x1∈X1,x2∈X2andσ∈Σ,
+f((x1, x2), σ) :=
+
+g(f1(x1, σ), f2(x2, σ)) if σ∈EnG1(q1)∩EnG2(q2),
+f1(x1, σ) ifσ∈EnG1(q1)\Σ2,
+f2(x2, σ) ifσ∈EnG2(q2)\Σ1,
+undefined otherwise.
+where g: (R+∪ {∞}) ×(R+∪ {∞}) →(R+∪ {∞}) is a function to
+specify the weight of a transition, whose definition is dependent on the
+type of optimization objective and would be specified later.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■23
+1.4.2 Supervisory Control
+Next, we introduce the basic concepts of the Ramadge-Wonham
+supervisory control paradigm [12]. A plant is modeled as an FSA
+G= (X,Σ, δ, x 0, Xm), which generates event outputs that may
+be externally observed. The plant alphabet Σ is partitioned into
+controllable anduncontrollable alphabets, represented by Σ cand Σ uc,
+respectively. Each controllable event σ∈Σcdenotes one plant action
+(or function) that can be disabled externally, typically by a controller,
+whereas each uncontrollable event σ′∈Σucdenotes an action (or
+function) whose occurrence cannot be stopped by the controller. Some
+examples of controllable actions include turning on or off a machine
+in manufacturing, opening or closing a valve in access control, and
+dispatching or retrieving AGVs in robotic operations. Some examples
+of uncontrollable actions include component failures, completion of a
+chemical reaction, sensor output values, or cyber attacks, which are
+beyond the reach of the controller. To capture observability of the
+plant output, the alphabet Σ is also partitioned into observable and
+unobservable alphabets, represented by Σ oand Σ uo, respectively. Each
+observable event is typically associated with an action (or function)
+whose execution can be monitored by the controller via suitable
+sensors, whereas an unobservable event denotes an action (or function)
+whose execution cannot be detected externally by the controller.
+LetPo: Σ∗→Σ∗
+obe the natural projection. A supervisor is
+modeled by a mapping
+V:Po(L(G)) →Γ :={γ⊆Σ|Σuc⊆γ},
+where Γ is the set of all control patterns (orcontrol commands ), and
+each control pattern γ∈Γ must contain all uncontrollable events,
+i.e., Σ uc⊆γ. In the Ramadge-Wonham paradigm, the supervisor
+sends a control pattern to the plant G, instead of a single event
+typically seen in the systems and control literature. This is mainly
+due to the existence of uncontrollable events, which does not allow
+the supervisor to generate a unique control input to the plant G. By
+adopting this nondeterministic execution mechanism, the plant Gis
+expected to choose one event from the control pattern and execute it.
+The details of this nondeterministic choice are not explicitly explained
+in the original Ramadge-Wonham paradigm, but could play a key role
+24■Cybersecurit
+y of Discrete Event Systems
+Figure 1.12 The
+Ramadge-Wonham supervisory control architecture.
+in the networked control frameworks with imperfect communication
+channels [177], and cyber security analysis and control, which will be
+discussed in subsequent chapters.
+The standard Ramadge-Wonham supervisory control architecture
+is depicted in Figure 1.12, where event executions in the plant G
+are assumed to be instantaneous and asynchronous, i.e., at any
+time instant there can be no more than one event being executed.
+Although these assumptions have been relaxed in works on time-
+weighted automata and product systems that allow non-zero durations
+for event occurrences and concurrent event occurrences, respectively, in
+this monograph, we keep these assumptions to make relevant analyses
+and synthesis simple and easily comprehensible.
+If we carefully look at the definition of the supervisory control
+mapping V, we can see that the definition imposes two constraints on
+the supervisor. That is, first of all, the supervisor cannot disable any
+uncontrollable events, which is reflected in the property that Σ uc⊆γ
+for each control pattern γ∈Γ, and secondly, if two strings s, s′∈L(G)
+are observably identical, i.e., Po(s) = Po(s′), then the resulting control
+patterns must be identical, which is reflected in the domain of Vthat
+is defined over Po(L(G)). Under the influence of V, the closed-loop
+system is denoted as V/G. The closed behaviour of V/G is defined as
+follows:
+1.ϵ∈L(V/G),
+2. (∀s∈L(V/G))(∀σ ∈Σ)[sσ ∈L(G)∧σ∈V(Po(s))]⇒sσ∈
+L(V/G),
+3. All strings in L(V/G) are generated in Steps (1)–(2).
+Intro
+duction to Cybersecurity in Discrete Event Systems ■25
+Figure 1.13 Automaton
+realization of V.
+The marked behaviour of V/G is defined as follows:
+Lm(V/G) = L(V/G) ∩Lm(G).
+In the case that L(V/G) is regular (i.e., it can be generated by a finite
+state automaton), there exists an FSA S= (Z,Σ, η, z 0, Zm) such that
+L(V/G) = L(S∧G) and Lm(V/G) = Lm(S∧G).
+Figure 1.13 depicts the realization of Vby automaton S, where
+the output control pattern of Sfor each observation input Po(s)∈
+Po(L(G)) is simply the collection of all outgoing transitions after Po(s)
+inS, i.e., EnS(Po(s)) := {σ∈Σ|Po(s)σ∈L(S)}.
+There are two fundamental questions in the Ramadge-Wonham
+paradigm, which are listed below:
+Problem 1.1 What language K⊆Lm(G)admits a supervisor Vsuch
+thatK=Lm(V/G)?
+Problem 1.2 How can one synthesize a supervisor Vsuch that
+Lm(V/G) ⊆E⊆Lm(G), where Eis a requirement language, and
+the closed-loop system is nonblocking (to ensure that every incomplete
+task may be completed later), i.e., L(V/G) = Lm(V/
+G)?
+To answer the first question, two fundamental concepts are
+introduced, i.e., controllability and observability.
+Definition 1.4 (Controllability) A language K⊆Lm(G) is
+controllable with respect to Gand Σ uc, ifKΣuc∩L(G)⊆K. □
+26■Cybersecurit
+y of Discrete Event Systems
+Definition 1.5 (Observability) [11] A language K⊆L(G) is
+observable with respect to GandPo, if
+(∀s, s′∈K)(∀σ∈Σ)[
+sσ∈K∧s′σ∈L(G)∧P o(s)=Po(
+s′)]⇒s′σ∈K.
+A
+language K⊆L(G) is (prefix) normal with respect to GandPo, if
+P−1
+o(Po(K))∩L(G) =K.
+A
+language K⊆C⊆L(G) is relatively observable [125] with respect
+toC,GandPo,or
+simply C-observable, if
+for all s∈K,s′∈Cand
+σ∈Σ,
+[sσ∈K∧s′σ∈L(G)∧Po(s)=Po(
+s′)]⇒s′σ∈K.
+□
+It
+is known that observability is not closed under the set union,
+unlike (prefix) normality and C-observ abilit
+y. It has been shown that
+(prefix) normality implies observability, and observability together with
+the condition that Σ c⊆Σoimplies (prefix) normality. Because K⊆C,
+we can see that C-observ ab
+ility implies observability. On the other
+hand, when Kis (prefix) normal with respect to GandPo,Kis also C-
+observ able,
+namely (prefix) normality implies C-observ abilit
+y. With the
+concepts of controllability and observability, a sufficient and necessary
+condition to ensure the existence of a supervisory control mapping for
+a given language K⊆Lm(G) is given in the following theorem.
+Theorem 1.1 A language K⊆Lm(G) is realizable by a supervisory
+control mapping V, i.e., K=Lm(V/G), if and only if Kis controllable
+with respect to Gand Σ uc, and observable with respect to GandPo,
+andLm(G)-closed, i.e., K∩Lm(G)=K. □
+In
+tuitively, controllability of Kensures the existence of a supervisor
+Vthat does not disable any uncontrollable event, and observability of
+Kensures that Vcan be defined over Po(L(G)). The last condition of
+being Lm(G)-closed is to ensure that any string s∈Kcan be identified
+(via only the marking information of the plant) when it occurs. Since
+the supervisor Vdoes not carry any marking information, to recognize
+Intro
+duction to Cybersecurity in Discrete Event Systems ■27
+a string in K, we can only rely on the marking of the plant G, i.e., we
+need to ensure that, under the influence of V, a string s∈Kholds if
+and only if s∈L(V/G) and s∈Lm(G).
+To answer the second question, we need to find a controllable,
+observable, and nonblocking sublanguage of E. A solution is typically
+not unique. This may cause practical issues, as sometimes trivial
+solutions may be generated. To avoid this unpleasant situation, it has
+been shown that, controllable and observable languages form a partially
+ordered set (poset) with the partial order induced by the set inclusion.
+Thus, typically a maximal controllable and observable sublanguage
+within a given requirement language Eis sought in synthesis. When
+observability is strengthened as relative observability or normality, the
+poset becomes an upper semilattice and a unique supremal element
+exists, which is sought in most supervisor synthesis literature. Tools
+are available to synthesize such supremal controllable and normal
+(or relatively observable) sublanguages, see, e.g., SuSYNA developed
+at Nanyang Technological University (https://personal.ntu.edu.sg/
+rsu/Downloads.htm), TCT [122] (https://www.control.utoronto.ca/
+∼wonham/Research.html) developed at the University of Toronto,
+and Supremica [123] (https://supremica.org/) developed at Chalmers
+University of Technology .
+This section is not meant to provide a thorough overview of
+supervisory control theory, which would fit in a separate monograph.
+More advanced supervisory control theory, e.g., decentralized control,
+modular control, distributed control, hierarchical control, symbolic
+synthesis, etc., can be found in Refs. [2,3].
+
+I
+Mo
+deling and Synthesis of Smart
+Attacks
+
+CH
+A P T E R2
+Sm
+art Sensor Attacks
+We
+start with sensor attacks, which are commonly seen in our daily life
+and conceptually simple. Such simplicity will make it relatively easy
+for us to introduce a formal modeling framework and relevant design
+techniques. We will follow a natural order of thinking typically used
+by a rational person to investigate a new phenomenon and answer the
+following questions: what is a sensor attack; when can we say a sensor
+attack is smart; how to design a smart sensor attack; and finally, how
+to defend a system against all smart sensor attacks. A sensor attack in
+this chapter will be modeled as a function, which maps each intercepted
+plant observable output to a “faked” observable output that eventually
+affects the output of a given supervisor. We will illustrate that, by
+“smartly” changing the supervisor’s observable input, a sensor attack
+can leverage on existing supervisory control function to inflict damage
+to the plant, without being detected by the supervisor. That is, we
+consider an attack to be smart if it is kept covert (or stealthy) until
+irreversible damage is inflicted on a target system. We will explain how
+to decide whether a given closed-loop system permits a smart sensor
+attack. Upon such knowledge, we will introduce one method to design
+a supervisor that is robust to all possible smart sensor attacks. This
+chapter serves as one major building block for subsequent technical
+development.
+2.1 INTRODUCTION
+Acyb
+er-physical system (CPS) is a mechanism controlled or monitored
+by computer-based algorithms. Examples of CPS include smart grid,
+DOI: 10.1201/9781003333883-3 31

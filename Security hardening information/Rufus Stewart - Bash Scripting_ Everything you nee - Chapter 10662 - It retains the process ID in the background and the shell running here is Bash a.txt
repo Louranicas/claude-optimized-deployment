@@ -1,0 +1,1475 @@
+# Security Chapter Extract
+Book: Rufus Stewart - Bash Scripting_ Everything you need to know about Bash , 2nd Edition (2020, Independently published) - libgen.li
+Chapter: 10662 - It retains the process ID in the background, and the shell running here is Bash, and when something goes wrong? Keeps an exit code different from 0 (zero).
+Security Relevance Score: 4
+Word Count: 11420
+Extracted: 2025-06-13 23:40:44
+
+---
+
+It retains the process ID in the background, and the shell running here is Bash, and when something goes wrong? Keeps an exit code different from 0 (zero). 
+   
+ Recycle shell programs using variables 
+   
+ Variables help you apply shell scripts in other environments or for other purposes, but they make the program easier to read. See the following example for a simple program that takes a backup of a user's home wiki folder on a remote server: 
+   
+ #! / bin / bash 
+   
+ # This program copies my home folder 
+   
+ cd / home 
+   
+ # This command creates the archive 
+ tar cf /var/tmp/home_wiki.tar wiki> / dev / null 2> & 1 
+   
+ # Delete the old bzip2 file 
+ #Redirect errors because this produces some errors if the archive does not exist, and then create a new zip file. 
+ rm /var/tmp/home_wiki.tar.bz2 2> / dev / null 
+ bzip2 /var/tmp/home_wiki.tar 
+   
+ # Copy the file to another host - we have ssh keys to complete it without interference. 
+ scp /var/tmp/home_franky.tar.bz2 bordeaux: / opt / backup / franky> / dev / null 2> & 1 
+   
+ # Create a time stamp in the log file. 
+ date >> /home/wiki/log/home_backup.log 
+ echo backup succeeded >> /home/wiki/log/home_backup.log 
+   
+ First, you'll make mistakes if you manually rename files and folders every time you need to. Second, suppose the wiki wants to give that program to osama, so osama will need to make some modifications before he can use it to create a backup of his home folder. You can say like this if the wiki wants to use that program to back up other folders. To make recycling easier, make all files, journals, usernames, server names, etc. variable, so you only need to modify the value once without having to check the entire program to see where a lab is. 
+   
+ #! / bin / bash 
+   
+ # This program creates a backup copy of my home folder. 
+   
+ # Change the values ​​of the variables for your program to work: 
+ BACKUPDIR = / home 
+ BACKUPFILES = wiki 
+ TARFILE = / var / tmp / home_wiki.tar 
+ BZIPFILE = / var / tmp / home_wiki.tar.bz2 
+ SERVER = bordeaux 
+ REMOTEDIR = / opt / backup / wiki 
+ LOGFILE = / home / wiki / log / home_backup.log 
+   
+ cd $ BACKUPDIR 
+   
+ # This creates the archive 
+ tar cf $ TARFILE $ BACKUPFILES> / dev / null 2> & 1 
+   
+ # Delete the old bzip2 file 
+ #Redirect errors because this produces some errors if the archive does not exist, and then create a new zip file. 
+ rm $ BZIPFILE 2> / dev / null 
+ bzip2 $ TARFILE 
+   
+ # Copy the file to another host - we have ssh keys to complete it without interference. 
+   
+ scp $ BZIPFILE $ SERVER: $ REMOTEDIR> / dev / null 2> & 1 
+   
+ # Create a timestamp in a logfile. 
+ date >> $ LOGFILE 
+ echo backup succeeded >> $ LOGFILE 
+   
+   
+   
+   
+     Large folders and low speed internet capacity 
+   
+     Anyone can accommodate the example above where we used a small and host folder on the same subnet.However, the speed of doing this depends on your folder size, internet speed, and server location, it can take a long time to create backups using this method. 
+   
+     The solution that works for large folders is to use rsync to keep folders in both respects synchronized. 
+   
+ Quote characters in Bash 
+   
+ Utility quote typefaces 
+   
+ Many quotes and words have special meanings and functions in one form or another, and the quotation is used to eliminate that particular meaning or function.The quotation marks in Bash disrupt the treatment given to the special character, and prevent the treatment of special words according to the meanings they carry, as well as the expansion of coefficients. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ Character escape 
+   
+ Escape characters are used to cancel the special meaning of a single character, and the backslash is used as an escape character in Bash. It retains the immediate meaning of the next character except for the new line character, if a new line character follows the slash it specifies the completion of the current line if it is longer than the width The slash is removed from the input and ignored. 
+ In the following example, we create a variable named date and set it to a value. The echo command displays that value when the date variable is invoked. The second time we use the \ character, the $ tag is ignored and the echo command prints the following as plain text: 
+   
+ wiki ~> date = 20021226 
+   
+ wiki ~> echo $ date 
+ 20021226 
+   
+ wiki ~> echo \ $ date 
+ $ date 
+   
+ Single quotation marks 
+ Single quotation marks '' are used to retain the literal value of each character within the quotation marks, and a single quotation mark does not come between two single quotation marks even if it is preceded by a slash. We follow with the previous example: 
+   
+ hsoub ~> echo '$ date' 
+ $ date 
+   
+ Double quotation marks 
+   
+ Double quotes are used to preserve literal values ​​for all characters that fall between them except the $ sign, single back quotes, and backslashes. 
+   
+ The $ dollar sign and single back quotes `` retain their own functions within double quotes. 
+   
+ The backslash does not retain its own function within quotation marks unless it is followed by a $, `," or \ or new line, and the backslashes are omitted from the input if one of them is followed. They are left unchanged to be treated by the interpreter. 
+ Two double quotation marks can also be used within two other double tags, see the following example for further clarification: 
+   
+ hsoub ~> echo "$ date" 
+ 20021226 
+   
+ hsoub ~> echo "` date`` 
+ Sun Apr 20 11:22:06 CEST 2003 
+   
+ hsoub ~> echo "I'd say: \" Go for it! \ "" 
+ I'd say: "Go for it!" 
+   
+ hsoub ~> echo "\" 
+ More input> " 
+   
+ hsoub ~> echo "\\" 
+ \ 
+   
+ Quote ANSI-C 
+   
+ Words in the '' STRING '$' format are specially treated. The word is expanded to text (string), replacing the characters ignored by the slash as defined in the ANSI-C criteria. See the Bash documentation for more detail on backward slash escape sequences. 
+   
+ Locales  
+   
+ When a text is preceded by a double quotation mark with a $ sign, it is translated according to Locale, and the translated text is placed between the double quotation marks as well. If the locale is C or POSIX, the $ sign is ignored. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ Expansions in Bash 
+   
+ Expanded swastika {} 
+   
+ The expansion of the square bracket is a mechanism by which arbitrary strings can be created. The patterns on which the expansion of the square bracket will be carried out are optional preamble followed by a series of texts separated by commas. {} Next comes an optional postscript as well. Initiation is placed at the beginning of each text within the bracket - after expansion - and then the footnote is also attached to the end of each text, in order from left to right. 
+ Swastika extensions may overlap but that does not mean that the results can be sorted, but the order remains from left to right, see the following example for illustration: 
+   
+ hsoub ~> echo sp {el, il, al} l 
+ spell spill spall 
+   
+ The expansion of the square bracket is carried out before any other expansion, and the result is retained any characters with special meanings in relation to other expansions, since this expansion is exclusively textual. Also, the text} $ is not valid for expanding the square bracket in order to avoid inconsistencies. 
+   
+ The expansion of the square bracket must contain square brackets without quotation marks around each other and a comma, at least one not in quotation marks, and any expansion of the square bracket, unlike that formula, is left unchanged. 
+   
+   
+ Length Expansion (~) 
+   
+ If a word begins with a period ~ without quotation marks, all characters up to the first slash / without quotation marks - or all characters if there is no slash without quotation marks - are considered an introduction to the term (tilde-prefix). If tilde-prefix is ​​a login name, if no prefix characters are enclosed in quotation marks, if that login name is blank, the duration is replaced by the value of the HOME variable, if the HOME variable is not set to any value, The home folder of the user who performs the shell is used in its place, otherwise the foreground is replaced by the For a home associated with the login name. 
+   
+ If the foreground is + ~, the value of the PWD variable is superseded. If the characters after the period in the foreground consist of a number N (may) preceded by + or -, the foreground is replaced by the corresponding element from the Directory Stack, and will be displayed as an argument in the dirs command called by the characters after the period in the foreground If the characters following the period consist of a number without a positive or negative sign before it, this number is assumed to be positive. Also, if the login name is not valid, or if the extension fails, the word is left unchanged. 
+   
+ Variable assignments are examined after: or = directly for prefixes that are not in quotation marks, and the duration is expanded in those cases, so file names with the duration character can be used in assignments that have variables for PATH, MAILPATH, and CDPATH, and coincidence sets the extended value. 
+ Example: 
+   
+ hsoub ~> export PATH = "$ PATH: ~ / testdir" 
+   
+ Testdir / ~ will be expanded to $ HOME / testdir, so if $ HOME is var / home / hsoub /, the var / home / hsoub / testdir / folder is added to the contents of the PATH variable. 
+ Coefficient of chance and variable expansion 
+   
+ The $ character is preceded by parameter expansion, command substitution and arithmetic expansion. The name of the parameter that is to be expanded, or its symbol, may be in square brackets and is optional, but it protects the variable that will be expanded from the characters that follow. It is part of the name. When square brackets are used, the second end of the arch is the first {not smuggled by a backslash \, between quoted text, within an embedded arithmetic expansion, a substituted command, or a coefficient expansion. 
+   
+ The basic image of the parameter expansion is $ {PARAMETER}, the value of PARAMETER is replaced, and the parentheses are necessary when PARAMETER is a local operand of more than one number or when PARAMETER is followed by a character that will not be interpreted as part of the name. 
+ If the first parameter of the parameter PARAMETER is an exclamation point, Bash uses the value of the variable consisting of the rest of the PARAMETER as the name of the variable.This variable is expanded and used in the rest of the substitution instead of the value of PARAMETER itself.This is known as indirect expansion, unlike the widespread direct expansion that occurs In the simplest case, such as the previous case or this case: 
+   
+ hsoub ~> echo $ SHELL 
+ / bin / bash 
+   
+ The following example is for indirect expansion: 
+   
+ hsoub ~> echo $ {! N *} 
+ NNTPPORT NNTPSERVER NPX_PLUGIN_PATH 
+   
+ Note that this is different from * echo $ N, the {VAR: = value} $ structure allows you to create the variable mentioned if it is not already created, see the following example for illustration: 
+   
+ hsoub ~> echo $ HSOUB 
+   
+ hsoub ~> echo $ {HSOUB: = Hsoub} 
+ Hsoub 
+   
+ Special transactions, among other localized transactions, may not be assigned in this way. We will discuss the use of square brackets in the treatment of variables. 
+   
+ Substitution of commands 
+   
+ Substitution of commands allows the output of a command to replace the command itself, and the substitution of commands occurs when an order is on this image: (command) $ or on this image using the apostrophe `:` command` 
+ Bash performs the expansion by executing the command and replacing the substitution with the normal output of the command with the deletion of any new lines (trailing newlines). The new embedded lines are not deleted but may be deleted while words are split. 
+   
+ hsoub ~> echo `date` 
+ Thu Feb 6 10:06:20 CET 2003 
+ The backslash retains its literal meaning when using the old backquoted form of substitution, unless it is followed by a $ or `or` sign, and the substitution of the first backslash is not preceded by a backslash \ ( backslash), when using the $ COMMAND formula, all characters in parentheses are made up of the command and none are treated specifically. 
+   
+ Command overrides can also overlap, and in order to create overlap while using the back quote formula, precede the slashes with back slashes. If the substitution appears in double quotation marks, and the file names expand on the results. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ Computational expansion 
+   
+ The arithmetic expansion allows the evaluation and arithmetic of an arithmetic expression, and the formula for arithmetic expansion is $ (arithmetic expression). All units within the expression are subject to coefficient expansion, order substitution and citation removal, and computational substitutions can overlap. 
+   
+ Arithmetic expressions are evaluated in fixed-width integers without losing the surplus, although dividing by zero is picked up and defined as an error, and operators are almost the same as in C programming language. 
+ Process substitution 
+   
+ Process substitution is supported in systems that support named pipes (FIFOs- First In First Out) or the dev / fd / file naming method, with the format: (LIST)> or (LIST) <. 
+   
+ The LIST process is carried out so that its inputs and outputs are connected to a named pipe (FIFO) or a file in dev / fd /, and the file name is passed as an intermediary to the current command as a result of the expansion. If LIST is used, writing to the file will provide the LIST with inputs. If LIST is used, the file passed as an intermediary must be read in order to obtain the LIST output. Note that spaces should not appear between the <or> tags and the left parenthesis, otherwise the structure will be interpreted as a redirect. 
+   
+ Process substitution is performed in conjunction with coefficient and variable expansion, command substitution and computational expansion whenever possible. See Forwarding and file descriptions. 
+ Split words 
+   
+ The coincidence clears the results of transaction expansion, order substitution, and arithmetic expansions that do not fall within double quotes in search of a split of words. The shell treats each internal field separator or IFS $ character as a delimiter, and divides the results of the other expansions into words about those characters. > <Table (tab)> <new line> '' Specifically, any sequence of IFS characters works to identify words. 
+   
+ The sequence of white space characters and the table (tab) at the beginning and end of a word is ignored if the IFS value is other than the default value, as long as the white space character is in the IFS value (white space character of the IFS variable). 
+   
+ Any character in the IFS variable is not a white space character, it specifies a field, as well as any white space characters in any nearby IF (IF- Internal Field), and the sequence of white space characters of the IFS separator is also treated as a delimiter.If the IFS value is empty, no word division occurs. 
+ Explicit blank arguments ('' '' or '' '') are retained, and the non-quoted implicit arguments resulting from the expansion of non-value coefficients are deleted, and empty text is produced and retained when a coefficient with no quotation marks is expanded. 
+   
+     Expansion and division of words 
+   
+     If there is no expansion, no division will be implemented. 
+   
+ Expands file names 
+   
+ Bash clears each word after the word has been split unless the f- option is checked for characters * and? F) (see refinement of parts of the shell), if none of these characters appear, the word is a PATTERN pattern and is replaced by a list of file names corresponding to the pattern alphabetically. 
+   
+ If no matching name exists and the nullglob shell option is disabled, the word is left intact. If the nullglob option is set and there are no matches, the word is deleted. If the nocaseglob option is enabled, the match is executed without regard to the case of the alphabet. 
+   
+ When a pattern is used to generate a filename, it is typeface. At the beginning of the filename or immediately after a slash, it must be explicitly matched unless the dotglob option is selected. When matching a file name, the slash must always match explicitly. May not be treated. Particularly in some cases. 
+   
+ The GLOBIGNORE variable may be used to restrict the set of file names that match a pattern, even if GLOBEIGNORE is set to a value that is omitted from the list of matching file names. Each name matches a style in GLOBIGNORE. 
+   
+ They are ignored. And .. as filenames even if GLOBIGNORE is set, but in any case, setting GLOBIGNORE activates the dotglob option, so all other filenames beginning with. , And to get old behavior to ignore file names that begin with. , Make *. One of the styles in GLOBIGNORE. The dotglob option is disabled when GLOBEIGNORE is unset. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ Alternative commands in Bash 
+   
+ Utility alternative commands 
+   
+ The Alias ​​command allows a single word to be placed in place of a string, if used as the first word of a simple command. The shell keeps a list of alternate commands that can be set and desensitized by the alias and unalias commands. Type alias at the command line to see a list of alternate commands defined for the current shell: 
+   
+ hsoub: ~> alias 
+ alias .. = 'cd ..' 
+ alias ... = 'cd ../ ..' 
+ alias .... = 'cd ../../ ..' 
+ alias PAGER = 'less -r' 
+ alias Txterm = 'export TERM = xterm' 
+ alias XARGS = 'xargs -r' 
+ alias cdrecord = 'cdrecord -dev 0,0,0 -speed = 8' 
+ alias e = 'vi' 
+ alias egrep = 'grep -E' 
+ alias ewformat = 'fdformat -n / dev / fd0u1743; ewfsck ' 
+ alias fgrep = 'grep -F' 
+ alias ftp = 'ncftp -d15' 
+ alias h = 'history 10' 
+ alias fformat = 'fdformat / dev / fd0H1440' 
+ alias j = 'jobs -l' 
+ alias ksane = 'setterm -reset' 
+ alias ls = 'ls -F --color = auto' 
+ alias m = 'less' 
+ alias md = 'mkdir' 
+ alias od = 'od -Ax -ta -txC' 
+ alias p = 'pstree -p' 
+ alias ping = 'ping -vc1' 
+ alias sb = 'ssh blubber' 
+ alias sl = 'ls' 
+ alias ss = 'ssh octarine' 
+ alias tar = 'gtar' 
+ alias tmp = 'cd / tmp' 
+ alias unaliasall = 'unalias -a' 
+ alias vi = 'eval `resize`; vi' 
+ alias vt100 = 'export TERM = vt100' 
+ alias which = 'type' 
+ alias xt = 'xterm -bg black -fg white &' 
+   
+ hsoub ~> 
+   
+ Alternate commands are used to determine the default version of an order on your system in more than one version, or to specify the default options for an order, and can be used to correct misspellings. The first word of each simple command is examined if it is not quoted - not in quotation marks - for an alternate command. The substitute command name and replacement text may contain shell entries such as shell metacharacters, except that the substitute command name may contain =. 
+   
+ The first word of the substitution text is also scanned for an alternative command, but the word that matches an alternate command expands as it is read again. recursively). The next word for the alternate command is checked inside the command text for an expansion of an alternate command if the last character of the alternate order value is a space character or a table (tab). Alternate commands are not extended if the shell is not interactive unless the expand-aliases option is set using the shopt command. 
+   
+ Create and delete alternate commands 
+   
+ Alternate commands are created using the alias command. To create an alternate command permanently, enter alias into one of your shell initialization files. If you have entered the alternative command on the command line, it will only be recognized within the current shell. 
+   
+ hsoub ~> alias dh = 'df -h' 
+   
+ hsoub ~> dh 
+ Filesystem Size Used Avail Use% Mounted on 
+ / dev / hda7 1.3G 272M 1018M 22% / 
+ / dev / hda1 121M 9.4M 105M 9% / boot 
+ / dev / hda2 13G 8.7G 3.7G 70% / home 
+ / dev / hda3 13G 5.3G 7.1G 43% / opt 
+ none 243M 0 243M 0% / dev / shm 
+ / dev / hda6 3.9G 3.2G 572M 85% / usr 
+ / dev / hda5 5.2G 4.3G 725M 86% / var 
+   
+ hsoub ~> unalias dh 
+   
+ hsoub ~> dh 
+ bash: dh: command not found 
+   
+ hsoub ~> 
+   
+ Bash reads at least one full line of inputs before executing any commands on that line. Alternative commands are only expanded when a command is read and not executed, so defining an alternate command that appears on the same line as another does not have effect until the next line of Input. Commands that follow the alternative command definition on that line are not affected by the new alternative command. This behavior is also a problem when you perform functions. Alternative commands are expanded when the definition of a new function is read and not executed, since the function itself is a compound command. As a result, alternative commands specified in a function are not available even after the function is executed. But to be safe, place the alternate command settings on a separate line and do not use the alias command in bulk commands. Also, sub-processes do not inherit substitute commands, and the Bourne shell does not recognize alternative commands. 
+   
+     Faster functions 
+   
+ Alternative commands are sought after functions, so their resolution is slower, although easier to understand, and prefers the shell functions over alternative commands in almost every use. 
+   
+   
+   
+   
+   
+ Chapter III 
+ Stereotypes in Bash 
+   
+   
+ This chapter highlights the features included in Bash to match patterns and identify character classes and ranges. In addition to a breakdown of the regular expressions (Regular Expressions), they are powerful tools for selecting specific lines of files or from an output, and are used by many commands in Unix such as vim, perl, PotgreSQL database and others, and can be added in any language or application using external libraries, You may even find it on non-Unix systems, as Excel uses it for tables that come in the Windows Office package. 
+   
+ You will also learn about grep, which is indispensable in any Unix environment, as it has far more possibilities than we will explain in this chapter where we use it as an example of stereotypes only. 
+   
+   
+ Regular Expressions 
+   
+ Regular Expression is a method that describes a set of strings. These stereotypes are constructed analogously to arithmetic expressions using several coefficients to combine smaller expressions. The smallest modular structure is the one that matches a single character.Most of the characters, including all letters and numbers, are only typical expressions that match themselves, and any special character (metacharacter) that has a special meaning can be quoted with a backslash. 
+   
+   
+   
+ The difference between basic and extended stereotypes 
+   
+ The following special characters lose their meaning in Basic Regular Expression: , +, {, | , (,), And use the same characters prefixed with a backslash instead? \, + \, {\, | \, (\,) \. See your system documentation to see which commands use stereotypes that support extended expressions. 
+   
+   
+ Grep command 
+   
+ The grep command searches input files for lines that contain matches for a particular pattern list.When it finds a match in a line, it copies the line to the standard output by default or to any other output that you require using the options that you may add to the command. 
+ Although the grep command expects to match text, it has no restrictions on the length of the input line except for available memory, and can match arbitrary characters inside the line, although the last byte of the input file is not a newline, grep adds Automatically. Also, the characters of the new line within text cannot be matched since the new line is a separator of the style list. Here are some examples: 
+   
+ hsoub ~> grep root / etc / passwd 
+ root: x: 0: 0: root: / root: / bin / bash 
+ operator: x: 11: 0: operator: / root: / sbin / nologin 
+   
+ hsoub ~> grep -n root / etc / passwd 
+ 1: root: x: 0: 0: root: / root: / bin / bash 
+ 12: operator: x: 11: 0: operator: / root: / sbin / nologin 
+   
+ hsoub ~> grep -v bash / etc / passwd | grep -v nologin 
+ sync: x: 5: 0: sync: / sbin: / bin / sync 
+ shutdown: x: 6: 0: shutdown: / sbin: / sbin / shutdown 
+ halt: x: 7: 0: halt: / sbin: / sbin / halt 
+ news: x: 9: 13: news: / var / spool / news: 
+ mailnull: x: 47: 47 :: / var / spool / mqueue: / dev / null 
+ xfs: x: 43: 43: X Font Server: / etc / X11 / fs: / bin / false 
+ rpc: x: 32: 32: Portmapper RPC user: /: / bin / false 
+ nscd: x: 28: 28: NSCD Daemon: /: / bin / false 
+ named: x: 25: 25: Named: / var / named: / bin / false 
+ squid: x: 23: 23 :: / var / spool / squid: / dev / null 
+ ldap: x: 55: 55: LDAP User: / var / lib / ldap: / bin / false 
+ apache: x: 48: 48: Apache: / var / www: / bin / false 
+   
+ hsoub ~> grep -c false / etc / passwd 
+ 7 
+   
+ hsoub ~> grep -i ps ~ / .bash * | grep -v history 
+ /home/hsoub/.bashrc:PS1="\[\033[1;44m\font>$USER is in \ w \ [\ 033 [0m \] "" 
+   
+     The hsoub user displays lines that contain the root text of / etc / passwd. 
+   
+     It then displays the line numbers that contain that text. 
+     Then look at the third command which users do not use bash, but accounts that use nologin shell are not displayed. 
+     It then calculates the number of calculations encountered by bin / false /. 
+     The last command line displays lines beginning with bash./~ from all files in the user's home folder hsoub, except for matches containing history text, including excluding matches from the bash_history./~ file since it may contain the same section Script both in its lower case (lowercase) and major case (uppercase). Also note that searching for ps text, not ps. 
+   
+ Grep command and typical expressions 
+   
+     If you are on an operating system other than Linux 
+   
+     We use the grep command for GNU in these examples, which supports extended stereotypes. The grep command from GNU is the default on Linux, see if you are running on non-Linux systems, which version you have using the V- option. You can also download the GNU grep from https://gnu.org/directory. 
+   
+ Axes of lines and words 
+   
+ From the previous example, we will now show the lines beginning with root text: 
+   
+ hsoub ~> grep ^ root / etc / passwd 
+ root: x: 0: 0: root: / root: / bin / bash 
+   
+ If we want to see any calculations for which shells are not assigned, we will look for lines that end with the letter:, as follows: 
+   
+ hsoub ~> grep: $ / etc / passwd 
+ news: x: 9: 13: news: / var / spool / news: 
+   
+ To find out if the PATH variable has been exported in the bashrc./~ file, first choose export lines and then look for lines that start with PATH text so that MANPATH and other possible paths are not displayed: 
+   
+ hsoub ~> grep export ~ / .bashrc | grep '\ <PATH' 
+   export PATH = "/ bin: / usr / lib / mh: / lib: / usr / bin: / usr / local / bin: / usr / ucb: / usr / dbin: $ PATH" 
+   
+ Similarly, <\ matches the end of a word, and if you want a separate word "any text between two spaces" it is best to use w- as in the following example where it displays information about the root partition -root- on the hard drive: 
+   
+ hsoub ~> grep -w / / etc / fstab 
+ LABEL = // ext3 defaults 1 1 
+   
+ If this option is not used, all lines of the file system table will be displayed. 
+   
+   
+ Character Types 
+   
+ The bracket expression is a list of characters between the square brackets [], which corresponds to any single character in that list.If the first character in the list is a caret ^ it matches any character that is not in the list. [0123456789] Any single typeface. The expression range within a square bracket [] consists of two characters separated by a dash - and corresponds to any single character that is classified between two characters including the use of locale's collating sequence and character set. For example, in the default locale for C, [a-d] is equal to [abcd]. 
+ Many locales classify characters in the dictionary order, and in those localities [a-d] is not equal to [abcd]; it may equal [aBbCcDd]. For the traditional interpretation of square bracket expressions, you can use the locale for C by setting the environment variable LC_ALL to C. 
+ Finally, some of the character categories listed are predefined within square bracket expressions, see the grep info pages or man directory pages for more information on those predefined expressions. Also, look at the following example where all lines containing either y or f will be displayed. 
+   
+ hsoub ~> grep [yf] / etc / group 
+ sys: x: 3: root, bin, adm 
+ tty: x: 5: 
+ mail: x: 12: mail, postfix 
+ ftp: x: 50: 
+ nobody: x: 99: 
+ floppy: x: 19: 
+ xfs: x: 43: 
+ nfsnobody: x: 65534: 
+ postfix: x: 89: 
+   
+ Wildcards 
+   
+ use . In order to match a single character, if you want to get a list of all five-letter English dictionary words that start with c and end with h, here's an example - useful in solving crosswords! -: 
+   
+ hsoub ~> grep '\ <c ... h \>' / usr / share / dict / words 
+ catch 
+ clash 
+ cloth 
+ coach 
+ couch 
+ cough 
+ crash 
+ crush 
+   
+ If you want to display lines that contain a typeface. Use the F-option to get it, and use the * character to match multiple characters, see the following example, which selects all words beginning with c and ending with h from the system dictionary: 
+   
+ hsoub ~> grep '\ <c. * h \>' / usr / share / dict / words 
+ caliph 
+ cash 
+ catch 
+ cheesecloth 
+ cheetah 
+ --output omitted-- 
+   
+ If you want to find a * character inside a file or an output, use single quotes around it. In the following example, it attempts to find the star character in etc / profile / without the quotation marks, it does not return any lines, but when used, it gets a result of what it wants in the output. : 
+   
+ hsoub ~> grep * / etc / profile 
+   
+ hsoub ~> grep '*' / etc / profile 
+ for i in /etc/profile.d/*.sh; do 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ Match patterns using Bash features 
+   
+   
+ Character Ranges 
+   
+ Unlike grep and regular expressions, we have many instances of pattern matching that you can make directly in the shell without having to use an external program. Match any single text or character, respectively, and in order to match these two characters specifically, enclose double quotation marks around each: 
+   
+ hsoub ~> touch "*" 
+   
+ hsoub ~> ls "*" 
+ * 
+   
+ You can use square brackets to match any character or character set within those brackets if the character pairs are separated by a dash - see the following example, which shows all files beginning with one of the following characters: a, b, c, x, y, z in the user's home folder hsoub : 
+   
+ hsoub ~> ls -ld [a-cx-z] * 
+ drwxr-xr-x 2 hsoub hsoub 4096 Jul 20 2002 app-defaults / 
+ drwxrwxr-x 4 hsoub hsoub 4096 May 25 2002 arabic / 
+ drwxrwxr-x 2 hsoub hsoub 4096 Mar 4 18:30 bin / 
+ drwxr-xr-x 7 hsoub hsoub 4096 Sep 2 2001 crossover / 
+ drwxrwxr-x 3 hsoub hsoub 4096 Mar 22 2002 xml / 
+   
+ If the first typeface in parentheses is! Or ^ it will match any character that is not in parentheses, and to match the dash -, enter it as the first or last character in the set, and the classification depends on the current locale and the value of the LC_COLLATE variable, if set to a value, note that other locale may be interpreted [ a-cx-z] as [aBbCcXxYyZz] If the classification is in the dictionary order, and if you want to make sure the range is interpreted in the traditional way, set LC_COLLATE or LC_ALL to C. 
+ Character Types 
+   
+ Character classes can be specified in square brackets according to the linguistic structure [: CLASS:] where CLASS is defined within the POSIX standard and has one of the following values: alnum - alpha - ascii - blank - cntrl - digit - graph - lower - print - punct - space - upper - word - xdigit. 
+ Examples: 
+   
+ hsoub ~> ls -ld [[: digit:]] * 
+ drwxrwxr-x 2 hsoub hsoub 4096 Apr 20 13:45 2 / 
+   
+ cathy ~> ls -ld [[: upper:]] * 
+ drwxrwxr-- 3 hsoub hsoub 4096 Sep 30 2001 Nautilus / 
+ drwxrwxr-x 4 hsoub hsoub 4096 Jul 11 ​​2002 OpenOffice.org1.0 / 
+ -rw-rw-r-- 1 hsoub hsoub 997376 Apr 18 15:39 Schedule.sdc 
+   
+ Several extended pattern matching operators are defined when the extglob option is activated using the shopt command, see the info directory pages, basic shell features section> shell expansions> filename expansion> Pattern matching. 
+   
+   
+ Chapter IV 
+ Conditional structures in Bash 
+   
+ In this chapter, we will learn how to build conditional strings in our programs so that we can take different actions based on the success or failure of commands.These procedures will be determined using the if statement.This will allow you to perform mathematical and textual comparisons, and to test the exit codes, inputs, and files needed by the program. 
+   
+ Commands in shell programs are usually preceded by an if / then / fi test to prevent the output from being created for the program to run in the background or through the cron tool, and more complex conditions are placed in the case statement. 
+   
+ The program tells the parent shell when the condition test is successful using the exit 0 state 
+ Another number, and the program in the mother shell then performs the appropriate actions according to the return code. 
+   
+ -          Introduction to if in Bash 
+   
+ Look at the conditional if statement, as well as then, the expressions and commands used with each, as well as checking files and shell options. 
+   
+ -          Advanced uses of the conditional if statement 
+   
+ Detailed explanations of structures using if / then / else and if / then / elif / else. 
+   
+   
+ -          Use the case structure in Bash 
+   
+ A simple explanation of cases where case is used instead of if, with an example from an init code. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ D You need to specify different strings of action within shell scripts based on the success or failure of the execution of a command, the conditional if tool comes for such cases, and the smallest syntax for the if command is the following: 
+   
+ if TEST-COMMANDS; then CONSEQUENT-COMMANDS; fi 
+   
+ The TEST-COMMANDS test command list is executed, and the CONSEQUENT-COMMANDS dependent command list is executed if its return status is zero. The return status is the exit status of the last executed order, or zero if no test order is met. 
+   
+ The TEST-COMMAND test command often involves numerical or textual comparisons, but this does not prevent a command that returns a zero state if it succeeds and another case when it fails. Unary Expressions are often used to test the status of a file. FILE for a primaries in dev / fd / N format. The file descriptor N is inspected. Stdin, stdout, and stderr files and their file descriptions, respectively, may also be used in these tests. 
+   
+ Expressions used with if 
+   
+ The following table contains a summary of the so-called basics that make up the TEST-COMMAND test order or the list of test commands in the conditional if structure. These basics are enclosed in square brackets to show the conditional expression test. 
+   
+ The [] test command evaluates conditional expressions using a set of rules based on the number of arguments. You will find more explanation of this in the Bash documentation. Also, the square bracket should be closed after the conditions are listed just as if the conditional should be closed with fi. 
+ The commands that follow are then 
+   
+ CONSEQUENT-COMMANDS commands following the then statement can be any UNIX command, executable program, shell script, or shell statement, except of course the fi statement that is closed. Perhaps you should remember that then and fi are separate phrases in chance, so they are separated by a semicolon; When you type them in the command line. Also, the different parts of the if statement within a shell program are well separated, you'll find some examples below. 
+   
+   
+ Scan files 
+   
+ The first example looks at the existence of the msgcheck.sh file: 
+   
+ hsoub ~> cat msgcheck.sh 
+ #! / bin / bash 
+   
+ echo "This scripts checks the existence of the messages file." 
+ echo "Checking ..." 
+ if [-f / var / log / messages] 
+   then 
+     echo "/ var / log / messages exists." 
+ fi 
+ echo 
+ echo "... done." 
+   
+ hsoub ~> ./msgcheck.sh 
+ This scripts checks the existence of the messages file. 
+ Checking ... 
+ / var / log / messages exists. 
+   
+ ... done. 
+   
+ Check the chance options 
+ To add your Bash settings files: 
+   
+ # noclobber These lines will print a message if an option is set: 
+   
+ if [-o noclobber] 
+   then 
+ echo "Your files are protected against accidental overwriting using redirection." 
+ fi 
+   
+     The environment 
+   
+     The above example will be executed when entered in the command line: 
+   
+ hsoub ~> if [-o noclobber]; then echo; echo "your files are protected 
+ against overwriting. "; echo; fi 
+   
+ your files are protected against overwriting. 
+   
+ hsoub ~> 
+   
+     However, if you use environment-based testing, you may get different results when you insert the same into a shell script. The program will open a new shell in which variables and options may not be automatically set. 
+   
+ Simple applications on the if statement 
+   
+ Test the exit status 
+ Contains a variable? On the logoff status of the previously executed command (last operation in the interface). The following example shows a simple test: 
+   
+ hsoub ~> if [$? -eq 0] 
+ More input> then echo 'That was a good job!' 
+ More input> fi 
+ That was a good job! 
+   
+ hsoub ~> 
+   
+ This example shows how TEST-COMMAND could be any Unix command that returns an exit state, and if if again returns a zero exit state: 
+   
+ hsoub ~> if! grep $ USER / etc / passwd 
+ More input> then echo "your user account is not managed locally"; fi 
+ your user account is not managed locally 
+   
+ hsoub> echo $? 
+ 0 
+   
+ hsoub> 
+   
+ The same result can be obtained as follows: 
+   
+ hsoub> grep $ USER / etc / passwd 
+   
+ hsoub> if [$? -ne 0]; then echo "not a local account"; fi 
+ not a local account 
+   
+ hsoub> 
+   
+ Numerical comparisons 
+ The examples below use numerical comparisons: 
+   
+ hsoub> num = `wc -l work.txt` 
+   
+ hsoub> echo $ num 
+ 201 
+   
+ hsoub> if ["$ num" -gt "150"] 
+ More input> then echo; echo "you've worked hard enough for today." 
+ More input> echo; fi 
+   
+ you've worked hard enough for today. 
+   
+ hsoub> 
+   
+ This code is executed with a cron every Sunday and sends you a reminder to remove trash cans even if the week number is even: 
+   
+ #! / bin / bash 
+   
+ # date Calculate the week number using a command: 
+   
+ WEEKOFFSET = $ [$ (date + "% V")% 2] 
+   
+ # Consider the conditional statement If we have a reminder, if not, the week will be even, send us a message 
+ # In case of any other result, the statement does nothing. 
+   
+ if [$ WEEKOFFSET -eq "0"]; then 
+   echo "Sunday evening, put out the garbage cans." | mail -s "Garbage cans out" your@your_domain.org 
+ fi 
+   
+   
+ Text comparisons 
+   
+ Here's an example of text comparison to test your User ID: 
+   
+ if ["$ (whoami)"! = 'root']; then 
+         echo "You have no permission to run $ 0 as non-root user." 
+         exit 1; 
+ fi 
+   
+ You can shorten this type of structure using Bash, see the following example that represents a compressed image from the previous test: 
+   
+ ["$ (whoami)"! = 'root'] && (echo you are using a non-privileged account; exit 1) 
+   
+ Specifies the || What to do if the test is wrong, just like the && expression that explains what to do if the test is correct. Also, stereotypes can be used in comparisons: 
+   
+ hsoub> gender = "male" 
+   
+ hsoub> if [["$ gender" == m *]] 
+ More input> then echo "Pleasure to meet you, Sir."; fi 
+ Pleasure to meet you, Sir. 
+   
+   
+     Real programmers 
+   
+     Most programmers prefer to use the test command, which is equal to the use of square brackets for comparison. See the following example: 
+   
+ test "$ (whoami)"! = 'root' && (echo you are using a non-privileged account; exit 1) 
+   
+     Exit command 
+   
+     If you call the exit command in a sub-shell, it won't pass variables to the parent shell, use {and} instead of (and) if you don't want Bash to open a sub-shell. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ If / then / else is built 
+ The following example illustrates the structure that should be used to take an action or series of actions if the conditions of the if statement are met, and a series of other actions if not: 
+   
+ hsoub scripts> gender = "male" 
+   
+ hsoub scripts> if [["$ gender" == "f *"]] 
+ More input> then echo "Pleasure to meet you, Madame." 
+ More input> else echo "How come the lady hasn't got a drink yet?" 
+ More input> fi 
+ How come the lady hasn't got a drink yet? 
+   
+ hsoub scripts> 
+   
+     The difference between [] and [[]] 
+   
+     Unlike [],]] prevents words from being split into variable values, so if "VAR =" var with spaces you don't need to put $ VAR between double quotes in a test, although using quotes remains a better behavior anyway. It also prevents]] pathname expansion, so do not attempt to expand wildcards to file names. Also, using]], == and =! Interpret the sections on the right as glob patterns that are compared to the values ​​on the left. For example, [[* value "== val"]]. 
+   
+ The ALTERNATE-CONSEQUENT-COMMANDS alternative command list that follows the else statement may consist of any UNIX command that returns an exit state, just like the list of CONSEQUENT-COMMANDS dependent commands that follows the then statement. Here's another example that complements the example described in the Exit-to-If Exit chapter in Bash: 
+   
+ hsoub ~> su - 
+ Password: 
+ [root @ alaraby root] # if! grep ^ $ USER / etc / passwd 1> / dev / null 
+ > then echo "your user account is not managed locally" 
+ > else echo "your account is managed from the local / etc / passwd file" 
+ > fi 
+ your account is managed from the local / etc / passwd file 
+ [root @ alaraby root] # 
+   
+ In the previous example, we changed the user to the root user to see the effect of else, because your root user is a local user, unlike your user account, as it may be subject to a centralized system, such as an LDAP server. 
+   
+ Examine the command line arguments 
+ It is more appropriate to place values ​​for variables on the command line rather than setting the variable to a value and then execute the program. We use the position parameters of $ 1, $ 2,…, N $ for this purpose, where # $ indicates the number of command-line arguments, and $ 0 indicates the name of the shell program . Here's a simple example: 
+   
+ hsoub @ alaraby: ~ / testdir $ cat penguin.sh 
+ #! / bin / bash 
+   
+ # (Tux) This program allows you to serve food to the penguin 
+ # The penguin will only be happy when a fish is given 
+   
+ if ["$ 1" == fish]; then 
+   echo "Hmmmm fish ... Tux is happy!" 
+ else 
+   echo "Tux doesn't like that. Tux wants fish!" 
+ fi 
+   
+ hsoub @ alaraby: ~ / testdir $ penguin.sh apple 
+ Tux doesn't like that. Tux wants fish! 
+ hsoub @ alaraby: ~ / testdir $ penguin.sh fish 
+ Hmmm fish ... Tux is happy! 
+ hsoub @ alaraby: ~ / testdir $ 
+   
+ Here's another example that uses two local operators: 
+   
+ hsoub ~> cat weight.sh 
+ #! / bin / bash 
+   
+ # This program prints a message about your weight if you give your weight in kilograms and your height in centimeters 
+   
+ weight = "$ 1" 
+ height = "$ 2" 
+ idealweight = $ [$ height - 110] 
+   
+ if [$ weight -le $ idealweight]; then 
+   echo "You should eat a bit more fat." 
+ else 
+   echo "You should eat a bit more fruit." 
+ fi 
+   
+ hsoub ~> bash -x weight.sh 55 169 
+ + weight = 55 
+ + height = 169 
+ + idealweight = 59 
+ + '[' 55 -le 59 ']' 
+ + echo 'You should eat a bit more fat.' 
+ You should eat a bit more fat. 
+   
+ Test the number of arguments 
+ The following example explains how to modify the previous example to print a message if more than two position operators are entered: 
+   
+ hsoub ~> cat weight.sh 
+ #! / bin / bash 
+   
+ # This program prints a message about your weight if you enter your weight in kilograms and your height in centimeters 
+   
+   
+ if [! $ # == 2]; then 
+   echo "Usage: $ 0 weight_in_kilos length_in_centimeters" 
+   exit 
+ fi 
+   
+ weight = "$ 1" 
+ height = "$ 2" 
+ idealweight = $ [$ height - 110] 
+   
+ if [$ weight -le $ idealweight]; then 
+   echo "You should eat a bit more fat." 
+ else 
+   echo "You should eat a bit more fruit." 
+ fi 
+   
+ hsoub ~> weight.sh 70 150 
+ You should eat a bit more fruit. 
+   
+ hsoub ~> weight.sh 70 150 33 
+ Usage: ./weight.sh weight_in_kilos length_in_centimeters 
+   
+ In the previous example, $ 1 referred to the first operand, $ 2 to the second, and so on, and stored the number of arguments in # $. See Using the exit statement with if to better print usage messages. 
+ Test for a file 
+ This test is used in many programs to ensure the implementation of these programs. There is no point in calling a program if you know it will not be implemented: 
+   
+ #! / bin / bash 
+   
+ # This program gives data about a file. 
+   
+ FILENAME = "$ 1" 
+   
+ echo "Properties for $ FILENAME:" 
+   
+ if [-f $ FILENAME]; then 
+   echo "Size is $ (ls -lh $ FILENAME | awk '{print $ 5}')" 
+   echo "Type is $ (file $ FILENAME | cut -d": "-f2 -)" 
+   echo "Inode number is $ (ls -i $ FILENAME | cut -d" "-f1 -)" 
+   echo "$ (df -h $ FILENAME | grep -v Mounted | awk '{print" On ", $ 1", \ 
+ which is mounted as the ", $ 6," partition. "} ')" 
+ else 
+   echo "File does not exist." 
+ fi 
+   
+ Note that the file is referenced using a variable which is the first argument of the program in that case.When we do not have arguments, the locations of the files are saved in variables at the beginning of the program, and their content is indicated by using those variables, so you do not need to modify the file name in Program only once. 
+   
+     The names of files that contain spaces 
+   
+     The previous example fails if the value of $ 1 can be parsed as multiple words, and if can be fixed with double quotation marks around the file name or with [] instead of]. 
+   
+ If / then / elif / else 
+ The full image of if is: 
+   
+ if TEST-COMMANDS; then 
+ CONSEQUENT-COMMANDS; 
+ elif MORE-TEST-COMMANDS; then 
+ MORE-CONSEQUENT-COMMANDS; 
+ else ALTERNATE-CONSEQUENT-COMMANDS; 
+ fi 
+   
+ The TEST-COMMANDS test orders are executed first. If the return status is zero, the dependent commands are executed. One of the "MORE-CONSEQUENT-COMMANDS" commands that accompany it is executed and the command completes. 
+   
+ If else is followed by an ALTERNATE-CONSEQUENT-COMMANDS list and the last order status in the last condition of the if or elif statement is nonzero, the list of substitute orders is executed, and the return status is the exit status of the last executed order or zero if no condition is met Of the conditions given in the orders. 
+ Example 
+ Here's an example that you can put in your crontab file for daily execution: 
+   
+ hsoub /etc/cron.daily> cat disktest.sh 
+ #! / bin / bash 
+   
+ # This software performs a simple hard drive test. 
+   
+ space = `df -h | awk '{print $ 5}' | grep% | grep -v Use | sort -n | tail -1 | cut -d "%" -f1 -` 
+ alertvalue = "80" 
+   
+ if ["$ space" -ge "$ alertvalue"]; then 
+   echo "At least one of my disks is nearly full!" | mail -s "daily diskcheck" root 
+ else 
+   echo "Disk space normal" | mail -s "daily diskcheck" root 
+ fi 
+   
+ Nested if statements 
+ The if statement can be used within any other if any number of levels you want as long as you can control it. Here's an example that tests for leap years: 
+   
+ hsoub ~ / testdir> cat testleap.sh 
+ #! / bin / bash 
+ # This program will inspect this year to see if we are in a leap year. 
+   
+ year = `date +% Y` 
+   
+ if [$ [$ year% 400] -eq "0"]; then 
+   echo "This is a leap year. February has 29 days." 
+ elif [$ [$ year% 4] -eq 0]; then 
+         if [$ [$ year% 100] -ne 0]; then 
+           echo "This is a leap year, February has 29 days." 
+         else 
+           echo "This is not a leap year. February has 28 days." 
+         fi 
+ else 
+   echo "This is not a leap year. February has 28 days." 
+ fi 
+   
+ hsoub ~ / testdir> date 
+ Tue Jan 14 20:37:55 CET 2003 
+   
+ hsoub ~ / testdir> testleap.sh 
+ This is not a leap year. 
+   
+   
+ Logical operations 
+ The previous program can be summarized using the logical operators AND (&&), and OR (||). 
+   
+ #! / bin / bash 
+ # Check this program to know if we are in a leap year 
+   
+ year = `date +% Y` 
+   
+ if ((("$ year"% 400) == "0")) || ((("$ year"% 4 == "0") && ("$ year"% 100! = "0"))); then 
+   echo "This is a leap year. Don't forget to charge the extra day!" 
+ else 
+   echo "This is not a leap year." 
+ fi 
+   
+ We used the double brackets in the previous example to test a mathematical expression, see mathematical expansion in the separation of expansions in Bash, this is equivalent to let. Don't use square brackets here or try something like [400% year $] $, because square brackets here aren't really real. You might also want to use text editors that support different color schemes depending on the language you are writing, as they are useful for identifying errors in your code, one of which is gvim but you'll also find kwrite and others. 
+   
+ Use the exit statement with if 
+   
+ We first identified the exit statement, which terminates the entire execution of the program, and is often used if the request the user requested was wrong, the statement was not executed successfully, or if another error occurred. The exit statement takes an optional argument, which is the numerical symbol of the exit state, which is passed back to the parent shell and stored in the? $ Variable. When the value of the argument is zero, it means that the program was executed successfully, and any other value may be used by programmers to pass different messages to the parent shell in order to take different actions according to the failure or success of the subprocess.If no argument is given to the exit command, the parent shell uses the current value. For the? $ Variable. 
+ Here is an example of penguin.sh, which is explained with a little modification so that it sends its exit status to the parent shell where feed.sh is present: 
+   
+ hsoub ~ / testdir> cat penguin.sh 
+ #! / bin / bash 
+   
+ # (Tux) This program allows you to serve food to the penguin 
+ # The penguin will only be happy when a fish is given 
+ # We've also added dolphin and camel options. 
+   
+ if ["$ menu" == "fish"]; then 
+   if ["$ animal" == "penguin"]; then 
+     echo "Hmmmmmm fish ... Tux is happy!" 
+   elif ["$ animal" == "dolphin"]; then 
+     echo "Pweetpeettreetppeterdepweet!" 
+   else 
+     echo "* prrrrrrrt *" 
+   fi 
+ else 
+   if ["$ animal" == "penguin"]; then 
+     echo "Tux doesn't like that. Tux wants fish!" 
+     exit 1 
+   elif ["$ animal" == "dolphin"]; then 
+     echo "Pweepwishpeeterdepweet!" 
+     exit 2 
+   else 
+     echo "Will you read this sign ?!" 
+     exit 3 
+   fi 
+ fi 
+   
+   
+ This program is called in the following example, which exports its menu and animal variables: 
+   
+ hsoub ~ / testdir> cat feed.sh 
+ #! / bin / bash 
+ # penguin.sh This program behaves according to the exit status it gives 
+   
+ export menu = "$ 1" 
+ export animal = "$ 2" 
+   
+ feed = "/ nethome / anny / testdir / penguin.sh" 
+   
+ $ feed $ menu $ animal 
+   
+ case $? in 
+   
+ 1) 
+   echo "Guard: You'd better give'm a fish, less they get violent ..." 
+   ;; 
+ 2) 
+   echo "Guard: It's because of people like you that they are leaving earth all the time ..." 
+   ;; 
+ 3) 
+   echo "Guard: Buy the food that the Zoo provides for the animals, you ***, how 
+ do you think we survive? " 
+   ;; 
+ *) 
+   echo "Guard: Don't forget the guide!" 
+   ;; 
+ esac 
+   
+ hsoub ~ / testdir> ./feed.sh apple penguin 
+ Tux doesn't like that. Tux wants fish! 
+ Guard: You'd better give'm a fish, less they get violent ... 
+   
+ Exit status codes can be freely chosen as you see, and exit commands usually have a series of specific codes 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ Use the case structure 
+   
+ Simplified cases 
+   
+ It may be easy to use the if statements for its intuitive style, but that ease turns into confusion when you encounter a few different choices of possible actions to take. For such cases we use the case, and its linguistic structure is as follows: 
+   
+ case EXPRESSION in CASE1) COMMAND-LIST ;; CASE2) COMMAND-LIST ;; ... CASEN) COMMAND-LIST ;; esac 
+   
+ Each case in the previous expression matches a pattern, the commands in the COMMAND-LIST list are executed for the first match, and the pipe typeface | To separate multiple patterns, terminate a parameter (list of styles, each case is called a case and its commands, and each item must end with two semicolons; any case ends with esac. See the following example that explains Case statements To send more diverse warning messages with disktest.sh: 
+   
+ hsoub ~ / testdir> cat disktest.sh 
+ #! / bin / bash 
+   
+ # This program performs a simple hard disk space test. 
+   
+ space = `df -h | awk '{print $ 5}' | grep% | grep -v Use | sort -n | tail -1 | cut -d "%" -f1 -` 
+   
+ case $ space in 
+ [1-6] *) 
+   Message = "All is quiet." 
+   ;; 
+ [7-8] *) 
+   Message = "Start thinking about cleaning out some stuff. There's a partition that is $ space% full." 
+   ;; 
+ 9 [1-8]) 
+   Message = "Better hurry with that new disk ... One partition is $ space% full." 
+   ;; 
+ 99) 
+   Message = "I'm drowning here! There's a partition at $ space%!" 
+   ;; 
+ *) 
+   Message = "I seem to be running with an nonexistent amount of disk space ..." 
+   ;; 
+ esac 
+   
+ echo $ Message | mail -s "disk report` date` "hsoub 
+   
+ hsoub ~ / testdir> 
+ You have new mail. 
+   
+ hsoub ~ / testdir> tail -16 / var / spool / mail / hsoub 
+ From hsoub @ alaraby Tue Jan 14 22:10:47 2003 
+ Return-Path: <hsoub @ alaraby> 
+ Received: from alaraby (localhost [127.0.0.1]) 
+         by alaraby (8.12.5 / 8.12.5) with ESMTP id h0ELAlBG020414 
+         for <hsoub @ alaraby>; Tue, 14 Jan 2003 22:10:47 +0100 
+ Received: (from hsoub @ localhost) 
+         by alaraby (8.12.5 / 8.12.5 / Submit) id h0ELAltn020413 
+         for hsoub; Tue, 14 Jan 2003 22:10:47 +0100 
+ Date: Tue, 14 Jan 2003 22:10:47 +0100 
+ From: Hsoub <hsoub @ alaraby> 
+ Message-Id: <200301142110.h0ELAltn020413@alaraby> 
+ To: hsoub @ alaraby 
+ Subject: disk report Tue Jan 14 22:10:47 CET 2003 
+   
+ Start thinking about cleaning out some stuff. There's a partition that is 87% full. 
+   
+ hsoub ~ / testdir> 
+   
+ You could open your mail client to check the results, but this example was to show that the program sends complete mail messages including the To address, Subject, and From. You can find many examples of using case statements in your init code folder. Startup scripts use start and stop statements to run or stop system processes, you'll find a theoretical example below. 
+ Example initscript 
+ The init codes use the case statement to start and stop system services as well as to query them. In the following example, it is part of a program that starts the Anacron service, a daemon that executes commands periodically at intervals determined by days. 
+   
+ case "$ 1" in 
+         start) 
+             start 
+             ;; 
+   
+         stop) 
+             stop 
+             ;; 
+   
+         status) 
+             status anacron 
+             ;; 
+         restart) 
+             stop 
+             start 
+             ;; 
+         condrestart) 
+             if test "x`pidof anacron`"! = x; then 
+                 stop 
+                 start 
+             fi 
+             ;; 
+   
+         *) 
+             echo $ "Usage: $ 0 {start | stop | restart | condrestart | status}" 
+             exit 1 
+   
+ esac 
+   
+ The tasks to be performed, such as turning on and off the sprite, are defined within functions whose source is, in part, the etc / rc.d / init.d / functions / file, 
+ Chapter V 
+   
+ Repetitive tasks in Bash 
+   
+   
+ In this section, you will learn how repetitive commands can be merged into iterative loops, and how repeating loops are constructed using either or for or while statements until one or all of them are combined. The for loop executes a task a certain number of times. Until or while statement to specify when the loop should stop. 
+   
+ Loops can be interrupted or repeated using break and continue statements, and a file can be used as an input for a loop via the input forwarding coefficient. Loops can also read output from commands fed through a pipe. 
+   
+ You will also learn how the select structure is used to print lists in interactive scripts, and how to use a shift statement to execute a command argument in an iterative loop within a shell script. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ Episode for in Bash 
+   
+   
+ How to make a loop for iterative 
+   
+ The for loop is the first of the three iterative units of chance, which allows a list of values ​​to be assigned, and a list of commands is executed for each of these values. 
+ The linguistic structure of this iterative cycle is as follows: 
+   
+ for NAME [in LIST]; do COMMANDS; done 
+   
+ If [in LIST] does not exist, @ $ in is replaced by it, and executed for commands (COMMANDS) once for each position parameter set to a value, see Variables in Bash and check the command line arguments. 
+   
+ The return status is the exit status of the last executed order, and if no order is executed because LIST does not expand to any element, the return status is zero. 
+   
+ The name (NAME) can be any variable name although i is frequently used, and the LIST list can be made up of any words, text, or numbers, which may be literal or generated by any command. 
+   
+ Similarly, the commands to be executed for each value (COMMANDS) can be any system commands, programs, shell statement, or scripts. When the first loop starts, the NAME variable is first set to the first item in the LIST, its value changes the second time to the second item in the list, and so on. The iteration loop ends when the NAME variable passes over all the values ​​in the list. 
+   
+ Examples 
+   
+ Use the Replace commands to select menu items 
+ The first example will be a command line, which shows the use of a for loop to create a backup of each .xml file, and you can work on your sources safely after the command is issued: 
+   
+ [wiki @ hsoub ~ / articles] ls * .xml 
+ file1.xml file2.xml file3.xml 
+   
+ [wiki @ hsoub ~ / articles] ls * .xml> list 
+   
+ [wiki @ hsoub ~ / articles] for i in `cat list`; do cp "$ i" "$ i" .bak; done 
+   
+ [wiki @ hsoub ~ / articles] ls * .xml * 
+ file1.xml file1.xml.bak file2.xml file2.xml.bak file3.xml file3.xml.bak 
+   
+ This example shows plain text files, potentially programs, inside the / sbin folder: 
+   
+ for i in `ls / sbin`; do file / sbin / $ i | grep ASCII; done 
+   
+   
+   
+ Use variable content to select menu items 
+   
+ The following is a specific program that converts system-compatible HTML files to PHP files. The conversion is done by deleting the first 25 lines and the last 21, and placing two tags from PHP that add two header and footer lines: 
+   
+ [wiki @ hsoub ~ / html] cat html2php.sh 
+ #! / bin / bash 
+ # php to html specific program to convert files 
+ LIST = "$ (ls * .html)" 
+ for i in "$ LIST"; do 
+      NEWNAME = $ (ls "$ i" | sed -e 's / html / php /') 
+      cat beginfile> "$ NEWNAME" 
+      cat "$ i" | sed -e '1,25d' | tac | sed -e '1,21d' | tac >> "$ NEWNAME" 
+      cat endfile >> "$ NEWNAME" 
+ done 
+   
+ There is no way to know the line number at which deletion will begin until we reach the end because we do not count the lines here, and the problem is solved using tac, which reflects the lines within the file. 
+   
+ Basename command 
+   
+ It is best to use the basename command to change the html suffix to php. See the man's pages for more details. 
+   
+ Abnormal typefaces 
+   
+ If you expand the list to file names with special characters such as spaces and other abnormal characters, the solution is to use globbing in the shell as follows: 
+   
+ for i in $ PATHNAME / *; do 
+ commands 
+ done 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ While loop in Bash 
+   
+ How to make a while loop 
+   
+ The iterative while loop allows repeated execution of a list of commands as long as the command in a while loop is executed successfully (exiting zero). The linguistic structure of this episode is: 
+   
+ while CONTROL-COMMAND; do CONSEQUENT-COMMANDS; done 
+   
+ CONTROL-COMMAND, which will control the loop, denotes any command that fails or succeeds, while CONSEQUENT-COMMANDS, which will be repeated, may be any shell program or program or shell structure. 
+   
+ The loop comes out immediately after the control command fails, and if the loop is in a program of chance, the following command is done after the loop ends because of the failure of the control command. 
+   
+ The return status is the same as the exit status of the last dependent command (CONSEQUENT-COMMANDS), or is zero if no order is executed. 
+   
+ Examples 
+ A simple example to use while 
+ Here's a simple example of using a while loop: 
+   
+ #! / bin / bash 
+   
+ # This program opens four terminal windows. 
+   
+ i = "0" 
+   
+ while [$ i -lt 4] 
+ do 
+     xterm & 
+     i = $ [$ i + 1] 
+ done 
+   
+ While nested loops 
+ The following example is written in order to copy images taken by a webcam to a folder on a web server. It takes a picture every five minutes, every hour a new folder with the images of that hour is created, and a folder each day with 24 subfolders is created. The program runs in the background: 
+   
+ #! / bin / bash 
+   
+ # This program copies files from my home folder to a folder in a web server. 
+ # (Use remote folder ssh and scp keys) 
+ # A new folder is created every hour 
+   
+ PICSDIR = / home / hsoub / pics 
+ WEBDIR = / var / www / hsoub / webcam 
+   
+ while true; do 
+ DATE = `date +% Y% m% d` 
+ HOUR = `date +% H` 
+ mkdir $ WEBDIR / "$ DATE" 
+   
+ while [$ HOUR -ne "00"]; do 
+ DESTDIR = $ WEBDIR / "$ DATE" / "$ HOUR" 
+ mkdir "$ DESTDIR" 
+ mv $ PICDIR / *. jpg "$ DESTDIR" / 
+ sleep 3600 
+ HOUR = `date +% H` 
+ done 
+ done 
+   
+ Notice the use of true, this means: Continue execution until the process is forcibly interrupted, by a kill command or Ctrl + c. The following example creates files, which can be used for simulation tests: 
+   
+ #! / bin / bash 
+   
+ # This program creates a file every five minutes 
+   
+ while true; do 
+     touch pic-`date +% s`.jpg 
+     sleep 300 
+ done 
+   
+ Note that you use the date command to create different types of file and folder names, 
+   
+   
+     Use the system 
+   
+     The example above was for explanation only, and periodic inspections can be performed using the cron tool. Do not forget to direct output and errors when using programs executed from your crontab file! 
+   
+ Use keyboard input to control a while loop 
+ The following program can be interpreted by the user when entering ctrl + c: 
+   
+ #! / bin / bash 
+ # This program prints examples and tips 
+ FORTUNE = / usr / games / fortune 
+   
+ while true; do 
+ echo "On which topic do you want advice?" 
+ cat << topics 
+ politics 
+ startrek 
+ kernelnewbies 
+ sports 
+ bofh-excuses 
+ magic 
+ love 
+ literature 
+ drugs 
+ education 
+ topics 
+   
+ echo 
+ echo -n "Make your choice:" 
+ read topic 
+ echo 
+ echo "Free advice on the topic of $ topic:" 
+ echo 
+ $ FORTUNE $ topic 
+ echo 
+   
+ done 
+   
+ The here document is used to present different options for the user to choose from - here or heredoc is a way to feed a shell program with short content without typing it in a separate file. 
+   
+ Calculate the average 
+ This program calculates the average user input that is tested before it is executed. If the input is out of range, a message is printed. If the user presses the q key, the loop comes out: 
+   
+ #! / bin / bash 
+   
+ # Calculate the average of a series of numbers. 
+   
+ SCORE = "0" 
+ AVERAGE = "0" 
+ SUM = "0" 
+ NUM = "0" 
+   
+ while true; do 
+   
+   echo -n "Enter your score [0-100%] ('q' for quit):"; read SCORE; 
+   
+   if (("$ SCORE" <"0")) || (("$ SCORE"> "100")); then 
+     echo "Be serious. Common, try again:" 
+   elif ["$ SCORE" == "q"]; then 
+     echo "Average rating: $ AVERAGE%." 
+     break 
+   else 
+     SUM = $ [$ SUM + $ SCORE] 
+     NUM = $ [$ NUM + 1] 
+     AVERAGE = $ [$ SUM / $ NUM] 
+   fi 
+   
+ done 
+   
+ echo "Exiting." 
+   
+ Notice how variables in the last lines are left without quotation marks for calculations. 
+   
+ Until loop in Bash 
+   
+ How to make a loop until 
+   
+ This iterative loop is similar to a while loop except that the loop here is executed until the TEST-COMMAND checksum is executed successfully, and the loop will remain active as long as the execution of the test command fails. The syntax is similar to the syntax of a while loop: 
+   
+ until TEST-COMMAND; do CONSEQUENT-COMMANDS; done 
+   
+ The return status of this loop is the same as the exit status of the last command executed from CONSEQUENT-COMMANDS or zero if no command is executed. The TEST-COMMAND test command can be any command that can come up with a success or failure, and the dependent commands can be any of the Unix commands, scripts, or shell structures. 
+   
+ The semicolon can replace ";" With one or more new lines if needed 
+ Examples 
+ This program is an upgraded version of the example we mentioned in nested while loops, and this version inspects the existence of sufficient disk space, if you do not find it deletes images from previous months: 
+   
+ #! / bin / bash 
+   
+ # This program copies images from my home folder to a folder in a web server 
+ # A new folder is created every hour 
+ # If the images take up too much space to add new, the last backup is deleted. 
+   
+ while true; do 
+ DISKFUL = $ (df -h $ WEBDIR | grep -v File | awk '{print $ 5}' | cut -d "%" -f1 -) 
+   
+ until [$ DISKFUL -ge "90"]; do 
+   
+         DATE = `date +% Y% m% d` 
+         HOUR = `date +% H` 
+         mkdir $ WEBDIR / "$ DATE" 
+   
+         while [$ HOUR -ne "00"]; do 
+                 DESTDIR = $ WEBDIR / "$ DATE" / "$ HOUR" 
+                 mkdir "$ DESTDIR" 
+                 mv $ PICDIR / *. jpg "$ DESTDIR" / 
+                 sleep 3600 
+                 HOUR = `date +% H` 
+         done 
+   
+ DISKFULL = $ (df -h $ WEBDIR | grep -v File | awk '{print $ 5}' | cut -d "%" -f1 -) 
+ done 
+   
+ TOREMOVE = $ (find $ WEBDIR -type d -a -mtime +30) 
+ for i in $ TOREMOVE; do 
+ rm -rf "$ i"; 
+ done 
+   
+ done 
+   
+ Note that the HOUR and DISKFUL variables start and use the options with the ls and date commands in order to obtain an accurate choice of the TOREMOVE command. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ The Break and Continue commands 
+   
+ Break command 
+   
+ Break is used to exit the current iteration loop before its original exit date.This happens in cases where you don't know how many times the loop should execute, for example, depending on user input. 
+ The following example shows an interrupted while loop, an example developed by wisdom.sh from an example of using keyboard inputs to control a while loop: 
+   
+ #! / bin / bash 
+   
+ # This program prints examples and tips 
+ # You can go out now better. 
+   
+ FORTUNE = / usr / games / fortune 
+   
+ while true; do 
+ echo "On which topic do you want advice?" 
+ echo "

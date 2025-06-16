@@ -220,20 +220,20 @@ impl IntentClassifier {
         
         // Search patterns
         patterns.insert(QueryIntent::Search, vec![
-            Regex::new(r"find|search|look for|locate|discover").unwrap(),
-            Regex::new(r"what is|who is|where is|when is").unwrap(),
+            Regex::new(r"find|search|look for|locate|discover").expect("Invalid regex pattern"),
+            Regex::new(r"what is|who is|where is|when is").expect("Invalid regex pattern"),
         ]);
         
         // Aggregate patterns
         patterns.insert(QueryIntent::Aggregate, vec![
-            Regex::new(r"sum|total|average|count|statistics").unwrap(),
-            Regex::new(r"aggregate|combine|merge|collect").unwrap(),
+            Regex::new(r"sum|total|average|count|statistics").expect("Invalid regex pattern"),
+            Regex::new(r"aggregate|combine|merge|collect").expect("Invalid regex pattern"),
         ]);
         
         // Action patterns
         patterns.insert(QueryIntent::Action, vec![
-            Regex::new(r"create|update|delete|modify|execute").unwrap(),
-            Regex::new(r"run|start|stop|deploy|configure").unwrap(),
+            Regex::new(r"create|update|delete|modify|execute").expect("Invalid regex pattern"),
+            Regex::new(r"run|start|stop|deploy|configure").expect("Invalid regex pattern"),
         ]);
         
         Self { patterns }
@@ -310,17 +310,17 @@ impl EntityExtractor {
         
         entity_patterns.insert(
             EntityType::Url,
-            Regex::new(r"https?://[^\s]+").unwrap()
+            Regex::new(r"https?://[^\s]+").expect("Invalid regex pattern")
         );
         
         entity_patterns.insert(
             EntityType::Email,
-            Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}").unwrap()
+            Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}").expect("Invalid regex pattern")
         );
         
         entity_patterns.insert(
             EntityType::Number,
-            Regex::new(r"\b\d+\.?\d*\b").unwrap()
+            Regex::new(r"\b\d+\.?\d*\b").expect("Invalid regex pattern")
         );
         
         Self { entity_patterns }

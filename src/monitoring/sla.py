@@ -19,6 +19,24 @@ import asyncio
 
 from prometheus_client import Gauge, Counter, Histogram
 from .metrics import get_metrics_collector
+from .prometheus_client import get_prometheus_client, PrometheusClient
+
+from src.core.error_handler import (
+    handle_errors, async_handle_errors, log_error,
+    ServiceUnavailableError, ExternalServiceError, ConfigurationError
+)
+
+__all__ = [
+    "SLAType",
+    "SLAObjective", 
+    "SLAReport",
+    "SLATracker",
+    "get_sla_tracker",
+    "add_sla_objective",
+    "get_sla_report",
+    "get_comprehensive_sla_status"
+]
+
 
 
 class SLAType(Enum):
@@ -227,29 +245,46 @@ class SLATracker:
             start_time = end_time - objective.measurement_window
             time_range = (start_time, end_time)
         
-        # Mock implementation - in real system, would query Prometheus
-        # This is where you'd integrate with your metrics backend
+        prometheus_client = get_prometheus_client()
+        start_time, end_time = time_range
         
-        if objective.type == SLAType.AVAILABILITY:
-            # Simulate availability check
-            current_value = 99.95  # Mock value
-            compliance = current_value
-            
-        elif objective.type == SLAType.LATENCY:
-            # Simulate latency check
-            compliance = 96.5  # Mock: 96.5% of requests under threshold
-            current_value = compliance
-            
-        elif objective.type == SLAType.ERROR_RATE:
-            # Simulate error rate check
-            success_rate = 99.2  # Mock: 0.8% error rate
-            current_value = success_rate
-            compliance = success_rate
-            
-        else:
-            # Custom SLA
-            current_value = 100.0
-            compliance = 100.0
+        try:
+            if objective.type == SLAType.AVAILABILITY:
+                current_value = await self._calculate_availability(
+                    prometheus_client, objective, start_time, end_time
+                )
+                compliance = current_value
+                
+            elif objective.type == SLAType.LATENCY:
+                current_value, compliance = await self._calculate_latency_compliance(
+                    prometheus_client, objective, start_time, end_time
+                )
+                
+            elif objective.type == SLAType.ERROR_RATE:
+                current_value, compliance = await self._calculate_error_rate_compliance(
+                    prometheus_client, objective, start_time, end_time
+                )
+                
+            elif objective.type == SLAType.THROUGHPUT:
+                current_value, compliance = await self._calculate_throughput_compliance(
+                    prometheus_client, objective, start_time, end_time
+                )
+                
+            elif objective.type == SLAType.CUSTOM:
+                current_value, compliance = await self._calculate_custom_sla(
+                    prometheus_client, objective, start_time, end_time
+                )
+                
+            else:
+                # Fallback for unknown types
+                current_value = 0.0
+                compliance = 0.0
+        
+        except Exception as e:
+            log_error(f"Error calculating SLA for {objective.name}: {e}")
+            # Fallback to conservative values on error
+            current_value = 0.0
+            compliance = 0.0
         
         # Calculate error budget
         error_budget = self.calculate_error_budget(objective, compliance)
@@ -258,20 +293,10 @@ class SLATracker:
         self.metrics_collector.update_sla_compliance(objective.name, compliance)
         self.error_budget_consumed.labels(sla_name=objective.name).set(100 - error_budget)
         
-        # Check for violations
-        violations = []
-        if compliance < objective.target:
-            self.sla_violations_total.labels(
-                sla_name=objective.name,
-                sla_type=objective.type.value
-            ).inc()
-            
-            violations.append({
-                "timestamp": datetime.now().isoformat(),
-                "compliance": compliance,
-                "target": objective.target,
-                "severity": "high" if error_budget < 10 else "medium"
-            })
+        # Check for violations and generate detailed context
+        violations = await self._check_violations(
+            objective, compliance, error_budget, start_time, end_time
+        )
         
         return SLAReport(
             objective=objective,
@@ -351,39 +376,242 @@ class SLATracker:
                     ""
                 ])
             
-            return "\n".join(lines)
+            return "
+".join(lines)
         
         else:
             raise ValueError(f"Unsupported format: {format}")
     
-    def get_error_budget_burn_rate(
+    async def _calculate_availability(
+        self,
+        prometheus_client: PrometheusClient,
+        objective: SLAObjective,
+        start_time: datetime,
+        end_time: datetime
+    ) -> float:
+        """Calculate real availability from Prometheus metrics."""
+        service_name = objective.labels.get('service', 'claude-api')
+        return await prometheus_client.get_metric_availability(service_name, start_time, end_time)
+    
+    async def _calculate_latency_compliance(
+        self,
+        prometheus_client: PrometheusClient,
+        objective: SLAObjective,
+        start_time: datetime,
+        end_time: datetime
+    ) -> Tuple[float, float]:
+        """Calculate latency SLA compliance from real metrics."""
+        service_name = objective.labels.get('service', 'claude-api')
+        percentile_value = await prometheus_client.get_latency_percentile(
+            service_name, objective.latency_percentile, start_time, end_time
+        )
+        
+        # Convert to milliseconds if needed
+        percentile_ms = percentile_value * 1000 if percentile_value < 100 else percentile_value
+        
+        # Calculate compliance: percentage of requests under threshold
+        compliance = 100.0 if percentile_ms <= objective.latency_threshold_ms else (
+            (objective.latency_threshold_ms / percentile_ms) * 100
+        )
+        
+        return percentile_ms, min(100.0, compliance)
+    
+    async def _calculate_error_rate_compliance(
+        self,
+        prometheus_client: PrometheusClient,
+        objective: SLAObjective,
+        start_time: datetime,
+        end_time: datetime
+    ) -> Tuple[float, float]:
+        """Calculate error rate SLA compliance from real metrics."""
+        service_name = objective.labels.get('service', 'claude-api')
+        error_rate = await prometheus_client.get_error_rate(service_name, start_time, end_time)
+        
+        # Success rate is inverse of error rate
+        success_rate = 100.0 - error_rate
+        
+        # Compliance is the success rate
+        return success_rate, success_rate
+    
+    async def _calculate_throughput_compliance(
+        self,
+        prometheus_client: PrometheusClient,
+        objective: SLAObjective,
+        start_time: datetime,
+        end_time: datetime
+    ) -> Tuple[float, float]:
+        """Calculate throughput SLA compliance."""
+        service_name = objective.labels.get('service', 'claude-api')
+        current_throughput = await prometheus_client.get_throughput(service_name, start_time, end_time)
+        
+        # Compliance is percentage of target throughput achieved
+        target_throughput = objective.target  # Expected to be in RPS
+        compliance = (current_throughput / target_throughput) * 100 if target_throughput > 0 else 100.0
+        
+        return current_throughput, min(100.0, compliance)
+    
+    async def _calculate_custom_sla(
+        self,
+        prometheus_client: PrometheusClient,
+        objective: SLAObjective,
+        start_time: datetime,
+        end_time: datetime
+    ) -> Tuple[float, float]:
+        """Calculate custom SLA using provided PromQL query."""
+        if not objective.custom_query:
+            return 0.0, 0.0
+        
+        try:
+            metrics = await prometheus_client.query_range(
+                objective.custom_query, start_time, end_time
+            )
+            
+            if metrics:
+                # Use average of all returned values
+                all_values = [p.value for m in metrics for p in m.values]
+                current_value = sum(all_values) / len(all_values) if all_values else 0.0
+                
+                # For custom SLAs, assume the query returns a percentage
+                compliance = current_value
+                return current_value, min(100.0, max(0.0, compliance))
+        
+        except Exception as e:
+            log_error(f"Custom SLA query failed: {e}")
+        
+        return 0.0, 0.0
+    
+    async def _check_violations(
+        self,
+        objective: SLAObjective,
+        compliance: float,
+        error_budget: float,
+        start_time: datetime,
+        end_time: datetime
+    ) -> List[Dict[str, Any]]:
+        """Check for SLA violations with detailed context."""
+        violations = []
+        
+        if compliance < objective.target:
+            self.sla_violations_total.labels(
+                sla_name=objective.name,
+                sla_type=objective.type.value
+            ).inc()
+            
+            # Determine severity based on how far below target and error budget
+            deviation = objective.target - compliance
+            if error_budget < 5 or deviation > 5:
+                severity = "critical"
+            elif error_budget < 10 or deviation > 2:
+                severity = "high"
+            elif error_budget < 25 or deviation > 1:
+                severity = "medium"
+            else:
+                severity = "low"
+            
+            violations.append({
+                "timestamp": datetime.now().isoformat(),
+                "compliance": compliance,
+                "target": objective.target,
+                "deviation": deviation,
+                "error_budget_remaining": error_budget,
+                "severity": severity,
+                "duration_minutes": (end_time - start_time).total_seconds() / 60,
+                "measurement_window": str(objective.measurement_window)
+            })
+        
+        return violations
+    
+    async def get_error_budget_burn_rate(
         self,
         objective_name: str,
         time_window: timedelta = timedelta(hours=1)
     ) -> float:
-        """Calculate error budget burn rate."""
-        # In a real implementation, this would calculate the rate
-        # at which the error budget is being consumed
-        # Mock implementation
-        return 1.5  # 1.5x normal burn rate
+        """Calculate error budget burn rate from real metrics."""
+        if objective_name not in self.objectives:
+            return 0.0
+        
+        objective = self.objectives[objective_name]
+        prometheus_client = get_prometheus_client()
+        
+        # Calculate current period and previous period for comparison
+        end_time = datetime.now()
+        start_time = end_time - time_window
+        previous_start = start_time - time_window
+        
+        try:
+            # Get current error budget consumption
+            current_report = await self.check_objective(objective, (start_time, end_time))
+            current_budget_used = 100 - current_report.error_budget_remaining
+            
+            # Get previous period error budget consumption
+            previous_report = await self.check_objective(objective, (previous_start, start_time))
+            previous_budget_used = 100 - previous_report.error_budget_remaining
+            
+            # Calculate burn rate (how much faster we're consuming budget)
+            if previous_budget_used == 0:
+                return 1.0  # Normal rate
+            
+            burn_rate = current_budget_used / previous_budget_used
+            return max(0.0, burn_rate)
+            
+        except Exception as e:
+            log_error(f"Error calculating burn rate for {objective_name}: {e}")
+            return 1.0  # Conservative fallback
     
-    def predict_budget_exhaustion(
+    async def predict_budget_exhaustion(
         self,
         objective_name: str,
-        current_burn_rate: float
+        current_burn_rate: Optional[float] = None
     ) -> Optional[datetime]:
-        """Predict when error budget will be exhausted."""
+        """Predict when error budget will be exhausted based on current burn rate."""
         if objective_name not in self.objectives:
             return None
         
-        # Mock implementation
-        # In reality, would calculate based on current burn rate
-        if current_burn_rate > 2.0:
-            return datetime.now() + timedelta(days=5)
-        elif current_burn_rate > 1.0:
-            return datetime.now() + timedelta(days=15)
-        else:
-            return None  # Budget won't be exhausted
+        objective = self.objectives[objective_name]
+        
+        try:
+            # Get current error budget status
+            current_report = await self.check_objective(objective)
+            remaining_budget = current_report.error_budget_remaining
+            
+            if remaining_budget <= 0:
+                return datetime.now()  # Already exhausted
+            
+            if remaining_budget >= 99:
+                return None  # Plenty of budget remaining
+            
+            # Calculate burn rate if not provided
+            if current_burn_rate is None:
+                current_burn_rate = await self.get_error_budget_burn_rate(objective_name)
+            
+            if current_burn_rate <= 0:
+                return None  # Not consuming budget
+            
+            # Estimate time to exhaustion based on current burn rate
+            # This is a simplified calculation - in practice you'd want more sophisticated modeling
+            window_hours = objective.measurement_window.total_seconds() / 3600
+            budget_consumption_rate = (100 - remaining_budget) / window_hours  # Budget % per hour
+            
+            if budget_consumption_rate <= 0:
+                return None
+            
+            # Apply burn rate multiplier
+            adjusted_rate = budget_consumption_rate * current_burn_rate
+            
+            if adjusted_rate <= 0:
+                return None
+            
+            hours_to_exhaustion = remaining_budget / adjusted_rate
+            
+            # Cap at reasonable maximum
+            if hours_to_exhaustion > 24 * 30:  # 30 days
+                return None
+            
+            return datetime.now() + timedelta(hours=hours_to_exhaustion)
+            
+        except Exception as e:
+            log_error(f"Error predicting budget exhaustion for {objective_name}: {e}")
+            return None
 
 
 # Global SLA tracker instance
@@ -424,3 +652,101 @@ def get_sla_report(format: str = "json") -> str:
     tracker = get_sla_tracker()
     reports = asyncio.run(tracker.check_all_objectives())
     return tracker.generate_report(reports, format)
+
+
+async def get_comprehensive_sla_status() -> Dict[str, Any]:
+    """Get comprehensive SLA status including all components."""
+    try:
+        # Import here to avoid circular imports
+        from .sla_alerting import get_sla_alert_manager
+        from .sla_history import get_sla_history_tracker
+        from .sla_dashboard import get_sla_dashboard_api
+        
+        tracker = get_sla_tracker()
+        alert_manager = get_sla_alert_manager()
+        history_tracker = get_sla_history_tracker()
+        dashboard_api = get_sla_dashboard_api()
+        
+        # Get current reports
+        current_reports = await tracker.check_all_objectives()
+        
+        # Get active alerts
+        active_alerts = alert_manager.get_active_alerts()
+        
+        # Get trends for past 30 days
+        trends = await history_tracker.get_trend_summary(days=30)
+        
+        # Get dashboard data
+        dashboard_data = await dashboard_api.get_dashboard_data()
+        
+        # Calculate summary statistics
+        total_objectives = len(current_reports)
+        compliant_objectives = sum(1 for report in current_reports.values() if report.is_compliant)
+        critical_alerts = sum(1 for alert in active_alerts if alert.severity.value == "critical")
+        
+        # Get overall compliance score
+        if current_reports:
+            overall_compliance = sum(
+                report.compliance_percent for report in current_reports.values()
+            ) / len(current_reports)
+        else:
+            overall_compliance = 0.0
+        
+        # Get average error budget
+        if current_reports:
+            avg_error_budget = sum(
+                report.error_budget_remaining for report in current_reports.values()
+            ) / len(current_reports)
+        else:
+            avg_error_budget = 0.0
+        
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "summary": {
+                "total_objectives": total_objectives,
+                "compliant_objectives": compliant_objectives,
+                "compliance_rate": (compliant_objectives / total_objectives * 100) if total_objectives > 0 else 0,
+                "overall_compliance": overall_compliance,
+                "average_error_budget_remaining": avg_error_budget,
+                "active_alerts": len(active_alerts),
+                "critical_alerts": critical_alerts,
+                "overall_health": dashboard_data.overall_health,
+                "health_score": dashboard_data.overall_score
+            },
+            "objectives": {
+                name: {
+                    "compliance_percent": report.compliance_percent,
+                    "target": report.objective.target,
+                    "error_budget_remaining": report.error_budget_remaining,
+                    "is_compliant": report.is_compliant,
+                    "violations": len(report.violations),
+                    "type": report.objective.type.value
+                }
+                for name, report in current_reports.items()
+            },
+            "alerts": [alert.to_dict() for alert in active_alerts],
+            "trends": {name: trend.to_dict() for name, trend in trends.items()},
+            "system_status": {
+                "prometheus_connected": True,  # If we got here, it's connected
+                "monitoring_active": True,
+                "data_sources": ["prometheus", "internal_metrics"]
+            }
+        }
+        
+    except Exception as e:
+        log_error(f"Failed to get comprehensive SLA status: {e}")
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e),
+            "summary": {
+                "total_objectives": 0,
+                "compliant_objectives": 0,
+                "compliance_rate": 0,
+                "overall_compliance": 0,
+                "average_error_budget_remaining": 0,
+                "active_alerts": 0,
+                "critical_alerts": 0,
+                "overall_health": "unknown",
+                "health_score": 0
+            }
+        }

@@ -1,0 +1,87 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 6 - Parse and write the results to a file, in a format of your choice. The file should include a description of the vulnerability, the relevant IP address and port, the timestamp at which it was found, and the name of the tool that detected the issue. There is no hard requirement about how to present the data; one option is to use an HTML table. If you need an example table, download vulnerability_table.html from the book’s GitHub repository and open it in a browser. Alternatively, you could write the results to a CSV file.
+As you should know by now, there is more than one way to write such a script. Only the end result matters, so craft the script as you see fit.
+Security Relevance Score: 12
+Word Count: 1035
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Parse and write the results to a file, in a format of your choice. The file should include a description of the vulnerability, the relevant IP address and port, the timestamp at which it was found, and the name of the tool that detected the issue. There is no hard requirement about how to present the data; one option is to use an HTML table. If you need an example table, download vulnerability_table.html from the book’s GitHub repository and open it in a browser. Alternatively, you could write the results to a CSV file.
+As you should know by now, there is more than one way to write such a script. Only the end result matters, so craft the script as you see fit.
+
+
+Summary
+In this chapter, we wrapped up reconnaissance activities by performing vulnerability scanning and fuzzing. We also verified the vulnerabilities we discovered, weeding out potential false positives.
+Along the way, we used bash scripting to perform several tasks. We scanned for vulnerabilities, wrote custom scripts that can perform recursive downloads from misconfigured web servers, extracted sensitive information from Git repositories, and more. We also created custom wordlists using clever bash scripting and orchestrated the execution of multiple security tools to generate a report.
+Let’s recap what we’ve identified so far, from a reconnaissance perspective:
+
+Hosts running multiple services (HTTP, FTP, and SSH) and their versions
+A web server running WordPress with a login page enabled and a few vulnerabilities, such as user enumeration and an absence of HTTP security headers
+A web server with a revealing robots.txt file containing paths to custom upload forms and a donation page
+An anonymous, login-enabled FTP server
+Multiple open Git repositories
+OpenSSH servers that allow password-based logins
+
+In the next chapter, we’ll use the information identified in this chapter to establish an initial foothold by exploiting vulnerabilities and taking over servers.
+
+
+
+
+
+
+
+
+
+
+
+
+6
+GAINING A WEB SHELL
+
+
+
+Now that you understand the power of the bash shell, it should come as no surprise that hackers find popping a shell exhilarating. The phrase popping a shell describes the outcome of any attack whereby a hacker gains local or remote access to a system’s shell, then sends execution instructions to it.
+There are numerous ways to gain shell access to a remote system, each targeting different entry points. For example, you could gain a remote shell via a web application vulnerability, by brute-forcing system accounts on a server, or by exploiting a vulnerability in a network service, such as FTP or Server Message Block.
+These remote shells may differ from the bash shell you’re running on Kali, as they often come with limited interfaces and functionality, and without elevated privileges. Nonetheless, obtaining access to another computer’s shell is often the first step in performing some of the most catastrophic cyberattacks.
+In this chapter, we’ll explore this popular approach to gaining initial access by using a web shell: a malicious script that provides an interface for unauthorized access to a web server. To achieve this, we’ll exploit file upload vulnerabilities that allow you to upload web shells to vulnerable websites.
+We’ll also gain initial access using OS command injection: a vulnerability that allows for remote code execution through the injection of operating system commands into a web application’s form fields. By the end of this chapter, you’ll have gained initial access to two lab servers and developed custom bash scripts to interact with the underlying system.
+
+Arbitrary File Upload Vulnerabilities
+An arbitrary file upload vulnerability is a fairly common security flaw in web applications. It allows users to upload file types that shouldn’t be accepted and is caused by improper configurations or poor file validation and restriction controls.
+As an example, the following vulnerable HTML accepts a user’s file via an HTTP POST request and moves the uploaded file to a specified target directory without validating the file’s type, size, or name. As a result, an attacker could upload any file, including a script, an executable, or other malicious content, to the server’s uploads directory.
+<html>
+<head>
+    <title>File Upload Form</title>
+</head>
+<body>
+    <form action="" method="POST" enctype="multipart/form-data">
+        <h2>Upload File</h2>
+        <input type="file" name="uploaded_file">
+        <input type="submit" name="submit" value="Upload">
+    </form>
+</body>
+</html>
+
+<?php
+if($_SERVER["REQUEST_METHOD"] == "POST"){
+    $filename = $_FILES["uploaded_file"]["name"];
+    move_uploaded_file($_FILES["uploaded_file"]["tmp_name"], "uploads/" . $filename);
+    echo "Your file was uploaded successfully.";
+}
+?>
+
+To exploit this code, an attacker might upload a file containing a PHP: Hypertext Preprocessor (PHP) web shell payload, typically with a.php extension. The web shell code would provide the attacker with a command execution interface on the target system. Here is a simplified example of such a web shell payload:
+<?php
+$output = shell_exec($_GET['cmd']) ;
+echo $output;
+?>
+
+The shell_exec() function allows a web application to execute shell commands from within a PHP script. It provides a way to interact with the server or operating system’s command line environment. When shell_exec() is called with a command as its parameter, it executes that command in the system shell and returns the output as a string with the same user as the application’s context (commonly www-data, apache, or nginx). The payload will execute commands sent to it via the cmd parameter in an HTTP GET request.
+If the PHP web shell’s filename were webshell.php, the attacker could access it in a web browser by visiting the following URL: http://target-site.com/uploads/webshell.php. The PHP code in the web shell might then execute on the server, providing the attacker with an interface to execute commands on the system. Using the cmd URL query parameter, the attacker could, for example, list files on the server with ls: http://target-site.com/uploads/webshell.php?cmd=ls. If visited by a browser, this URL might execute the command on the target system and display the response in the browser.
+Kali has a list of built-in web shells for numerous languages in the /usr/ share/webshells directory. Alternatively, you can find web shells at https://github.com/nicholasaleks/webshells.git.
+
+Fuzzing for Arbitrary File Uploads
+Developing and executing a web shell isn’t always as easy as the PHP example we just explored. Often you’ll need to bypass common controls used to protect against arbitrary file uploads. Let’s turn to the lab environment to explore tools for identifying these vulnerabilities.
+One way to identify upload vulnerabilities is to use automated web application scanning tools. In

@@ -1,0 +1,55 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 2000 - This file serves as a reference for find, which only considers files that are newer. last-run is updated at the end of the script with the time when the script was started (the now file). This somewhat cumbersome procedure ensures that the script does not miss any files on the next run that were added exactly during the execution of find. Admittedly, this mistake is unlikely, but not impossible.
+The find command processes the *.png, *.jpg, and *.jpeg identifiers. If you want to include additional identifiers—if necessary also in uppercase notation—you must add further options in the form -o -name .... In this case, -o means a logical OR. -maxdepth 1 causes find not to search any subdirectories. Of course, you can omit this option. Note, however, that the directory structure is lost during the upload (i.e., all files end up directly in myimages). If you don’t want the directory structure to be lost, you should use rsync instead of scp.
+The -exec option calls the scp command for each file found and passes the filename instead of {}. This feature also works for filenames with spaces. \; specifies where the command for -exec ends.
+# Sample file upload-images.shLOCALDIR=$(pwd)REMOTEDIR=/var/www/html/wordpress/myimagesREMOTEHOST=hostnameREMOTEUSER=username1LASTRUN=$LOCALDIR/last-runNOW=$LOCALDIR/now# Create file last-run if it does not exist yet;# use an old date (2000-01-01).if [ ! -f $LASTRUN ]; then  touch -m -t 200001010000 $LASTRUNfi# create file now with current date and timetouch $NOW# upload all files that have changed after last-runfind $LOCALDIR -maxdepth 1 \( -name "*.jpg" -o -name "*.jpeg" \   -o -name "*.png" \) -newer $LASTRUN \   -exec scp {} $REMOTEUSER@$REMOTEHOST:$REMOTEDIR \;# update last-runmv $NOW $LASTRUN
+Security Relevance Score: 2
+Word Count: 1161
+Extracted: 2025-06-13 23:41:06
+
+---
+
+This file serves as a reference for find, which only considers files that are newer. last-run is updated at the end of the script with the time when the script was started (the now file). This somewhat cumbersome procedure ensures that the script does not miss any files on the next run that were added exactly during the execution of find. Admittedly, this mistake is unlikely, but not impossible.
+The find command processes the *.png, *.jpg, and *.jpeg identifiers. If you want to include additional identifiers—if necessary also in uppercase notation—you must add further options in the form -o -name .... In this case, -o means a logical OR. -maxdepth 1 causes find not to search any subdirectories. Of course, you can omit this option. Note, however, that the directory structure is lost during the upload (i.e., all files end up directly in myimages). If you don’t want the directory structure to be lost, you should use rsync instead of scp.
+The -exec option calls the scp command for each file found and passes the filename instead of {}. This feature also works for filenames with spaces. \; specifies where the command for -exec ends.
+# Sample file upload-images.shLOCALDIR=$(pwd)REMOTEDIR=/var/www/html/wordpress/myimagesREMOTEHOST=hostnameREMOTEUSER=username1LASTRUN=$LOCALDIR/last-runNOW=$LOCALDIR/now# Create file last-run if it does not exist yet;# use an old date (2000-01-01).if [ ! -f $LASTRUN ]; then  touch -m -t 200001010000 $LASTRUNfi# create file now with current date and timetouch $NOW# upload all files that have changed after last-runfind $LOCALDIR -maxdepth 1 \( -name "*.jpg" -o -name "*.jpeg" \   -o -name "*.png" \) -newer $LASTRUN \   -exec scp {} $REMOTEUSER@$REMOTEHOST:$REMOTEDIR \;# update last-runmv $NOW $LASTRUN 
+12.5.3    PowerShell Script
+If your images are located on a Windows computer, it makes sense to implement the script using PowerShell. The following code has a similar structure to the Bash script, so I’ll leave it at some comments. For New-Item, Out-Null prevents the otherwise mandatory output of the filename.
+# Sample file upload-images.ps1$localdir = (Get-Location).Path$remotedir = "/var/www/html/wordpress/myimages"$remotehost = "hostname"$remoteuser = "username"$lastrun = "$localdir/last-run"$now = "$localdir/now"# Create file last-run if it does not exist yet;# use an old date (2000-01-01).if (-not (Test-Path $lastrun)) {    (New-Item $lastrun).LastWriteTime = Get-Date "2000-01-01"}# create file now with current date and timeNew-Item $now -Force | Out-Null# upload all files that have changed after last-run$lastruntime = (Get-Item $lastrun).LastWriteTimeGet-ChildItem -Path $localdir/* `    -Include "*.jpg", "*.jpeg", "*.png" |Where-Object { $_.LastWriteTime -gt $lastruntime } |ForEach-Object {    scp $_.FullName $remoteuser@${remotehost}:$remotedir  }# update last-runMove-Item -Force $now $lastrun 
+I called scp directly in this script because a typical Linux server rarely has PowerShell installed, let alone the required configuration of sshd_config for SSH remoting. But should these requirements be met, you can of course also use SSH remoting. You can find the complete script in the sample files. Only the few lines that change in the course of this kind of approach are shown in the following excerpt:
+# Sample file upload-images-remoting.ps1...$session = New-PSSession $remotehost -Username $remoteuserGet-ChildItem -Path $localdir/* `    -Include "*.jpg", "*.jpeg", "*.png" |Where-Object { $_.LastWriteTime -gt $lastruntime } |ForEach-Object {    Copy-Item -ToSession $session $_ $remotedir}Remove-PSSession $session 
+
+
+
+
+
+
+
+
+
+12.6    Example: Analyzing Virtual Machines
+Our second example is about reading information from a group of similar virtual machines. In this specific case, the virtual machines formed the basis of a laboratory exercise at a technical college. Each student had access to a virtual machine. When setting up these virtual machines, I made sure I put the public part of my SSH key there. The virtual machines are accessible under the hostnames host<nn>.mylab.com.
+For a quick overview of how virtual disks and file systems are organized, I want to run the lsblk command on each instance, which can be done using a Bash one-liner (but is printed over four lines for space and readability). Due to the -o StrictHostKeyChecking=no option, ssh does not ask whether the host should be trusted the first time a connection is established.
+$ for i in {01..25}; do    echo "\n\nVM: $i";    ssh user@host$i.mylab.com -o StrictHostKeyChecking=no lsblk;  done  VM: 01  NAME               MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS  sr0                 11:0    1 1024M  0 rom  vda                252:0    0    5G  0 disk    vda1             252:1    0    1G  0 part /boot    vda2             252:2    0    4G  0 part      almalinux-root 253:0    0  3,5G  0 lvm  /      almalinux-swap 253:1    0  512M  0 lvm  [SWAP]  vdb                252:16   0    1G  0 disk  ... 
+If more information is to be determined for each virtual machine and stored in result files, programming a small script could be worthwhile:
+# Sample file gather-vm-data.shVMNAMES=$(echo host{01..25})VMHOST=mylab.comUSER=usernameCMDS='hostnamectl; echo; ip addr; echo; lsblk'for vm in $VMNAMES; do    echo $vm    ssh $USER@$vm.$VMHOST -o StrictHostKeyChecking=no "$CMDS" \      > result-$vm.txtdone 
+The script traverses all virtual machines contained in VMNAMES, executes the commands listed in CMDS there, and saves the results in files with names like result-<vmname>.txt.
+I use a strongly extended variant of this script for evaluating exams for my “Linux System Administration” course. Students must perform all possible admin tasks in a freshly set up virtual machine as part of the exam. Correcting the exam tasks cannot be fully automated, but the script nevertheless greatly relieves me of tedious grading work.
+Of course, you can also use comparable scripts away from teaching, for example, for the central monitoring or administration of large groups of servers or virtual machines.
+
+Other Tools
+The use of “hand-knitted” scripts is only recommended if the work to be performed is manageable. The more complex the task, the more likely you should look for remote administration or server pool monitoring programs. Proven configuration tools include Ansible or Puppet; you can manage comprehensive monitoring using Grafana, Prometheus, or Nagios.
+If you’re only interested in running commands via SSH on many computers as efficiently as possible, Cluster SSH or Parallel SSH might be worth trying out.
+
+
+
+
+
+
+
+
+
+13    Visual Studio CodeVisual Studio Code ( VS Code), sometimes simply Code, is currently the most universally popular editor for software developers. The strengths of this program developed by Microsoft include support for all conceivable programming languages and platforms, a huge range of extensions, comprehensive configuration options, and excellent integration with the Git version management system.Although VS Code is by no means the only editor in my everyday work environment, I wouldn’t want to miss out on its strengths. From the perspective of this book, VS Code scores points for its consistency of use, whether you work on a Bash, Python, or PowerShell script. This is an advantage compared to dedicated development systems such as PyCharm for Python, for example, where you must memorize different working techniques and keyboard shortcuts.An introduction to VS Code seems superfluous in this book as you probably already know about the editor. If not, you can find loads of tutorials and videos on the internet to get you started. This short chapter focuses instead on the scripting-specific features of VS Code—in particular, the Bash, PowerShell, Python, and Remote – SSH extensions.
+Prerequisites for This Chapter
+You can read this chapter separately from the rest of the book. However, using the remote SSH extension requires that you’re familiar with SSH (see

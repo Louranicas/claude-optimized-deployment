@@ -1,0 +1,117 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 1 - , Python is more accessible compared to Bash and PowerShell: The syntax is clear and consistent, and the documentation available on the web is outstanding. In Python, you can reproduce relatively easily a complicated logic through functions. Python manages the balancing act across all common operating systems and is not strongly anchored to a particular operating system like Bash or PowerShell are, while Bash and PowerShell have by no means lost their reason for existence. These languages excel in calling operating system-related commands or cmdlets. A backup script that primarily combines a few external commands into a meaningful whole is easiest to implement in Bash. Similarly, this advice applies to PowerShell if you want to administer a Microsoft Active Directory system.This chapter provides a brief introduction to Python. It focuses on the language features that are particularly important for scripting. Should you “fall in love” with Python and want to write more than just short scripts, you’ll find a large volume of literature on the internet and on the book market for more in-depth study.
+5.1    Installing Python
+Python is installed by default on almost all Linux distributions. All you need to do is determine which version you have by opening a terminal window and running the following command:
+python --version  Python 3.11.1 
+If the version number 2.7 is displayed, your distribution has the outdated version 2 and the current version 3 installed in parallel. You must then run Python 3 using the python3 command.
+5.1.1    Windows
+For Windows, for links to the latest Python releases for Windows, refer to https://python.org/downloads/windows.
+Once you have selected the desired version number, you still need to decide on the right installer. Usually, you would select the Windows installer (64-bit).
+Make sure you enable the Add python.exe to PATH option in the installer before clicking Install Now! This option ensures that you can easily launch Python from cmd.exe or PowerShell later.
+Security Relevance Score: 4
+Word Count: 1862
+Extracted: 2025-06-13 23:41:06
+
+---
+
+, Python is more accessible compared to Bash and PowerShell: The syntax is clear and consistent, and the documentation available on the web is outstanding. In Python, you can reproduce relatively easily a complicated logic through functions. Python manages the balancing act across all common operating systems and is not strongly anchored to a particular operating system like Bash or PowerShell are, while Bash and PowerShell have by no means lost their reason for existence. These languages excel in calling operating system-related commands or cmdlets. A backup script that primarily combines a few external commands into a meaningful whole is easiest to implement in Bash. Similarly, this advice applies to PowerShell if you want to administer a Microsoft Active Directory system.This chapter provides a brief introduction to Python. It focuses on the language features that are particularly important for scripting. Should you “fall in love” with Python and want to write more than just short scripts, you’ll find a large volume of literature on the internet and on the book market for more in-depth study.
+5.1    Installing Python
+Python is installed by default on almost all Linux distributions. All you need to do is determine which version you have by opening a terminal window and running the following command:
+python --version  Python 3.11.1 
+If the version number 2.7 is displayed, your distribution has the outdated version 2 and the current version 3 installed in parallel. You must then run Python 3 using the python3 command.
+5.1.1    Windows
+For Windows, for links to the latest Python releases for Windows, refer to https://python.org/downloads/windows.
+Once you have selected the desired version number, you still need to decide on the right installer. Usually, you would select the Windows installer (64-bit).
+Make sure you enable the Add python.exe to PATH option in the installer before clicking Install Now! This option ensures that you can easily launch Python from cmd.exe or PowerShell later.
+
+Figure 5.1    
+            Python Installer for Windows
+Once the actual installation is complete, you have the option of overriding the typical Windows limit of 260 characters for starting commands. If a Python program is called with a large number of parameters, this limit may cause errors. For this reason, you should click Disable path length limit. (The button will not be displayed if the limit has already been disabled during a previous installation or by some other way.)
+After the installation, start cmd.exe or PowerShell and verify that Python and its module manager pip can be started with the following commands:
+> python --version  Python 3.11.1> pip --version  pip 22.3.1 from C:\Users\kofler\AppData\Local\Programs\Python\                   Python311\Lib\site-packages\pip (python 3.11) 
+
+Avoid Multiple Installations!
+Installing Python on Windows is quite easy—and that’s where the problem lies: The Microsoft Store, development environments, editors, and so on are always happy to help you install the latest Python version, which can easily result in two or three versions installed in parallel. At first glance, everything seems to work until you try to install an extension module using pip. Although pip won’t report any error, Python won’t be able to find the module. The cause is trivial: The pip version you’re calling is from a different Python version than the one you’re currently using—most likely because the older version is preferred in the PATH environment variable.
+Trying to solve the resulting problems has already driven me (and more often my students) to despair. The best solution is to systematically search for all Python versions on the computer and uninstall each of them. After that, you must remove all PATH directories related to Python in the System Properties preference pane. A Windows restart certainly won’t hurt either. Finally, you need to download the installer from the website mentioned earlier and install the latest Python version. Avoid the Microsoft Store or any other installation methods!
+
+5.1.2    macOS
+The easiest way to install Python 3 on macOS is to use the graphical installer (*.pkg file). You can find it on the Python download page at https://python.org/downloads.
+During installation, a Finder window opens where you must double-click the Install Certificates.command script to run it. This script installs various SSL certificates and thus allows you to install root certificates that Python programs can use to verify HTTPS encryption. (Python does not use macOS certificates. This step is therefore absolutely necessary!)
+After the installation, you should launch a new terminal window and double-check that everything has worked out fine, just like on Linux. Note that the commands are python3 and pip3, not python and pip, as on Windows and with current Linux distributions.
+$ python3 --version  Python 3.11.1$ pip3 --version  pip 22.3.1 from /Library/Frameworks/Python.framework/Versions/              3.11/lib/python3.11/site-packages/pip (python 3.11) 
+
+
+
+
+
+
+
+
+
+5.2    Getting to Know Python in a Terminal Window
+Unlike most other programming languages, you can try out Python without writing code to a file. Simply open a terminal window and run the python or python3 command in it. This will start an interactive Python environment. In it, the three >>> characters (the “Python prompt”) indicate the place where you can perform input yourself. (Enter) terminates the input, and Python then displays the result:
+$ python>>> 1+2    3 
+When trying out Python interactively, you can mostly do without print, because results are displayed automatically anyway:
+>>> x=5>>> print(x + 7)    12>>> x + 7    12 
+You can even enter multiline statements, such as for loops. There are two things to keep in mind: On the one hand, the statements within the loop must be indented by spaces, and on the other hand, you must terminate the entire input by pressing (Enter) twice. The Python interpreter prepends >>> to the first line, and three dots appear on all subsequent lines:
+>>> for i in range(3):...   print(i)...    0    1    2 
+To exit Python, press (Ctrl) + (D).
+
+Interactive Outputs versus Script Outputs
+In the following sections, you’ll see numerous Python commands that are meant for interactive experimentation and are marked with the >>> prompt. Even though these examples look trivial, you should make the effort to follow them yourself and maybe conduct a few more experiments.
+Note that, when using Python interactively, the result of an expression always gets displayed. x and (Enter) shows the content of x, entering x + 3 calculates the total and shows the result.
+In scripts, things are different: There you need to use print for creating outputs. This means you must include print(x) or print(x + 3) in your script to output x or the total.
+
+
+
+
+
+
+
+
+
+
+5.3    Programming Custom Scripts
+Of course, you don’t want to use Python primarily interactively; you want to program scripts to do a particular task over and over again. Countless editors and development environments are available to help you do this.
+A good choice is Visual Studio Code (VS Code). As soon as you edit a Python script in it, VS Code asks if you want to install the recommended Python extensions. You should definitely do that! In addition to various additional functions, VS Code then provides the option to start your script directly from the editor.
+Once you have created a new, still empty file in VS Code, you need to enter the following line and save the file as HelloWorld.py:
+print('Hello, World!') 
+Provided that you have installed the Python extension, you can start the program by clicking the Run button. On Windows, the actual output is unfortunately somewhat lost in the status information used behind the scenes in VS Code and PowerShell.
+
+Figure 5.2    
+            The Hello World Script in the VS Code Editor on Windows
+5.3.1    Shebang
+To run Python scripts on Linux and macOS without VS Code or another development environment, you must preface the script with the following shebang line. On current Linux distributions, you can simply specify python instead of python3, but on older distributions and on macOS, only python3 provides clarity as to which Python version you’re referring to.
+#!/usr/bin/env python3 
+You already know the shebang syntax from Bash: The line specifies which program (which interpreter) should execute the following code. But what is new in this case is env: Python is installed in different directories depending on the operating system or distribution. env searches in the common directories and therefore works more reliably than specifying a rigid path.
+Now, you need to mark your script as executable using chmod before starting it in the terminal:
+$ chmod  +x hello-world.py        (Linux)$ chmod a+x hello-world.py        (macOS)$ ./hello-world.py  Hello, World! 
+On Windows, the shebang line is not relevant; the *.py identifier is sufficient. However, the shebang line does not cause any trouble either and increases compatibility with other operating systems.
+
+Python Scripts Are Executed in Separate Windows
+On Windows, a new terminal window may open each time a Python script is started from a terminal running PowerShell. The script will run there, then the window will close without giving you a chance to see the result.
+The reason for this misbehavior is that the .py identifier is not listed in the PATHEXT system variable. Actually, this omission should not happen (at least not after a Python reinstallation), but I can confirm from painful experience that it does happen sometimes. Well, that’s Windows!
+The solution is to search for “Edit System Environment Variables” in the Start menu. Then, the Control Panel dialog appears, in which you must click Environment Variables. Next, look for PATHEXT (not Path) in the system variables (lower half of the dialog), edit it, and add a semicolon and the extension .py. After restarting the terminal, your Python scripts should run within the terminal.
+
+
+
+
+
+
+
+
+
+
+5.4    Elementary Syntax Rules
+Python statements usually consist of a single line. Unlike many other programming languages, they do not end with a semicolon or any other character.
+Multiline statements are allowed if their beginning and end are clearly indicated by parentheses, for example, in function calls. Alternatively, multiline statements can also be formulated using the \ separator:
+print("abc",      "efg")a = 1 + 2 + \    3 + 4 
+Statements may end with a semicolon. Normally, this semicolon is optional and has no effect on the program execution. Semicolons, however, allow multiple statements to be formulated on a single line:
+a = 1; b = 2; c = 3 
+You can also perform this triple assignment in another way, by specifying both the variables and the values in groups whose components are each separated by commas. Tuples are created internally in Python. Both variants are correct, but the following second variant corresponds more to the language concepts of Python:
+a, b, c = 1, 2, 3 
+5.4.1    Block Elements
+In Python, as in any other programming language, some language elements can introduce an entire block of additional statements, such as branches with if, loops with for and while, or function definitions with function. In Python, such language elements always end with a colon. All other instructions pertaining to the corresponding block must be indented. For block elements, you don’t need any parentheses as you would in other languages, as in the following syntax:
+if xxx:    statement1a    statement1belse:    statement2a    statement2b    statement2c 
+If condition xxx is met, statements 1a and 1b will be executed; if the condition is not met, statements 2a, 2b, and 2c will be executed instead. More details about if and else will follow in

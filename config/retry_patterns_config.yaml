@@ -1,0 +1,272 @@
+# Comprehensive Retry Patterns Configuration
+# This file demonstrates all available configuration options
+
+global:
+  # Global metrics and monitoring
+  enable_global_metrics: true
+  metrics_export_interval: 300  # seconds
+  max_concurrent_retries_global: 100
+  default_timeout: 300.0
+  enable_debug_logging: false
+  
+  # Global feature flags
+  circuit_breaker_enabled_globally: true
+  retry_budget_enabled_globally: true
+  idempotency_enabled_globally: true
+  
+  # Redis configuration for distributed features
+  redis_host: null  # Set to Redis host if using distributed features
+  redis_port: 6379
+  redis_password: null
+  redis_db: 0
+  
+  # Prometheus monitoring
+  prometheus_enabled: false  # Set to true to enable Prometheus metrics
+  prometheus_port: 8000
+  
+  # Alerting configuration
+  alert_on_high_failure_rate: true
+  failure_rate_threshold: 0.5
+  
+  # Global rate limiting
+  global_rate_limit_enabled: true
+  max_retries_per_minute_global: 1000
+  max_retries_per_hour_global: 10000
+
+services:
+  # AI Services
+  claude_api:
+    template: ai_service
+    max_attempts: 5
+    base_delay: 2.0
+    max_delay: 60.0
+    timeout: 120.0
+    strategy: exponential_jitter
+    backoff_multiplier: 2.0
+    jitter_factor: 0.1
+    service_type: ai_claude
+    retryable_status_codes: [408, 429, 500, 502, 503, 504]
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    enable_idempotency: true
+    log_retries: true
+    log_level: WARNING
+    
+  openai_api:
+    template: ai_service
+    max_attempts: 5
+    base_delay: 2.0
+    max_delay: 60.0
+    service_type: ai_openai
+    retryable_status_codes: [408, 429, 500, 502, 503, 504]
+    
+  google_ai_api:
+    template: ai_service
+    max_attempts: 4
+    base_delay: 1.5
+    max_delay: 45.0
+    service_type: ai_google
+    
+  deepseek_api:
+    template: ai_service
+    max_attempts: 6
+    base_delay: 2.5
+    max_delay: 90.0
+    service_type: ai_deepseek
+    
+  # Database Services
+  postgres_main:
+    template: database
+    max_attempts: 3
+    base_delay: 0.5
+    max_delay: 5.0
+    timeout: 30.0
+    strategy: linear
+    service_type: database
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    enable_idempotency: false  # Database operations often not idempotent
+    
+  postgres_analytics:
+    template: database
+    max_attempts: 2
+    base_delay: 1.0
+    max_delay: 10.0
+    timeout: 60.0  # Longer timeout for analytics queries
+    service_type: database
+    
+  # Cache Services
+  redis_main:
+    template: cache
+    max_attempts: 2
+    base_delay: 0.1
+    max_delay: 1.0
+    timeout: 5.0
+    strategy: fixed
+    service_type: cache
+    enable_circuit_breaker: false  # Cache failures shouldn't trigger circuit breaker
+    enable_retry_budget: true
+    enable_idempotency: false
+    
+  memcached:
+    template: cache
+    max_attempts: 1  # Minimal retries for cache
+    base_delay: 0.05
+    max_delay: 0.5
+    service_type: cache
+    
+  # HTTP API Services
+  external_payment_api:
+    template: http_api
+    max_attempts: 4
+    base_delay: 1.0
+    max_delay: 30.0
+    timeout: 60.0
+    strategy: exponential_jitter
+    service_type: http_api
+    retryable_status_codes: [408, 429, 500, 502, 503, 504]
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    enable_idempotency: true
+    
+  notification_service:
+    template: http_api
+    max_attempts: 3
+    base_delay: 0.5
+    max_delay: 10.0
+    service_type: http_api
+    enable_idempotency: true  # Important for notifications
+    
+  user_service:
+    template: microservice
+    max_attempts: 3
+    base_delay: 0.5
+    max_delay: 10.0
+    service_type: microservice
+    
+  # Storage Services
+  s3_primary:
+    max_attempts: 4
+    base_delay: 1.0
+    max_delay: 60.0
+    timeout: 180.0  # Longer timeout for large uploads
+    strategy: exponential_jitter
+    service_type: storage
+    retryable_status_codes: [408, 429, 500, 502, 503, 504]
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    enable_idempotency: true
+    
+  file_storage:
+    max_attempts: 3
+    base_delay: 2.0
+    max_delay: 30.0
+    service_type: storage
+    
+  # Message Queue Services
+  rabbitmq_main:
+    template: message_queue
+    max_attempts: 5
+    base_delay: 1.0
+    max_delay: 60.0
+    timeout: 300.0
+    strategy: exponential
+    service_type: message_queue
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    enable_idempotency: true
+    
+  kafka_events:
+    template: message_queue
+    max_attempts: 3
+    base_delay: 0.5
+    max_delay: 30.0
+    service_type: message_queue
+    
+  # MCP Servers
+  mcp_docker:
+    max_attempts: 3
+    base_delay: 1.0
+    max_delay: 15.0
+    timeout: 60.0
+    strategy: exponential_jitter
+    service_type: mcp_server
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    
+  mcp_kubernetes:
+    max_attempts: 4
+    base_delay: 2.0
+    max_delay: 30.0
+    timeout: 120.0
+    service_type: mcp_server
+    
+  mcp_prometheus:
+    max_attempts: 2
+    base_delay: 0.5
+    max_delay: 5.0
+    timeout: 30.0
+    service_type: mcp_server
+    
+  # Third-party APIs
+  weather_api:
+    max_attempts: 3
+    base_delay: 1.0
+    max_delay: 15.0
+    timeout: 30.0
+    strategy: exponential_jitter
+    service_type: third_party_api
+    retryable_status_codes: [408, 429, 500, 502, 503, 504]
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    
+  geocoding_api:
+    max_attempts: 2
+    base_delay: 0.5
+    max_delay: 10.0
+    service_type: third_party_api
+    
+  # Critical Services (minimal retries, fast failure)
+  authentication_service:
+    max_attempts: 2
+    base_delay: 0.2
+    max_delay: 2.0
+    timeout: 10.0
+    strategy: linear
+    service_type: microservice
+    enable_circuit_breaker: true
+    enable_retry_budget: false  # Don't limit auth retries
+    log_level: ERROR  # Only log errors for auth
+    
+  # Best-effort Services (aggressive retries allowed)
+  analytics_pipeline:
+    max_attempts: 10
+    base_delay: 5.0
+    max_delay: 300.0
+    timeout: 600.0
+    strategy: exponential_jitter
+    service_type: unknown
+    enable_circuit_breaker: false  # Allow many failures
+    enable_retry_budget: true
+    log_level: INFO
+    
+  # Service with custom configuration
+  custom_ml_service:
+    max_attempts: 7
+    base_delay: 3.0
+    max_delay: 120.0
+    timeout: 180.0
+    strategy: fibonacci
+    backoff_multiplier: 1.5
+    jitter_factor: 0.2
+    service_type: unknown
+    retryable_status_codes: [408, 429, 500, 502, 503, 504]
+    enable_circuit_breaker: true
+    enable_retry_budget: true
+    enable_idempotency: true
+    enable_metrics: true
+    log_retries: true
+    log_level: WARNING
+    enable_rate_limiting: true
+    max_concurrent_retries: 5
+    enable_adaptive_backoff: true

@@ -1,0 +1,337 @@
+# Production MCP Servers Deployment Configuration
+
+metadata:
+  name: "mcp-production-deployment"
+  version: "1.0.0"
+  description: "Production deployment of all MCP servers"
+  environment: "production"
+  created_by: "deployment-system"
+  tags:
+    - "production"
+    - "mcp-servers"
+    - "full-deployment"
+
+deployment_settings:
+  parallel_deployment: true
+  rollback_on_failure: true
+  health_checks_enabled: true
+  monitoring_enabled: true
+  backup_enabled: true
+
+servers:
+  # Core Search Server (highest priority, no dependencies)
+  - name: "brave-search"
+    server_type: "search"
+    priority: 100
+    parallel_safe: true
+    dependencies: []
+    timeout_seconds: 300
+    retry_attempts: 3
+    health_checks:
+      - "http_health"
+      - "tcp_connectivity"
+    config:
+      replicas: 3
+      resources:
+        cpu: "500m"
+        memory: "1Gi"
+      service:
+        type: "ClusterIP"
+        port: 8000
+
+  # Security Scanner (high priority, independent)
+  - name: "security-scanner"
+    server_type: "security"
+    priority: 90
+    parallel_safe: true
+    dependencies: []
+    timeout_seconds: 600  # Longer timeout for security scans
+    retry_attempts: 2
+    health_checks:
+      - "filesystem_health"
+      - "tcp_connectivity"
+    config:
+      replicas: 2
+      resources:
+        cpu: "1000m"
+        memory: "2Gi"
+      service:
+        type: "ClusterIP"
+        port: 8001
+
+  # Infrastructure Servers (medium priority)
+  - name: "docker-mcp"
+    server_type: "infrastructure"
+    priority: 80
+    parallel_safe: true
+    dependencies: []
+    timeout_seconds: 300
+    retry_attempts: 3
+    health_checks:
+      - "tcp_connectivity"
+    config:
+      replicas: 2
+      resources:
+        cpu: "500m"
+        memory: "1Gi"
+      # Removed privileged mode - use Docker API instead of socket mounting
+      security_context:
+        run_as_non_root: true
+        run_as_user: 65534
+        fs_group: 65534
+        read_only_root_filesystem: true
+        allow_privilege_escalation: false
+        capabilities:
+          drop:
+            - ALL
+      service:
+        type: "ClusterIP"
+        port: 8002
+
+  - name: "kubernetes-mcp"
+    server_type: "infrastructure"
+    priority: 80
+    parallel_safe: true
+    dependencies: []
+    timeout_seconds: 300
+    retry_attempts: 3
+    health_checks:
+      - "tcp_connectivity"
+    config:
+      replicas: 2
+      resources:
+        cpu: "500m"
+        memory: "1Gi"
+      service:
+        type: "ClusterIP"
+        port: 8003
+      rbac:
+        enabled: true
+        permissions:
+          - "pods:list,get,create,delete"
+          - "deployments:list,get,create,update,delete"
+          - "services:list,get,create,delete"
+
+  # Monitoring Server (depends on infrastructure)
+  - name: "prometheus-monitoring"
+    server_type: "monitoring"
+    priority: 70
+    parallel_safe: false  # Monitoring should deploy after infrastructure
+    dependencies:
+      - "docker-mcp"
+      - "kubernetes-mcp"
+    timeout_seconds: 400
+    retry_attempts: 3
+    health_checks:
+      - "http_health"
+      - "tcp_connectivity"
+    config:
+      replicas: 1
+      resources:
+        cpu: "1000m"
+        memory: "4Gi"
+      persistence:
+        enabled: true
+        size: "50Gi"
+      service:
+        type: "ClusterIP"
+        port: 9090
+
+  # Communication Servers (medium priority, can run in parallel)
+  - name: "slack-notifications"
+    server_type: "communication"
+    priority: 60
+    parallel_safe: true
+    dependencies: []
+    timeout_seconds: 200
+    retry_attempts: 3
+    health_checks:
+      - "http_health"
+    config:
+      replicas: 2
+      resources:
+        cpu: "200m"
+        memory: "512Mi"
+      service:
+        type: "ClusterIP"
+        port: 8004
+
+  # Storage Servers (can run in parallel with communication)
+  - name: "s3-storage"
+    server_type: "storage"
+    priority: 60
+    parallel_safe: true
+    dependencies: []
+    timeout_seconds: 300
+    retry_attempts: 3
+    health_checks:
+      - "tcp_connectivity"
+    config:
+      replicas: 2
+      resources:
+        cpu: "300m"
+        memory: "1Gi"
+      service:
+        type: "ClusterIP"
+        port: 8005
+
+  - name: "cloud-storage"
+    server_type: "storage"
+    priority: 60
+    parallel_safe: true
+    dependencies: []
+    timeout_seconds: 300
+    retry_attempts: 3
+    health_checks:
+      - "tcp_connectivity"
+    config:
+      replicas: 2
+      resources:
+        cpu: "300m"
+        memory: "1Gi"
+      service:
+        type: "ClusterIP"
+        port: 8006
+
+  # DevOps Servers (lower priority, depend on infrastructure)
+  - name: "desktop-commander"
+    server_type: "devops"
+    priority: 50
+    parallel_safe: true
+    dependencies:
+      - "docker-mcp"
+    timeout_seconds: 300
+    retry_attempts: 3
+    health_checks:
+      - "tcp_connectivity"
+      - "filesystem_health"
+    config:
+      replicas: 1
+      resources:
+        cpu: "500m"
+        memory: "1Gi"
+      service:
+        type: "ClusterIP"
+        port: 8007
+
+  # Advanced Security Servers (depends on basic security scanner)
+  - name: "sast-scanner"
+    server_type: "security"
+    priority: 40
+    parallel_safe: false
+    dependencies:
+      - "security-scanner"
+    timeout_seconds: 800  # Very long timeout for SAST
+    retry_attempts: 2
+    health_checks:
+      - "tcp_connectivity"
+      - "filesystem_health"
+    config:
+      replicas: 1
+      resources:
+        cpu: "2000m"
+        memory: "4Gi"
+      service:
+        type: "ClusterIP"
+        port: 8008
+
+  - name: "supply-chain-security"
+    server_type: "security"
+    priority: 40
+    parallel_safe: true
+    dependencies:
+      - "security-scanner"
+    timeout_seconds: 600
+    retry_attempts: 2
+    health_checks:
+      - "tcp_connectivity"
+    config:
+      replicas: 1
+      resources:
+        cpu: "1000m"
+        memory: "2Gi"
+      service:
+        type: "ClusterIP"
+        port: 8009
+
+# Global deployment configuration
+global_config:
+  namespace: "mcp-servers"
+  
+  # Network policies
+  network_policies:
+    enabled: true
+    default_deny: true
+    allowed_ingress:
+      - from: "ingress-nginx"
+      - from: "monitoring"
+    allowed_egress:
+      - to: "kube-dns"
+      - to: "external-apis"
+  
+  # Security context
+  security_context:
+    run_as_non_root: true
+    run_as_user: 65534
+    fs_group: 65534
+    seccomp_profile: "runtime/default"
+    read_only_root_filesystem: true
+    allow_privilege_escalation: false
+    capabilities:
+      drop:
+        - ALL
+  
+  # Resource quotas
+  resource_quotas:
+    requests:
+      cpu: "10000m"    # 10 cores
+      memory: "20Gi"   # 20 GB
+    limits:
+      cpu: "20000m"    # 20 cores
+      memory: "40Gi"   # 40 GB
+  
+  # Pod disruption budgets
+  pod_disruption_budgets:
+    min_available: "50%"
+  
+  # Image pull policy
+  image_pull_policy: "IfNotPresent"
+  
+  # Restart policy
+  restart_policy: "Always"
+
+# Health check configuration
+health_checks:
+  global_timeout: 30
+  global_retries: 3
+  
+  custom_checks:
+    - name: "cluster_connectivity"
+      type: "tcp"
+      config:
+        host: "kubernetes.default.svc.cluster.local"
+        port: 443
+      
+    - name: "dns_resolution"
+      type: "command"
+      config:
+        command: ["nslookup", "kubernetes.default.svc.cluster.local"]
+        expected_exit_code: 0
+
+# Rollback configuration
+rollback:
+  strategy: "graceful"
+  max_rollback_time: 600  # 10 minutes
+  create_snapshots: true
+  snapshot_retention_days: 7
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  websocket_port: 8765
+  metrics_collection_interval: 30
+  alert_thresholds:
+    cpu_usage: 80.0
+    memory_usage: 85.0
+    pod_restart_count: 5
+    deployment_failure_rate: 10.0

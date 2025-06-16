@@ -1,0 +1,485 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "DevOps MCP Server - Predictive Analytics",
+    "tags": ["devops", "mcp", "machine-learning"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Deployment Predictions",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "devops_predictions_total",
+            "legendFormat": "Total Predictions"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 100
+                },
+                {
+                  "color": "red",
+                  "value": 1000
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Prediction Success Rate",
+        "type": "gauge",
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "devops_prediction_success_rate",
+            "legendFormat": "Success Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 1,
+            "unit": "percentunit",
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.7
+                },
+                {
+                  "color": "green",
+                  "value": 0.85
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Memory Pool Utilization",
+        "type": "gauge",
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "devops_memory_pool_utilization_ratio",
+            "legendFormat": "Memory Utilization"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 1,
+            "unit": "percentunit",
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.8
+                },
+                {
+                  "color": "red",
+                  "value": 0.95
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Model Accuracy",
+        "type": "stat",
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "devops_model_accuracy",
+            "legendFormat": "Model Accuracy"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.8
+                },
+                {
+                  "color": "green",
+                  "value": 0.9
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Deployment Timeline",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 12,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(devops_deployments_total[5m])",
+            "legendFormat": "Deployment Rate"
+          },
+          {
+            "expr": "rate(devops_deployments_success_total[5m])",
+            "legendFormat": "Success Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "fillOpacity": 10
+            },
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Remediation Performance",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 12,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(devops_remediation_latency_seconds_bucket[5m]))",
+            "legendFormat": "95th Percentile Latency"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(devops_remediation_latency_seconds_bucket[5m]))",
+            "legendFormat": "Median Latency"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "lineWidth": 2
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Pattern Discovery",
+        "type": "stat",
+        "gridPos": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 20
+        },
+        "targets": [
+          {
+            "expr": "increase(devops_patterns_discovered_total[1h])",
+            "legendFormat": "Patterns/Hour"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Active Deployments",
+        "type": "table",
+        "gridPos": {
+          "h": 6,
+          "w": 18,
+          "x": 6,
+          "y": 20
+        },
+        "targets": [
+          {
+            "expr": "devops_active_deployments",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "__name__": true,
+                "job": true,
+                "instance": true
+              },
+              "renameByName": {
+                "service": "Service",
+                "environment": "Environment",
+                "version": "Version",
+                "status": "Status"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Prediction Latency Distribution",
+        "type": "heatmap",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 26
+        },
+        "targets": [
+          {
+            "expr": "rate(devops_prediction_latency_seconds_bucket[5m])",
+            "format": "heatmap",
+            "legendFormat": "{{le}}"
+          }
+        ],
+        "options": {
+          "calculate": false,
+          "yAxis": {
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Resource Optimization Savings",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 26
+        },
+        "targets": [
+          {
+            "expr": "devops_cost_savings_total",
+            "legendFormat": "Total Savings"
+          },
+          {
+            "expr": "rate(devops_cost_savings_total[1h]) * 3600",
+            "legendFormat": "Hourly Savings Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "fillOpacity": 20
+            }
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Incident Classification Accuracy",
+        "type": "piechart",
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 34
+        },
+        "targets": [
+          {
+            "expr": "devops_incident_classification_accuracy by (category)",
+            "legendFormat": "{{category}}"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "pieType": "pie",
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "displayMode": "visible",
+            "placement": "right"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Capacity Forecast",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 8,
+          "w": 18,
+          "x": 6,
+          "y": 34
+        },
+        "targets": [
+          {
+            "expr": "devops_capacity_forecast_cpu",
+            "legendFormat": "CPU Forecast"
+          },
+          {
+            "expr": "devops_capacity_forecast_memory",
+            "legendFormat": "Memory Forecast"
+          },
+          {
+            "expr": "devops_capacity_current_cpu",
+            "legendFormat": "Current CPU"
+          },
+          {
+            "expr": "devops_capacity_current_memory",
+            "legendFormat": "Current Memory"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "fillOpacity": 10
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*Forecast.*"
+              },
+              "properties": [
+                {
+                  "id": "custom.lineStyle",
+                  "value": {
+                    "dash": [10, 10],
+                    "fill": "dash"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "query": "label_values(devops_deployments_total, environment)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        },
+        {
+          "name": "service",
+          "type": "query",
+          "query": "label_values(devops_deployments_total{environment=~\"$environment\"}, service)",
+          "refresh": 1,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "enable": true,
+          "iconColor": "green",
+          "target": {
+            "expr": "changes(devops_deployments_total[5m]) > 0"
+          }
+        },
+        {
+          "name": "Incidents",
+          "enable": true,
+          "iconColor": "red",
+          "target": {
+            "expr": "changes(devops_incidents_total[5m]) > 0"
+          }
+        }
+      ]
+    }
+  },
+  "overwrite": true
+}

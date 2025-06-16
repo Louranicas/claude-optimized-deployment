@@ -1,0 +1,26 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 18010 - For instance, common network services like HTTP or HTTPS are far more common to see than spooling services.
+Let’s take a look at this file. The command in Listing 11-3 filters for port 22 (SSH), port 23 (Telnet), port 3306 (MySQL), and port 1433 (Microsoft SQL). Execute the command on Kali, then observe the frequency values:
+$ grep -w -e 22/tcp -e 23/tcp -e 3306/tcp -e 1433/tcp /usr/share/nmap/nmap-services
+Security Relevance Score: 6
+Word Count: 333
+Extracted: 2025-06-13 23:40:57
+
+---
+
+For instance, common network services like HTTP or HTTPS are far more common to see than spooling services.
+Let’s take a look at this file. The command in Listing 11-3 filters for port 22 (SSH), port 23 (Telnet), port 3306 (MySQL), and port 1433 (Microsoft SQL). Execute the command on Kali, then observe the frequency values:
+$ grep -w -e 22/tcp -e 23/tcp -e 3306/tcp -e 1433/tcp /usr/share/nmap/nmap-services
+
+ssh         22/tcp      0.182286    # Secure Shell Login
+telnet      23/tcp      0.221265
+ms-sql-s    1433/tcp    0.007929    # Microsoft-SQL-Server
+mysql       3306/tcp    0.045390
+
+Listing 11-3: Viewing only certain ports in the /etc/services file
+Telnet (0.221265) is open more frequently than SSH (0.182286), while MySQL (0.045390) is open more frequently than Microsoft SQL (0.007929). This frequency data helps us prioritize which ports to scan, remove ports that are not commonly seen open, and focus on a limited subset of ports while reducing the risk of missing out on key services. In Exercise 23, we’ll build a scanner that scans for ports based on their open frequency.
+Note that while service names are associated with the found ports, those may not necessarily reflect the services that are actually running. Files such as /etc/services and nmap-services use a static mapping of ports and services, so it’s up to us to properly identify the service during a penetration test by connecting to each port.
+We encourage you to perform additional information gathering on these hosts by using what you’ve learned so far in the book. Can you identify applications or databases that are running, along with their versions? How about the running operating system? In the subsequent sections, we’ll exploit some of these services to gain access to additional machines and move laterally through the network.
+Exercise 23: Scanning Ports Based on Frequencies
+In this exercise, you’ll perform a similar port scan to the one in Listing 11-1, except you’ll examine the frequency at which a port is found open and prioritize commonly opened ports. Here is what you’ll do, at a high level:

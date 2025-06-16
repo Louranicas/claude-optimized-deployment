@@ -1,0 +1,80 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 4 - So, you can set up a maximum of 97 virtual machines. If necessary, you can work around this limit by analyzing the last two MAC digits hexadecimally or by considering multiple MAC digits.
+Security Relevance Score: 3
+Word Count: 1245
+Extracted: 2025-06-13 23:41:06
+
+---
+
+So, you can set up a maximum of 97 virtual machines. If necessary, you can work around this limit by analyzing the last two MAC digits hexadecimally or by considering multiple MAC digits.
+
+Alternatives
+Running a script within the init system is not the only way to configure virtual machines. Major virtualization frameworks such as OpenStack rely on cloud init (see https://cloud-init.io).
+To configure running virtual (or real) machines, you can also use configuration tools such as Puppet or Ansible. However, these programs assume that all machines in the network are accessible, i.e., that the network configuration has already been completed.
+
+
+
+
+
+
+
+
+
+
+21.3    Controlling Hyper-V
+Hyper-V is to Windows what KVM is to Linux. It is therefore not surprising that Microsoft has added a comprehensive PowerShell module to its own virtualization system. If you have Windows Pro and have not yet enabled Hyper-V, the quickest way to do this is to use the following command:
+> Add-WindowsFeature Hyper-V  -IncludeManagementTools 
+About 250 aliases and cmdlets can then be executed on Windows (but not on Linux or macOS) via the Hyper-V PowerShell module: 
+> Get-Command -Module Hyper-V  CommandType  Name                    Version    Source  -----------  ----                    -------    ------  Alias        Export-VMCheckpoint     2.0.0.0    Hyper-V  Alias        Get-VMCheckpoint        2.0.0.0    Hyper-V  Alias        Remove-VMCheckpoint     2.0.0.0    Hyper-V  Alias        Rename-VMCheckpoint     2.0.0.0    Hyper-V  Alias        Restore-VMCheckpoint    2.0.0.0    Hyper-V  Cmdlet       Add-VMAssignableDevice  2.0.0.0    Hyper-V  Cmdlet       Add-VMDvdDrive          2.0.0.0    Hyper-V  ... 
+
+Admin Rights Required
+By default, the execution of Hyper-V cmdlets requires admin rights. This means you need to open a PowerShell terminal with admin rights.
+Alternatively, you can add individual users or groups to the Hyper-V administrators. This type of settings can be done in the Group Policy Management Editor.
+
+Get-VM lists all installed virtual machines and shows details about their current state:
+> Get-VM  Name    State     CPUUsage(%)   MemoryAssigned(M)    ...  ----    -----     -----------   -----------------  -----  alma9   Running   24            2024  kali    Running   0             5976  ... 
+Get-VM returns VirtualMachine objects. Get-Member shows that the underlying class has innumerable properties:
+> Get-VM | Select-Object -First 1 | Get-Member  TypeName: Microsoft.HyperV.PowerShell.VirtualMachine  Name                           MemberType    Definition  ----                           ----------    ----------  CheckpointFileLocation         AliasProperty ...  VMId                           AliasProperty ...  VMName                         AliasProperty ...  Equals                         Method        ...  GetHashCode                    Method        ...  AutomaticCheckpointsEnabled    Property      ...  AutomaticCriticalErrorAction   Property      ...  AutomaticStartAction           Property      ...  AutomaticStartDelay            Property      ...  ... 
+You can start or shut down all virtual machines by using two one-liners that call the Start-VM and Stop-VM cmdlets, respectively:
+> Get-VM | Where-Object {$_.State -eq 'Off'} | Start-VM> Get-VM | Where-Object {$_.State -eq 'Running'} | Stop-VM 
+The especially useful Set-VM cmdlet allows you to change various properties of virtual machines:
+> $vm = Get-VM "alma9-clone1"> Set-VM -VM $vm -MemoryStartupBytes 2GB -ProcessorCount 2 
+Changing the memory is impossible if the virtual machine uses a dynamically allocated memory area. In that case, you can set the upper and lower limits, as well as the initial memory size, which must not be larger than the upper limit. The -DynamicMemory option allows you to switch from static to dynamic memory management.
+> Set-VM -VM $vm -DynamicMemory -MemoryStartupBytes 512MB `    -MemoryMinimumBytes 512MB -MemoryMaximumBytes 1GB 
+As usual, a reference of all Hyper-V cmdlets with their myriad options can be found online: https://learn.microsoft.com/en-us/powershell/module/hyper-v.
+21.3.1    Cloning Virtual Machines
+The Hyper-V module does not provide its own cmdlet for cloning virtual machines. However, this task can be done by means of a workaround: For this purpose, you first need to export the virtual machine (Export-VM) and then create the new virtual machine by means of an import (import VM).
+In real life, however, the process is more complex than this brief summary suggests. The following script creates noOfClones copies of an existing virtual machine. The script starts by shutting down the base virtual machine and deleting all snapshots. (You should remove Remove-VMSnapshot if you want to keep the snapshots! Note, however, that Export-VM also includes all snapshots and there is no option to prevent this.)
+# Sample file clone-vm.ps1$basename = "alma9"$noOfClones = 3$tmp = $env:TEMP  # Caution: $env:TEMP works only on                  # Windows, but not on Linux/macOS# the function tests if a directory exists, and# then deletes it; be careful!function delete-dir($path) {    if (Test-Path "$path") {        Write-Output "delete $path"        Remove-Item "$path" -Recurse -Force    }}# when VM is running: shutdown$basevm = Get-VM $basenameif ($basevm.State -eq 'Running' ) {    Write-Output "shutdown $basename"    Stop-VM -VM $basevm}# delete all snapshots of the VM (be careful!)Get-VMSnapshot -VM $basevm | Remove-VMSnapshot 
+The next lines use Get-VMHardDiskDrive to determine the location of the first disk of the base virtual machine. The disks of the cloned virtual machines will be created later in subdirectories relative to this.
+If the temporary directory to which the export is to be done already exists (e.g., as a leftover from a previous script call), then it will be deleted.
+Export-VM finally exports the base virtual machine. This creates a subdirectory in the temporary directory with the virtual machine name. The actual description of the virtual machine is contained in a *.vmcx file. Get-ChildItem gets the filename.
+# (continued ...)# determines the directory in which the first disk image# is stored$pathFirstDisk =  (Get-VMHardDiskDrive -VM $basevm |                   Select-Object -First 1).Path$dirFirstDisk = Split-Path $pathFirstDisk -ParentWrite-Output "Virtual disk directory: $dirFirstDisk"# delete temporary export directory (if it exists)delete-dir "$tmp\$basename"# perform exportExport-VM -VM $basevm -Path $tmp$vmcxfile = Get-ChildItem `    "$tmp\$basename\Virtual Machines\*.vmcx"Write-Output "VMCX file: $vmcxfile" 
+Several clones of the virtual machine are now created in a loop. The -Copy option means that this really creates a new virtual machine with its own files. -GenerateNewId gives the virtual machine its own Hyper-V identification number. The two -XxxPath options specify where to store the virtual machine files.
+Rename-VM gives the virtual machine a new name. Hyper-V has no problem with multiple virtual machines having the same name, but virtual machines with the same name only cause confusion.
+Hyper-V automatically assigns 2 CPUs and 2 GB of memory to new virtual machines. Set-VM reduces these values. In addition, Set-VMNetworkAdapter sets a static MAC address for each virtual machine. By default, Hyper-V uses dynamic MACs that are generated only when a virtual machine is started. The first six digits of the MAC should always be 00155d. This part of the MAC was reserved by Microsoft for Hyper-V.
+# (continued ...)# create $noOfClones copies of the exported VMfor ($i = 1; $i -le $noOfClones; $i++) {    $cloneName = "${basename}-clone${i}"    Write-Output "setup $cloneName with MAC $mac"    $clone = Import-VM -Path $vmcxfile -Copy -GenerateNewId `        -VhdDestinationPath "$dirFirstDisk\$cloneName" `        -VirtualMachinePath "$dirFirstDisk\$cloneName"    # rename the clone    Rename-VM -VM $clone -NewName $cloneName    # set properties of the VM    Set-VM -VM $clone -ProcessorCount 1 `      -MemoryStartupBytes 1GB    # set static MAC address    $mac="00155d1234{0:d2}" -f $i    Set-VMNetworkAdapter -VMName $cloneName -StaticMacAddress $mac}# delete temporary export directorydelete-dir "$tmp\$basename" 
+Note that the script must be run with admin rights. The script returns an error if the virtual machine files of a clone already exist, for example when the script gets executed a second time. If you want, you can extend the script to detect and delete existing clones within the script.
+
+
+
+
+
+
+
+
+The Author
+
+Dr. Michael Kofler is a programmer and Linux administrator. He studied electrical engineering/telematics at Graz University of Technology. He has been one of the most successful and versatile computing authors in the German-speaking world for many years. His current topics include Linux, Docker, Git, hacking and security, Raspberry Pi, and the programming languages Swift, Java, Python, and Kotlin. Michael Kofler also teaches at the Joanneum University of Applied Sciences in Kapfenberg, Austria.
+
+
+
+
+
+
+
+Index
+
+↓A  ↓B  ↓C  ↓D  ↓E  ↓F  ↓G  ↓H  ↓I  ↓J  ↓K  ↓L  ↓M  ↓N  ↓O  ↓P  ↓Q  ↓R  ↓S  ↓T  ↓U  ↓V  ↓W  ↓X  ↓Z  
+/var/log directory [→

@@ -1,0 +1,53 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 7 - Advanced Obfuscation Techniques.
+Security Relevance Score: 14
+Word Count: 1158
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Advanced Obfuscation Techniques.
+
+Exploring the Nmap Scripting Engine
+The Nmap Scripting Engine is among the most powerful components of Nmap due to its versatility. Written in the Lua scripting language, these scripts amplify Nmap to be able to fingerprint more specific systems, perform more nuanced scans, exploit known vulnerabilities, and even enumerate firewall rules.
+The sheer number of Nmap scripts natively available is staggering. To list them on your Kali machine, simply use the following command:
+> ls -l /usr/share/nmap/scripts
+
+
+
+Figure 4.6: Listing the /usr/share/nmap/scripts directory in Kali Linux
+You can then explore any of them by printing out the file, either via the cat command or with a text editor (nano, vi, vim, and so on):
+>cat /usr/share/nmap/scripts/address-info.nse
+
+
+
+Figure 4.7: Printing the Lua code of a NSE script
+While there are hundreds of NSE scripts available, as a primer, we will look at 10 that are most often used when conducting enterprise penetration tests of multi-billion dollar corporations:
+
+Vulners.nse: This is one of the handiest scripts available for doing a quick surface-level vulnerability analysis. This script looks at the services being run on the system and queries the vulenrs.com database of vulnerabilities to determine if those services match known vulnerabilities. It will then print out those CVEs to the command prompt along with hyperlinks to their database for additional information. What makes this even more convenient is that Vulners will even define if there is a known exploit available for that vulnerability.
+Ms-exchange-version.nse: Outdated versions of on-premises Microsoft Exchange have been riddled with severe vulnerabilities. This script does a better job than even most commercial vulnerability scanners at fingerprinting the exact version of the exchange that is being utilized.
+Smb-security-mode.nse // smb2-security-mode.nse: SMB signing not being enabled or required is one of the most common high-severity vulnerabilities seen on internal environments. With this script, you can very rapidly determine if a pass-the-hash attack will be a viable option for lateral movement within the environment.
+Smb-os-discovery.nse: Fingerprinting server infrastructure can be challenging, but with Windows 2012R2 recently reaching the end of life (and still very widely used), the opportunity for exploiting these systems is as present as ever. Having the capacity to fingerprint Windows systems via the SMB protocol is essential for any pentester.
+Smb-enum-*: This shortcut for running dozens of individual SMB enumeration scripts is a great way to save time on an engagement. When you do not need to worry about being stealthy, throwing everything at a target in the most efficient way is a plus.
+Smb-vuln-*: Similar to preceding point, being able to automatically verify susceptibility to a list of high-severity SMB vulnerabilities rapidly can be a great technique, especially in larger scope engagements where efficiency is everything.
+Broadcast-jenkins-discover.nse: Jenkins has had countless vulnerabilities over the years and many instances remain tremendously out of date. Being able to identify these systems on the network can provide an early and effective foothold for exploitation.
+Http-wordpress-enum.nse: WordPress websites are incredibly common and often make use of many individual plugins, some of which are commercially supported, and others are community-driven. As a result, there have been countless WordPress plugin-specific vulnerabilities over the last decade; many of which do not have patches. This script is a very handy way to fingerprint these plugins and print out any known vulnerabilities associated with them.
+Firewalk.nse: Firewalk is a fairly old, but still quite useful script that attempts to determine firewall rules on a specified gateway by analyzing IP time to live (TTL) expirations. Essentially this technique, known as firewalking, sends varying types of probes to the gateway and based on the TTL and reply ascertains if a firewall rule is impacting that port.
+A couple of items to be aware of for this script: first, you need to run it either in an administrator or sudo command prompt as it needs raw socket access. As a result, this is highly unreliable in Windows Subsystem for Linux (WSL). Second, you also need to include the command “--traceroute”:
+
+
+
+
+Figure 4.8: Demonstrating the concept of Firewalking with Nmap
+Mysql-empty-password.nse: This script does exactly what the name would suggest: it checks MySQL servers for default user credentials by attempting to authenticate to the service. While this can be handy, it should be understood that this is both easily detectable and intrusive.
+
+Even more scripts can be found on GitHub where the Infosec community members love to add additional functionality and versatility through custom scripts. We will be deep-diving into NSE scripts, how to write them, how to import new ones, and the best use cases in a later chapter. But for now, the key thing to understand is that NSE scripts are used to expand the functionality of Nmap, are open-source, and are called with the –-script flag.
+ NOTE: In 2022, I hosted a live webinar on Cyber-Judo.com on Advanced Nmap Techniques (https://cyber-judo.com/advanced-nmap-techniques), where a major discussion point was different Nmap flags that could be leveraged during penetration tests. I was absolutely shocked by the number of professional penetration testers who reached out to me following the presentation telling me that they had no idea NSE scripts existed.
+I kept in touch with many of these engineers and as they explored different NSE scripts they each started incorporating them into their day-to-day pentesting routine and have seen tremendous improvements.
+System, Service, and Operating System Enumeration
+As we have discussed in the previous chapter, identifying vulnerabilities across environments is conceptually simple. First, you establish the CPE of the system, then through research and additional service enumeration, determine if there are any applicable CVEs that meet the conditions to be meaningfully (and safely) exploited. This is how vulnerability scanners like OpenVas fundamentally operate and quite successfully identify most vulnerabilities. However, during real-world pentests, those easy-to-identify vulnerabilities, which are factored into most open-source and commercial vulnerability scanners, are also typically the issues that the blue team is aware of and have compensating controls to address. More often, true success leading to a cascading compromise within a network environment comes from identifying the vulnerabilities that stem from misconfigurations, inherently flawed protocols, and significant technical debt.
+Let’s take a moment to explore each of these general categories and break down some examples of how Nmap can contribute to the successful exploitation of them. These examples are meant to serve as both insightful thought exercises and inspiration leading into the challenge presented in this chapter.
+Misconfigurations
+Security misconfigurations could refer to any number of huge swaths of inadvertent errors when setting up devices. This is such a broad category that in Open Web Application Security Project (OWASP)’s 2021 edition of Top 10 Vulnerabilities in Web Apps, over 90% of applications had a vulnerability that fell into this category.
+A simple way to think about this is that there isn’t a problem with the technology, there is a problem with how it was implemented or set up. Think of having a lock on your luggage but forgetting to change the code from

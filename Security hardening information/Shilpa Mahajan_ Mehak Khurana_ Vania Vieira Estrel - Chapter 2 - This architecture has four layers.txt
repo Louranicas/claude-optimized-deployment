@@ -1,0 +1,127 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 2 - This architecture has four layers:
+Security Relevance Score: 21
+Word Count: 2625
+Extracted: 2025-06-13 23:40:31
+
+---
+
+This architecture has four layers:
+
+User Layer;
+SDN Layer;
+Security Layer;
+
+
+
+14.4 Blockchain Layer
+User layer: The gateway (edge or fog node) mobile app coordinates sensor‐target database traffic. The trusted authority sends rules and policies to the mobile app via the GCPSO controller. The sensors collect vital data from participants and send it to the mobile app, which routes them depending on smartphone app guidelines. Dedicated modules authenticate and authorize mobile applications and sensors in the security layer. The mobile app acts as a conduit between sensors and target datasets. The trusted authority sends rules and policies to the mobile app via the GCPSO controller. The sensors collect vital participant data and send information to the mobile app, which does routing as per smartphone app guidelines. Security modules handle mobile app and sensor authentication/ authorization.
+WSAN layer: The GIBCS‐CPS architecture core layer is the WSAN. A NBI allows communication between a given level and higher‐level components in the same network. In contrast, a southbound interface (SBI) does the reverse, i.e., permits communication among a particular component and lower‐level parts. Controllers and northbound/southbound APIs are the main WSAN network components. Southbound APIs in the GIBCS‐CPS design will connect the mobile app to the WSAN controller. The WSAN controller uses northbound APIs to implement the protective layer. This connection allows the security platform’s modules to access southbound APIs on all WSAN controller‐linked nodes (mobile apps and sensors). The controller controls the security layer module‐mobile app interactions. Additionally, the controller has its apps and services. This GIBCS‐CPS architecture features routing, which identifies and conveys sensor data.
+Security layer: The security integration layer connects and orchestrates security modules. Figure 14.3 depicts the GCPSO security and privacy components.
+Blockchain layer: The design utilizes permissioned blockchain to securely and quickly connect system actors. It has two phases:
+
+‐ The first phase documents approved actions, system actors log in, and use dedicated interfaces (APIs). It may include sensitive information.
+‐ In the second, blockchain‐supported infrastructure domain miners will add information to the blockchain by unraveling the PoW procedure. Blockchain nodes that can add data are the ones containing only miners. The blockchain is not updated if a miner cannot solve the PoW CA routine.
+
+
+14.4.1 WSAN‐Based Network Model
+
+14.4.1.1 WSAN Overview
+Figure 14.3 illustrates WSAN splitting the network into data, control, and application planes. Data planes send and receive network communication. Traffic transfer decisions are made at the control plane. The device plane stores WSAN programs.
+
+
+Figure 14.3 WSAN architecture. Application layer: physical HW, virtual machines, virtual hosts. Network control layer: regulates the network. Infrastructure layers: programmable switches.
+
+
+WSAN applications may disseminate their SW and HW statistics and inbound connections to the northbound controller interface. Applications can also notify the controller of network management commands akin to flow rule addition or removal and are designed to achieve specific purposes, employing controller data and other sources to decide if the network should be altered. Applications receive only the control plane permissions (such as read, write, notification, and target device ID) from the controller’s access control sub‐system.
+
+
+14.4.1.2 Problem Statement
+Altering and controlling network status with different applications is a paramount WSAN feature. Supporting third‐party growth undermines confidence. Third‐party apps represent a CT since trusted SW modules are hard to determine. Policies in the WSAN allow network applications to directly alter WSAN‐reliant networks [78]. Many WSAN controllers necessitate authentication, sanction, and logging aptitudes. When third‐party applications contact a northbound interface (NBI), administrators assume the same as the network applications’ controller. Applications can misuse policies to leak data or destroy specialized networks, causing widespread damage. The confidence management system for the NBI of the WSAN controller performs business sector monitoring. This strategy should address trust management characteristics [79].
+Dynamicity: The confidence level should vary throughout a user’s interaction with an application.
+Content dependency: The application’s skill to win confidence may rest on the target task.
+Subjectivity: The trust management system should consider WSAN features (e.g., equipment and information assets).
+Likewise, any WSAN TMS must meet the criteria and adhere to these principles:
+Proof of identity: Nodes involved in a communication must authenticate each other when/where obligatory.
+Least privilege: Privileges are granted in line with the request.
+Inspect and log: Incidents must be scrutinized and reported aptly for security motives.
+As the range of network approaches for TMS is broad, a possible solution is to combine multiple frameworks as below [80].
+Certificate‐based: This structure should provide authentication.
+Policy‐based: A framework must discern permissible acts for applications.
+Behavior‐based: This arrangement tracks and analyzes application activities to assign a confidence rating.
+
+
+
+
+14.5 Trust Management
+The suggested TSM for a WSAN‐based domain platform concentrates on the WSAN architecture, which is the communication part of the business sector. The recommended architecture establishes trust between the control layer and network applications. Figure 14.4 illustrates the framework linking applications to the WSAN architecture’s control layer. The structure is made up of five elements depicted next.
+
+14.5.1 Authentication Module
+Application requests for control plane network modifications trigger the framework’s authentication with control plane challenges credentials following the submission. The controller allows or refuses network service after confirming application credentials. This text will not discuss authentication because it needs further detail, but it emphasizes CS.
+
+
+14.5.2 Authorization Module
+It controls two groups of app permissions. One set includes necessary rights that, if misused, might have profound effects, while the other covers non‐critical rights. The “trust database module” (TDM) tracks all permissions. The functions they perform divide apps into two types. Security programs come first and foremost. Applications without security priority are second. CS applications can limit a static administrator’s network security policy in reaction to new run‐time CTs, including malevolent traffic, contaminated internal resources, blacklist‐worthy external entities, and dangerous aggregate traffic patterns.
+
+
+Figure 14.4 Trust management modules and interactions.
+
+
+
+
+14.5.3 Trust Database Module
+The TDM is a data storage constituent that keeps track of all characteristics and values needed for the framework’s assessments and determinations. Both functions consult the database for warehoused data. The network administrator arbitrarily determines the values allotted to several network applications. The TDM computes a permissions‐requesting program’s trust value (TV) that depends on four elements [81, 82].
+
+Reputation sub‐system: It assesses historical interactions between nodes.
+Operational risk sub‐system: The network parts affected by the application may be missing.
+Information risk sub‐system: It handles possible knowledge disclosure losses.
+Privacy level sub‐system: The network traffic device perceived by the WSAN controller.
+
+The TDM gauges the TV, employing some constants and the above variables. The display, i.e., TV, is sent to the “access control decision” (ACD) module. Users will have interfaces to count appropriate and significant hazards and set two “threshold TVs” (TTVs), which are “acceptable” and “crucial” since risk variables vary by network.
+
+
+14.5.4 Access Decision Control (ACD)
+This segment assigns the calculated TV from the trust section to one of the zones itemized beneath. The ACD module governs the application’s trustworthiness by checking this TV.
+
+Critical zone: If an application’s confidence level remains deficient, it should cease work and cut off;
+Surveillance zone: For a medium‐level confidence application, decisions must address the “monitoring and evaluation” (ME) module, aka MEM;
+Trusted zone: For a high‐level confidence application, it works with the MEM that habitually observes it.
+
+The application’s confidence level drops as the TV value falls. The MEM decisions are founded on observations.
+
+
+14.5.5 Monitoring and Evaluation Module (MEM)
+Controller‐network application relationships should be frequently evaluated. The MEM monitors the ACD module actions and checks trustworthy regions’ log files for incorrect activity requests. The module surveils the region corresponding to the application log files and reports to the WSAN controller administrator.
+Assessing the application’s behavior helps manage and adjust its “reputation value” (RP). The MEM evaluation process has positive users’ defined constants A, B, and C. If the program requests illegal rights, this module lowers RP. If no deviant occurrences are found, it may boost RP.
+
+
+
+14.6 Blockchain for Secure Monitoring Back‐End
+Bitcoin possesses a reward mechanism in PoW, where the vulnerable proof‐of‐work CA is responsible for most of these CTs. In many cases, Bitcoin was also found vulnerable to other CTs, including DoS [83] and bypassing the authentication [84, 85]. Ethereum conquered many of these security concerns, albeit somewhat weak. The crowdfunded “decentralized autonomous organization” (DAO) [84] project on the Ethereum blockchain was a renowned blockchain application. However, the outbreak on DAO later led the Ethereum to split into the Ethereum and Ethereum Classic. Several SCs were also vulnerable, and such incidents have continued.
+It brought new thoughts, leading to a rapid blockchain security enhancement. Lots of advances were advised in the traditional PoW as a CA by developing new alternative CTs [86] like proof‐of‐stack (PoS), which does not require mining and reduces environmental losses as in PoW. Previous research strengthened these blockchains and focused on security aspects [87, 88].
+Blockchain‐founded surveillance within CPSs is an auspicious ICT development that can handle data gathering with security and privacy caveats throughout stakeholders’ scrutiny. All monitoring procedures relate to the beforehand computed TV. They are afterward encrypted and held in the blockchain, warranting the system’s CS.
+A miner’s (like a WSAN controller’s) block comes, and the “blockchain domain server” verifies the nonce’s legitimacy before adding it to the blockchain. However, one server can receive many blocks. Therefore, the blockchain may fork. A distributed CA should fix this problem. Servers can fork or add blocks. The branch with the most servers grows fastest. The longest one becomes the network’s distributed CA, while the others are deleted. The servers will also save their blocks in erased forks and add them to the blockchain later. This strategy ensures every server has an identical blockchain.
+The fallouts from numerous investigations point to the fact that previous CTs inspire blockchain research in CS domains. However, several CT prevention methods have been introduced [89] to quickly curb uncovered vulnerabilities to stop or reduce the CT impact. Then, these works have been centered on analyzing the reasons for different CTs and alleviating them to mend the affected blockchain network. Besides, CTs’ data from several business sectors can aid in estimating relationships among CTs on new blockchain networks.
+The CVEs from the preceding years have consistently augmented the number of vulnerabilities, which calls for research about estimating more exposures and preparing solutions before new attacks to increase upcoming blockchains’ safety. FL can also help more effectually with this purpose. Likewise, efforts may ensue in discovering the best risk assessment methodology in blockchain tools. Along with the research on developing technical solutions for possible CT detection and risk assessment in forthcoming blockchains, fresh work should look at the finest tactics for application security and evaluation.
+Blockchains’ CS and accompanying risk assessment must be prioritized for many potential network CTs. The “Common Vulnerability Scoring System” (CVSS) can prioritize faraway code execution to uncover vulnerabilities by scoring them. Due to a temporal mismatch between vulnerability discovery and score assignment, methods to help with this have been developed. Sorting risk assessment steps to suitably address blockchain CTs becomes a notable struggle, and the blockchain application domain affects vulnerability occurrence. Due to these reasons, risk assessment methods must be studied, and best practices must be defined for most blockchain networks’ diversity. The goal should also prioritize vulnerability testing for good and logical reasons.
+ML approaches for estimating highly possible attacks for dedicated blockchains can be developed due to a noticeable growth in the subsequent CS domain through more protected electronic cash dealings or cryptocurrencies to plenty of application domains. Several ML‐based approaches have been introduced to detect attacks like DDoS. Federated learning (FL) [90, 91] and blockchain and FL influence go beyond financial services to expand the privacy, security, and trust of CPSs. Metaverse and digital twins can help improve the service ecosystems. Finally, unraveling future challenges has demanded insights from businesses and investigators, owning to progress in scalability and integration. This will intensify the network complexity and escalate the CA scope even further. Detecting and mitigating possible attacks in such situations also requires more advanced steps. Hence, ML possibilities should be analyzed for dynamic risk assessment and CT hunting early in blockchain‐centered solutions. Hybrid architectures are also in trend, aiming to successfully manage transactions’ on‐ and off‐chain processing. Novel solutions might also be scalable, utilizing ML to resolve and accomplish off‐chain processing.
+
+
+14.7 Blockchain‐Enabled Cybersecurity: Discussion and Future Directions
+Furthermore, WSANs support communication with more adaptability and control over observed and controlled devices. This integrated platform and in‐built applications can alleviate the GCPSO’s functionality and security. The GIBCS‐CPS can provide efficient GCPSO checking operations with negligible energy intake and overhead, which is paramount to the business sector [92]. Future work may add more architectural functionalities, such as crafting a user‐friendly interface to simplify tasks, perform distant actions in emergencies, and predict unfavorable situations.
+Improving CS measures, building a safe online environment, and ensuring the quick availability of information simultaneously seem to be an ever‐lasting challenge. Unfortunately, despite these technical advancements, many previous works indicate that the overall blockchain network is still prone to CTs [93–95]. Vulnerable CAs can create some CTs, ultimately disturbing every blockchain network part. The “Common Vulnerabilities and Exposures” (CVE) comprises a database and system [96–100] for publicly sharing information on CS defenselessness.
+The ranking of vulnerabilities includes various variables, including online application data analysis by individuals and organizations. Companies/organizations can receive contributing data or keep it anonymous. Data sources include bug bounty programs, safety consultancies, and vendors. Supporters provide the data period, web application count, and MITRE “common weakness enumerations” (CWEs). Contributors must disclose core CWE application numbers. Totaling all tested apps and comparing them to CWE‐affected applications yields the incidence rate. The top results are ranked based on application and security professionals’ surveys to analyze vulnerabilities’ fundamental causes from symptoms wherever possible.
+Early detection and mitigation of possible CAs is advantageous to ensure proper security for existing and upcoming blockchains. Due to preexistent CT vectors’ close relation, selected blockchains’ sub‐parts could be highly susceptible to attacks, requiring different designs for blockchain modeling and its applications. An intelligent modeling approach not only understands these issues but also unlocks the doors for even more or similar applications [56].
+
+
+14.8 Conclusions
+Business sector monitoring and remediation systems are handy for mentoring and assessing stakeholders’ well‐being. In addition, they expose stakeholders to computer hacking risks. The “general intelligent blockchain CS CPS” (GIBCS‐CPS) centers on a structure that employs participants’ resources, including reliable information, multimedia coordination, and records retrieval blended with possible remote decision‐making and control supporting IoT integration, “BD” and protocols to inhibit people’s records from leaking.
+Cloud and fog computing usage equips blockchain with a flexible and cost‐effective service by on‐demand resource sharing, bringing together extra security risks. The combination of improved CPSs relying on blockchain allows for continuously evaluating attack surface changes consistent with the cloud/fog environments. Dynamic qualities give defenders a tactical gain against threats. Still, when gauging the architecture effectiveness, the character of traditional security evaluation methods becomes unstable, especially when merging multiple ICT elements and techniques. Hence, there is a lack of standard ways to quantitatively appraise such frameworks’ effectiveness.
+Additionally, a hierarchical architecture allows utilizing each network layer separately for the effectiveness appraisal of each circumstance. The GIBCS‐CPS helps grasp and enlist relationships between the CS traits of blockchain, many types of vulnerabilities, and other caveats [101–103]. Prospect research dimensions concerning cybersecurity and blockchain are also debated.
+The GIBCS‐CPS fortifies all parts of a generic business sector’s control, surveillance, and drawbacks’ remediation of systemic components. It also conserves stakeholders’ privacy by erecting diverse security modules to function together and, conditional to blockchain technology, to defend the “general CPS ontology” (GCPSO).
+
+
+References
+
+1 Rani, S., Mishra, R.K., Usman, M. et al. (2021). Amalgamation of advanced technologies for sustainable development of smart city environment: a review. IEEE Access 9: 150060–

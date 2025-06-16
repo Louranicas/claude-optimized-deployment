@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-06-08T18:57:51.983163",
+  "total_commands": 115,
+  "subcategories": {
+    "network_security": 25,
+    "system_security": 25,
+    "vulnerability_assessment": 20,
+    "incident_response": 20,
+    "compliance_auditing": 15,
+    "threat_intelligence": 10
+  },
+  "command_samples": [
+    {
+      "subcategory": "network_security",
+      "id": "sec_net_nmap_full",
+      "name": "Nmap Full Port Scan",
+      "template": "nmap -sS -sV -O -p- --script vuln {target}"
+    },
+    {
+      "subcategory": "system_security",
+      "id": "sec_sys_aide_check",
+      "name": "AIDE Integrity Check",
+      "template": "aide --check --config=/etc/aide/aide.conf"
+    },
+    {
+      "subcategory": "vulnerability_assessment",
+      "id": "sec_vuln_openvas_scan",
+      "name": "OpenVAS Vulnerability Scan",
+      "template": "gvm-cli --gmp-username admin --gmp-password pass socket --xml '<create_task><name>Scan</name><target id=\"{target_id}\"/></create_task>'"
+    },
+    {
+      "subcategory": "incident_response",
+      "id": "sec_ir_event_detection",
+      "name": "Security Event Detection",
+      "template": "tail -f /var/log/auth.log | grep -E 'Failed|Invalid|Attack'"
+    },
+    {
+      "subcategory": "compliance_auditing",
+      "id": "sec_comp_pci_check",
+      "name": "PCI DSS Compliance Check",
+      "template": "oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_pci-dss /usr/share/xml/scap/ssg/content/ssg-rhel8-ds.xml"
+    },
+    {
+      "subcategory": "threat_intelligence",
+      "id": "sec_ti_feed_update",
+      "name": "Threat Feed Update",
+      "template": "curl -s https://rules.emergingthreats.net/open/suricata/emerging-threats.rules.tar.gz | tar xz -C /etc/suricata/rules/"
+    }
+  ],
+  "validation_status": "pending"
+}

@@ -9,9 +9,10 @@ use std::time::{Duration, Instant};
 use crossbeam::channel;
 use parking_lot::RwLock;
 use dashmap::DashMap;
-use tracing::{info, debug};
+use tracing::{info, debug, warn};
 
-use crate::{CoreError, CoreResult};
+use crate::{CoreError};
+use std::collections::VecDeque;
 
 /// Register performance functions with Python module
 pub fn register_module(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -21,6 +22,46 @@ pub fn register_module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PerformanceMonitor>()?;
     m.add_class::<ResourcePool>()?;
     Ok(())
+}
+
+/// Buffer pool for reducing allocations
+#[derive(Clone)]
+pub struct BufferPool {
+    pool: Arc<RwLock<VecDeque<Vec<u8>>>>,
+    buffer_size: usize,
+    max_buffers: usize,
+}
+
+impl BufferPool {
+    #[inline]
+    pub fn new(buffer_size: usize, max_buffers: usize) -> Self {
+        let mut pool = VecDeque::with_capacity(max_buffers);
+        // Pre-allocate some buffers
+        for _ in 0..max_buffers.min(16) {
+            pool.push_back(Vec::with_capacity(buffer_size));
+        }
+        
+        Self {
+            pool: Arc::new(RwLock::new(pool)),
+            buffer_size,
+            max_buffers,
+        }
+    }
+    
+    #[inline]
+    pub fn acquire(&self) -> Vec<u8> {
+        let mut pool = self.pool.write();
+        pool.pop_front().unwrap_or_else(|| Vec::with_capacity(self.buffer_size))
+    }
+    
+    #[inline]
+    pub fn release(&self, mut buffer: Vec<u8>) {
+        buffer.clear();
+        let mut pool = self.pool.write();
+        if pool.len() < self.max_buffers {
+            pool.push_back(buffer);
+        }
+    }
 }
 
 // ========================= Task Executor =========================
@@ -335,7 +376,7 @@ impl ResourcePool {
 
 /// Benchmark an operation
 #[pyfunction]
-fn benchmark_operation_py(py: Python, iterations: usize) -> PyResult<HashMap<String, f64>> {
+pub fn benchmark_operation_py(py: Python, iterations: usize) -> PyResult<HashMap<String, f64>> {
     let monitor = PerformanceMonitor::new();
     
     // Benchmark different operations
@@ -376,7 +417,7 @@ fn benchmark_operation_py(py: Python, iterations: usize) -> PyResult<HashMap<Str
 
 /// Execute functions in parallel
 #[pyfunction]
-fn parallel_execute_py(py: Python, count: usize) -> PyResult<Vec<f64>> {
+pub fn parallel_execute_py(py: Python, count: usize) -> PyResult<Vec<f64>> {
     let start = Instant::now();
     
     let results: Vec<f64> = py.allow_threads(|| {

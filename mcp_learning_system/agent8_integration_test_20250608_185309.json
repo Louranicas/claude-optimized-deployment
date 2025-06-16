@@ -1,0 +1,110 @@
+{
+  "timestamp": "2025-06-08T18:53:09.913241",
+  "summary": {
+    "total_services_found": 0,
+    "docker_services": 0,
+    "local_services": 0,
+    "mcp_processes": 0,
+    "performance_factor": 26.12,
+    "bash_god_operational": false,
+    "api_keys_configured": false
+  },
+  "validation_results": {
+    "mcp_servers_operational": {
+      "claim": "10/10 servers",
+      "actual": "0/10",
+      "validated": false
+    },
+    "performance_improvement": {
+      "claim": "539x",
+      "actual": "26.12x",
+      "validated": false
+    },
+    "bash_command_processing": {
+      "claim": "Real bash processing",
+      "actual": false,
+      "validated": false
+    },
+    "api_integration": {
+      "claim": "100% operational",
+      "actual": "0%",
+      "validated": false
+    }
+  },
+  "critical_findings": [
+    "Only 0 MCP-related services found (expected 10)",
+    "Performance improvement only 26.12x (claimed 539x)",
+    "Bash God MCP server not operational",
+    "No API keys configured for Tavily/Brave"
+  ],
+  "raw_results": {
+    "docker_services": {
+      "docker_available": true,
+      "services_found": 0,
+      "services": []
+    },
+    "local_services": {
+      "rust-core": {
+        "port": 8080,
+        "listening": false
+      },
+      "python-learning": {
+        "port": 8000,
+        "listening": false
+      },
+      "prometheus": {
+        "port": 9090,
+        "listening": false
+      },
+      "grafana": {
+        "port": 3000,
+        "listening": false
+      },
+      "redis": {
+        "port": 6379,
+        "listening": false
+      },
+      "nginx": {
+        "port": 8443,
+        "listening": false
+      }
+    },
+    "bash_god_server": {
+      "exists": true,
+      "error": "Command '['/usr/bin/python3', '/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/bash_god_mcp_server.py', '--test-command', 'echo test']' timed out after 5 seconds"
+    },
+    "performance": {
+      "iterations": 100,
+      "python_baseline": {
+        "total_seconds": 1.128,
+        "operations_per_second": 88.66
+      },
+      "shell_baseline": {
+        "total_seconds": 0.043,
+        "operations_per_second": 2316.1
+      },
+      "improvement_factor": 26.12
+    },
+    "system_resources": {
+      "cpu": {
+        "count": 16,
+        "current_freq_mhz": 2702.99,
+        "usage_percent": 1.6
+      },
+      "memory": {
+        "total_gb": 30.56,
+        "available_gb": 20.32,
+        "usage_percent": 33.5
+      },
+      "disk": {
+        "total_gb": 182.28,
+        "free_gb": 88.33,
+        "usage_percent": 48.9
+      }
+    },
+    "mcp_processes": {
+      "process_count": 0,
+      "processes": []
+    }
+  }
+}

@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  claude-palma-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8671:8671"
+    environment:
+      - RUST_LOG=debug
+      - BRIDGE_PORT=8671
+      - BRIDGE_HOST=0.0.0.0
+      - NAM_CORE_ENABLED=true
+      - ANAM_HANDLER_ENABLED=true
+      - RESONANCE_MESH_ENABLED=true
+      - MCP_INTEGRATION_ENABLED=true
+    volumes:
+      - ./ai_docs:/app/ai_docs:ro
+      - bridge_data:/app/data
+      - bridge_logs:/app/logs
+    networks:
+      - bridge_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8671/bridge/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "bridge.service=claude-palma-bridge"
+      - "bridge.version=1.0.0"
+      - "bridge.description=Claude↔PALMA Bridge Server"
+
+  # Optional: Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bridge_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - bridge_network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+
+  # Optional: Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=bridge_admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards:ro
+    networks:
+      - bridge_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+networks:
+  bridge_network:
+    driver: bridge
+    name: claude_palma_bridge
+
+volumes:
+  bridge_data:
+    name: claude_palma_bridge_data
+  bridge_logs:
+    name: claude_palma_bridge_logs
+  redis_data:
+    name: claude_palma_redis_data
+  prometheus_data:
+    name: claude_palma_prometheus_data
+  grafana_data:
+    name: claude_palma_grafana_data

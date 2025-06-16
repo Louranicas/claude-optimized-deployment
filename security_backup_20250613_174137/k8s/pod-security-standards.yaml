@@ -1,0 +1,209 @@
+---
+# Pod Security Standards Configuration
+# Enforces modern Kubernetes security best practices
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: claude-deployment
+  labels:
+    # Enforce restricted security standard
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    # Audit and warn on baseline violations
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: claude-deployment-prod
+  labels:
+    # Enforce restricted security standard for production
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+---
+# Security Context Constraints for OpenShift environments
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: claude-deployment-restricted
+  annotations:
+    kubernetes.io/description: |
+      Restricted SCC denies access to all host features and requires
+      pods to be run with a UID, and SELinux context that are allocated
+      to the namespace. This is the most restrictive SCC.
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: MustRunAs
+  ranges:
+    - min: 1000
+      max: 65535
+priority: null
+readOnlyRootFilesystem: true
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: MustRunAsNonRoot
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users:
+  - system:serviceaccount:claude-deployment:claude-deployment-api
+  - system:serviceaccount:claude-deployment:claude-deployment-worker
+  - system:serviceaccount:claude-deployment-prod:claude-deployment-api
+  - system:serviceaccount:claude-deployment-prod:claude-deployment-worker
+volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+---
+# Network Policy to restrict pod-to-pod communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: claude-deployment-default-deny
+  namespace: claude-deployment
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow traffic from pods with specific labels
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: claude-deployment
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 9090
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # Allow access to Kubernetes API
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              component: kube-apiserver
+      ports:
+        - protocol: TCP
+          port: 443
+    # Allow internal pod-to-pod communication
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: claude-deployment
+    # Allow external HTTPS traffic for API calls
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+---
+# RBAC: Minimal permissions for service accounts
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: claude-deployment-minimal
+  namespace: claude-deployment
+rules:
+  # Only allow reading configmaps and secrets
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  # Allow updating pod status for health checks
+  - apiGroups: [""]
+    resources: ["pods/status"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-deployment-minimal
+  namespace: claude-deployment
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: claude-deployment-minimal
+subjects:
+  - kind: ServiceAccount
+    name: claude-deployment-api
+    namespace: claude-deployment
+  - kind: ServiceAccount
+    name: claude-deployment-worker
+    namespace: claude-deployment
+---
+# Resource Quota to prevent resource exhaustion
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: claude-deployment-quota
+  namespace: claude-deployment
+spec:
+  hard:
+    requests.cpu: "100"
+    requests.memory: "200Gi"
+    limits.cpu: "200"
+    limits.memory: "400Gi"
+    persistentvolumeclaims: "10"
+    pods: "50"
+    services: "10"
+---
+# LimitRange to enforce container resource limits
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: claude-deployment-limits
+  namespace: claude-deployment
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "1000m"
+        memory: "2Gi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+      max:
+        cpu: "8000m"
+        memory: "16Gi"
+      min:
+        cpu: "10m"
+        memory: "32Mi"
+    - type: PersistentVolumeClaim
+      min:
+        storage: "1Gi"
+      max:
+        storage: "100Gi"

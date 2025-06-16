@@ -1,0 +1,94 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 2 - Long Description for Figure 5.2
+The diagram describes two approaches for network intrusion detection systems (NIDS): machine learning-based signature generation and deep reinforcement learning (DRL). The machine learning approach begins with analyzing network traffic using ML algorithms, followed by generating signatures for known attacks. The DRL approach involves combining deep learning with reinforcement learning to automatically detect various cyberattacks. The two approaches are connected, with the output from the machine learning process–signatures for known attacks–feeding into the DRL process, contributing to the detection of cyberattacks. The diagram highlights the integration of both techniques to enhance network security.
+Security Relevance Score: 12
+Word Count: 1018
+Extracted: 2025-06-13 23:40:52
+
+---
+
+Long Description for Figure 5.2
+The diagram describes two approaches for network intrusion detection systems (NIDS): machine learning-based signature generation and deep reinforcement learning (DRL). The machine learning approach begins with analyzing network traffic using ML algorithms, followed by generating signatures for known attacks. The DRL approach involves combining deep learning with reinforcement learning to automatically detect various cyberattacks. The two approaches are connected, with the output from the machine learning process–signatures for known attacks–feeding into the DRL process, contributing to the detection of cyberattacks. The diagram highlights the integration of both techniques to enhance network security.
+
+FIGURE 5.2 Signature-based NIDS.
+
+The diagram depicts a structure for a signature-based NIDS that utilizes ML and deep reinforcement learning (DRL). The upper section outlines the procedure for creating signatures for recognized attacks through ML algorithms. These algorithms examine network traffic to detect patterns and then create signatures for known attacks. The lower section demonstrates the application of DRL in NIDS, where DRL is integrated with deep learning. This fusion employs reinforcement learning to enhance the system’s capacity to autonomously identify different cyberattacks. However, these systems often grapple with challenges such as:
+
+Resource Constraints: The constrained processing power, limited memory, and energy resources inherent in IoT devices render the direct deployment of traditional signature-based NIDS impractical [13].
+Signature Updates: Ensuring the effectiveness of detection in signature-based IDS relies on maintaining an up-to-date database of attack signatures. Nevertheless, the resource constraints prevalent in IoT environments pose a challenge, making it difficult to regularly update these signature databases.
+Zero-Day Attacks: Signature-based NIDS are ineffective against zero-day attacks, which are attacks that exploit vulnerabilities not yet known to the IDS.
+Despite the challenges, researchers have proposed various approaches to adapt signature-based NIDS for IoT environments either using ML-Based Signature Generation or DRL for NIDS (mentioned in Table 5.2).
+
+
+TABLE 5.2 Overview of Different Methodologies for Signature-based NIDS
+
+
+Authors [ref]
+Description
+
+
+
+
+Kasinathan et al. [16]
+A signature-based NIDS framework has been proposed to detect Denial-of-Service (DoS) attacks specifically in 6LoWPAN-based networks.
+
+
+Duque S et al. [21]
+This paper explores the use of data mining algorithms to develop an efficient IDS. It focuses on evaluating various techniques to improve the detection of malicious activities in network security.
+
+
+Lin et al. [22]
+An algorithm has been proposed that performs matching based on techniques like Backward Hashing and Aho-Corasick.
+
+
+Sheikh et al. [23]
+A signature-based Intrusion Detection System tailored for IoT environments has been proposed.
+
+
+
+
+
+
+Anomaly-based intrusion detection systems (AIDSs)
+AIDS offers a promising approach to detecting cyberattacks, particularly those that evade signature-based detection methods. AIDS defines a standard for typical system behavior and identifies deviations from this standard as potential anomalies [14]. This capability enhances their effectiveness in identifying emerging and previously unknown attacks, including zero-day threats. Nevertheless, AIDS is susceptible to generating false positives as a result of the dynamic nature of system behavior. To address these limitations, researchers are exploring techniques such as refining anomaly detection techniques, enhancing context awareness, and utilizing machine learning for anomaly profiling. With ongoing advancements in machine learning and AI, AIDS has the potential to become an increasingly effective and adaptable solution for protecting networks and systems from the ever-present threat of cyberattacks [14] (Table 5.3).
+
+
+TABLE 5.3 Overview of Different Methodologies for Anomaly-based NIDS
+
+
+Authors [ref]
+Description
+
+
+
+
+Mothukuri V. et al. [14]
+An efficient hierarchical anomaly-based intrusion detection system was introduced.
+
+
+Canedo J. et al. [24]
+Utilized artificial neural networks (ANNs) for detecting intrusions in the IoT system’s gateway.
+
+
+Alsoufi M.A. et al. [25]
+Provide a systematic literature review of anomaly-based IDS in IoT environments, with a focus on deep learning techniques. It compares various deep learning methodologies, offering insights into their effectiveness and challenges in detecting anomalies in IoT networks.
+
+
+Heartfield R. et al. [11]
+Introduced a smart home NIDS that autonomously adjusts the decision function of its underlying anomaly categorization models to adapt to evolving conditions within the smart home environment.
+
+
+
+
+
+Specification-based IDS
+Specification-based IDS [12] operate as monitoring and detection systems, relying on security specifications derived from a system’s functions and policies to establish normal behavior. Any deviations from these expected behaviors are identified as security breaches. The primary challenge in developing a robust specification-based IDS lies in creating a formalism that accurately captures valid operating sequences, with the definition of the specification “trace policy” and the complexity of evaluating and verifying specifications posing obstacles to widespread adoption in real-world applications. Despite these challenges, specification-based IDSs exhibit the capability to detect both known and unknown attacks. Similar to misuse-based IDS, they learn the fundamental characteristics of known attacks. Moreover, they share the ability of anomaly-based IDSs to identify unknown attacks, such as operating sequences deviating from the system’s normal behavior [5].
+Mitchell and Chen [12] explore different anomaly-based IDS types, advocating for specification-based NIDS like their SB-NIDS. These systems can effectively detect attacks that deviate from normal IoT network protocol behavior.
+Hybrid-Based NIDS for IoT Systems
+Hybrid NIDS for IoT combines two or more approaches, like signature-based, anomaly-based, and specification-based, to create a more robust system. This approach leverages the strengths of each method to overcome their weaknesses and improve overall effectiveness in detecting IoT threats [12].
+Hybrid NIDS offers several advantages over single-technique systems. They improve detection accuracy, reduce false positives, and adapt to evolving threats better. Combining techniques allows them to catch a wider range of attacks, leading to a more robust security posture. This also saves security analysts time by minimizing false alarms [5].
+Hybrid NIDS also adapts better to new threats. By combining techniques and allowing for easy updates, they can be more resilient to evolving cybersecurity landscapes. While powerful, hybrid NIDS requires more processing power, storage, and energy compared to single-technique approaches. This can be a challenge for resource-constrained IoT devices, where efficiency is paramount [5].
+Despite requiring more resources and complex design, hybrid NIDS offer comprehensive protection, making them valuable for IoT security when resource management allows. They necessitate careful integration of different detection methods to ensure smooth operation (interoperability and synergy).
+
+Sequence-based hybrid NIDS and Parallel-based hybrid NIDS are the two types of hybrid-based NIDS shown in Figure 5.

@@ -1,0 +1,571 @@
+{
+  "dashboard": {
+    "id": "expert_analysis_dashboard",
+    "title": "Circle of Experts Analysis Dashboard",
+    "description": "Real-time monitoring and analysis of Circle of Experts performance",
+    "refresh_interval": 2000,
+    "auto_refresh": true,
+    "theme": "dark",
+    "layout": {
+      "type": "grid",
+      "columns": 12,
+      "row_height": 80,
+      "gap": 15
+    }
+  },
+  "widgets": [
+    {
+      "id": "expert_pool_status",
+      "type": "status_grid",
+      "title": "Expert Pool Status",
+      "position": { "x": 0, "y": 0, "width": 6, "height": 3 },
+      "config": {
+        "experts": [
+          {
+            "id": "claude",
+            "name": "Claude",
+            "type": "anthropic",
+            "color": "#4CAF50"
+          },
+          {
+            "id": "openai",
+            "name": "OpenAI GPT",
+            "type": "openai",
+            "color": "#2196F3"
+          },
+          {
+            "id": "gemini",
+            "name": "Google Gemini",
+            "type": "google",
+            "color": "#FF9800"
+          },
+          {
+            "id": "local",
+            "name": "Local Model",
+            "type": "local",
+            "color": "#9C27B0"
+          },
+          {
+            "id": "deepseek",
+            "name": "DeepSeek",
+            "type": "deepseek",
+            "color": "#00BCD4"
+          }
+        ],
+        "show_utilization": true,
+        "show_status": true,
+        "show_response_time": true
+      },
+      "data_sources": [
+        "circle_of_experts_pool_size",
+        "circle_of_experts_active_experts",
+        "circle_of_experts_utilization"
+      ]
+    },
+    {
+      "id": "query_processing_stats",
+      "type": "metrics_panel",
+      "title": "Query Processing Statistics",
+      "position": { "x": 6, "y": 0, "width": 6, "height": 3 },
+      "config": {
+        "metrics": [
+          {
+            "label": "Total Queries",
+            "data_source": "circle_of_experts_queries_processed_total",
+            "type": "counter",
+            "color": "#4CAF50"
+          },
+          {
+            "label": "Failed Queries",
+            "data_source": "circle_of_experts_queries_failed_total",
+            "type": "counter",
+            "color": "#F44336"
+          },
+          {
+            "label": "Queue Size",
+            "data_source": "circle_of_experts_query_queue_size",
+            "type": "gauge",
+            "color": "#FF9800"
+          },
+          {
+            "label": "Success Rate",
+            "data_source": "circle_of_experts_success_rate",
+            "type": "percentage",
+            "color": "#2196F3"
+          }
+        ],
+        "layout": "2x2"
+      },
+      "data_sources": [
+        "circle_of_experts_queries_processed_total",
+        "circle_of_experts_queries_failed_total",
+        "circle_of_experts_query_queue_size"
+      ]
+    },
+    {
+      "id": "expert_response_times",
+      "type": "multi_line_chart",
+      "title": "Expert Response Times",
+      "position": { "x": 0, "y": 3, "width": 8, "height": 5 },
+      "config": {
+        "y_axis": {
+          "min": 0,
+          "label": "Response Time (ms)",
+          "scale": "linear"
+        },
+        "x_axis": {
+          "type": "time",
+          "label": "Time"
+        },
+        "series": [
+          {
+            "label": "Claude",
+            "color": "#4CAF50",
+            "data_source": "expert_response_time_claude"
+          },
+          {
+            "label": "OpenAI",
+            "color": "#2196F3",
+            "data_source": "expert_response_time_openai"
+          },
+          {
+            "label": "Gemini",
+            "color": "#FF9800",
+            "data_source": "expert_response_time_gemini"
+          },
+          {
+            "label": "Local",
+            "color": "#9C27B0",
+            "data_source": "expert_response_time_local"
+          },
+          {
+            "label": "DeepSeek",
+            "color": "#00BCD4",
+            "data_source": "expert_response_time_deepseek"
+          }
+        ],
+        "max_points": 50,
+        "show_legend": true,
+        "tension": 0.3
+      },
+      "data_sources": [
+        "expert_response_time_claude",
+        "expert_response_time_openai",
+        "expert_response_time_gemini",
+        "expert_response_time_local",
+        "expert_response_time_deepseek"
+      ]
+    },
+    {
+      "id": "consensus_analysis",
+      "type": "pie_chart",
+      "title": "Consensus Analysis",
+      "position": { "x": 8, "y": 3, "width": 4, "height": 5 },
+      "config": {
+        "segments": [
+          {
+            "label": "Full Consensus",
+            "color": "#4CAF50",
+            "data_source": "consensus_full_agreement"
+          },
+          {
+            "label": "Majority Consensus",
+            "color": "#FF9800",
+            "data_source": "consensus_majority_agreement"
+          },
+          {
+            "label": "Split Decision",
+            "color": "#F44336",
+            "data_source": "consensus_split_decision"
+          },
+          {
+            "label": "No Consensus",
+            "color": "#9E9E9E",
+            "data_source": "consensus_no_agreement"
+          }
+        ],
+        "show_percentages": true,
+        "show_values": true,
+        "donut_mode": true,
+        "center_text": "Consensus Distribution"
+      },
+      "data_sources": [
+        "circle_of_experts_consensus_success_rate",
+        "circle_of_experts_disagreement_rate"
+      ]
+    },
+    {
+      "id": "expert_utilization_bars",
+      "type": "horizontal_bar_chart",
+      "title": "Expert Utilization",
+      "position": { "x": 0, "y": 8, "width": 6, "height": 4 },
+      "config": {
+        "x_axis": {
+          "min": 0,
+          "max": 100,
+          "label": "Utilization %"
+        },
+        "y_axis": {
+          "label": "Expert"
+        },
+        "bars": [
+          {
+            "label": "Claude",
+            "color": "#4CAF50",
+            "data_source": "claude_utilization"
+          },
+          {
+            "label": "OpenAI",
+            "color": "#2196F3",
+            "data_source": "openai_utilization"
+          },
+          {
+            "label": "Gemini",
+            "color": "#FF9800",
+            "data_source": "gemini_utilization"
+          },
+          {
+            "label": "Local",
+            "color": "#9C27B0",
+            "data_source": "local_utilization"
+          },
+          {
+            "label": "DeepSeek",
+            "color": "#00BCD4",
+            "data_source": "deepseek_utilization"
+          }
+        ],
+        "show_values": true,
+        "animate": true
+      },
+      "data_sources": [
+        "claude_utilization",
+        "openai_utilization",
+        "gemini_utilization",
+        "local_utilization",
+        "deepseek_utilization"
+      ]
+    },
+    {
+      "id": "consensus_time_trend",
+      "type": "line_chart",
+      "title": "Consensus Time Trend",
+      "position": { "x": 6, "y": 8, "width": 6, "height": 4 },
+      "config": {
+        "y_axis": {
+          "min": 0,
+          "label": "Consensus Time (s)"
+        },
+        "x_axis": {
+          "type": "time",
+          "label": "Time"
+        },
+        "colors": ["#673AB7"],
+        "fill": true,
+        "fill_opacity": 0.3,
+        "tension": 0.4,
+        "max_points": 50,
+        "show_points": false
+      },
+      "data_sources": ["circle_of_experts_consensus_time_avg"]
+    },
+    {
+      "id": "query_complexity_distribution",
+      "type": "stacked_bar_chart",
+      "title": "Query Complexity Distribution",
+      "position": { "x": 0, "y": 12, "width": 6, "height": 4 },
+      "config": {
+        "x_axis": {
+          "categories": ["Simple", "Medium", "Complex", "Advanced"]
+        },
+        "y_axis": {
+          "label": "Number of Queries"
+        },
+        "stacks": [
+          {
+            "label": "Successful",
+            "color": "#4CAF50",
+            "data_source": "queries_successful_by_complexity"
+          },
+          {
+            "label": "Failed",
+            "color": "#F44336",
+            "data_source": "queries_failed_by_complexity"
+          },
+          {
+            "label": "Timeout",
+            "color": "#FF9800",
+            "data_source": "queries_timeout_by_complexity"
+          }
+        ],
+        "show_totals": true
+      },
+      "data_sources": [
+        "queries_successful_by_complexity",
+        "queries_failed_by_complexity",
+        "queries_timeout_by_complexity"
+      ]
+    },
+    {
+      "id": "expert_error_rates",
+      "type": "scatter_plot",
+      "title": "Expert Performance vs Error Rate",
+      "position": { "x": 6, "y": 12, "width": 6, "height": 4 },
+      "config": {
+        "x_axis": {
+          "label": "Average Response Time (ms)",
+          "scale": "linear"
+        },
+        "y_axis": {
+          "label": "Error Rate (%)",
+          "scale": "linear"
+        },
+        "points": [
+          {
+            "label": "Claude",
+            "color": "#4CAF50",
+            "size": 8,
+            "x_data_source": "claude_avg_response_time",
+            "y_data_source": "claude_error_rate"
+          },
+          {
+            "label": "OpenAI",
+            "color": "#2196F3",
+            "size": 8,
+            "x_data_source": "openai_avg_response_time",
+            "y_data_source": "openai_error_rate"
+          },
+          {
+            "label": "Gemini",
+            "color": "#FF9800",
+            "size": 8,
+            "x_data_source": "gemini_avg_response_time",
+            "y_data_source": "gemini_error_rate"
+          },
+          {
+            "label": "Local",
+            "color": "#9C27B0",
+            "size": 8,
+            "x_data_source": "local_avg_response_time",
+            "y_data_source": "local_error_rate"
+          },
+          {
+            "label": "DeepSeek",
+            "color": "#00BCD4",
+            "size": 8,
+            "x_data_source": "deepseek_avg_response_time",
+            "y_data_source": "deepseek_error_rate"
+          }
+        ],
+        "show_trend_line": true,
+        "show_legend": true
+      },
+      "data_sources": [
+        "claude_avg_response_time", "claude_error_rate",
+        "openai_avg_response_time", "openai_error_rate",
+        "gemini_avg_response_time", "gemini_error_rate",
+        "local_avg_response_time", "local_error_rate",
+        "deepseek_avg_response_time", "deepseek_error_rate"
+      ]
+    },
+    {
+      "id": "expert_activity_timeline",
+      "type": "gantt_chart",
+      "title": "Expert Activity Timeline",
+      "position": { "x": 0, "y": 16, "width": 12, "height": 4 },
+      "config": {
+        "time_axis": {
+          "type": "time",
+          "label": "Time",
+          "granularity": "minute"
+        },
+        "experts": [
+          {
+            "id": "claude",
+            "name": "Claude",
+            "color": "#4CAF50",
+            "data_source": "claude_activity_timeline"
+          },
+          {
+            "id": "openai",
+            "name": "OpenAI",
+            "color": "#2196F3",
+            "data_source": "openai_activity_timeline"
+          },
+          {
+            "id": "gemini",
+            "name": "Gemini",
+            "color": "#FF9800",
+            "data_source": "gemini_activity_timeline"
+          },
+          {
+            "id": "local",
+            "name": "Local",
+            "color": "#9C27B0",
+            "data_source": "local_activity_timeline"
+          },
+          {
+            "id": "deepseek",
+            "name": "DeepSeek",
+            "color": "#00BCD4",
+            "data_source": "deepseek_activity_timeline"
+          }
+        ],
+        "show_idle_time": true,
+        "show_tooltips": true,
+        "compact_mode": false
+      },
+      "data_sources": [
+        "claude_activity_timeline",
+        "openai_activity_timeline",
+        "gemini_activity_timeline",
+        "local_activity_timeline",
+        "deepseek_activity_timeline"
+      ]
+    },
+    {
+      "id": "performance_metrics_table",
+      "type": "table",
+      "title": "Expert Performance Metrics",
+      "position": { "x": 0, "y": 20, "width": 12, "height": 4 },
+      "config": {
+        "columns": [
+          { "key": "expert_name", "label": "Expert", "type": "text", "width": 120 },
+          { "key": "queries_processed", "label": "Queries", "type": "number" },
+          { "key": "avg_response_time", "label": "Avg RT (ms)", "type": "number", "decimals": 1 },
+          { "key": "p95_response_time", "label": "P95 RT (ms)", "type": "number", "decimals": 1 },
+          { "key": "error_rate", "label": "Error Rate", "type": "percentage", "decimals": 2 },
+          { "key": "utilization", "label": "Utilization", "type": "percentage", "decimals": 1 },
+          { "key": "consensus_contribution", "label": "Consensus %", "type": "percentage", "decimals": 1 },
+          { "key": "status", "label": "Status", "type": "status_badge" }
+        ],
+        "sort_by": "avg_response_time",
+        "sort_order": "asc",
+        "highlight_best": true,
+        "highlight_worst": true,
+        "auto_refresh": true
+      },
+      "data_sources": [
+        "expert_performance_summary"
+      ]
+    }
+  ],
+  "alerts": {
+    "enabled": true,
+    "position": "top-right",
+    "max_visible": 3,
+    "auto_dismiss": 15000,
+    "rules": [
+      {
+        "id": "expert_high_error_rate",
+        "condition": "expert_error_rate > 5",
+        "level": "warning",
+        "message": "High error rate for {expert}: {value}%"
+      },
+      {
+        "id": "slow_consensus",
+        "condition": "circle_of_experts_consensus_time_avg > 10",
+        "level": "warning",
+        "message": "Slow consensus time: {value}s"
+      },
+      {
+        "id": "expert_offline",
+        "condition": "expert_status == 'offline'",
+        "level": "critical",
+        "message": "Expert {expert} is offline"
+      },
+      {
+        "id": "low_consensus_rate",
+        "condition": "circle_of_experts_consensus_success_rate < 0.8",
+        "level": "warning",
+        "message": "Low consensus success rate: {value}%"
+      },
+      {
+        "id": "queue_overflow",
+        "condition": "circle_of_experts_query_queue_size > 50",
+        "level": "critical",
+        "message": "Query queue overflow: {value} queries pending"
+      }
+    ]
+  },
+  "filters": {
+    "time_range": {
+      "enabled": true,
+      "default": "last_30_minutes",
+      "options": [
+        { "label": "Last 5 minutes", "value": "last_5_minutes" },
+        { "label": "Last 15 minutes", "value": "last_15_minutes" },
+        { "label": "Last 30 minutes", "value": "last_30_minutes" },
+        { "label": "Last 1 hour", "value": "last_1_hour" },
+        { "label": "Last 4 hours", "value": "last_4_hours" }
+      ]
+    },
+    "expert_type": {
+      "enabled": true,
+      "type": "multi_select",
+      "label": "Expert Type",
+      "options": [
+        { "label": "All Experts", "value": "all" },
+        { "label": "Claude", "value": "claude" },
+        { "label": "OpenAI", "value": "openai" },
+        { "label": "Gemini", "value": "gemini" },
+        { "label": "Local", "value": "local" },
+        { "label": "DeepSeek", "value": "deepseek" }
+      ]
+    },
+    "query_complexity": {
+      "enabled": true,
+      "type": "dropdown",
+      "label": "Query Complexity",
+      "options": [
+        { "label": "All Complexities", "value": "all" },
+        { "label": "Simple", "value": "simple" },
+        { "label": "Medium", "value": "medium" },
+        { "label": "Complex", "value": "complex" },
+        { "label": "Advanced", "value": "advanced" }
+      ]
+    }
+  },
+  "annotations": {
+    "enabled": true,
+    "types": [
+      {
+        "type": "event",
+        "label": "Expert Added",
+        "color": "#4CAF50",
+        "data_source": "expert_added_events"
+      },
+      {
+        "type": "event",
+        "label": "Expert Removed",
+        "color": "#F44336",
+        "data_source": "expert_removed_events"
+      },
+      {
+        "type": "threshold",
+        "label": "Performance Threshold",
+        "color": "#FF9800",
+        "data_source": "performance_thresholds"
+      }
+    ]
+  },
+  "export": {
+    "enabled": true,
+    "formats": ["png", "pdf", "csv", "json"],
+    "include_data": true,
+    "include_config": true,
+    "scheduled_exports": {
+      "enabled": true,
+      "frequency": "daily",
+      "time": "23:59",
+      "email_recipients": ["admin@example.com"]
+    }
+  },
+  "real_time": {
+    "enabled": true,
+    "websocket_endpoint": "ws://localhost:8765",
+    "reconnect_attempts": 5,
+    "heartbeat_interval": 30000,
+    "buffer_size": 1000
+  }
+}

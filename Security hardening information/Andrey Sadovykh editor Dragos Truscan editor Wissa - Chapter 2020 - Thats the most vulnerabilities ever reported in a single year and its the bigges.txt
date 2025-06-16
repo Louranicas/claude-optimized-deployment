@@ -1,0 +1,110 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 2020 - That’s the most vulnerabilities ever reported in a single year, and it’s the biggest year-over-year increase since 2018. 
+Vulnerabilities in operational technology jumped to 88%, from 690 in 2020 to 1,295 in 2021. A record 26,448 software security ﬂaws were reported in 2022, with the number of critical vulnerabilities up 59% on 2021 to 4,135 according to analysis 
+by The Stack of Common Vulnerabilities and Exposures (CVEs) data. For instance, in a series of experiments, Tencent’s Keen Security Lab exposed critical security vulnerabilities on several car models in their software which could allow a potential 
+attacker to gain access to the car and, for instance, lock the brakes or reprogram some ECUs. Similarly, researchers at CheckPoint Research uncovered a number of security vulnerabilities in the TikTok mobile application allowing attackers to 
+take control of and manipulate accounts and content, including getting access to personal information. In another report, the InfoSec Institute published details about security vulnerabilities related to railway infrastructure components which again 
+will allow hackers to take control of the trains and of the trafﬁc management systems. This alarming trend indicates that the current security practices and tools are not sufﬁcient to cope with the increasing complexity and diversity of software 
+systems. Security vulnerabilities can have severe consequences for the users and
+v
+vi Preface
+organizations that rely on these systems, such as data breaches, identity theft, 
+ransomware attacks, or denial-of-service incidents. Therefore, it is imperative to 
+develop new methods and techniques to identify, prevent, and mitigate security vulnerabilities in software systems. 
+Elaborated security mechanisms must be properly implemented prior to deploy-
+ment in order to provide an effective level of protection against intrusion. The number of security scenarios to be ensured explodes. For example, in the embedded 
+software domain, the number of system interactions with the environment that are subject to security attacks is increasing and may result in security vulnerabilities that can cause losses for end users including a drastic increase in the production and 
+maintenance costs, especially if iterations in the development process are long and feedback comes late. In such cases, traditional security veriﬁcation approaches do not support continuous feedback loops. 
+Security is not a one-time task but a continuous process that requires constant 
+monitoring and updating. The complexity and diversity of security threats increase with the number and variety of scenarios that need to be covered by the security 
+mechanisms. Therefore, it is important to conduct a thorough analysis of the security requirements and design appropriate solutions that can address them effectively. 
+As numerous examples show, security is an aspect that has to be addressed 
+holistically from the early phases of the development process and ensured across all phases of the DevOps. Moreover, security quality attributes are often treated after delivery on the code or at the infrastructure level with speciﬁc patches, while it is 
+generally agreed that those attributes must be addressed at the design level. DevOps enables fast and frequent software deliveries, which means that artifacts need to be veriﬁed quickly and efﬁciently to keep up with the process. DevOps integrates 
+development and operations to shorten the lead time between a change request and deployment in production. Automation is a crucial technique in modern software development relying on DevOps practices and continuous delivery pipelines. It 
+helps reduce the time between development and normal operations while ensuring high-quality deliverables. 
+This book is an overview of the latest techniques and tools that can help engineers 
+and developers verify the security requirements of large-scale industrial systems. In addition, it presents novel methods that enable a faster feedback loop for verifying security-related activities. These methods rely on techniques such as automated 
+testing, model checking, static analysis, runtime monitoring, and formal methods. The book aims to provide readers with a practical and theoretical understanding of how to apply these methods in real-world scenarios. 
+This book covers several advanced topics related to security veriﬁcation, such 
+as optimizing security veriﬁcation activities, automatically creating veriﬁable spec-iﬁcations from security requirements and vulnerabilities, and using these security 
+speciﬁcations to verify security properties against design speciﬁcations and generate artifacts such as tests or monitors that can be used later in the DevOps process. Security veriﬁcation is a set of independent procedures that are used to verify that a 
+product, service, or system meets the requirements and speciﬁcations and fulﬁlls its
+Preface vii
+intended purpose. This book presents the principles, methods, and tools of security 
+auditing, as well as concrete examples and case studies. 
+The book is dedicated to a general audience of computer engineers and does not 
+require speciﬁc knowledge. It presents the recent updates on the current state of the art and practice in the ﬁeld based on the analysis of the literature up to date. It 
+is intended for architects, developers, testers, security professionals, tool providers, 
+and consumers who want to deﬁne, build, test, and verify secure applications, web 
+services, and industrial systems. 
+This book consists of three parts, each covering a different aspect of security 
+engineering in the DevOps context. The ﬁrst part, “Security Requirements,” deals with how to specify and analyze security issues in a formal way. The second part, 
+“Prevention at Development Time,” offers a practical and industrial perspective on 
+how to design, develop, and verify secure applications. The third part, “Protection 
+at Operations,” introduces tools for continuous monitoring of security events and 
+incidents. 
+Part I: Security Requirements Engineering 
+Security requirements engineering is a vital discipline that ensures the devel-opment of secure and resilient systems. It involves identifying, analyzing, and 
+specifying security requirements to protect critical assets from potential threats and vulnerabilities. 
+This part of the book explores the recent state-of-the-art updates in taxonomies, 
+NLP methods applied to security requirements engineering. We delve into the latest advancements and their practical implications in managing security requirements. Moreover, illustrative examples are provided to demonstrate how the methods can be 
+effectively integrated to streamline the security requirements engineering process:
+Security Relevance Score: 11
+Word Count: 978
+Extracted: 2025-06-13 23:40:22
+
+---
+
+That’s the most vulnerabilities ever reported in a single year, and it’s the biggest year-over-year increase since 2018. 
+Vulnerabilities in operational technology jumped to 88%, from 690 in 2020 to 1,295 in 2021. A record 26,448 software security ﬂaws were reported in 2022, with the number of critical vulnerabilities up 59% on 2021 to 4,135 according to analysis 
+by The Stack of Common Vulnerabilities and Exposures (CVEs) data. For instance, in a series of experiments, Tencent’s Keen Security Lab exposed critical security vulnerabilities on several car models in their software which could allow a potential 
+attacker to gain access to the car and, for instance, lock the brakes or reprogram some ECUs. Similarly, researchers at CheckPoint Research uncovered a number of security vulnerabilities in the TikTok mobile application allowing attackers to 
+take control of and manipulate accounts and content, including getting access to personal information. In another report, the InfoSec Institute published details about security vulnerabilities related to railway infrastructure components which again 
+will allow hackers to take control of the trains and of the trafﬁc management systems. This alarming trend indicates that the current security practices and tools are not sufﬁcient to cope with the increasing complexity and diversity of software 
+systems. Security vulnerabilities can have severe consequences for the users and
+v
+vi Preface
+organizations that rely on these systems, such as data breaches, identity theft, 
+ransomware attacks, or denial-of-service incidents. Therefore, it is imperative to 
+develop new methods and techniques to identify, prevent, and mitigate security vulnerabilities in software systems. 
+Elaborated security mechanisms must be properly implemented prior to deploy-
+ment in order to provide an effective level of protection against intrusion. The number of security scenarios to be ensured explodes. For example, in the embedded 
+software domain, the number of system interactions with the environment that are subject to security attacks is increasing and may result in security vulnerabilities that can cause losses for end users including a drastic increase in the production and 
+maintenance costs, especially if iterations in the development process are long and feedback comes late. In such cases, traditional security veriﬁcation approaches do not support continuous feedback loops. 
+Security is not a one-time task but a continuous process that requires constant 
+monitoring and updating. The complexity and diversity of security threats increase with the number and variety of scenarios that need to be covered by the security 
+mechanisms. Therefore, it is important to conduct a thorough analysis of the security requirements and design appropriate solutions that can address them effectively. 
+As numerous examples show, security is an aspect that has to be addressed 
+holistically from the early phases of the development process and ensured across all phases of the DevOps. Moreover, security quality attributes are often treated after delivery on the code or at the infrastructure level with speciﬁc patches, while it is 
+generally agreed that those attributes must be addressed at the design level. DevOps enables fast and frequent software deliveries, which means that artifacts need to be veriﬁed quickly and efﬁciently to keep up with the process. DevOps integrates 
+development and operations to shorten the lead time between a change request and deployment in production. Automation is a crucial technique in modern software development relying on DevOps practices and continuous delivery pipelines. It 
+helps reduce the time between development and normal operations while ensuring high-quality deliverables. 
+This book is an overview of the latest techniques and tools that can help engineers 
+and developers verify the security requirements of large-scale industrial systems. In addition, it presents novel methods that enable a faster feedback loop for verifying security-related activities. These methods rely on techniques such as automated 
+testing, model checking, static analysis, runtime monitoring, and formal methods. The book aims to provide readers with a practical and theoretical understanding of how to apply these methods in real-world scenarios. 
+This book covers several advanced topics related to security veriﬁcation, such 
+as optimizing security veriﬁcation activities, automatically creating veriﬁable spec-iﬁcations from security requirements and vulnerabilities, and using these security 
+speciﬁcations to verify security properties against design speciﬁcations and generate artifacts such as tests or monitors that can be used later in the DevOps process. Security veriﬁcation is a set of independent procedures that are used to verify that a 
+product, service, or system meets the requirements and speciﬁcations and fulﬁlls its
+Preface vii
+intended purpose. This book presents the principles, methods, and tools of security 
+auditing, as well as concrete examples and case studies. 
+The book is dedicated to a general audience of computer engineers and does not 
+require speciﬁc knowledge. It presents the recent updates on the current state of the art and practice in the ﬁeld based on the analysis of the literature up to date. It 
+is intended for architects, developers, testers, security professionals, tool providers, 
+and consumers who want to deﬁne, build, test, and verify secure applications, web 
+services, and industrial systems. 
+This book consists of three parts, each covering a different aspect of security 
+engineering in the DevOps context. The ﬁrst part, “Security Requirements,” deals with how to specify and analyze security issues in a formal way. The second part, 
+“Prevention at Development Time,” offers a practical and industrial perspective on 
+how to design, develop, and verify secure applications. The third part, “Protection 
+at Operations,” introduces tools for continuous monitoring of security events and 
+incidents. 
+Part I: Security Requirements Engineering 
+Security requirements engineering is a vital discipline that ensures the devel-opment of secure and resilient systems. It involves identifying, analyzing, and 
+specifying security requirements to protect critical assets from potential threats and vulnerabilities. 
+This part of the book explores the recent state-of-the-art updates in taxonomies, 
+NLP methods applied to security requirements engineering. We delve into the latest advancements and their practical implications in managing security requirements. Moreover, illustrative examples are provided to demonstrate how the methods can be 
+effectively integrated to streamline the security requirements engineering process:

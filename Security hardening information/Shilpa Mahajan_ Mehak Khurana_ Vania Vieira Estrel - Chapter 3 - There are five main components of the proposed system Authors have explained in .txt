@@ -1,0 +1,201 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 3 - There are five main components of the proposed system. Authors have explained in this section in brief about all the modules.
+Notification Module: Figure 5.4 shows the workflow of the notification module proposed in this literature, when the case or issue is flagged by Cybersecurity Rating platform, and Figure 5.5 shows the workflow of notification module during closure of the flagged issue or case.
+This module will trigger notification to the user/Business owner regarding the issue flagged in the Cybersecurity Rating Platforms. It will generate the detailed notification regarding name of issue like Unique ID for tracking purpose, IP/DNS/Website the issue is flagged, its severity, and overall score impact for the organization. Figure 5.6 shows the details of Notification in JSON Format.
+Security Relevance Score: 7
+Word Count: 843
+Extracted: 2025-06-13 23:40:31
+
+---
+
+There are five main components of the proposed system. Authors have explained in this section in brief about all the modules.
+Notification Module: Figure 5.4 shows the workflow of the notification module proposed in this literature, when the case or issue is flagged by Cybersecurity Rating platform, and Figure 5.5 shows the workflow of notification module during closure of the flagged issue or case.
+This module will trigger notification to the user/Business owner regarding the issue flagged in the Cybersecurity Rating Platforms. It will generate the detailed notification regarding name of issue like Unique ID for tracking purpose, IP/DNS/Website the issue is flagged, its severity, and overall score impact for the organization. Figure 5.6 shows the details of Notification in JSON Format.
+
+
+Table 5.1 Description of application security parameter.
+
+
+
+
+Application Security: 
+
+Parameters
+Name/ID
+Severity
+Description  
+
+
+Vulnerabilities in CMS
+AppSec‐V‐01
+High
+Identifying Vulnerabilities with known CMS like WordPress, Joomla, Drupal, etc. 
+
+Site/IP does not support HTTPS
+AppSec‐V‐02
+High
+Issue arises when Web application is transmitting data over plain text or using HTTP protocol 
+
+CSP Missing
+AppSec‐V‐03
+Medium
+Issue arises when Web Application is missing Content Security Policy in HTTP response 
+
+Strict Transport Security Misconfigured
+AppSec‐V‐04
+Medium
+Issues arises when application is missing strict transport security header/or hsts header is misconfigured (hsts value set apart from max‐age = include Subdomain) 
+
+Insecure HTTPS redirect chain
+AppSec‐V‐05
+Medium
+Issue arises when there is an insecure redirect in application either to external site 
+
+X‐Frame‐Options‐Missing
+AppSec‐V‐06
+Medium
+Issue arises when X‐Frame‐Options Header is missing from the Web Application HTTP response, and it makes application potentially vulnerable to Clickjacking and other UI Rendering attacks 
+
+Redirect Chain contains HTTP
+AppSec‐V‐07
+Medium
+Issue arises when there is a redirect of request to a website where HTTPS is not implemented 
+
+Session Cookie missing HTTP Only flag
+AppSec‐V‐08
+Low
+This issue arises when a cookie session on Set‐Cookie attribute is missing HTTP Only flag 
+
+Session Cookie missing secure Attribute
+AppSec‐V‐09
+Low
+This issue arises when a cookie session on Set‐Cookie attribute is missing Secure flag 
+
+X‐Content‐Type‐Option‐Missing
+AppSec‐V‐010
+Low
+Issue arises when application is missing X‐Content‐Type Options from the HTTP Response   
+
+
+
+Table 5.2 Description of endpoint security parameter.
+
+
+
+
+End Point Security: 
+
+Parameters
+Name/ID
+Severity
+Description  
+
+
+Outdated Operating System Observed
+EPSec‐V‐01
+High
+This issue arises when the any of the asset is running Outdated Operating System 
+
+Outdated Web Browser Observed
+EPSec‐V‐02
+High
+This issue arises when the any of the asset is running Outdated Web Browsers in the system   
+
+
+
+Table 5.3 Description of infrastructure security parameter.
+
+
+
+
+Infrastructure Security: 
+
+Parameters
+Name/ID
+Severity
+Description  
+
+
+Certificate is Revoked
+InfSec‐V‐01
+High
+This issue arises when the TLS certificates used in the application are revoked 
+
+Elasticsearch Service and MongoDB Service Observed
+InfSec‐V‐02
+High
+This issue arises when Elasticsearch and MongoDB services get detected over web 
+
+Neo4j Database and Oracle Database Server Accessible
+InfSec‐V‐03
+High
+This issue arises when Database like Neo4j and Oracle DB server is accessible over the web 
+
+SSH Software Supports Vulnerable Protocol
+InfSec‐V‐04
+High
+This issue arises when SSH Protocol is supporting vulnerable protocol during communication 
+
+SSL/TLS Service Supports Weak Protocol
+InftSec‐V‐05
+High
+This issue arises when Application or Services is using TLS protocol less than version 1.2 
+
+Apache Cassandra and CouchDB Service Observed
+InfSec‐V‐06
+Medium
+This issue arises when Apache Cassandra and Couch DB Service are observed over internet 
+
+Certificate is Expired
+InfSec‐V‐07
+Medium
+This issue arises when any of the service which is running on TLS protocol and the TLS Certificate is expired 
+
+Certificate Signed with Weak Algorithm
+InfSec‐V‐08
+Medium
+This issue arises when TLS certificate is using weak Algorithm with inadequate strength 
+
+Weak MAC, Microsoft SQL Server, PPTP, PostgreSQL, RDP, Redis, Remote Access, SMB Service, resync Service, VNC Service Observed
+InfSec‐V‐09
+Medium
+This issue arises when the mentioned service is detected over the internet and few of the protocols or services uses weak MAC algorithm 
+
+SSH Supports Weak Cipher and Weak MAC
+InfSec‐V‐10
+Medium
+This issue arises when the SSH Service which is using weak cipher keys and mac algorithms over the internet 
+
+FTP Service, Telnet Observed
+InfSec‐V‐11
+Low
+This issue arises when FTP service is detected over the internet 
+
+IP Camera Accessible
+InfSec‐V‐12
+Low
+This issue arises when any of the device having camera service is accessible over the internet. This is kept out of this literature   
+
+
+
+Figure 5.3 System architecture.
+
+
+
+
+Figure 5.4 Workflow for logging an issue.
+
+
+Later according to the proposed framework, these reported issues will be first evaluated internally by the DevOps module powered by AI to check if the reported issue is true positive or false positive. If it is false positive, evidence will be generated and log will be forwarded against the Issue ID, in Cybersecurity rating platforms, for closing the logged issues. If the issue is true positive, then again, the proposed DevOps module powered by AI will be activated, and it will create a Sand Box environment (Say a docker‐based container), which is explained in detail later in this section.
+
+
+Figure 5.5 Workflow for closure of the issue.
+
+
+
+
+Figure 5.6 Sample of Notification Data/Response in JSON Format.
+
+
+Workflow of the same is shown below in Figure 5.

@@ -1,0 +1,106 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 4 - URL Length Analysis Dashboard:
+Security Relevance Score: 15
+Word Count: 1693
+Extracted: 2025-06-13 23:40:44
+
+---
+
+URL Length Analysis Dashboard:
+
+Scenario: The cybersecurity team at JIT Inc. is alert to sophisticated malware and phishing assaults, which frequently mask harmful websites with lengthy, intricate URLs.
+How It Assists: JIT Inc. can examine how different URL lengths are distributed throughout online traffic with this dashboard. Unusual lengthy URLs can be promptly recognized and looked into, as they are frequently connected to harmful websites.
+
+Implementation and Analysis
+
+The JIT Inc. security team can proactively discover and mitigate a wide range of web-based threats by regularly monitoring these dashboards, which each offer particular insights geared to distinct areas of web intelligence.
+The knowledge gathered from these dashboards also helps to improve the business’s general cybersecurity plans and procedures.
+
+For JIT Inc., Splunk ES’s Web Intelligence dashboards serve as an invaluable tool in their cybersecurity arsenal. By leveraging these dashboards effectively, JIT Inc. can maintain a robust security posture against diverse and evolving web-based threats, ensuring the safety and integrity of their digital assets and operations.
+User Intelligence
+In a security setting, user intelligence entails keeping an eye on and analyzing user behavior, access patterns, and network activities to spot potential threats, abnormalities, and suspicious activity. The ability to recognize and apply investigators, asset and identity concepts, access abnormalities, and user activity analysis can aid in the detection and mitigation of potential risks coming from within the company.
+
+Recognize and employ user activity analysis:
+This process involves keeping track of user actions such as login attempts, file access, and network resource utilization. You can spot odd behavior patterns that can point to a compromised account, an insider threat, or unauthorized access by keeping an eye on user activity.
+Use access anomalies to identify suspicious access patterns:
+Abnormalities in user access patterns, or access anomalies, may be a sign of suspicious activity. You can identify potential dangers, such as unauthorized access to sensitive information or efforts to elevate privileges, by spotting and looking into access anomalies.
+Recognize the notions of assets and identities:
+Assets are the many hardware, software, and resource components that make up a network within an organization, whereas identities are the names of specific individuals. Monitoring and restricting user access to critical resources requires an understanding of the connections between assets and identities.
+Use investigators to analyze activities and events connected to a specific asset or identity:
+Investigators are tools that security analysts can use to look into activities and occurrences connected to particular assets or identities. You may learn more about user behavior and spot potential security risks by employing investigators.
+
+Some hazards come from within your company, including:
+
+Social engineering attacks, in which perpetrators trick employees into disclosing private data or allowing illegal access.
+Disloyal workers or subcontractors who commit crimes like data theft, sabotage, or unlawful access to private data.
+
+It is essential to keep an eye on user behavior and respond to the following queries in order to address these threats:
+
+What user accounts are active, and what are they doing?
+What equipment (servers, and so on) are users accessing?
+Where are users logging on?
+How much risk has been accumulated by each user or device?
+
+By analyzing user behavior, access patterns, and activities, security teams can detect and mitigate potential insider threats, protect sensitive data, and maintain a secure environment within the organization.
+Accessing and Navigating the User Intelligence Dashboards in ES
+To access the User Intelligence Dashboards, navigate to the Web Intelligence section in Splunk ES Menu Bar and select the relevant dashboard.
+User Intelligence Dashboards
+This section will provide a comprehensive overview of key dashboards such as the Asset and Identity Investigator dashboards, User Activity Monitoring, and Access Anomalies dashboard, equipping users with tools to analyze and respond to security events effectively. These dashboards facilitate deep-dive investigations, monitor user activity, and identify unusual access patterns to bolster security measures.
+Asset and Identity Investigator dashboards
+Using swim lanes that are determined by category, the Asset and Identity Investigator dashboards show security-related events over time. They aid security analysts in evaluating and tracking user identities and asset interactions inside the environment, enabling a thorough picture of their operations.
+Asset Investigator:
+This dashboard shows data on assets for already established event types, such as malware and significant incidents. The Asset Investigator interface allows analysts to track actions across event categories, prioritize interactions with an asset, and do ad hoc searches. Confirming the asset, reducing the time frame, altering swim lanes, examining events, and sharing or further studying events are all steps in the asset investigation procedure.
+
+
+
+Figure 7.7: Asset Investigator dashboard
+Identity Investigator:
+This dashboard emphasizes user identities and displays data from predefined event categories, including malware and change analysis. The Identity Investigator dashboard allows analysts to look at a user’s activities, follow actions across different event categories, and run ad hoc searches. The workflow for conducting an identity investigation entails verifying the identification, reducing the time frame, altering swim lanes, examining events, and sharing or further researching occurrences.
+
+
+
+
+Figure 7.8: Identity Investigator dashboard
+The Edit Lanes menu, which lets you add, remove, or rearrange swim lanes, is supported by both dashboards when it comes to swim lane customization. Custom swim lanes made with ES Content Management or packaged with add-ons can also be included.
+Overall, the dashboards for the Asset and Identity Investigator give security analysts a strong tool for investigating and keeping track of user identities and asset activity in their environment. They aid in ensuring a secure workplace by assisting in the detection of potential security threats, unauthorized access, and suspicious activity.
+User Activity Monitoring
+By displaying panels that depict typical risk-generating actions, the User Activity dashboard in Splunk Enterprise Security is intended to assist analysts in identifying potential insider threats and dangerous user behavior. You can narrow down the results shown on the panels using the dashboard filters, which include user, business unit, watchlisted user, and time period filters.
+
+
+
+
+Figure 7.9: User activity dashboard
+Dashboard Panels for User Activity:
+
+Key Indicators: Provides summary information and displays relevant metrics over the past 48 hours.
+Users By Risk Scores: Shows the top 100 highest risk users, helping analysts focus on the riskiest individuals in the organization. Drilldown launches Identity Investigator dashboard and runs a user search on the chosen user.
+Non-corporate Web Uploads: Shows user activity in high volume uploads and downloads, which may be a sign of data exfiltration. Launching the Identity Investigator dashboard, Drilldown searches for the selected person.
+Non-corporate Email Activity: Displays the top 100 users who send emails in large volumes to non-corporate domains, which could be a sign of data exfiltration. Launching the Identity Investigator dashboard, Drilldown searches for the selected person.
+Watchlisted Site Activity: This feature shows users’ web access, and activity on particular categories of websites may be a sign of insider threat activities. Launching the Identity Investigator dashboard, Drilldown searches for the selected person.
+Remote Access: Displays user-authenticated remote access, including questionable web or email behavior potentially pointing to data espionage or compromised credentials. Launching Identity Investigator dashboard, Drilldown searches users for the selected user.
+Ticket Activity: Shows user ticketing activity, with dangerous online or email activity together with ticket submission, perhaps indicating data exfiltration or credential abuse. Launching Identity Investigator dashboard, Drilldown searches users for the selected user.
+
+Access Anomalies dashboard
+The Access Anomalies dashboard is intended to reveal questionable authentication patterns, such as simultaneous authentication attempts from various IP addresses and unlikely travel anomalies. Action, app, user, business unit, and time range are all dashboard filters.
+Panels on the dashboard for access anomalies are:
+
+Geographically unusual Accesses: Shows users who have made several attempts for authentication, spaced apart by unusual intervals of time and distance, possibly revealing compromised credentials. The drilldown launches the Access Search dashboard and performs a user search.
+Concurrent Application Accesses: This feature shows users who have made numerous authentication attempts in a short period from various IP addresses, which may be an indication of shared or stolen credentials. Drilldown searches for the selected user on the Access Search panel.
+
+User behavior analytics
+This process is used to learn about the daily network events that users create. Information can be used to identify the use of compromised credentials, lateral movement, and other malicious behavior once it has been gathered and evaluated.
+The UBA Anomalies dashboard in Splunk Enterprise Security helps you analyze and understand anomalous activity in your environment by displaying various metrics related to user behavior anomalies. To access the dashboard, navigate to Security Intelligence > User Intelligence > UBA Anomalies.
+Key features of the UBA Anomalies dashboard include:
+
+Key Indicators: Monitor changes in your environment’s count of several metrics over the last 24 hours, including UBA notables, UBA anomaly actors, UBA anomaly signatures, UBA anomalies per threat, and the overall count of UBA anomalies.
+The Anomalies Over Time panel: This allows you to look into anomalous activity peaks and contrast the number of actors over time with the number of anomalies in order to spot patterns or trends.
+Most Active Signatures panel: This feature helps you focus on high-impact areas by identifying the most prevalent sorts of abnormal activity in your environment.
+Most Active Actors panel: Determine which people, devices, apps, and other actors are causing the most abnormal behavior using the Most Active Actors panel to help you focus your investigation efforts.
+Recent UBA Anomalies panel: See the latest anomalous activity in your environment, so you can quickly respond to emerging threats or issues.
+
+To view an anomaly in Splunk UBA, click a value on the dashboard to drill down to the search. You can use the event actions on a specific anomaly event to “View Contributing Anomalies” and open Splunk UBA to view the Anomaly Details view.
+Hands-On User Intelligence with Splunk ES at JIT Inc.
+Overview
+The fast-growing startup JIT Inc. uses Splunk Enterprise Security (ES) to enhance its user intelligence capabilities. The increasing threat of insider attacks and the need for extensive user behavior monitoring have led JIT Inc. to utilize Splunk ES’s User Intelligence features, which include the Asset Investigator, Identity Investigator, User Activity, Access Anomalies, and User Behavior Analytics dashboards. Each dashboard provides a unique viewpoint on user behavior and potential security threats.
+Scenario Setup

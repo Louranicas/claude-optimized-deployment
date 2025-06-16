@@ -1,0 +1,525 @@
+# Production Deployments with High Availability
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-deployment-api
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+    tier: api
+    version: v1.0.0
+    security: restricted
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    kubernetes.io/change-cause: "Initial production deployment"
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app: claude-deployment-api
+  template:
+    metadata:
+      labels:
+        app: claude-deployment-api
+        tier: api
+        version: v1.0.0
+        security: restricted
+      annotations:
+        # Prometheus scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+        
+        # Security annotations
+        container.apparmor.security.beta.kubernetes.io/api: runtime/default
+        seccomp.security.alpha.kubernetes.io/pod: runtime/default
+        
+        # Istio annotations
+        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/proxyCPU: "100m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        
+        # Pod disruption budget
+        pod-disruption-budget/name: "claude-deployment-api-pdb"
+    spec:
+      serviceAccountName: claude-deployment-api
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 60
+      
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+        sysctls:
+        - name: net.core.somaxconn
+          value: "32768"
+        - name: net.ipv4.tcp_max_syn_backlog
+          value: "8192"
+      
+      # Topology spread constraints for high availability
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: claude-deployment-api
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: claude-deployment-api
+      
+      # Pod anti-affinity for resilience
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - claude-deployment-api
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+      
+      # Init container for database migrations
+      initContainers:
+      - name: migration
+        image: claude-deployment-api:latest
+        imagePullPolicy: Always
+        command: ["python", "-m", "alembic", "upgrade", "head"]
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-db-secret
+              key: database-url
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      
+      containers:
+      # Main application container
+      - name: api
+        image: claude-deployment-api:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        
+        # Environment variables
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: NODE_OPTIONS
+          valueFrom:
+            configMapKeyRef:
+              name: claude-deployment-config
+              key: node-options
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: claude-deployment-config
+              key: log-level
+        - name: WORKERS
+          valueFrom:
+            configMapKeyRef:
+              name: claude-deployment-config
+              key: workers
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-db-secret
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-redis-secret
+              key: redis-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-jwt-secret
+              key: jwt-secret
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-api-keys
+              key: openai-api-key
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-api-keys
+              key: anthropic-api-key
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        
+        # Volume mounts
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/cache
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: logs
+          mountPath: /app/logs
+        
+        # Resource limits and requests
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+            ephemeral-storage: "1Gi"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+            ephemeral-storage: "10Gi"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        
+        # Startup probe for slow-starting containers
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 12
+          successThreshold: 1
+        
+        # Lifecycle hooks
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]
+      
+      # Nginx sidecar for request routing and caching
+      - name: nginx
+        image: nginx:1.25-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: nginx
+          containerPort: 80
+          protocol: TCP
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 101
+          runAsGroup: 101
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
+        
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - name: nginx-tmp
+          mountPath: /var/cache/nginx
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: nginx
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: nginx
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      
+      # Fluent Bit sidecar for log shipping
+      - name: fluent-bit
+        image: fluent/fluent-bit:2.2
+        imagePullPolicy: IfNotPresent
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        
+        volumeMounts:
+        - name: fluent-bit-config
+          mountPath: /fluent-bit/etc/
+          readOnly: true
+        - name: logs
+          mountPath: /var/log/app
+          readOnly: true
+        - name: fluent-bit-storage
+          mountPath: /var/log/flb-storage
+        
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      
+      # Volumes
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: cache
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: logs
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: nginx-tmp
+        emptyDir:
+          sizeLimit: 100Mi
+      - name: nginx-logs
+        emptyDir:
+          sizeLimit: 100Mi
+      - name: fluent-bit-storage
+        emptyDir:
+          sizeLimit: 100Mi
+      - name: config
+        configMap:
+          name: claude-deployment-config
+          defaultMode: 0444
+      - name: nginx-config
+        configMap:
+          name: claude-deployment-nginx-config
+          defaultMode: 0444
+      - name: fluent-bit-config
+        configMap:
+          name: claude-deployment-fluent-bit-config
+          defaultMode: 0444
+      
+      # Node selection and tolerations
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-role.kubernetes.io/worker: "true"
+      
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "kubernetes.io/memory-pressure"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "kubernetes.io/disk-pressure"
+        operator: "Exists"
+        effect: "NoSchedule"
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: claude-deployment-api-pdb
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      app: claude-deployment-api
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: claude-deployment-api-hpa
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: claude-deployment-api
+  minReplicas: 6
+  maxReplicas: 30
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 5
+        periodSeconds: 60
+      selectPolicy: Max
+
+---
+# Vertical Pod Autoscaler (if enabled)
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: claude-deployment-api-vpa
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: claude-deployment-api
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: api
+      maxAllowed:
+        cpu: 8000m
+        memory: 16Gi
+      minAllowed:
+        cpu: 100m
+        memory: 256Mi
+      controlledResources: ["cpu", "memory"]

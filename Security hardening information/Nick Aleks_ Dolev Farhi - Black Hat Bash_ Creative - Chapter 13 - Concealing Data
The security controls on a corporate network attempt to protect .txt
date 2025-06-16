@@ -1,0 +1,66 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 13 - Concealing Data
+The security controls on a corporate network attempt to protect sensitive information from unauthorized disclosure, leakage, or loss. Thus, covert operations frequently seek to hide the sensitive information with which they interact. Attackers can encode, obfuscate, and encrypt data by using industry-standard tools or custom algorithms.
+Security Relevance Score: 5
+Word Count: 459
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Concealing Data
+The security controls on a corporate network attempt to protect sensitive information from unauthorized disclosure, leakage, or loss. Thus, covert operations frequently seek to hide the sensitive information with which they interact. Attackers can encode, obfuscate, and encrypt data by using industry-standard tools or custom algorithms.
+
+Encoding
+Data encoding is the process of converting information from one format to another. Digital communications often use encoding to represent data in a scheme that allows it to be transmitted, stored, or processed. As you’ve seen throughout this book, bash provides built-in support for base64 encoding with the base64 command. Using echo, you can pipe a string to base64 to get the encoded version:
+$ echo -n "Secret Data" | base64
+
+U2VjcmV0IERhdGE=
+
+To decode this information, just pass the -d parameter to base64:
+$ echo "U2VjcmV0IERhdGE=" | base64 -d
+
+Secret Data
+
+We can encode the same string more than once with bash. Using multiple rounds of encoding provides additional layers of obfuscation, possibly frustrating whoever is trying to recover the original string. In Listing 12-18, we encode the string Hello! 10 times.
+$ text="Hello!"
+$ rounds=10; for i in $(seq ${rounds}); do text="$(echo "${text}" | base64)"; done
+
+Listing 12-18: Performing several rounds of base64 encoding with a for loop
+To decode the string, use the same number of rounds when encoding (Listing 12-19).
+$ echo $text
+
+Vm0wd2QyVkZOVWRXV0doVFYwZDRWRll3Wkc5WFZsbDNXa1JTVjJKR2JETlhhMUpUVmpGYWRHVkdX
+bFpOYWtFeFZtMTRZV014WkhWaApSbHBPWVd0RmVGWnNVa2RaVjFKSFZtNUdVd3BpU0VKdldWaHdW
+MlZXV25OV2JVWmFWbXh3ZVZSc1duTldkM0JwVW01Q1ZWZFhkRmRYCmJWWnpWMnhXVldKWVVuSlph
+MVpMVlRGc2RXSXpaRlJrTWpnNVEyYzlQUW89Cg==
+
+$ rounds=10; for i in $(seq ${rounds}); do text="$(echo "${text}" | base64 -d)"; done
+$ echo $text
+
+Hello!
+
+Listing 12-19: Decoding a multiple-encoded string
+We can also use the xxd command line utility to convert data to hexadecimal (Listing 12-20).
+$ echo -n "Secret Data" | xxd -p
+
+5365637265742044617461
+
+Listing 12-20: Converting ASCII characters to hexadecimal
+To decode the hexadecimal data by using bash, run xxd -r -p (Listing 12-21).
+$ echo "5365637265742044617461" | xxd -r -p
+
+Secret Data
+
+Listing 12-21: Converting hexadecimal back to ASCII
+We can combine encoding schemes by piping their outputs. Listing 12-22 pipes base64-encoded output into the hexadecimal encoding function.
+$ echo "Secret Data" | xxd -p | base64
+NTM2NTYzNzI2NTc0MjA0NDYxNzQ2MTBhCg==
+
+Listing 12-22: Base64 encoding a hexadecimal string
+However, encoded data is easy to decode if you know the algorithm used. Encryption mechanisms provide stronger protection.
+
+
+Encryption
+Encryption is the process of converting plaintext, or the original data, into ciphertext, or encrypted data, using a cryptographic algorithm. The goal of encryption is to scramble information to make it unreadable. This could bypass security controls that inspect data for malicious signatures.
+OpenSSL, a commonly used encryption tool, provides a wide range of cryptographic functions. Listing 12-23 shows how to encrypt sensitive information by using bash and OpenSSL. We encrypt the plaintext Black Hat Bash by using the encryption algorithm AES-256, then encode the output by using base

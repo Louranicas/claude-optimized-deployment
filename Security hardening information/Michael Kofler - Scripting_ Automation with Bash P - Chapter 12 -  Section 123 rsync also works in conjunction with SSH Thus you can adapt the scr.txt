@@ -1,0 +1,50 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 12 - , Section 12.3, rsync also works in conjunction with SSH. Thus, you can adapt the script relatively easily so that your directories are not synchronized with an external data medium but with another computer.
+# Sample file sync-folders.sh# what is to be synchronized  whereDESTVOLUME="/run/media/kofler/mybackupdisk"DESTDIR="backup-kofler"LOGDIR="$DESTDIR/sync-logging"SYNCDIRS=("Documents" "Pictures" "myscripts")# is the backup file system available?if ! mount | grep $DESTVOLUME --quiet; then    echo "Backup disk $DESTVOLUME not found. Exit."    exit 1fi# create destination and logging directoriesmkdir -p "$DESTVOLUME/$DESTDIR"mkdir -p "$DESTVOLUME/$LOGDIR"# compose file name for logginglogfname=$(date "+rsycn-%Y-%m-%d--%H-%M.log")log="$DESTVOLUME/$LOGDIR/$logfname"# loop through all directoriesfor dir in "${SYNCDIRS[@]}"; do    from=$HOME/$dir    to=$DESTVOLUME/$DESTDIR/$dir    echo "sync from $from to $to"    rsync -a --delete -v "$from" "$to" >> $logdone 
+The rsync options have the following effect:
+Security Relevance Score: 4
+Word Count: 608
+Extracted: 2025-06-13 23:41:06
+
+---
+
+, Section 12.3, rsync also works in conjunction with SSH. Thus, you can adapt the script relatively easily so that your directories are not synchronized with an external data medium but with another computer.
+# Sample file sync-folders.sh# what is to be synchronized  whereDESTVOLUME="/run/media/kofler/mybackupdisk"DESTDIR="backup-kofler"LOGDIR="$DESTDIR/sync-logging"SYNCDIRS=("Documents" "Pictures" "myscripts")# is the backup file system available?if ! mount | grep $DESTVOLUME --quiet; then    echo "Backup disk $DESTVOLUME not found. Exit."    exit 1fi# create destination and logging directoriesmkdir -p "$DESTVOLUME/$DESTDIR"mkdir -p "$DESTVOLUME/$LOGDIR"# compose file name for logginglogfname=$(date "+rsycn-%Y-%m-%d--%H-%M.log")log="$DESTVOLUME/$LOGDIR/$logfname"# loop through all directoriesfor dir in "${SYNCDIRS[@]}"; do    from=$HOME/$dir    to=$DESTVOLUME/$DESTDIR/$dir    echo "sync from $from to $to"    rsync -a --delete -v "$from" "$to" >> $logdone 
+The rsync options have the following effect:
+
+
+-a (archive): Process directories recursively, get file information (owner, access rights)
+
+
+--delete: Delete locally deleted directories and files also in backup (caution!)
+
+
+-v (verbose): Output in detail what is currently going on
+
+
+To have the script called automatically once a day at 12:30 pm, I added the following entry to /etc/crontab. You can simply adjust the desired time, account name, and path to the backup script to suit your particular requirements:
+# in file /etc/crontab30 12 * * * kofler /home/kofler/myscripts/sync-folders.sh 
+
+macOS
+I have tested this script only on Linux. For macOS, small adaptations are required, especially regarding the test that checks whether the backup disk is currently connected to the computer.
+
+
+
+
+
+
+
+
+
+
+15.2    WordPress Backup
+The starting point for the second example is a Linux machine running a web server and a database server to implement a web presence using WordPress. The content of the wp database, the /var/www/html/wordpress directory, and the entire server configuration, i.e., the /etc directory, are supposed to be backed up once a day. Compressed backups of the last 7 days should always be kept both locally and on a second server accessible via SSH.
+The implementation is created by a Bash script that runs with root privileges. The mysqldump command is used to back up the MySQL database by connecting to the MySQL server with the wpbackupuser account. This account, which only includes rights to perform backups, can be set up in MySQL in the following way:
+CREATE USER wpbackupuser@localhost IDENTIFIED BY 'TopSecret123';GRANT Select, Lock Tables, Show View   ON wp.* TO wpbackupuser@localhost;GRANT Process, Reload ON *.* TO wpbackupuser@localhost; 
+To make sure that the script does not contain the password in plain text, it is stored in the /root/.my.cnf file. mysqldump automatically searches for this file and analyzes the data it contains. You should use chmod 600 .my.cnf to make sure that nobody except root is allowed to read this file!
+# in file /root/.my.cnf[mysqldump]user = wpbackupuserpassword = TopSecret123default-character-set = utf8 
+Once all the prerequisites have been met, you can start programming. Various configuration parameters are summarized in the first lines of the script. For better readability, I have used capital letters for these variables.
+date +%u generates a consecutive number for the day of the week (1 for Monday to 7 for Sunday). This number will be integrated into the names of the backup files.
+mysqlopt contains options for performing the backup. The behavior of mysqldump can be controlled via countless options. I have limited myself in this case to --single-transaction. This option ensures that the database cannot change during the backup. The output of mysqldump is passed to gzip, compressed, and finally stored in the $dbfile file. If the file already exists, it will be overwritten. (This process happens for the first time when the script runs for 8 consecutive days. So, you always have backup versions of the last 7 days.)
+To perform the backup of a WordPress installation, a short tar command is sufficient (see also

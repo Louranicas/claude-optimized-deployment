@@ -13,12 +13,35 @@ from datetime import datetime, timezone
 import re
 import ipaddress
 from functools import wraps
+import logging
 
 from .tokens import TokenManager, TokenData
 from .models import User, APIKey
 from .rbac import RBACManager
 from .permissions import PermissionChecker
 from ..core.cors_config import get_cors_config
+from .token_revocation import TokenRevocationService
+from .session_manager import SessionManager
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    AuthenticationError,
+    AuthorizationError,
+    ValidationError,
+    RateLimitError,
+    log_error
+)
+
+logger = logging.getLogger(__name__)
+
+__all__ = [
+    "AuthMiddleware",
+    "RateLimitMiddleware",
+    "require_auth",
+    "require_permission"
+]
+
 
 
 # Security schemes
@@ -33,7 +56,9 @@ class AuthMiddleware:
                  rbac_manager: RBACManager,
                  permission_checker: PermissionChecker,
                  user_store: Optional[Any] = None,
-                 api_key_store: Optional[Any] = None):
+                 api_key_store: Optional[Any] = None,
+                 token_revocation_service: Optional[TokenRevocationService] = None,
+                 session_manager: Optional[SessionManager] = None):
         """
         Initialize authentication middleware.
         
@@ -43,12 +68,16 @@ class AuthMiddleware:
             permission_checker: Permission checker
             user_store: User storage backend
             api_key_store: API key storage backend
+            token_revocation_service: Token revocation service
+            session_manager: Session management service
         """
         self.token_manager = token_manager
         self.rbac_manager = rbac_manager
         self.permission_checker = permission_checker
         self.user_store = user_store
         self.api_key_store = api_key_store
+        self.token_revocation_service = token_revocation_service
+        self.session_manager = session_manager
         
         # Security settings
         self.max_failed_attempts = 5
@@ -56,8 +85,9 @@ class AuthMiddleware:
         self.rate_limit_window = 60  # 1 minute
         self.rate_limit_max_requests = 100
         
-        # Rate limiting storage (in production, use Redis)
+        # Rate limiting storage - will use Redis if available
         self.rate_limit_storage: Dict[str, List[float]] = {}
+        self._use_redis_rate_limiting = token_revocation_service is not None
         
         # IP whitelist/blacklist
         self.ip_whitelist: set = set()
@@ -199,8 +229,32 @@ class AuthMiddleware:
         """Get current authenticated user from JWT or API key."""
         # Try JWT authentication first
         if credentials and credentials.credentials:
-            token_data = self.token_manager.verify_token(credentials.credentials)
+            token = credentials.credentials
+            token_data = self.token_manager.verify_token(token)
             if token_data:
+                # Check if token is revoked
+                if self.token_revocation_service:
+                    jti = token_data.jti or token_data.__dict__.get('jti')
+                    if jti and await self.token_revocation_service.is_token_revoked(jti):
+                        logger.warning(f"Revoked token used: {jti} for user {token_data.user_id}")
+                        return None
+                    
+                    # Check if session is revoked
+                    if token_data.session_id and await self.token_revocation_service.is_session_revoked(token_data.session_id):
+                        logger.warning(f"Revoked session used: {token_data.session_id} for user {token_data.user_id}")
+                        return None
+                
+                # Update session activity
+                if self.session_manager and token_data.session_id:
+                    client_ip = self._get_client_ip(request) if request else None
+                    session = await self.session_manager.update_activity(
+                        session_id=token_data.session_id,
+                        ip_address=client_ip
+                    )
+                    if not session:
+                        logger.warning(f"Invalid or expired session: {token_data.session_id}")
+                        return None
+                
                 # Load user from storage
                 if self.user_store:
                     user = await self.user_store.get_user(token_data.user_id)
@@ -254,6 +308,7 @@ class AuthMiddleware:
         
         return None
     
+    @handle_errors()
     def add_ip_to_whitelist(self, ip_address: str) -> None:
         """Add IP address to whitelist."""
         try:
@@ -263,6 +318,7 @@ class AuthMiddleware:
         except ValueError:
             raise ValueError(f"Invalid IP address: {ip_address}")
     
+    @handle_errors()
     def add_ip_to_blacklist(self, ip_address: str) -> None:
         """Add IP address to blacklist."""
         try:

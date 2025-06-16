@@ -1,0 +1,72 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 7 - This means that if you set the permission 777, everyone would get read, write, and execute permissions.
+What if we want to grant only the user read access but deny access to the group and everyone else? Here is an example of how to do this:
+$ chmod 400 my_new_file.txt
+$ ls -l my_new_file.txt
+Security Relevance Score: 4
+Word Count: 589
+Extracted: 2025-06-13 23:40:57
+
+---
+
+This means that if you set the permission 777, everyone would get read, write, and execute permissions.
+What if we want to grant only the user read access but deny access to the group and everyone else? Here is an example of how to do this:
+$ chmod 400 my_new_file.txt
+$ ls -l my_new_file.txt
+
+-r-------- 1 kali kali 0 Jun 27 22:30 my_new_file.txt
+
+We use the octal value of 400, as 4 grants read access to the user and the two 0 values set zero permissions for the group and everyone else.
+
+
+Creating File Access Control Lists
+We’ve covered the fundamentals of file and directory permissions and ownership, but a few other security mechanisms could also grant or prevent user access.
+File access control lists (ACLs) allow you to set additional permissions on files and directories at a more granular level. For example, say we have a group called sysadmins with a few members, such as Alice, Bob, and Eve, and we need to grant access to Alice and Bob, but not Eve. Setting the sysadmins group on a file or directory would instead grant all members access. ACLs allow us to grant or deny access to specific users on top of the existing permission scheme.
+The next example assumes you have a group named sysadmins and system users named Alice, Bob, and Eve. You can use the following commands to create these resources:
+$ sudo groupadd sysadmins
+$ sudo useradd eve -G sysadmins
+$ sudo useradd alice -G sysadmins
+$ sudo useradd bob -G sysadmins
+
+Next, let’s create a new empty file and observe its default ACLs. We use the getfacl command to achieve this:
+$ touch facl_example.txt
+$ getfacl facl_example.txt
+
+# file: facl_example.txt
+# owner: kali
+# group: kali
+
+user::rw-
+group::r--
+other::r--
+
+Now we’ll grant read access to the sysadmins group to ensure that Alice and Bob, who are members, can access it:
+$ touch facl_example.txt
+$ setfacl -m g:sysadmins:r-- facl_example.txt
+
+We pass the modify (-m) flag to setfacl so it modifies permissions, followed by the group name, the desired permissions (g:sysadmins:r--), and the target file or directory.
+At this point, all members of the group can read the file. How do we now exclude a particular user? Run the following command to remove all permissions for Eve:
+$ setfacl -m u:eve:--- facl_example.txt
+Listing the ACL permissions again should show that Eve has no access to the file:
+$ getfacl facl_example.txt
+
+# file: facl_example.txt
+# owner: kali
+# group: kali
+
+user::rwx
+user:eve:---
+group::r--
+group:sysadmins:r--
+mask::r--
+other::r--
+
+When a file or directory has ACLs set, Linux will show a plus sign (+) when you view the file’s permissions:
+-rw-r--r--+ 1 kali kali    0 Jun 27 22:52 facl_example.txt
+It’s important to be aware that this security control is available.
+
+
+Viewing SetUID and SetGID
+Set User ID (SetUID) is a special permission that can be set on executable files. It allows the executable to run with the permission of the user who owns the executable. For example, imagine that a script allows users on the system to delete logfiles from the /var/log path. To do this without granting root privileges to users, a sysadmin can set the SetUID bit on the executable file. Likewise, the Set Group ID (SetGID) permission allows users to run executable files with the permissions of the owning group.
+When an executable file has SetUID or SetGID set, you’ll see s instead of x in the file’s permissions. One file that uses both SetUID and SetGID is the At scheduler binary /usr/bin/at, which we used in

@@ -1,0 +1,107 @@
+# MCP Learning System Configuration
+
+[core]
+# Maximum concurrent connections
+max_connections = 10000
+# Message buffer size in bytes
+message_buffer_size = 1048576  # 1MB
+# State cache size in bytes
+state_cache_size = 2147483648  # 2GB
+
+[memory]
+# Shared memory configuration
+shared_memory_size = 4294967296  # 4GB
+ring_buffer_size = 1073741824    # 1GB
+max_message_size = 1048576       # 1MB
+
+[learning]
+# Learning algorithm configuration
+model_update_interval = 300      # 5 minutes
+batch_size = 1024
+learning_rate = 0.001
+feature_dim = 128
+memory_size = 10000
+
+[pattern_recognition]
+# Pattern recognition settings
+n_clusters = 10
+anomaly_threshold = 0.1
+window_size = 1000
+
+[adaptation]
+# Adaptation engine settings
+adaptation_threshold = 0.7
+risk_tolerance = 0.3
+history_size = 1000
+
+[persistence]
+# Storage configuration
+rocksdb_path = "/data/rocksdb"
+checkpoint_interval = 3600       # 1 hour
+compression = "lz4"
+max_db_size = 107374182400      # 100GB
+
+[monitoring]
+# Monitoring configuration
+enable_prometheus = true
+prometheus_port = 9090
+metrics_retention_period = 3600  # 1 hour
+max_points_per_metric = 10000
+collection_interval = 1          # 1 second
+
+[logging]
+# Logging configuration
+log_level = "INFO"
+log_format = "json"
+log_output = "stdout"
+log_file = "/logs/mcp_learning.log"
+max_log_size = 104857600         # 100MB
+max_log_files = 10
+
+[network]
+# Network configuration
+bind_address = "0.0.0.0"
+rust_core_port = 8080
+python_api_port = 8000
+grpc_port = 50051
+
+[security]
+# Security settings
+enable_tls = true
+tls_cert = "/app/certs/server.crt"
+tls_key = "/app/certs/server.key"
+enable_mtls = false
+client_ca = "/app/certs/ca.crt"
+
+[performance]
+# Performance tuning
+worker_threads = 8
+async_runtime_threads = 4
+io_threads = 2
+max_blocking_threads = 128
+
+[celery]
+# Celery configuration
+broker_url = "redis://redis:6379/0"
+result_backend = "redis://redis:6379/0"
+task_serializer = "msgpack"
+result_serializer = "msgpack"
+accept_content = ["msgpack"]
+timezone = "UTC"
+enable_utc = true
+
+[redis]
+# Redis configuration
+host = "redis"
+port = 6379
+db = 0
+max_connections = 100
+connection_timeout = 5
+socket_timeout = 5
+
+[limits]
+# Resource limits
+max_memory_usage = 12884901888   # 12GB
+max_cpu_percent = 80
+max_file_descriptors = 65536
+max_concurrent_tasks = 1000

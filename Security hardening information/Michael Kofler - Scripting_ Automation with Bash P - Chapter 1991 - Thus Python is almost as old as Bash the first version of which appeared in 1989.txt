@@ -1,0 +1,52 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 1991 - Thus, Python is almost as old as Bash, the first version of which appeared in 1989. But unlike Bash, Python hardly shows its age: Python is characterized by an elegant, well-designed syntax that still sets standards today.
+Python is a scripting language in that its code was originally executed by an interpreter. In current versions, however, the code is first compiled into an intermediate binary format (called byte code) for performance reasons. You won’t notice any of this effort when using Python. In other words, Python behaves like an interpreted language, but it very much uses a compiler behind the scenes.
+Python was not primarily designed to automate administrative operations but instead is rather extremely general purpose. You can equally learn to program or solve AI problems with Python!
+A basic concept behind Python is that the language core is very compact. For this purpose, the language can be easily extended by modules, and these modules are exactly why Python is so popular today (also) as a scripting language in the sense of this book. Over time, more and more extension modules have emerged to use cloud services, apply network functions, access databases, and more. For almost any admin task imaginable, a suitable Python module can be installed in no time!
+However, Python is only moderately suitable for calling existing commands. In this respect, the modules are both a curse and a blessing. While you may already be familiar with the commands required for a Bash script, you’ll need to learn about an adequate Python module with similar functions. Several modules might be eligible, and you may not clearly see which module is more suitable or which one will be maintained in the future. In this respect, the use of Python is worthwhile especially when the task is reasonably complex, when the advantages of Python compensate for the disadvantage of a longer familiarization with a particular additional module.
+Security Relevance Score: 2
+Word Count: 957
+Extracted: 2025-06-13 23:41:06
+
+---
+
+Thus, Python is almost as old as Bash, the first version of which appeared in 1989. But unlike Bash, Python hardly shows its age: Python is characterized by an elegant, well-designed syntax that still sets standards today.
+Python is a scripting language in that its code was originally executed by an interpreter. In current versions, however, the code is first compiled into an intermediate binary format (called byte code) for performance reasons. You won’t notice any of this effort when using Python. In other words, Python behaves like an interpreted language, but it very much uses a compiler behind the scenes.
+Python was not primarily designed to automate administrative operations but instead is rather extremely general purpose. You can equally learn to program or solve AI problems with Python!
+A basic concept behind Python is that the language core is very compact. For this purpose, the language can be easily extended by modules, and these modules are exactly why Python is so popular today (also) as a scripting language in the sense of this book. Over time, more and more extension modules have emerged to use cloud services, apply network functions, access databases, and more. For almost any admin task imaginable, a suitable Python module can be installed in no time!
+However, Python is only moderately suitable for calling existing commands. In this respect, the modules are both a curse and a blessing. While you may already be familiar with the commands required for a Bash script, you’ll need to learn about an adequate Python module with similar functions. Several modules might be eligible, and you may not clearly see which module is more suitable or which one will be maintained in the future. In this respect, the use of Python is worthwhile especially when the task is reasonably complex, when the advantages of Python compensate for the disadvantage of a longer familiarization with a particular additional module.
+1.2.4    Many Similarities, Even More Differences
+Describing three scripting languages in one book is admittedly an intellectual challenge—for the author as well as for you, the reader! Of course, all three languages are characterized by many similarities, especially true Bash and PowerShell. At the same time, however, countless syntactic variations can make rapid switching between languages tedious. Thus, one tip: You should use an editor that supports the respective scripting language well because then the editor will detect most errors or syntax mix-ups before your first test runs.
+
+
+
+
+
+
+
+
+
+1.3    The Agony of Choice
+If you’re just entering the world of scripting, you’d probably prefer it if I would tell you now, “Learn language Xxx, it’s good for everything.” Unfortunately, the IT world is not that simple. Which scripting language is the most suitable or the ideal solution for you depends greatly on the task and the operating system on which your script is supposed to run, for instance:
+
+
+For scripts to administer Windows computers and networks, PowerShell is definitely the best choice. Many Windows-specific functions are best controlled by PowerShell’s own commands and modules.
+
+
+Similarly, Bash (or, almost equivalently, Zsh) is the ideal language if you want to run administrative scripts on Linux machines or servers and on macOS.
+
+
+For tasks that are platform-independent and do not depend on operating system-specific libraries, PowerShell, Bash, and Python are equally suitable. In that case, I pragmatically recommend the language you know best or whose environment (commands, extension modules) you know best.
+
+
+The greater the complexity of the task; the more elaborate the control of the code (loops, branches, functions, etc.); and the more extensive the expected amount of code and the greater the number of variables and data structures required, the stronger my tendency is towards Python.
+
+
+If your script runs the risk of turning into a “real” program, with several hundred lines of code, the advantages of Python (with its clearer syntax and better development tools) outweigh its disadvantages. However, we’re then moving well beyond the scope of this book.
+
+
+You must start somewhere: If you’re at home in the Windows environment and want to run your scripts there, I would start using PowerShell. Similarly, I advise Linux and macOS fans to first learn the basics of Bash and Zsh, respectively. (This recommendation also applies if you use Windows as your working environment, but you want your scripts to run on Linux servers. While this juggling sounds contradictory, in real life, this scenario is absolutely common. Microsoft’s own Azure cloud runs more Linux instances than Windows ones. Nothing wrong with combining the benefits of Windows on the desktop with those of Linux on the server.)
+Once you’re somewhat familiar with Bash or PowerShell, you should get acquainted with Python. Python scores major points with its impressively elegant syntax and is miles superior to Bash as well as PowerShell in this respect. However, these advantages are more effective for complex, platform-independent tasks. In this respect, Python is not quite a “classic” scripting language but has a much more universal objective. If your script is primarily intended to call elementary Linux tools (such as find, grep, adduser, and gzip) or to perform basic Windows admin tasks, Bash or PowerShell are better suited for this purpose than Python, despite all their syntax peculiarities.
+Ultimately, the key is simply to start programming. In this context, don’t let yourself be influenced by the order in which the chapters appear in this book but instead start with whatever chapter seems most logical to you. When writing, I tried extremely hard to conceive all the chapters as independently as possible. The PowerShell chapter does not assume any knowledge of Bash, or vice versa!
+To conclude these first reflections, I have made a very personal, thoroughly subjective evaluation of the languages presented in this book in Table 1.

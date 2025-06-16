@@ -1,0 +1,21 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 12 - When scanning this application in Chapter 5, we noticed two interesting endpoints: the donate.php file and the amount_to_donate.txt file.
+Take a look at the donate.php web page by browsing to http://172.16.10.12/donate.php. As shown in Figure 6-12, the page appears to contain a simple form with a text input field and a submission button.
+Security Relevance Score: 2
+Word Count: 133
+Extracted: 2025-06-13 23:40:57
+
+---
+
+When scanning this application in Chapter 5, we noticed two interesting endpoints: the donate.php file and the amount_to_donate.txt file.
+Take a look at the donate.php web page by browsing to http://172.16.10.12/donate.php. As shown in Figure 6-12, the page appears to contain a simple form with a text input field and a submission button.
+
+Figure 6-12: The donate page on the p-web-02 application
+
+By performing manual testing, we’ll get a better idea of how this application functions. Try entering 1 in the text input field, then submit it (Figure 6-13).
+
+
+Figure 6-13: A successful donation response
+
+As you can see, it looks like the input we entered is displayed in the response message shown on the page. Notice how the URL of the page changed to include an amount parameter that is equal to

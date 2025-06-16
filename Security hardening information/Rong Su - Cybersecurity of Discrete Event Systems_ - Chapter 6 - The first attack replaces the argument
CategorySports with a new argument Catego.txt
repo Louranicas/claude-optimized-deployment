@@ -1,0 +1,210 @@
+# Security Chapter Extract
+Book: Rong Su - Cybersecurity of Discrete Event Systems_ From Smart Attacks to Resilient Defence (2024, CRC Press) - libgen.li
+Chapter: 6 - The first attack replaces the argument
+‘Category=‘Sports” with a new argument ‘Category=‘Sports’ OR
+True –’, which will trick the SQL database to bypass the last
+condition check of ‘Released=1’, namely allowing the attacker to access
+product information in the Sports category, which is originally not
+accessible to the attacker. The second attack replaces the argument
+‘Category=‘Sports’ ’ with a new argument ‘Category=‘Sports’ OR
+True’, which allows the attacker to access the information of all
+products. The last attack replaces the argument ‘Category=‘Sports’ ’
+with a new argument ‘True’, which leads to the same attack effect
+as that of the second attack. Although the above three injection
+attacks can be easily avoided by using the latest techniques such
+10■Cybersecurit
+y of Discrete Event Systems
+Figure 1.7A
+DES model of possible injection attacks.
+as restricting certain parameters and keywords, one fundamental
+question has not been properly addressed, that is, how to effectively
+identify existing loopholes in a database, which might permit injection
+attacks. To answer this question, one idea is to provide a formal
+model of database inquiry process, upon which any query that may
+violate formal requirements may be revealed. A DES framework
+could be one option for such a formal model. For example, Figure
+Security Relevance Score: 6
+Word Count: 1750
+Extracted: 2025-06-13 23:40:25
+
+---
+
+The first attack replaces the argument
+‘Category=‘Sports” with a new argument ‘Category=‘Sports’ OR
+True –’, which will trick the SQL database to bypass the last
+condition check of ‘Released=1’, namely allowing the attacker to access
+product information in the Sports category, which is originally not
+accessible to the attacker. The second attack replaces the argument
+‘Category=‘Sports’ ’ with a new argument ‘Category=‘Sports’ OR
+True’, which allows the attacker to access the information of all
+products. The last attack replaces the argument ‘Category=‘Sports’ ’
+with a new argument ‘True’, which leads to the same attack effect
+as that of the second attack. Although the above three injection
+attacks can be easily avoided by using the latest techniques such
+10■Cybersecurit
+y of Discrete Event Systems
+Figure 1.7A
+DES model of possible injection attacks.
+as restricting certain parameters and keywords, one fundamental
+question has not been properly addressed, that is, how to effectively
+identify existing loopholes in a database, which might permit injection
+attacks. To answer this question, one idea is to provide a formal
+model of database inquiry process, upon which any query that may
+violate formal requirements may be revealed. A DES framework
+could be one option for such a formal model. For example, Figure
+1.7 depicts one transitional model, which describes different attack
+sequences that could be applied to a legal query sequence. In this
+formal model, the backbone of the transition structure is the list
+of all possible sequences of keywords highlighted in blue. Others
+in black are arguments of each relevant keyword, which could be
+potentially altered by an injection attack. Each string from the initial
+state to a final state denotes one information query. There are a
+fixed number of sequences of keywords, with possibly an indefinite
+number of arguments. Intuitively, an attacker aims to use an injection
+attack on one query of a specific sequence of keywords to derive
+another sequence of keywords that allows the attacker to access
+some sensitive information. Upon this understanding, this model
+indicates that, in principle, it is possible to enumerate different
+possibilities of imposing an injection attack, which preserves an
+order of a standard query keywords, although keyword skipping
+is allowed. With this model, it might be possible to develop a
+systematic procedure to identify relevant injection vulnerabilities,
+which will help database designers find ways to eliminate such
+vulnerabilities.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■11
+1.3 OVERVIEW OF DES CYBERSECURITY RESEARCH
+Cybersecurit
+y is a very broad subject. So far, the DES community
+mainly focuses on problems related to two cybersecurity topics, that
+is,information confidentiality , which is cast as system opacity under
+eavesdropping, and functional integrity, which is captured as event
+integrity under cyberattacks. In this section, we aim to provide a
+brief chronicle account of major idea conceptions, hoping that this
+could provide readers with motivations for technical treatments in
+subsequent chapters. The actual detailed literature review, however,
+will be presented in each subsequent chapter.
+As mentioned previously, in a generic sense, cybersecurity is about
+the practice of protecting systems against digital attacks. In this
+type of problems, there are always two players: an attacker and a
+defender. We study such problems only aiming to make defenders
+smart, even though frequently we look at a system from an attacker’s
+viewpoint. This thinking method is certainly not new. More than two
+thousand years ago, one famous Chinese strategist, Sun Tse, shown in
+Figure 1.8, said that “if you know the enemy and know yourself, you
+need not fear the result of a hundred battles ”. Intuitively, a defender
+needs to answer several questions, when analyzing system cybersecurity
+vulnerability and designing a defense approach. Firstly, what system
+components can be attacked, how can they be attacked, and why
+are they attacked? Secondly, are there any observable symptoms to
+Figure 1.8A
+famous quote from Sun Tse. [The picture is taken from
+highlander.fandom.com/wiki/Sun_Tzu.]
+12■Cybersecurit
+y of Discrete Event Systems
+manifest the existence of an attack? Thirdly, are there any preventive
+means to deter an attacker? The first two questions are essentially
+related to attack modeling, which is closely related to existing works on
+anomaly detection such as fault diagnosis. Therefore, it is not surprising
+to see early cybersecurity-related works cast in a framework similar to
+fault diagnosis, which heavily relies on state estimation.
+The earliest influential works on fault diagnosis in a DES framework
+can be dated back to 1994–1995 [44,45], where the key concept of
+diagnosability in the DES framework was introduced. Since then,
+this topic has become one of the most published topics in the DES
+community and is still active nowadays. In such frameworks, each
+fault, considered as an undesirable functional deviation, is modeled
+by an unobservable event, whose occurrence will take a system to
+an undesirable state, either permanently [45] or temporarily [46].
+The key solution strategies for fault diagnosis mainly rely on subset
+construction under partial observation [10] to identify sets of states that
+cannot be distinguished from observable behaviors – a system becomes
+diagnosable if after each (unobservable) fault occurrence, its presence
+can be unambiguously confirmed by a state estimator (or observer)
+within a finite number of event occurrences. When fault tolerance is
+under consideration, all faults are assumed to be feasible in the system,
+making the solution methods follow a worst-case strategy, commonly
+seen in robust control. A good survey article on this subject can be
+found in Refs. [4,47].
+In contrast to fault diagnosis, where system functional deviations
+are under investigation, opacity is an information-flow property used in
+confidentiality and security applications. Intuitively, a dynamic system
+is opaque if an external observer with possibly prior knowledge about
+the system model cannot decide whether certain secret information
+about the system, such as an initial state or the current state, has
+been confirmed. The earliest influential works on this topic can be
+traced back to 2005–2008 [21–24]. This line of research has emerged as
+one of the most active research topics in the DES community, along
+with the rising concerns of data confidentiality and personal privacy
+[141–167]. A good summary of opacity research can be found in Refs.
+[4,25].
+There were few works before 2016 to mention cyberattacks from
+a defender’s viewpoint, e.g., a game-theoretical supervisory control
+Intro
+duction to Cybersecurity in Discrete Event Systems ■13
+framework was reported in Ref. [118], discrete event simulation of
+cyberattacks was reported in Refs. [119–121], Petri net models were
+adopted for detecting cyberattacks on supervisory control and data
+acquisition (SCADA) systems or computer systems. In about 2016–
+2018, researchers in the DES community started to be more active
+in addressing cyberattacks, which aim to deliberately drive a target
+system toward an undesirable state. Some influential works can be
+found in Refs. [51,53,55,56,79,80]. There is a clear bifurcation of
+two different types of technical treatments on this topic. The works
+presented in Refs. [51,53] treat each attack instance as a set of
+undesirable event changes that bear large similarity to fault occurrence
+on sensor events. An attacker has no intention to hide each attack
+move, just like each fault event occurrence in a system. In contrast, in
+Refs. [55,56,58,59], an attacker is considered as an intelligent foe, who,
+with prior knowledge about a target system and controller, can craft
+a stealthy (or covert) attack strategy that, if existing, can hide each
+attack move until some state is reached, where damage is irreversible.
+Such stealthy attacks are called smart attacks. Only after a smart
+attack strategy is understood, a defense strategy can be designed, which
+aims to prevent any understood smart attack. Following this line of
+thinking, there is always a dual problem to be analyzed and solved,
+namely a best attack strategy and a best defense strategy against the
+best attack strategy. Figure 1.9 depicts an intuitive architecture of
+smart attacks. An attacker can either attack the observation channel
+and replace true observations with “fake” ones, thus, affecting the input
+of the supervisor, or attack the command channel and replace each true
+Figure 1.9In
+tuitive architecture of smart cyberattack.
+14■Cybersecurit
+y of Discrete Event Systems
+control command issued by the supervisor with a “fake” one, thus,
+affecting the output of the supervisor. In many cases, the attacker may
+be able to attack both the observation channel and command channel.
+The earliest smart attacks on observation channels, dubbed as
+smart sensor attacks , appeared in 2017–2018 [55,56,79]. The basic
+idea is intuitive, that is, each event (or function) that is susceptible
+to cyberattacks can be replaced by another event or even a string of
+events, including an empty string representing event erasure. By doing
+this, an attacker aims to influence the input of a supervisor and trick
+it to issue inappropriate control commands that could lead the plant
+to an undesirable state. By using proper modeling techniques, e.g.,
+event relabeling in Ref. [79–82] and an I/O transducer model in Ref.
+[55,56], an attack synthesis problem can be transformed into a form
+similar to supervisor synthesis [3]. Ultimately, we want to know whether
+there exists a supervisor, which is resilient to all possible smart sensor
+attacks. This question has been answered in Ref. [57], which confirms
+that the existence of a supervisor resilient to all smart sensor attacks
+is decidable. This result is different from those considering the worst-
+case scenario [60] with all attacks not necessarily smart in the sense
+that each supervisor that is robust to all attacks must be robust to all
+smart attacks, but the opposite may not be true. This means that a
+supervisor robust to smart attacks has a higher chance to exist than
+that of a supervisor robust to all attacks.
+In contrast to smart sensor attacks, so far, there are few works on
+smart attacks of command channels, dubbed as smart actuator attacks,
+possibly due to the fact that an attacker has few attack options, i.e.,
+either enabling or disabling some events to cause damage. For example,
+to prevent the plant from reaching some special states, or to lead the
+plant to go through a specific legal path towards a state, where an
+illegal event may be actuated, an attacker may disable events to limit
+the firing choices for the plant, which is called a disabling attack (or
+disablement attack ). On the other hand, to move the plant out of its
+legal behavior set, the attacker will enable events at some states of
+the plant originally disabled by the supervisor. This type of attack
+is called enabling attacks (orenablement attacks). The earliest works
+on smart actuator attacks appeared in 2019–

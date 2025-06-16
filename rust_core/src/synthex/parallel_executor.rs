@@ -116,7 +116,7 @@ impl WorkStealer {
         }
     }
     
-    fn submit(&self, query: SubQuery) -> Result<(), SubQuery> {
+    fn submit(&self, query: SubQuery) -> std::result::Result<(), SubQuery> {
         // Try to find the least loaded queue
         let mut min_len = usize::MAX;
         let mut target_queue = 0;

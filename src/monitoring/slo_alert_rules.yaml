@@ -1,0 +1,438 @@
+# Prometheus Alert Rules for SLO Monitoring
+# These rules define alerting conditions for SLO breaches and error budget consumption
+
+groups:
+  - name: slo_availability_alerts
+    interval: 30s
+    rules:
+      # API Availability Alerts
+      - alert: SLOAPIAvailabilityBreach
+        expr: slo_compliance{slo_name="api_availability"} < 99.9
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+          type: slo_breach
+        annotations:
+          summary: "API availability SLO breach"
+          description: "API availability ({{ $value }}%) is below the 99.9% SLO target"
+          runbook_url: "https://wiki.company.com/runbooks/api-availability"
+          dashboard_url: "https://grafana.company.com/d/slo-dashboard"
+
+      - alert: SLOAPIAvailabilityErrorBudgetCritical
+        expr: slo_error_budget_remaining{slo_name="api_availability"} < 10
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+          type: error_budget
+        annotations:
+          summary: "API availability error budget critically low"
+          description: "API availability error budget remaining: {{ $value }}%"
+          action_required: "Deployment freeze in effect. Investigate and resolve issues immediately."
+
+      - alert: SLOAPIAvailabilityErrorBudgetWarning
+        expr: slo_error_budget_remaining{slo_name="api_availability"} < 20
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          type: error_budget
+        annotations:
+          summary: "API availability error budget low"
+          description: "API availability error budget remaining: {{ $value }}%"
+          action_required: "Review deployment practices and monitor closely."
+
+      # Database Availability Alerts
+      - alert: SLODatabaseAvailabilityBreach
+        expr: slo_compliance{slo_name="database_availability"} < 99.95
+        for: 2m
+        labels:
+          severity: critical
+          service: database
+          type: slo_breach
+        annotations:
+          summary: "Database availability SLO breach"
+          description: "Database availability ({{ $value }}%) is below the 99.95% SLO target"
+          runbook_url: "https://wiki.company.com/runbooks/database-availability"
+
+      - alert: SLODatabaseAvailabilityErrorBudgetCritical
+        expr: slo_error_budget_remaining{slo_name="database_availability"} < 5
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+          type: error_budget
+        annotations:
+          summary: "Database availability error budget exhausted"
+          description: "Database availability error budget remaining: {{ $value }}%"
+          action_required: "Immediate intervention required. Complete deployment freeze."
+
+      # Authentication Availability Alerts
+      - alert: SLOAuthAvailabilityBreach
+        expr: slo_compliance{slo_name="auth_availability"} < 99.99
+        for: 1m
+        labels:
+          severity: critical
+          service: auth
+          type: slo_breach
+        annotations:
+          summary: "Authentication availability SLO breach"
+          description: "Auth availability ({{ $value }}%) is below the 99.99% SLO target"
+          runbook_url: "https://wiki.company.com/runbooks/auth-availability"
+
+  - name: slo_latency_alerts
+    interval: 30s
+    rules:
+      # API Latency Alerts
+      - alert: SLOAPILatencyP99Breach
+        expr: slo_compliance{slo_name="api_latency_p99"} < 95
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          type: slo_breach
+        annotations:
+          summary: "API p99 latency SLO breach"
+          description: "API p99 latency SLO compliance is {{ $value }}% (target: >95%)"
+          runbook_url: "https://wiki.company.com/runbooks/api-latency"
+
+      - alert: SLOAPILatencyP99ErrorBudgetLow
+        expr: slo_error_budget_remaining{slo_name="api_latency_p99"} < 20
+        for: 10m
+        labels:
+          severity: warning
+          service: api
+          type: error_budget
+        annotations:
+          summary: "API p99 latency error budget low"
+          description: "API p99 latency error budget remaining: {{ $value }}%"
+
+      - alert: SLOAPILatencyP95Breach
+        expr: slo_compliance{slo_name="api_latency_p95"} < 95
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          type: slo_breach
+        annotations:
+          summary: "API p95 latency SLO breach"
+          description: "API p95 latency SLO compliance is {{ $value }}% (target: >95%)"
+
+      # Database Latency Alerts
+      - alert: SLODatabaseLatencyBreach
+        expr: slo_compliance{slo_name="database_query_latency_p95"} < 90
+        for: 10m
+        labels:
+          severity: warning
+          service: database
+          type: slo_breach
+        annotations:
+          summary: "Database query latency SLO breach"
+          description: "Database query p95 latency SLO compliance is {{ $value }}% (target: >90%)"
+          runbook_url: "https://wiki.company.com/runbooks/database-performance"
+
+      # Auth Latency Alerts
+      - alert: SLOAuthLatencyBreach
+        expr: slo_compliance{slo_name="auth_latency_p95"} < 95
+        for: 5m
+        labels:
+          severity: warning
+          service: auth
+          type: slo_breach
+        annotations:
+          summary: "Authentication latency SLO breach"
+          description: "Auth p95 latency SLO compliance is {{ $value }}% (target: >95%)"
+
+  - name: slo_error_rate_alerts
+    interval: 30s
+    rules:
+      # API Error Rate Alerts
+      - alert: SLOAPIErrorRateBreach
+        expr: slo_compliance{slo_name="api_error_rate"} < 90
+        for: 5m
+        labels:
+          severity: error
+          service: api
+          type: slo_breach
+        annotations:
+          summary: "API error rate SLO breach"
+          description: "API error rate SLO compliance is {{ $value }}% (target: >90%)"
+          runbook_url: "https://wiki.company.com/runbooks/api-errors"
+
+      - alert: SLOAPIErrorRateErrorBudgetCritical
+        expr: slo_error_budget_remaining{slo_name="api_error_rate"} < 15
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+          type: error_budget
+        annotations:
+          summary: "API error rate error budget critically low"
+          description: "API error rate error budget remaining: {{ $value }}%"
+          action_required: "Investigate error sources immediately"
+
+  - name: slo_mcp_alerts
+    interval: 60s
+    rules:
+      # MCP Service Alerts
+      - alert: SLOMCPAvailabilityBreach
+        expr: slo_compliance{slo_name="mcp_availability"} < 99.5
+        for: 10m
+        labels:
+          severity: warning
+          service: mcp
+          type: slo_breach
+        annotations:
+          summary: "MCP service availability SLO breach"
+          description: "MCP availability ({{ $value }}%) is below the 99.5% SLO target"
+          runbook_url: "https://wiki.company.com/runbooks/mcp-service"
+
+      - alert: SLOMCPLatencyBreach
+        expr: slo_compliance{slo_name="mcp_latency_p99"} < 90
+        for: 15m
+        labels:
+          severity: warning
+          service: mcp
+          type: slo_breach
+        annotations:
+          summary: "MCP service latency SLO breach"
+          description: "MCP p99 latency SLO compliance is {{ $value }}% (target: >90%)"
+
+  - name: slo_experts_alerts
+    interval: 60s
+    rules:
+      # Circle of Experts Alerts
+      - alert: SLOExpertsAvailabilityBreach
+        expr: slo_compliance{slo_name="experts_availability"} < 99.0
+        for: 15m
+        labels:
+          severity: warning
+          service: experts
+          type: slo_breach
+        annotations:
+          summary: "Circle of Experts availability SLO breach"
+          description: "Experts availability ({{ $value }}%) is below the 99.0% SLO target"
+          runbook_url: "https://wiki.company.com/runbooks/experts-service"
+
+      - alert: SLOExpertsResponseTimeBreach
+        expr: slo_compliance{slo_name="experts_response_time"} < 85
+        for: 20m
+        labels:
+          severity: warning
+          service: experts
+          type: slo_breach
+        annotations:
+          summary: "Circle of Experts response time SLO breach"
+          description: "Experts response time SLO compliance is {{ $value }}% (target: >85%)"
+
+      - alert: SLOExpertsQualityBreach
+        expr: slo_compliance{slo_name="experts_consensus_quality"} < 85
+        for: 30m
+        labels:
+          severity: info
+          service: experts
+          type: slo_breach
+        annotations:
+          summary: "Circle of Experts quality SLO breach"
+          description: "Experts consensus quality ({{ $value }}%) is below the 85% SLO target"
+          action_required: "Review expert model performance and consensus algorithms"
+
+  - name: slo_error_budget_burn_rate
+    interval: 30s
+    rules:
+      # Error Budget Burn Rate Alerts
+      - alert: SLOErrorBudgetFastBurn
+        expr: |
+          (
+            slo_error_budget_remaining < 50 and
+            rate(slo_error_budget_consumed_total[5m]) * 3600 > 10
+          )
+        for: 2m
+        labels:
+          severity: critical
+          type: error_budget_burn
+        annotations:
+          summary: "Fast error budget burn detected"
+          description: "SLO {{ $labels.slo_name }} is consuming error budget rapidly ({{ $value }}% per hour)"
+          action_required: "Immediate investigation required to prevent SLO breach"
+
+      - alert: SLOErrorBudgetModerateBurn
+        expr: |
+          (
+            slo_error_budget_remaining < 30 and
+            rate(slo_error_budget_consumed_total[15m]) * 3600 > 5
+          )
+        for: 10m
+        labels:
+          severity: warning
+          type: error_budget_burn
+        annotations:
+          summary: "Moderate error budget burn detected"
+          description: "SLO {{ $labels.slo_name }} is consuming error budget at {{ $value }}% per hour"
+          action_required: "Monitor closely and prepare for potential intervention"
+
+      - alert: SLOErrorBudgetSlowBurn
+        expr: |
+          (
+            slo_error_budget_remaining < 80 and
+            rate(slo_error_budget_consumed_total[1h]) * 24 > 20
+          )
+        for: 1h
+        labels:
+          severity: info
+          type: error_budget_burn
+        annotations:
+          summary: "Sustained error budget consumption"
+          description: "SLO {{ $labels.slo_name }} has sustained error budget consumption"
+          action_required: "Review trends and consider optimization"
+
+  - name: slo_deployment_freeze
+    interval: 60s
+    rules:
+      # Deployment Freeze Alerts
+      - alert: SLODeploymentFreezeActivated
+        expr: slo_error_budget_remaining < 10
+        for: 0s
+        labels:
+          severity: critical
+          type: deployment_freeze
+          action: freeze_deployments
+        annotations:
+          summary: "Deployment freeze activated"
+          description: "Deployment freeze activated for {{ $labels.slo_name }} due to low error budget ({{ $value }}%)"
+          action_required: "All deployments must be halted until error budget recovers"
+          slack_channel: "#deployments"
+
+      - alert: SLODeploymentFreezeWarning
+        expr: slo_error_budget_remaining < 20
+        for: 5m
+        labels:
+          severity: warning
+          type: deployment_freeze
+          action: prepare_freeze
+        annotations:
+          summary: "Deployment freeze warning"
+          description: "SLO {{ $labels.slo_name }} approaching deployment freeze threshold ({{ $value }}% budget remaining)"
+          action_required: "Prepare for potential deployment freeze. Review pending deployments."
+
+  - name: slo_system_health
+    interval: 30s
+    rules:
+      # SLI Collection Health
+      - alert: SLICollectionFailure
+        expr: rate(sli_collection_total{status="failure"}[5m]) / rate(sli_collection_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          type: system_health
+        annotations:
+          summary: "SLI collection failure rate high"
+          description: "SLI collection failure rate for {{ $labels.sli_name }} is {{ $value | humanizePercentage }}"
+          action_required: "Check SLI data sources and collection infrastructure"
+
+      - alert: SLICollectionComplete
+        expr: absent(sli_collection_total)
+        for: 10m
+        labels:
+          severity: critical
+          type: system_health
+        annotations:
+          summary: "SLI collection completely stopped"
+          description: "No SLI collection metrics detected"
+          action_required: "Check SLO tracking system health immediately"
+
+      # SLO Calculation Health
+      - alert: SLOCalculationStale
+        expr: time() - slo_compliance_timestamp > 600
+        for: 5m
+        labels:
+          severity: warning
+          type: system_health
+        annotations:
+          summary: "SLO compliance calculation stale"
+          description: "SLO compliance for {{ $labels.slo_name }} hasn't been updated in {{ $value }} seconds"
+          action_required: "Check SLO calculation pipeline"
+
+  - name: slo_trend_analysis
+    interval: 300s
+    rules:
+      # SLO Trend Alerts
+      - alert: SLODegradingTrend
+        expr: |
+          (
+            avg_over_time(slo_compliance[1h]) - avg_over_time(slo_compliance[6h] offset 1h) < -2 and
+            slo_error_budget_remaining < 50
+          )
+        for: 30m
+        labels:
+          severity: warning
+          type: trend_analysis
+        annotations:
+          summary: "SLO compliance degrading trend"
+          description: "SLO {{ $labels.slo_name }} showing degrading trend with {{ $value }}% decline"
+          action_required: "Investigate underlying causes for performance degradation"
+
+      - alert: SLOVolatilityHigh
+        expr: |
+          stddev_over_time(slo_compliance[6h]) > 5
+        for: 1h
+        labels:
+          severity: info
+          type: trend_analysis
+        annotations:
+          summary: "High SLO compliance volatility"
+          description: "SLO {{ $labels.slo_name }} showing high volatility (stddev: {{ $value }}%)"
+          action_required: "Review system stability and measurement consistency"
+
+  - name: slo_capacity_planning
+    interval: 300s
+    rules:
+      # Capacity and Resource Alerts Related to SLOs
+      - alert: SLOResourceConstraintRisk
+        expr: |
+          (
+            (database_connection_utilization > 70 and slo_error_budget_remaining{slo_name="database_availability"} < 30) or
+            (api_throughput_rate > 800 and slo_error_budget_remaining{slo_name="api_availability"} < 30)
+          )
+        for: 15m
+        labels:
+          severity: warning
+          type: capacity_planning
+        annotations:
+          summary: "SLO at risk due to resource constraints"
+          description: "High resource utilization combined with low error budget for {{ $labels.slo_name }}"
+          action_required: "Consider capacity scaling or traffic management"
+
+  - name: slo_business_impact
+    interval: 300s
+    rules:
+      # Business Impact Alerts
+      - alert: SLOCriticalBusinessImpact
+        expr: |
+          (
+            slo_compliance{priority="critical"} < 99 and
+            slo_error_budget_remaining{priority="critical"} < 5
+          )
+        for: 5m
+        labels:
+          severity: critical
+          type: business_impact
+          escalation: "management"
+        annotations:
+          summary: "Critical SLO breach with business impact"
+          description: "Critical priority SLO {{ $labels.slo_name }} breaching with immediate business impact"
+          action_required: "Escalate to management. Activate incident response."
+          business_impact: "Revenue loss, customer satisfaction impact"
+
+      - alert: SLOMultipleServiceDegradation
+        expr: |
+          count(slo_compliance < 95) > 3
+        for: 10m
+        labels:
+          severity: error
+          type: business_impact
+        annotations:
+          summary: "Multiple services showing SLO degradation"
+          description: "{{ $value }} services are below 95% SLO compliance"
+          action_required: "Investigate potential common cause or infrastructure issue"

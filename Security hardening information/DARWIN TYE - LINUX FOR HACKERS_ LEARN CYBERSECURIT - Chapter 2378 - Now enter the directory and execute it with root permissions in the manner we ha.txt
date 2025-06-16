@@ -1,0 +1,376 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 2378 - Now, enter the directory and execute it with root permissions in the manner we have learnt before. This is how you create complex shell scripts that can be run using Bourne-again shell (Bash).
+What Next?
+With this, we have completed a brief introduction to the complexity the Bash interface offers. Most of the information is given by us regarding Bash scripting. Before heading out to learn about shell programming in the next module we Will explain some of the built-in commands that Bash comes with in Linux in the bonus chapter of this module. Let us go!
+Security Relevance Score: 6
+Word Count: 4524
+Extracted: 2025-06-13 23:40:27
+
+---
+
+Now, enter the directory and execute it with root permissions in the manner we have learnt before. This is how you create complex shell scripts that can be run using Bourne-again shell (Bash).
+What Next?
+With this, we have completed a brief introduction to the complexity the Bash interface offers. Most of the information is given by us regarding Bash scripting. Before heading out to learn about shell programming in the next module we Will explain some of the built-in commands that Bash comes with in Linux in the bonus chapter of this module. Let us go!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Eight
+
+
+
+In-built bash commands
+
+
+
+
+
+In the previous
+ chapters we have talked about the building blocks of bash scripting language with few example programs and detailed explanations. In this bonus chapter we will be discussing some of the inbuilt commands Bash offers for us in Linux. You might be surprised because a lot of these commands are well known even for Linux beginners who have just started to learn about the wonders of it. Without wasting time let us start exploring now.
+What are in-built commands?
+In-built commands are commands that come themself while we install the software or shell interface. For example, when we install a Python interpreter we can run the ‘py’ command in the shell. To say in other words, ‘py’ is an inbuilt command that comes because of installing Python.
+Just like that, bash also comes with these commands and some of them are extensively used by the Linux operating system because of its efficiency in communicating with the kernel resources.
+Some of the famous commands:
+I ) echo
+We already discussed about this command and also used in some of our programs. Echo command is like the ‘print’ command in programming languages. All it does is to display the output on the screen. It can take variable or function instances with the help of ‘$’ symbol.
+Here is an example :
+
+Echo “ This can display output on computer screen”
+
+Output:
+
+This can display output on computer screen
+
+ii) cd
+This is one of the famous Linux commands that is developed by bash. All it does is to change the directory of the user in the terminal. You many need to change the directories while performing executions because some may run only in the current directory.
+Here is an example:
+
+Cd /bin/home
+
+After you execute the above command in the shell interface you will be in that particular directory. You can now use ls to check all the files in the current directory
+iii) pwd
+Also remember that you can also find information about the current directory you are in using the pwd command
+Here is a command :
+
+root@ server : pwd
+
+This will give an output with a bunch of information about the directory you are in along with number of files and the location of the directory.
+iv) Process management commands
+We all know that in Linux everything run as processes. There are background and foreground processes that improves the accuracy of the system configurations that are available. Bash has some in-built commands that can help users better organize the processes that are available or processes that are just now created.
+A) bg
+This a built-in command that makes the software or process that you are trying to start to run in background instead of being in foreground and consuming the system resources.
+Here is an example :
+
+root@server : bg vmware
+
+
+// This starts the software in background
+
+As a hacker you need to be aware which software are running in the background as most anti virus software work as background processes. Also, when you plant an exploit in the target system you need to make sure that it will be not be found out by the system administrator.
+B) exec
+This is a built in bash command that starts a software as a new process. Sometimes even when a software or utility is opened you can use this command to open a new instance of the software.
+Here is the command :
+
+root@server : exec vmware config
+
+
+// This starts the config file of Vmware software as a new process
+
+You can confirm whether or not a new process had been created using the following command
+
+root@server : pid
+
+Check for vmware in this using the grep command to see two processes running in the same time
+C) wait
+Usually processes are started automatically and are ended whenever they are feasible for the system resources. Sometimes processes even get stuck and end before they needs to. Sometimes, you can force wait the software to wait for a process to be completed using the wait command
+Here is an example :
+
+root@server : wait vmware
+
+V) umask
+This in-built command is used to change the default permissions that are already present. We can usually use chmod to give execute permissions but umask is much more complex and can be used to perform complex changes whenever needed.
+Here is a command :
+
+root@server : umask 777 bash.sh
+
+
+// This makes the files as executable even though by default it has just read and write permissions.
+
+Vi) In built command for variables
+Variables are memory locations that are used by programming languages to point to the memory address of computer. They are simple and are needed for the efficient functioning of scripts. Bash provides two simple commands for tweaking their possibilities.
+A) read-only
+This bash command make the variable not change . Usually variables are temporary but when they are given this particular bash command their values cannot be changed.
+Here is a command :
+
+readonly first
+
+B) export
+Also, whenever you create variables or functions in computer programs or in scripting files they cannot be used by other files. Only way to use these components in other files is by using the export command that is available in bash.
+Here is a command :
+
+export first
+
+What Next?
+With this, we have completed a brief introduction to Bash scripting in Linux. All the examples should have helped you understand the foundations of scripting. With that in mind, now you are ready to learn in much detail about the shell programming that Linux runs upon in the next module. Follow along and experiment with different complex topics to interact with the system resources that Linux is capable of. Let us go into an another exciting module of this book.
+
+
+
+
+
+
+
+
+
+
+
+Shell Programming for Hackers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Introduction
+
+
+
+
+
+Welcome
+ to the fourth module of this Linux for hackers booklet which is designed to help beginners interested in hacking to achieve essential skills using various techniques. In the previous module we have already introduced a bit about bash scripting, which is a shell interpreter. We hope you will have fun reading the advanced skills that a shell programmer need to master.
+Also, In the previous modules of this book bundle we coherently discussed about the fundamentals of Linux with various in-deep examples. In this module we will talk about shell scripting along with few tips and tricks that can help you create well versed programs.
+Why do hackers need shell programming?
+Hackers especially need shell programming as an expertise to crack target systems. While bash and Python scripting is an essential prerequisite for hackers, shell programming is often neglected because of the fact that it can coherently and fundamentally be used among Linux systems instead of the much popular Windows systems.
+As a front-line Linux expert lecturer with more than ten years industry experience I , the author of this book has summed up my years of teaching and practical experience as the essence for this book.This book not only explains various grammar and functions of Shell, but also contains a large number of interesting cases, which are accumulated by my philosophy of teaching and have great reference value for any scope of the reader.
+At present, there are many IT and Linux books on the market, but many of them are hard to read or works that are rushed to completion, which may be lacking in content professionalism and coherent writing style, and even can cause more confusion. This book as far as we know provides consistent writing that can help programmers and Linux enthusiasts attain knowledge all the while without any semantic disturbances. In the previous modules we have already discussed about various concepts of Linux that are essential for hackers.
+Nowadays, well-known IT books all come from the author's long-term research and thinking in this major. Fortunately, this Linux Programming Guide belongs to this kind of books that enrich the author's experience, which is why we solemnly recommend this book to any Linux enthusiast of any expertise.In today's IT field, it is really important to master automatic operation and maintenance skills. For this exact purpose learning shell scripting is a definite must.
+Why Shell Scripting is important?
+Regardless of the basic Linux or cloud platform used, the operation and maintenance, development and testing personnel all use DevOps to guide and carry out their work. Various automatic operations and maintenance tools such as Python, Perl and Puppet are constantly emerging. Linux is used by tons of companies to implement their servers and other IT infrastructure. Even though being 0pen-source software Linux holds a good chunk of the IT market and offers reliable support from hundreds of thousands of developers looking forward to help others.
+Shell can combine every dedicated and efficient task command in Linux to complete complex and wonderful transactions.Every Linux engineer and student understands the importance of scripts, especially in this era when there is a growing demand for automation operation and maintenance development engineers.
+Shell can be simple and efficient.Similar to all programming languages, if you want to master the essence of Shell programming, you should be familiar with various command parameters in Linux, be diligent in practice, and refer to code examples written by masters of the technology.On the basis of reading this book, beginners can first simulate the example case code, then reproduce it through memory, and finally draw inferences from others.
+Experienced engineers can directly resonate and get inspiration from this book.I believe that every reader can find surprises in the module of this book.I hope everyone can love Shell programming, Linux and open source. Open-source not only moves technology forward but also helps us getting rid of being controlled by greedy and selfish multi-national companies.
+Why Shell became an important part of open-source development?
+Computer technology has both profound theory and strong practicality. Many related operations must be experimented by themselves, and even after many failures, they can achieve their ideal goals.The Shell involved in this book is an old and young technology that is especially developed by open-source programmers for open-source systems.
+From the initial stage of UNIX and Linux use, the Shell is accompanied by users.Nowadays, when IT market is full of new terms such as digital transformation, Shell script still plays a vital role in many aspects.This book is characterized by its simplicity and emphasis on practicality and examples.
+Many people who have just started to learn Shell script programming, after learning the basic grammar, have no idea to write scripts because of lack of script cases, and many people give up before starting real programming, which is also the defect of other similar books on the market at present.
+The highlight of this book is that it not only explains the syntax format of Shell, but also enables readers to verify their knowledge through a large number of case scripts, and will build the idea of writing scripts, which is commendable.
+Before Going to the real part……….
+In today's intelligent data era, automation and intelligence have become the inevitable choice for enterprises, whether it is for the improvement of efficiency or the operation and maintenance of large-scale systems.Shell script has become one of the necessary skills for every engineer.
+Beginners (novices) can systematically learn and master from this book about how to standardize the preparation and use of Shell scripts, and how to draw inferences from actual combat cases through existing knowledge points, and apply them to the production environment with less detours.
+For the old experienced shell wannabes, this book systematically expounds the knowledge points of Shell and a large number of actual combat cases, which can help you get new inspiration and guidance, and can make you finish your work more efficiently, intelligently and automatically. It is a rare reference book worth reading frequently.
+How to use this module?
+When choosing the operating system distribution, this book integrated the characteristics of each distribution, and finally chose LinuxMint as the basic system platform of this book. Linux mint is one of many Linux distributions, but because it comes from Debian framework and is completely open source, including open software YUM source, it can bring more convenient upgrade methods for users.In addition, many domestic enterprises are also very keen on LinuxMint distribution, which also increases the practicality of this book.
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter One
+
+
+
+Introducing Shell
+
+
+
+
+
+This chapter is
+ the beginning of this module and will help to introduce you the basics of shell scripting files along with various advantages they come with. We recommend you to thoroughly read this chapter before skipping to the other ones. Also, it is recommended to experiment the given code samples in your Linux machine. There is no better way to learn Linux more than doing yourselves in a Linux system. Do a simple research about different Linux distros and settle with the one that you feel most comfortable with. From a simple Arch Linux system to a complex and visually stunning Debian based Linux distro you have everything to chose from.
+What is Shell?
+Shell is a very easy and powerful programming language. Many Linux system maintainers often use Shell scripts in their work, but not everyone is good at writing Shell scripts. Once you master the rules and skills of writing Shell scripts, your work will be easier and more efficient in the future!
+Since 1991, Linux has rapidly grown into the preferred operating system for enterprise server products, and more and more IT enterprises have adopted Linux as their server platform operating system to provide customers with high-performance and high-availability business services. Linux uses Shell programming and is therefore a must for enthusiasts who are willing to make a career in Linux server and database administration. Ethical hackers and application developers also use shell for their own purposes.
+Writing format of script file
+Before talking about the importance of Shell scripting and how they work it is better if you have a good grasp of the format of a Shell scripting file. This is why we are introducing it in this chapter with detailed examples.
+What is a Shell script file?
+To briefly explain in layman terms, the commands of Linux or UNIX-like system are written into a file, which is popularly known as a Shell script file. It is written in a way that the Shell script file we write must run in Linux or UNIX-like operating systems. There are also a ton of tweaks to run shell files in windows or macOS operating systems.
+Note:
+Before starting the fundamentals we remind you that the operating system platform used in this book is Linux Mint. Linux mint is not only a Debian based light-weight operating system but also can perform tons of complex operations.
+After giving the script file the necessary execution authority ( most commonly called as root privileges) and running the script file, the computer will execute the commands in the script file content from top to bottom. While running it can look in other shell files or programs according to the instructions. Shell files are an easy and recommended way to automate operations that can define your work.
+Compared with manually executing system commands on the command line, the advantage of script file is that once written, all commands in script file can be automatically completed later (with higher efficiency).Moreover, the same script file can be called and executed repeatedly, avoiding unnecessary manual and repeated input of commands.
+As understood by the previous section, script is a file. So what tools do we use to create this file?
+It needs to be understood by a Linux enthusiast that a script file is just an ordinary text file. For this reason you can create a script file by using any text editor software such as vim, gedit, Emacs, Notepad\++, Sublime, Atom and other tools. You can do a simple research to find out the text editors for your use case.
+We use VIM editor in the cases in the following chapters.It is recommended to use .sh as the file extension when creating a new file, so that people can see that the file is a Shell script file at an instance. If you are worried you can first just create the program code in a .txt extension and afterwards can export into a .sh extension simply by renaming the file. Until you change the file extension and provide execution permissions the script file cannot be run.
+Here is the command:
+
+root@server : vim sample.sh
+
+
+// This will create a shell file
+
+What are the writing format requirements for script files?
+First, the first line of the script file requires shebang(#!) symbol which specifies an interpreter for a script, such as #!/bin/bash, #/bin/sh, #！/usr/bin/env python, etc.
+This line is annotated by #, so it will not be executed as a command, but the computer knows what interpreter should be used to interpret all valid codes in the whole script file through this annotation information (the interpreter used in this case is /bin/bash).
+Secondly, the script file uses # or < < symbol to realize single-line or multi-line annotation. It needs to be understood that the annotated keywords or codes will not be executed, and the annotation is mainly for people to see!
+By reading the notes, we can quickly understand the function, version and author contact information of the script file. The core function is to explain the function of the script file or code block.Finally, the most important content is the code part.
+Generally, a line of code is a command, and all valid code commands in the script file are executed from top to bottom.
+Let's write the first script file and look at the composition of the script file.
+
+#!/bin/bash
+
+<< COMMENT
+This is a comment
+( Mostly multi-line)
+Written for Linux for Hackers
+COMMENT
+# Now we will show an echo command
+
+echo “ This is an example program”
+
+Note that the keyword behind the < < symbol can be any string, but the same keyword must be used when ending the comment.If you start commenting from < < ABC, you must also use ABC (letters are case sensitive) when you finish commenting information.
+In the next section of this chapter, we will have a brief discussion about the various execution modes of shell or for that matter any script files.
+Various execution modes of script file
+After the script file is written, the next step is to execute it.There are many ways to execute script files, including those that require execution permission, those that do not, those that open subprocesses, and those that do not. We will explain each of these instances with examples.
+1) If the script file itself has no executable permission
+In this case , the default script cannot be executed directly, but an interpreter like bash or sh can use the script file as a parameter (read the contents of the script file) to execute the script file.
+Here are the commands:
+
+root@server : ./sample.sh
+
+// Will display errors because there is no permission
+root@server : bash sample.sh
+root@server : sh sample.sh
+
+// Other main ways to execute but without errors
+
+From the output information of the above three commands, we can see that when the sample.sh script file under./(current directory) is executed without execution permission, an error message will appear, while when bash and sh are used to execute the sample.sh script as parameters, the correct message “This is a sample” will be displayed as output.
+2) If the script file has an executable permission
+The execution permission can be assigned to the script file through the chmod command. Once the script file has the execution permission, it can be executed using absolute path or relative path.
+The following example assumes that a script file has the absolute path of /root/sample.sh, and the effect of executing the script file is as follows.
+Here are the commands :
+
+root@server : chmod +x sample.sh
+
+// This will give executable permissions
+root@server : ./sample.sh
+
+// Will display output without errors
+
+3) How to open a sub-process for execution
+Regarding to make a descision whether to open or not a sub-process we must first understand what a sub-process is. Generally, we can view the process tree through the pstree command to understand the relationship between processes.
+Here is the command:
+
+root@sample : pstree
+
+From the above command output, we can see that the first process started by the computer is systemd, and then N subprocesses are started under this process, such as NetworkManager, atd, chronyd and sshd, all of which are systemd subprocesses.Under the sshd process, there are two sub-processes of sshd. Under the two sub-processes of sshd, the bash interpreter sub-process is started, and a pstree command is executed under one of the bash processes.
+Your system may have different other sub processes. All you need to do is verify using the pstree command. As we said just now, whether the script is executed directly or by using an interpreter such as bash or sh, the subprocesses will be started.
+The following example demonstrates the effect through a script file.
+First, open a command terminal, write a script file in the command terminal, and execute the script file.Then, open a command terminal, and observe the process tree through pstree command in this terminal.
+Here are commands:
+
+// sleep.sh
+
+#!/bin/bash
+Sleep 5000
+root@server :chmod +x sleep.sh
+rooot@server : ./sleep.sh
+
+root@server : pstree
+
+It can be seen from the output that a subprocess script file is opened under the bash terminal, and a sleep command is executed through the script file.Back to the first terminal, use Ctrl+C to terminate the script file executed before, and use bash command to execute the script again.
+
+root@server : bash sleep.sh
+
+At last, use the pstree command on the second terminal to observe the experimental results.The result is similar, a bash subprocess is opened under the bash process, and a sleep command is executed under the bash subprocess.
+4) Execution mode without opening subprocesses
+Next, let's take a look at the case of execution mode without opening subprocesses.
+Similar to the previous experiment, we need to open two command terminals.First, open the first terminal, and this time use the source or .(dot) command to execute the script file.
+Or then, we can open the second terminal and observe the results through the pstree command.It can be seen from the experimental results that the sleep command in the script file is directly executed under the bash terminal.Finally, we can write a special script file with the following contents.For this script file, use open subprocess and do not open subprocess respectively.
+Here are the command:
+
+root@server : . sleep.sh
+
+root@server : bash sleep.sh
+
+root@server : source sleep.sh
+
+With this, we have completed a brief introduction about the shell scripting execution capabilities. As linux system deals with lot of users and subgroups it is important to not run a script file that is not supposed to run. So, with these extra abilities to run programs we can now start learning about input and output statements in shell programming. Let us go!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Two
+
+
+
+Input and Output in Shell programming
+
+
+
+
+
+In the previous chapter,
+ we gave a small introduction to shell scripting and talked about execution permissions with various scenarios. In this chapter we will provide in-depth information about input and output statements and their importance in shell scripting.
+How to implement the process of input and output of data in script files?
+In Linux system, both echo command and printf command can implement the function of information output that is necessary for the program. let's look at the application cases of these two commands respectively.
+1) First, we will use echo command to create a script file menu
+Function description of the command:
+echo command is mainly used to display string information.
+The syntax of the echo command is as follows:
+
+echo “ This is the 1st sentence”
+
+echo “ This is the 2nd sentence”
+
+echo “ This is the 3rd sentence”
+
+As can be seen from the above script file, the echo command can output any string of messages. Multiple echo commands can be used to output multiple messages, or one echo command can be used to output multiple messages together with quotation marks.However, the output information is usually in default black font and cannot be displayed in the center.
+When we need to display the information prominently to prompt the user's attention, the output may be slightly monotonous.The echo command supports the -e option, which allows the echo command to recognize the meaning of the escape symbol after \t.
+
+root@server : echo “\t”
+
+Among these additional commands, \033 or \e can be followed by terminal code and can be used to define font color, background color, positioning cursor, etc. All these extra information can enhance how you display messages according to your convenience using the echo command.
+Example Application case:
+Here is a certain way to display the classic “hello world” using various advanced shell output techniques.
+Because there is no -e option and the character \ is not supported, the screen will output the original content \t directly. For this example, we will Output hello, then use Tab indent, and finally output world, and then will make sure that the the final result will be displayed as “hello world”.
+Also in an another way we can Output hello, then move the cursor to the left by one bit, and then output world. The original letter e is usually replaced by the new letter o, so the final output result will still be displayed as “hello world”.
+Here are the commands:
+
+root@server : echo -e “hello\fworld”
+
+
+root@server : echo -e “hello\tworld”
+
+Note:
+There is at least one space between the -e option and the content to be given as output later. Similar to the above case, move 2 bits to the left, and the final output will be shown as “hello world”.
+
+root@server : echo -e “hello/bo world”
+
+We can also output hello and wrap the line but the cursor still stays at the original position, that is, the position behind the letter o, and then will output world.We will have Bold display OK. \033 or \e can be followed by different codes to set different terminal attributes.
+
+root@server : echo -e “hello \bo world”
+
+1m is for the terminal to display the character string in bold, followed by OK is the content of the character string to be displayed, and finally \

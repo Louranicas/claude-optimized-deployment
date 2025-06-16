@@ -1,0 +1,1356 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash for Data Scientists (2022, Mercury Learning and Information) - libgen.li
+Chapter: 2 - The first part of this chapter starts with a brief introduction to some Unix shells, and then 
+discusses files, file permissions, and directories. You will also learn how to create files and directories and how to change their access permissions.
+The second part of this chapter introduces simple shell scripts, along with instructions 
+for making them executable. As you will see, shell scripts contain Bash commands (and can optionally contain user-defined functions), so it’s a good idea to learn about Bash commands before you can create shell scripts (which includes Bash scripts). 
+The third portion of this chapter discusses two useful Bash commands: the cut com-
+mand (for cutting or extracting columns and/or fields from a dataset) and the paste com-
+mand (for “pasting” text or datasets together vertically).
+In addition, the final part of this chapter contains a use case involving the cut command 
+and paste command that illustrates how to switch the order of two columns in a dataset. 
+You can also perform this task using the awk command (discussed in Chapter 5).
+There are a few points to keep in mind before delving into the details of shell scripts. 
+First, shell scripts can be executed from the command line after adding “execute” permis-
+sions to the text file containing the shell commands. Second, you can use the crontab  util-
+ity to schedule the execution of your shell scripts. The crontab  utility allows you to specify 
+the execution of a shell script on an hourly, daily, weekly, or monthly basis. Tasks that are commonly scheduled via crontab  include performing backups and removing unwanted 
+files. If you are completely new to Unix, just keep in mind that there is a way to run scripts 
+both from the command line and in a “scheduled” manner. Setting file permissions to run the script from the command line will be discussed later.
+2 • Bash for Data Scientists 
+Third, the contents of any shell script can be as simple as a single command, or can 
+comprise hundreds of lines of Bash commands. In general, the more interesting shell scripts 
+involve a combination of several Bash commands. A learning tip: since there are usually sev -
+eral ways to produce the desired result, it’s helpful to read other people’s shell scripts to learn how to combine commands in useful ways.
+WHAT IS UNIX?
+Unix is an operating system created by Ken Thompson in the early 1970s, and today 
+there are several variants available, such as HP/UX for HP machines and AIX for IBM machines. Linus Torvalds developed the Linux operating system during the 1990s, and many Linux commands are the same as their Bash counterparts (but differences exist, often in the commands for system administrators). The Mac OS X operating system is based on AT&T Unix.
+Unix has a rich and storied history, and if you are really interested in learning about 
+its past, you can read online articles and also Wikipedia. This book foregoes those details and focuses on helping you quickly learn how to become productive with various com -
+mands.
+Available Shell Types 
+The original Unix shell is the Bourne shell, which was written in the mid-1970s by Ste -
+phen R. Bourne. In addition, the Bourne shell was the first shell to appear on Bash systems, 
+and you will sometimes hear “the shell” as a reference to the Bourne shell. The Bourne shell 
+is a POSIX standard shell, usually installed as /bin/sh  on most versions of Unix, whose 
+default prompt is the $ character. Consequently, Bourne shell scripts will execute on almost every version of Unix. In essence, the AT&T branches of Unix support the Bourne shell ( sh), 
+bash, Korn shell (ksh), tsh, and zsh.
+However, there is also the BSD branch of Unix that uses the “C” shell (csh), whose 
+default prompt is the % character. In general, shell scripts written for csh will not execute 
+on AT&T branches of Unix, unless the csh shell is also installed on those machines (and vice 
+versa).
+The Bourne shell is the most “unadorned” in the sense that it lacks some commands that 
+are available in the other shells, such as history  and noclobber . The various subcatego-
+ries for Bourne Shell are listed as follows:
+• Bourne shell (sh)
+• Korn shell (ksh)
+• Bourne Again shell (bash)
+• POSIX shell (sh)
+• zsh (“Zee” shell)
+The different C-type shells are as follows:
+• C shell (csh)
+• TENEX/TOPS C shell (tcsh)
+Introduction  • 3
+While the commands and the shell scripts in this book are based on the Bash shell, many 
+of the commands also work in other shells (and if not, those other shells have a similar 
+command to accomplish the same goal). Performing an Internet search for “how do I do <Bash command> in <shell name>” will often get you an answer. Sometimes the command is essentially the same, but with slightly different syntax, and typing “man <command>” in a command shell can provide useful information.
+WHAT IS BASH?
+Bash is an acronym for “Bourne Again Shell,” which has its roots in the Bourne shell cre -
+ated by Stephen R. Bourne. Shell scripts based on the Bourne shell will execute in Bash, but the converse is not true. The Bash shell provides additional features that are unavailable in the Bourne shell, such as support for arrays (discussed later in this chapter). 
+On Mac OS X, the /bin directory contains the following executable shells: 
+-rwxr-xr-x  1 root  wheel    31440 Sep 21  2020 sh
+-rwxr-xr-x  1 root  wheel   110848 Sep 21  2020 dash-r-xr-xr-x  1 root  wheel   623472 Sep 21  2020 bash-rwxr-xr-x  1 root  wheel   529424 Sep 21  2020 tcsh-r-xr-xr-x  1 root  wheel  1300256 Sep 21  2020 ksh-rwxr-xr-x  1 root  wheel   529424 Sep 21  2020 csh-rwxr-xr-x  1 root  wheel   637840 Sep 21  2020 zsh
+A nice comparison matrix of the support for various features among the preceding shells 
+is available online:
+https://stackoverflow.com/questions/5725296/difference-between-sh-and-bashIn some environments, the Bourne shell sh is the Bash shell, which you can check by 
+typing the following command:sh --versionGNU bash, version 3.2.57(1)-release (x86_64-apple-darwin16)Copyright (C) 2007 Free Software Foundation, Inc.
+If you are new to the command line (be it Mac, Linux, or PCs), please read the preface of 
+this book, which provides some useful guidelines for accessing command shells.
+Getting Help for Bash Commands
+If you want to see the options for a specific Bash command, invoke the man command to 
+see a description of that Bash command and its options, as shown here:
+man cat
+The man command produces terse explanations, and if those explanations are not clear 
+enough, you can search for online code samples that provide more details.
+Navigating Around Directories
+In a command shell, you will often perform basic operations, such as displaying (or chang -
+ing) the current directory, listing the contents of a directory, and displaying the contents of 
+a file. The following set of commands shows you how to perform these operations, and you can execute a subset of these comments in the sequence that is relevant to you. Options for 
+4 • Bash for Data Scientists 
+some of the commands in this section (such as the ls command) are described in greater 
+detail later in this chapter.
+A frequently used Bash command is pwd (“print working directory”) that displays the 
+current directory, as shown here:
+pwd
+The output of the preceding command might look something like this:
+/Users/jsmith
+Use the cd (“change directory”) command to go to a specific directory. For example, type 
+the command cd /Users/jsmith/Mail  to navigate to this directory. If you are currently  
+in the /Users/jsmith  directory, type cd Mail . 
+You can navigate to your home directory with either of these commands:
+$ cd $HOME$ cd
+One convenient way to return to the previous directory is the command cd –. The cd 
+command on Windows merely displays the current directory and does not change the cur -
+rent directory (unlike the Unix cd command).
+The history Command
+The history  command displays a list (i.e., the history) of commands that you executed 
+in the current command shell:
+history
+A short sample output of the preceding command (the maximum number of lines is 500) 
+is here: 1202  cat longfile.txt > longfile2.txt  1203  vi longfile2.txt  1204  cat longfile2.txt |fold -40 1205  cat longfile2.txt |fold -30 1206  cat longfile2.txt |fold -50 1207  cat longfile2.txt |fold -45 1208  vi longfile2.txt  1209  history
+  1210  cd /Library/Developer/CommandLineTools/usr/include/c++/
+ 1211  cd /tmp 1212  cd $HOME/Desktop 1213  history
+If you want to navigate to the directory that is shown in line 1210, you can do so simply 
+by typing the following command:!1210
+The preceding snippet executes the same command that appears as line 1210 in the 
+previous sample’s output. However, !cd will search backward through the history of com -
+mands to find the first command that matches cd command: in this case, line 1212 is the first match. If there aren’t any intervening cd commands between the current command and 
+the command in line 1210, then !1210 and !cd will have the same effect.
+Introduction  • 5
+Be careful with the “!” option with Bash commands because the command that matches 
+the “!” might not be the one you intended, especially something of the form !rm, which 
+will remove one or more files. Hence, it’s safer to use the history  command and then 
+explicitly specify the correct number (in that history) when you invoke the “!” operator.
+LISTING FILENAMES WITH THE LS COMMAND
+The ls command is for listing filenames, and there are many switches available that you 
+can use, as shown in this section. For example, the ls *txt  command displays the follow-
+ing filenames (the actual display depends on the font size and the width of the command 
+shell) on my Mac:
+ReservedWords.txt  data2.txt  input-info.txt  longfile2.txt
+abc.txt good-info.txt  longfile.txt  names.txt
+The command ls -1t  (the letter “l”) displays a time-based long listing of filenames:
+-rw-r--r--  1  oswaldcampesato  staff  2101  Jun  16  13:07  
+input-info.txt
+-rw-r--r--  1  oswaldcampesato  staff  29  Jun  16  13:07  
+data2.txt
+-rw-r--r--  1  oswaldcampesato  staff  407  Jun  16  13:07  
+longfile2.txt
+-rw-r--r--  1  oswaldcampesato  staff  408  Jun  16  13:07  
+longfile.txt
+-rw-r--r--  1  oswaldcampesato  staff  2267  Jun  16  13:07  
+ReservedWords.txt
+-rw-r--r--  1  oswaldcampesato  staff  1638  Jun  16  13:07  
+good-info.txt
+-rw-r--r--  1  oswaldcampesato  staff  45  Jun  16  13:07  
+abc.txt
+-rw-r--r--  1  oswaldcampesato  staff  35  Jun  16  13:07  
+names.txt
+The command ls -ltr  (the letters “l”, “t”, and “r”) displays a reversed time-based long 
+listing of filenames:
+-rw-r--r--  1  oswaldcampesato  staff  35  Jun  16  13:07  
+names.txt
+-rw-r--r--  1  oswaldcampesato  staff  45  Jun  16  13:07  
+abc.txt
+-rw-r--r--  1  oswaldcampesato  staff  1638  Jun  16  13:07  
+good-info.txt
+-rw-r--r--  1  oswaldcampesato  staff  2267  Jun  16  13:07  
+ReservedWords.txt
+-rw-r--r--  1  oswaldcampesato  staff  408  Jun  16  13:07  
+longfile.txtNOTE
+6 • Bash for Data Scientists 
+-rw-r--r--  1  oswaldcampesato  staff  407  Jun  16  13:07  
+longfile2.txt
+-rw-r--r--  1  oswaldcampesato  staff  29  Jun  16  13:07  
+data2.txt
+-rw-r--r--  1  oswaldcampesato  staff  2101  Jun  16  13:07  
+input-info.txt
+Here are the descriptions of all the listed columns in the preceding output:
+• Column #1: represents the file type and permission given on the file (see below)
+• Column #2: the number of memory blocks taken by the file or directory
+• Column #3: the (Bash user) owner of the file
+• Column #4: represents the group of the owner
+• Column #5: represents file size in bytes
+• Column #6: the date and time when this file was created or last modified
+• Column #7: represents the file or directory name
+In the ls -l listing example, every file line began with a d, -, or l. These characters 
+indicate the type of file that’s listed. These (and other) initial values are described as follows:
+• - Regular file (ASCII text file, binary executable, or hard link)
+• b Block special file (such as a physical hard drive)
+• c Character special file (such as a physical hard drive)
+• d Directory file that contains a listing of other files and directories
+• l Symbolic link file
+• p Named pipe (a mechanism for interprocess communications)
+• s Socket (for interprocess communication)
+Consult online documentation for more details regarding the ls command.
+DISPLAYING CONTENTS OF FILES
+This section introduces you to several commands for displaying different lines of text in a 
+text file. Before doing so, let’s invoke the wc (word count) command to display the number 
+of lines, words, and characters in a text file, as shown here:
+wc longfile.txt37      80     408 longfile.txt
+The preceding output shows that the file longfile.txt  contains 37 lines, 80 words, 
+and 408 characters, which means that the file size is actually quite small (despite its name).
+The cat Command
+Invoke the cat command to display the entire contents of longfile.txt :
+cat longfile.txt
+The preceding command displays the following text:
+the contents
+Introduction  • 7
+of this 
+long fileare too longto see in asingle screenand each linecontainsone ormore wordsand if youuse the catcommand the(other lines are omitted)
+The preceding command displays the entire contents of a file; however, there are several 
+commands that display only a portion of a file, such as less, more, page, head, and tail 
+(all of which are discussed later). 
+As another example, suppose that the file temp1 has the following contents:
+this is line1 of temp1this is line2 of temp1this is line3 of temp1
+Let’s also suppose that the file temp2 has these contents:
+this is line1 of temp2this is line2 of temp2
+Type the following command that contains the ? meta character (discussed in detail later 
+in this chapter):cat temp?
+The output from the preceding command is shown here:
+this is line1 of temp1this is line2 of temp1this is line3 of temp1this is line1 of temp2this is line2 of temp2
+The head and tail Commands
+The head command displays the first ten lines of a text file (by default), an example of 
+which is here:
+head longfile.txt
+The preceding command displays the following text:
+the contentsof this long file
+8 • Bash for Data Scientists 
+are too long
+to see in asingle screenand each linecontainsone ormore words
+The head command also provides an option to specify a different number of lines to 
+display, as shown here:head -4 longfile.txt
+The preceding command displays the following text:
+the contentsof this long fileare too long
+The tail command displays the last 10 lines (by default) of a text file:
+tail longfile.txt
+The preceding command displays the following text:
+is availablein every shellincluding thebash shellcshzshkshand Bourne shell
+NOTE The last two lines in the preceding output are blank lines (not a typographical error in this page).
+Similarly, the tail command allows you to specify a different number of lines to display: 
+tail –4 longfile.txt  displays the last 4 lines of longfile.txt .
+Use the more command to display a screenful of data, as shown here:
+more longfile.txt
+Press the <spacebar>  to view the next screen full of data, and press the <return>  
+key to see the next line of text in a file. Incidentally, some people prefer the less command, 
+which generates essentially the same output as the more command. (A geeky joke: “What’s 
+less? It’s more.”)
+The Pipe Symbol
+A very useful feature of Bash is its support for the pipe symbol (“ |”), which enables you 
+to “pipe” or redirect the output of one command to become the input of another command. 
+The pipe command is useful when you want to perform a sequence of operations involving various Bash commands.
+Introduction  • 9
+For example, the following code snippet combines the head command with the cat 
+command and the pipe (“|”) symbol:
+cat longfile.txt| head -2
+A technical point: the preceding command creates two Bash processes (more about pro-
+cesses later) whereas the command head -2 longfile.txt only creates a single Bash 
+process. 
+You can use the head and tail commands in more interesting ways. For example, the 
+following command sequence displays lines 11 through 15 of longfile.txt :
+head -15 longfile.txt |tail -5
+The preceding command displays the following text:
+and if youuse the catcommand thefile contentsscroll
+To display the line numbers for the preceding output, use the following:
+cat –n longfile.txt | head -15 | tail -5
+The preceding command displays the following text:
+    11 and if you
+    12 use the cat
+    13 command the
+    14 file contents
+    15 scroll
+You won’t see the “tab” character from the output, but it’s visible if you redirect the previ -
+ous command sequence to a file and then use the -t option with the cat command:cat –n longfile.txt | head -15 | tail -5 > 1cat –t 1    11^Iand if you    12^Iuse the cat    13^Icommand the    14^Ifile contents    15^Iscroll
+The fold Command
+The fold command enables you to “fold” the lines in a text file, which is useful for text 
+files that contain long lines of text that you want to split into shorter lines. For example, here 
+are the contents of longfile2.txt :
+the contents of this long file are too long to see in a single screen and each line contains one or more words and if you use the cat command the file contents scroll off the screen so you can use other commands such as the head or tail or more commands in conjunction with the pipe command that is very useful in Bash and 
+10 • Bash for Data Scientists 
+is available in every shell including the bash shell csh zsh ksh 
+and Bourne shell
+You can “fold” the contents of longfile2.txt  into lines whose length is 45 (just as an 
+example) with this command:cat longfile2.txt |fold -45
+The output of the preceding command is here:
+the contents of this long file are too long to see in a single screen and each line contains one or more words and if you use the cat command the file contents scroll off the screen so you can use other commands such as the head or tail or more commands in conjunction with the pipe command that is very useful in Unix and is available in every shell includingthe bash shell csh zsh ksh and Bourne shell
+Notice that some words in the preceding output are split based on the line width, and not 
+“newspaper style.”
+In Chapter 5, you will learn how to display the lines in a text file that match a string or a pat -
+tern, as well as how to replace a string with another string in a text file.
+FILE OWNERSHIP: OWNER, GROUP, AND WORLD
+Bash files can have partial or full rwx privileges, where r = read privilege, w = write 
+privilege, and x = file can be executed from the command line simply by typing the file name 
+(or the full path to the file if the file is not in your current directory). Invoking an executable 
+file from the command line will cause the operating system to attempt to execute commands inside the text file.
+Use the chmod command to set permissions for files. For example, if you need to set the 
+permission rwx rw- r--  for a file, use the following:
+chmod u=rwx g=rw o=r filename
+In the preceding command, the options u, g, and o represent user permissions, group 
+permissions, and others’ permissions, respectively.
+To add additional permissions on the current file, use + to add permission to the user, 
+group, or others and use - to remove the permissions. For example, given a file with the 
+permissions rwx rw- r-- , add the executable permission as follows:
+chmod o+x filename
+This command adds the x permission for others . Add the executable permission to all 
+permission categories that is, for user, group, and others as follows:chmod a+x filename
+In the preceding command, the letter a means “all groups.” Conversely, specify a - to 
+remove a permission from all groups, as shown here:chmod a-x filename
+Introduction  • 11
+HIDDEN FILES
+An “invisible” file is one whose first character is the dot or period character (.). Bash pro -
+grams (including the shell) use most of these files to store configuration information. Some 
+common examples of hidden files include the following files:
+• .profile: the Bourne shell (sh) initialization script
+• .bash_profile: the Bash shell (bash) initialization script
+• .kshrc: the Korn shell (ksh) initialization script
+• .cshrc: the C shell (csh) initialization script
+• .rhosts: the remote shell configuration file
+To list invisible files, specify the -a option to ls:
+ls -a
+.  .profile  docs  lib  test_results
+..  .rhosts  hosts  pub  users
+.emacs bin  hw1  res.01  work
+.exrc ch07  hw2  res.02
+.kshrc ch07.bak  hw3  res.03
+Single dot .: This represents the current directory.Double dot ..: This represents the parent directory.
+HANDLING PROBLEMATIC FILENAMES
+Problematic filenames contain one or more whitespaces, hidden (non-printing) charac -
+ters, or start with a dash (-) character. 
+You can use double quotes to list filenames that contain whitespaces, or you can precede 
+each whitespace by a backslash (\) character. 
+For example, if you have a file named One Space.txt , you can use the ls command 
+as follows:
+ls -1 ̎One Space.txt̎ls –l One\ Space.txt
+Filenames that start with a dash (-) character are difficult to handle because the dash 
+character is the prefix that specifies options for Bash commands. Consequently, if you have a file whose name is –abc, then the command ls –abz  will not work correctly, because -z 
+is interpreted as a switch for the ls command, and since there is no “z” option, you will see 
+the following type of output:
+ls: illegal option -- zusage: ls [-@ABCFGHLOPRSTUWabcdefghiklmnopqrstuwx1%] [file ...]
+In most cases, the best solution to this type of file is to rename the file. This can be done 
+in your operating system if your client isn’t a Unix shell, or you can use the following special syntax for the mv (“move”) command to rename the file. The preceding two dashes tell mv 
+to ignore the dash in the filename. An example is here:mv -- -abc.txt renamed-abc.txt
+12 • Bash for Data Scientists 
+WORKING WITH ENVIRONMENT VARIABLES
+There are many built-in environment variables available, and the following subsections 
+discuss the env command and then some of the more common variables.
+The env Command
+The env (“environment”) command displays the variables that are in your Bash environ -
+ment. An example of the output of the env command is here:
+SHELL=/bin/bashTERM=xterm-256colorTMPDIR=/var/folders/73/39lngcln4dj_scmgvsv53g_w0000gn/T/OLDPWD=/tmpTERM_SESSION_ID=63101060-9DF0-405E-84E1-EC56282F4803USER=ocampesatoCOMMAND_MODE=bash2003PATH=/opt/local/bin:/Users/ocampesato/
+android-sdk-mac_86/platform-tools:/Users/ocampesato/android-sdk-mac_86/tools:/usr/local/bin:
+PWD=/Users/ocampesatoJAVA_HOME=/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/
+Contents/Home
+LANG=en_US.UTF-8NODE_PATH=/usr/local/lib/node_modulesHOME=/Users/ocampesatoLOGNAME=ocampesatoDISPLAY=/tmp/launch-xnTgkE/org.macosforge.xquartz:0SECURITYSESSIONID=186a4_=/usr/bin/env
+Some interesting examples of setting an environment variable and also executing a com -
+mand are described online:
+https://stackoverflow.com/questions/13998075/setting-environment-variable-for-one-
+program-call-in-bash-using-env
+Useful Environment Variables
+This section discusses some important environment variables, most of which you prob -
+ably will not need to modify, but it’s useful to be aware of the existence of these variables and 
+their purpose.
+• The HOME variable contains the absolute path of the user’s home directory.
+• The HOSTNAME  variable specifies the Internet name of the host.
+• The LOGNAME  variable specifies the user’s login name.
+• The PATH variable specifies the search path (see the next subsection).
+• The SHELL variable specifies the absolute path of the current shell.
+• The USER specifies the user’s current username. This value might be different than 
+the login name if a superuser executes the su command to emulate another user’s 
+permissions.
+Introduction  • 13
+Setting the PATH Environment Variable
+Programs and other executable files can live in many directories, so operating systems 
+provide a search path that lists the directories that the operating system searches for execut -
+able files. Add a directory to your path so that you can invoke an executable file by specifying 
+just the filename: you don’t need to specify the full path to the executable file. 
+The search path is stored in an environment variable, which is a named string maintained 
+by the operating system. These variables contain information available to the command shell and other programs.
+The path variable is named PATH in Bash or Path in Windows (Bash is case-sensitive; 
+Windows is not).
+Setting the path in Bash/Linux :
+export PATH=$HOME/anaconda:$PATH
+To add the Python  directory to the path for a particular session in B ash, use the fol -
+lowing:
+export PATH=̎$PATH:/usr/local/bin/python̎ 
+In Bourne shell or ksh shell, enter this command:
+PATH=̎$PATH:/usr/local/bin/python̎
+NOTE/usr/local/bin/python  is the path of the Python directory.
+Specifying Aliases and Environment Variables
+The following command defines an environment variable called h1:
+h1=$HOME/test
+Now if you enter the following command,
+echo $h1
+you will see the following output on OS X:
+/Users/jsmith/test
+The next code snippet shows you how to set the alias ll so that it displays a long listing 
+of a directory:alias ll=̎ls -l̎
+The following three alias definitions involve the ls command and various switches:
+alias ll=̎ls –l̎alias lt=̎ls –lt̎alias ltr=̎ls –ltr̎
+As an example, you can replace the command ls -ltr  (the letters “l”, “t”, and “r”) that 
+you saw earlier in the chapter with the ltr alias and you will see the same reversed time-
+based long listing of filenames (reproduced here):total 56-rwx------  1 ocampesato  staff  176 Jan 06 19:21 ssl-
+instructions.txt
+-rw-r--r--  1 ocampesato  staff   12 Jan 06 19:21 output.txt-rw-r--r--  1 ocampesato  staff   11 Jan 06 19:21 outfile.txt
+14 • Bash for Data Scientists 
+-rwx------  1 ocampesato  staff   12 Jan 06 19:21 kyrgyzstan.txt
+-rwx------  1 ocampesato  staff  478 Jan 06 19:21 iphonemeetup.txt-rwx------  1 ocampesato  staff  146 Jan 06 19:21 checkin-
+commands.txt
+-rwx------  1 ocampesato  staff   25 Jan 06 19:21 apple-care.txt
+You can also define an alias that contains the Bash pipe (|) symbol:
+alias ltrm=̎ls –ltr|more̎
+In a similar manner, you can define aliases for directory related commands:
+alias ltd=̎ls –lt | grep ̍^d̍̎alias ltdm=̎ls –lt | grep ̍^d̍|more̎
+FINDING EXECUTABLE FILES
+There are several commands available for finding executable files (binary files or shell 
+scripts) by searching the directories in the PATH environment variable via the commands 
+which, whence, whereis, and whatis . 
+The preceding commands produce similar results to the which command. The which 
+command gives the full path to whatever executable you specify or a blank line if the execut -
+able is not in any directory that is specified in the PATH environment variable. This is useful 
+for finding out whether a particular command or utility is installed on the system.which rm
+The output of the preceding command is here:
+/bin/rm
+The whereis  command provides the information that you get from the where command:
+$ whereis rm/bin/rm
+The whatis  command looks up the specified command in the whatis  database, which 
+is useful for identifying system commands and important configuration files:
+git-rm(1)                -  Remove files from the working tree and 
+from the index
+grm(1), rm(1)            - remove files or directoriesrm(1), unlink(1)         - remove directory entries
+Consider it a simplified version of the man command, which displays concise details 
+about Bash commands (e.g., type man ls and you will see several pages of explanation 
+regarding the ls command).
+THE printf COMMAND AND THE echo COMMAND 
+In brief, use the printf  command instead of the echo command if you need to control 
+the output format. One key difference is that the echo command prints a newline character 
+whereas the printf statement does not print a newline character. Keep this point in mind when you see the printf statement in the awk code samples in Chapter 6.
+Introduction  • 15
+As a simple example, place the following code snippet in a shell script:
+printf ̎%-5s %-10s %-4s\n̎ ABC DEF GHI
+printf ̎%-5s %-10s %-4.2f\n̎ ABC DEF 12.3456
+Make the shell script executable and then launch the shell script, after which you will see 
+the following output:ABC   DEF        GHIABC   DEF        12.35
+However, if you type the following pair of commands:
+echo ̎ABC DEF GHI̎echo ̎ABC DEF 12.3456̎
+you will see the following output:
+ABC DEF GHIABC DEF 12.3456
+A detailed (and very lengthy) discussion regarding the printf  statement and the echo 
+command is here:
+https://unix.stackexchange.com/questions/65803/why-is-printf-better-than-echo
+THE cut COMMAND
+The cut command enables you to extract fields with a specified delimiter (another word 
+commonly used for IFS, especially when it’s part of a command syntax, instead of being set as an outside variable) as well as a range of columns from an input stream. Some examples 
+are here:
+x=̎abc def ghi̎echo $x | cut –d̎ ̎ –f2
+The following code snippet displays the contents of field 3 followed by field 1:
+x=̎abc def ghi̎echo $x | cut –d̎ ̎ –f3,2
+The output (using space ̎ ̎ as IFS, and -f2 to indicate the second column) of the 
+preceding code snippet is here:def
+Consider this code snippet:
+x=̎abc def ghi̎  
+echo $x | cut –c2-5
+The output of the preceding code snippet ( -c2-5 means “extract the characters in col -
+umns 2 through 5 from the variable”) is here:bc d
+Listing 1.1 displays the content of SplitName1.sh  that illustrates how to split a file-
+name containing the “.” character as a delimiter/ IFS.
+16 • Bash for Data Scientists 
+Listing 1.1: SplitName1.sh
+fileName=̎06.22.04p.vp.0.tgz̎
+ f1=̍echo $fileName | cut -d̎.̎ -f1̍f2=̍echo $fileName | cut -d̎.̎ -f2̍f3=̍echo $fileName | cut -d̎.̎ -f3̍
+f4=̍echo $fileName | cut -d̎.̎ -f4̍
+f5=̍echo $fileName | cut -d̎.̎ -f5̍
+f5=̍expr $f5 + 12̍
+ newFileName=̎${f1}.${f2}.${f3}.${f4}.${f5}̎echo ̎newFileName: $newFileName̎
+Listing 1.1 uses the echo command and the cut command to initialize the variables 
+f1, f2, f3, f4, and f5 , after which a new filename is constructed. The output of the 
+preceding shell script is here:newFileName: 06.22.04p.vp.12
+THE echo COMMAND AND WHITESPACES
+The echo command preserves whitespaces in variables, but in some cases, the results 
+might be different than your expectations.
+Listing 1.2 displays the content of EchoCut.sh  that illustrates the differences that can 
+occur when the echo command is used with the cut command.
+Listing 1.2: EchoCut.sh
+x1=̎123   456   789̎x2=̎123 456 789̎echo ̎x1 = $x1̎echo ̎x2 = $x2̎
+x3=̍echo $x1   | cut -c1-7̍
+x4=̍echo ̎$x1̎ | cut -c1-7̍x5=̍echo $x2   | cut -c1-7̍echo ̎x3 = $x3̎echo ̎x4 = $x4̎echo ̎x5 = $x5̎
+Launch the code in Listing 1.1 and you will see the following output:
+x1 = 123   456   789
+x2 = 123 456 789
+x3 = 123 456x4 = 123   4x5 = 123 456
+Introduction  • 17
+The value of x3 is probably different from what you expected: there is only one blank 
+space between 123 and 456 instead of the three blank spaces that appear in the definition 
+of the variable x1.
+This seemingly minor detail is important when you write shell scripts that check 
+the values contained in specific columns of text files, such as payroll files and other 
+files with financial data. The solution involves the use of double quote marks (and 
+sometimes the IFS variable that is discussed in Chapter 2) that you can see in the definition of x4.
+COMMAND SUBSTITUTION (“BACK TICK”)
+The back tick or command substitution feature of the Bourne shell is very powerful and 
+enables you to combine multiple Bash commands. You can also write very compact and 
+powerful (and complicated) shell scripts with command substitution. The syntax is to simply precede and follow your command with a “`” (back tick) character.  In Listing 1.3 below, the 
+command between back ticks is ̍ls *py̍ .
+Listing 1.3 displays the content of CommandSubst.sh  displays a subset of files in a 
+directory.
+Listing 1.3: CommandSubst.sh
+for f in `ls *py`do  echo ̎file is: $f̎done
+Listing 1.2 contains a for loop that displays the filenames (in the current directory) that 
+have a py suffix. The output of Listing 1.2 on my Macbook is here:file is: CapitalizeList.pyfile is: CompareStrings.pyfile is: FixedColumnCount1.pyfile is: FixedColumnWidth1.pyfile is: LongestShortest1.pyfile is: My2DMatrix.pyßfile is: PythonBash.pyfile is: PythonBash2.pyfile is: StringChars1.pyfile is: Triangular1.pyfile is: Triangular2.pyfile is: Zip1.py
+The output depends on whether you have any files with a . py suffix in the directory where 
+you execute CommandSubst.sh. 
+NOTE
+18 • Bash for Data Scientists 
+THE PIPE SYMBOL AND MULTIPLE COMMANDS
+At this point, you’ve seen various combinations of B ash commands that are connected 
+with the “|” symbol. In addition, you can redirect the output to a file. The general form looks 
+something like this:cmd1 | cmd2 | cmd3 …. >mylist
+What happens if there are intermediate errors? You can redirect error messages to /
+dev/null , and you can also redirect error messages to a text file if you want to review them. 
+Yet another option is to redirect stderr  (“standard error”) to stdout  (“standard out”), 
+which is beyond the scope of this chapter. For example, the following command shows you how to redirect errors from the ls command to /dev/null :
+ls /tmp2 2>/dev/null
+An intermediate error can cause an entire “pipeline” to fail. Unfortunately, it’s usually 
+a trial-and-error process to debug long and complex commands that involve multiple pipe 
+symbols.
+Now consider the case where you need to redirect the output of multiple commands to 
+the same location. For example, the following commands display output on the screen:
+ls | sort; echo ̎the contents of /tmp: ̎; ls /tmp
+You can easily redirect the output to the file myfile1.txt  with this command:
+(ls | sort; echo ̎the contents of /tmp:̎; ls /tmp) > myfile1.txt
+However, each of the preceding commands inside the parentheses spawns a subshell 
+(which is an extra process that consumes memory and increases CPU usage, both of which can sometimes be significant). You can avoid spawning subshells by using {} instead of (), 
+as shown here (and the whitespace after { and before } are required):{ ls | sort; echo ̎the contents of /tmp:̎; ls /tmp } > myfile1.txt
+Suppose that you want to set a variable, execute a command, and invoke a second com-
+mand via a pipe, as shown here:name=SMITH cmd1 | cmd2  
+Although cmd2 in the preceding code snippet does not recognize the value of name, 
+there is a simple solution, as shown here:(name=SMITH cmd1) | cmd2
+Use the double ampersand (&&) symbol if you want to execute a command only if a prior 
+command succeeds. For example, the cd command only works if the mkdir command suc -
+ceeds in the following code snippet:mkdir /tmp2/abc && cd /tmp2/abc
+The preceding command will fail because (by default) /tmp2 does not exist. However, 
+the following command succeeds because the –p option ensures that intermediate directo -
+ries are created:mkdir –p /tmp/abc/def && cd /tmp/abc && ls –l
+USING A SEMICOLON TO SEPARATE COMMANDS
+You can combine multiple commands with a semicolon (“;”), as shown here:
+cd /tmp; pwd; cd ~; pwd
+Introduction  • 19
+The preceding code snippet navigates to the /tmp directory, prints the full path to the 
+current directory, returns to the previous directory, and again prints the full path to the cur -
+rent directory. The output of the preceding command is here:
+/tmp/Users/jsmith
+You can use command substitution (discussed in the next section) to assign the output to 
+a variable, as shown here:x=`cd /tmp; pwd; cd ~; pwd`echo $x
+The output of the preceding snippet is here:
+/tmp /Users/jsmith
+THE paste COMMAND
+The paste command is useful when you need to combine two files in a pairwise fashion. 
+For example, Listing 1.4 and Listing 1.5 display the contents of the text files list1 and 
+list2, respectively. You can think of paste as treating the contents of the second file as 
+an additional column for the first file. In our first example, the first file has a list of files to copy, the second file has a list of files that are the destination for the cp command. Paste 
+then merges the two files into output that could then be run to execute all the cp commands 
+sequentially.
+Listing 1.4: list1 
+cp abc.sh  
+cp abc2.shcp abc3.sh
+Listing 1.5: list2
+def.sh  def2.shdef3.sh
+Listing 1.6 display the result of invoking the following command:
+paste list1 list2 >list1.sh
+Listing 1.6: list1.sh
+cp abc.sh    def.sh  cp abc2.sh   def2.shcp abc3.sh   def3.sh
+Listing 1.6 contains three cp commands that are the result of invoking the paste com-
+mand. If you want to execute the commands in Listing 1.6, make this shell script executable 
+and then launch the script, as shown here:
+chmod +x list1.sh./list1.sh
+20 • Bash for Data Scientists 
+Inserting Blank Lines with the paste Command
+Instead of merging two equal length files, paste can also be used to add the same thing 
+to every line in a file. 
+Suppose that the text file names.txt  contains the following lines:
+Jane Smith
+John JonesDave Edwards
+The following command inserts a blank line after every line in names.txt :  
+paste -d̍\n̍ - /dev/null < names.txt
+The output from the preceding command is here:
+Jane Smith
+John JonesDave Edwards
+Insert a blank line after every other line in names.txt  with this command:
+paste -d̍\n̍ - - /dev/null < names.txt
+The output is here:
+Jane Smith
+John JonesDave Edwards
+Insert a blank line after every third line in names.txt  with this command:
+paste -d̍\n̍ - - - /dev/null < names.txt
+The output is here:
+Jane SmithJohn JonesDave Edwards
+There is a blank line after the third line in the2 preceding output. The shell script  
+joinlines.sh (later in this chapter) also contains examples of one-line paste com -
+mands for joining consecutive lines of a dataset or text file.
+A SIMPLE USE CASE WITH THE paste COMMAND
+The code sample in this section shows you how to use the paste command in order to 
+join consecutive rows in a dataset. Listing 1.7 displays the content of linepairs.csv , which 
+contains letter and number pairs, and Listing 1.8 contains reversecolumns.sh,  which 
+illustrates how to match the pairs even though the line breaks are in different places between 
+numbers and letters.NOTE
+Introduction  • 21
+Listing 1.7: linepairs.csv
+a,b,c,d,e,f,g
+h,i,j,k,l1,2,3,4,5,6,7,8,910,11,12
+Listing 1.8: linepairs.sh
+inputfile=̎linepairs.csv̎outputfile=̎linepairsjoined.csv̎
+# join pairs of consecutive lines:
+paste -d ̎ ̎  - - < $inputfile > $outputfile
+# join three consecutive lines:
+#paste -d ̎ ̎  - - - < $inputfile > $outputfile
+# join four consecutive lines:
+#paste -d ̎ ̎  - - - - < $inputfile > $outputfile
+The contents of the output file are shown here (note that the script is just joining pairs of 
+lines, and the three- and four-line command examples are commented out):a,b,c,d,e,f,g h,i,j,k,l1,2,3,4,5,6,7,8,9 10,11,12
+Notice that the preceding output is not completely correct: there is a space “ ” instead of 
+a “,” whenever a pair of lines is joined (between “g” and “h” and “9 and 10”). We can make the necessary revision using the sed command (discussed in Chapter 4):cat $outputfile | sed ̎s/ /,/g̎ > $outputfile2
+Examine the contents of $outputfile  to see the result of the preceding code snippet.
+A SIMPLE USE CASE WITH cut AND paste COMMANDS
+The code sample in this section shows you how to use the cut and paste commands to 
+reverse the order of two columns in a dataset. The purpose of the shell script in Listing 1.10 is to help you get some practice for writing Bash scripts. The better solution involves a single 
+line of code (shown at the end of this section).
+Listing 1.9 displays the content of namepairs.csv  that contains the first name and last 
+name of a set of people, and Listing 1.10 contains reversecolumns.sh , which illustrates 
+how to reverse these two columns.
+22 • Bash for Data Scientists 
+Listing 1.9: namepairs.csv
+Jane,Smith
+Dave,JonesSara,Edwards
+Listing 1.10: reversecolumns.sh
+inputfile=̎namepairs.csv̎outputfile=̎reversenames.csv̎fnames=̎fnames̎lnames=̎lnames̎
+cat $inputfile|cut -d̎,̎ -f1 > $fnames
+cat $inputfile|cut -d̎,̎ -f2 > $lnames
+paste –d̎,̎ $lnames $fnames > $outputfile
+The contents of the output file $outputfile  are shown here:
+Smith,Jane
+Jones,DaveEdwards,Sara
+The code in Listing 1.10 (after removing blank lines) consists of seven lines of code that 
+involves creating two extra intermediate files. Unless you need those files, it’s a good idea to remove those two files (which you can do with one rm command).
+Although Listing 1.10 is straightforward, there is a simpler way to execute this task: use 
+the cat command and the awk command (discussed later). Specifically, compare the con -
+tents of reversecolumns.sh  with the following single line of code that combines the 
+cat command and the awk command to generate the same output:cat namepairs.txt |awk -F̎,̎ ̍{print $2 ̎,̎ $1}̍
+The output from the preceding code snippet is here:
+Smith,JaneJones,DaveEdwards,Sara
+As you can see, there is a big difference in these two solutions. If you are unfamiliar with 
+the awk command, then obviously you would not have thought of the second solution. How-
+ever, the more you learn about Bash commands and how to combine them, the more adept 
+you will become in terms of writing better shell scripts to solve data cleaning tasks. Another important point: document the commands as they become more complex, as they can be hard to interpret later by others (and even by yourself, if enough time has passed). A com-ment such as the following can be extremely helpful to interpreting code: 
+# This command reverses first and last names in namepairs.txt
+cat namepairs.txt |awk -F̎,̎ ̍{print $2 ̎,̎ $1}̍
+Introduction  • 23
+WORKING WITH META CHARACTERS
+Meta characters can be thought of as a complex set of wildcards. Regular expressions are 
+a “search pattern” which are a combination of normal text and meta characters. In concept, 
+it is much like a “find” tool (press ctrl-f  on your search engine), but Bash (and Unix in 
+general) allows for much more complex pattern matching because of its rich meta character 
+set. There are entire books devoted to regular expressions, but this section contains enough 
+information to get started, and the key concepts needed for data manipulation and cleansing.
+The following meta characters are useful with regular expressions:
+• The ? meta character refers to 0 or 1 occurrences of something.
+• The + meta character refers to 1 or more occurrences of something.
+• The * meta character refers to 0 or more occurrences of something.
+“Something” in the preceding descriptions can refer to a digit, letter, word, or more com -
+plex combinations.
+Some examples involving meta characters are shown here:
+The expression a? matches the string a and also the string a followed by a single char -
+acter, such as a1, a2, … , aa, ab, ac, and so forth. However, abc and a12 do not match 
+the expression a?.
+The expression a+ matches the string a followed by one or more characters, such as a1, 
+a2, …, aa, ab, ac, and so forth (but abc and a12 do not match).
+The expression a* matches the string a followed by zero or more characters, such as a, 
+a1, a2, …, aa, ab, ac, and so forth.
+The pipe “|” meta character (which has a different context from the pipe symbol in the 
+command line: regular expressions have their own syntax, which does not match that of the 
+operating system a lot of the time) provides a choice of options. For example, the expression 
+a|b means a or b, and the expression a|b|c means a or b or c.
+The “$” meta character refers to the end of a line of text, and in regular expressions inside 
+the vi editor, the “$” meta character refers to the last line in a file.
+The “^” meta character refers to the beginning of a string or a line of text. For example:
+*a$ matches ̎Mary Anna̎ but not ̎Anna Mary̎^A* matches ̎Anna Mary̎ but not ̎Mary Anna̎
+In the case of regular expressions, the “^” meta character can also mean “does not match.” 
+The next section contains some examples of the “^” meta character.
+WORKING WITH CHARACTER CLASSES
+Character classes enable you to express a range of digits, letters, or a combination of both. 
+For example, the character class [0-9] matches any single digit; [a-z] matches any lower -
+case letter; and [A-Z] matches any uppercase letter. You can also specify subranges of digits 
+or letters, such as [3-7], [g-p] , and [F-X], as well as other combinations:
+• [0-9][0-9] matches a consecutive pair of digits
+• [0-9[0-9][0-9] matches three consecutive digits
+• \d{3} also matches three consecutive digitsNOTE
+24 • Bash for Data Scientists 
+The previous section introduced you to the “^” meta character, and here are some exam-
+ples of using “^” with character classes:
+Security Relevance Score: 5
+Word Count: 7303
+Extracted: 2025-06-13 23:40:21
+
+---
+
+The first part of this chapter starts with a brief introduction to some Unix shells, and then 
+discusses files, file permissions, and directories. You will also learn how to create files and directories and how to change their access permissions.
+The second part of this chapter introduces simple shell scripts, along with instructions 
+for making them executable. As you will see, shell scripts contain Bash commands (and can optionally contain user-defined functions), so it’s a good idea to learn about Bash commands before you can create shell scripts (which includes Bash scripts). 
+The third portion of this chapter discusses two useful Bash commands: the cut com-
+mand (for cutting or extracting columns and/or fields from a dataset) and the paste com-
+mand (for “pasting” text or datasets together vertically).
+In addition, the final part of this chapter contains a use case involving the cut command 
+and paste command that illustrates how to switch the order of two columns in a dataset. 
+You can also perform this task using the awk command (discussed in Chapter 5).
+There are a few points to keep in mind before delving into the details of shell scripts. 
+First, shell scripts can be executed from the command line after adding “execute” permis-
+sions to the text file containing the shell commands. Second, you can use the crontab  util-
+ity to schedule the execution of your shell scripts. The crontab  utility allows you to specify 
+the execution of a shell script on an hourly, daily, weekly, or monthly basis. Tasks that are commonly scheduled via crontab  include performing backups and removing unwanted 
+files. If you are completely new to Unix, just keep in mind that there is a way to run scripts 
+both from the command line and in a “scheduled” manner. Setting file permissions to run the script from the command line will be discussed later.
+2 • Bash for Data Scientists 
+Third, the contents of any shell script can be as simple as a single command, or can 
+comprise hundreds of lines of Bash commands. In general, the more interesting shell scripts 
+involve a combination of several Bash commands. A learning tip: since there are usually sev -
+eral ways to produce the desired result, it’s helpful to read other people’s shell scripts to learn how to combine commands in useful ways.
+WHAT IS UNIX?
+Unix is an operating system created by Ken Thompson in the early 1970s, and today 
+there are several variants available, such as HP/UX for HP machines and AIX for IBM machines. Linus Torvalds developed the Linux operating system during the 1990s, and many Linux commands are the same as their Bash counterparts (but differences exist, often in the commands for system administrators). The Mac OS X operating system is based on AT&T Unix.
+Unix has a rich and storied history, and if you are really interested in learning about 
+its past, you can read online articles and also Wikipedia. This book foregoes those details and focuses on helping you quickly learn how to become productive with various com -
+mands.
+Available Shell Types 
+The original Unix shell is the Bourne shell, which was written in the mid-1970s by Ste -
+phen R. Bourne. In addition, the Bourne shell was the first shell to appear on Bash systems, 
+and you will sometimes hear “the shell” as a reference to the Bourne shell. The Bourne shell 
+is a POSIX standard shell, usually installed as /bin/sh  on most versions of Unix, whose 
+default prompt is the $ character. Consequently, Bourne shell scripts will execute on almost every version of Unix. In essence, the AT&T branches of Unix support the Bourne shell ( sh), 
+bash, Korn shell (ksh), tsh, and zsh.
+However, there is also the BSD branch of Unix that uses the “C” shell (csh), whose 
+default prompt is the % character. In general, shell scripts written for csh will not execute 
+on AT&T branches of Unix, unless the csh shell is also installed on those machines (and vice 
+versa).
+The Bourne shell is the most “unadorned” in the sense that it lacks some commands that 
+are available in the other shells, such as history  and noclobber . The various subcatego-
+ries for Bourne Shell are listed as follows:
+• Bourne shell (sh)
+• Korn shell (ksh)
+• Bourne Again shell (bash)
+• POSIX shell (sh)
+• zsh (“Zee” shell)
+The different C-type shells are as follows:
+• C shell (csh)
+• TENEX/TOPS C shell (tcsh)
+Introduction  • 3
+While the commands and the shell scripts in this book are based on the Bash shell, many 
+of the commands also work in other shells (and if not, those other shells have a similar 
+command to accomplish the same goal). Performing an Internet search for “how do I do <Bash command> in <shell name>” will often get you an answer. Sometimes the command is essentially the same, but with slightly different syntax, and typing “man <command>” in a command shell can provide useful information.
+WHAT IS BASH?
+Bash is an acronym for “Bourne Again Shell,” which has its roots in the Bourne shell cre -
+ated by Stephen R. Bourne. Shell scripts based on the Bourne shell will execute in Bash, but the converse is not true. The Bash shell provides additional features that are unavailable in the Bourne shell, such as support for arrays (discussed later in this chapter). 
+On Mac OS X, the /bin directory contains the following executable shells: 
+-rwxr-xr-x  1 root  wheel    31440 Sep 21  2020 sh
+-rwxr-xr-x  1 root  wheel   110848 Sep 21  2020 dash-r-xr-xr-x  1 root  wheel   623472 Sep 21  2020 bash-rwxr-xr-x  1 root  wheel   529424 Sep 21  2020 tcsh-r-xr-xr-x  1 root  wheel  1300256 Sep 21  2020 ksh-rwxr-xr-x  1 root  wheel   529424 Sep 21  2020 csh-rwxr-xr-x  1 root  wheel   637840 Sep 21  2020 zsh
+A nice comparison matrix of the support for various features among the preceding shells 
+is available online:
+https://stackoverflow.com/questions/5725296/difference-between-sh-and-bashIn some environments, the Bourne shell sh is the Bash shell, which you can check by 
+typing the following command:sh --versionGNU bash, version 3.2.57(1)-release (x86_64-apple-darwin16)Copyright (C) 2007 Free Software Foundation, Inc.
+If you are new to the command line (be it Mac, Linux, or PCs), please read the preface of 
+this book, which provides some useful guidelines for accessing command shells.
+Getting Help for Bash Commands
+If you want to see the options for a specific Bash command, invoke the man command to 
+see a description of that Bash command and its options, as shown here:
+man cat
+The man command produces terse explanations, and if those explanations are not clear 
+enough, you can search for online code samples that provide more details.
+Navigating Around Directories
+In a command shell, you will often perform basic operations, such as displaying (or chang -
+ing) the current directory, listing the contents of a directory, and displaying the contents of 
+a file. The following set of commands shows you how to perform these operations, and you can execute a subset of these comments in the sequence that is relevant to you. Options for 
+4 • Bash for Data Scientists 
+some of the commands in this section (such as the ls command) are described in greater 
+detail later in this chapter.
+A frequently used Bash command is pwd (“print working directory”) that displays the 
+current directory, as shown here:
+pwd
+The output of the preceding command might look something like this:
+/Users/jsmith
+Use the cd (“change directory”) command to go to a specific directory. For example, type 
+the command cd /Users/jsmith/Mail  to navigate to this directory. If you are currently  
+in the /Users/jsmith  directory, type cd Mail . 
+You can navigate to your home directory with either of these commands:
+$ cd $HOME$ cd
+One convenient way to return to the previous directory is the command cd –. The cd 
+command on Windows merely displays the current directory and does not change the cur -
+rent directory (unlike the Unix cd command).
+The history Command
+The history  command displays a list (i.e., the history) of commands that you executed 
+in the current command shell:
+history
+A short sample output of the preceding command (the maximum number of lines is 500) 
+is here: 1202  cat longfile.txt > longfile2.txt  1203  vi longfile2.txt  1204  cat longfile2.txt |fold -40 1205  cat longfile2.txt |fold -30 1206  cat longfile2.txt |fold -50 1207  cat longfile2.txt |fold -45 1208  vi longfile2.txt  1209  history
+  1210  cd /Library/Developer/CommandLineTools/usr/include/c++/
+ 1211  cd /tmp 1212  cd $HOME/Desktop 1213  history
+If you want to navigate to the directory that is shown in line 1210, you can do so simply 
+by typing the following command:!1210
+The preceding snippet executes the same command that appears as line 1210 in the 
+previous sample’s output. However, !cd will search backward through the history of com -
+mands to find the first command that matches cd command: in this case, line 1212 is the first match. If there aren’t any intervening cd commands between the current command and 
+the command in line 1210, then !1210 and !cd will have the same effect.
+Introduction  • 5
+Be careful with the “!” option with Bash commands because the command that matches 
+the “!” might not be the one you intended, especially something of the form !rm, which 
+will remove one or more files. Hence, it’s safer to use the history  command and then 
+explicitly specify the correct number (in that history) when you invoke the “!” operator.
+LISTING FILENAMES WITH THE LS COMMAND
+The ls command is for listing filenames, and there are many switches available that you 
+can use, as shown in this section. For example, the ls *txt  command displays the follow-
+ing filenames (the actual display depends on the font size and the width of the command 
+shell) on my Mac:
+ReservedWords.txt  data2.txt  input-info.txt  longfile2.txt
+abc.txt good-info.txt  longfile.txt  names.txt
+The command ls -1t  (the letter “l”) displays a time-based long listing of filenames:
+-rw-r--r--  1  oswaldcampesato  staff  2101  Jun  16  13:07  
+input-info.txt
+-rw-r--r--  1  oswaldcampesato  staff  29  Jun  16  13:07  
+data2.txt
+-rw-r--r--  1  oswaldcampesato  staff  407  Jun  16  13:07  
+longfile2.txt
+-rw-r--r--  1  oswaldcampesato  staff  408  Jun  16  13:07  
+longfile.txt
+-rw-r--r--  1  oswaldcampesato  staff  2267  Jun  16  13:07  
+ReservedWords.txt
+-rw-r--r--  1  oswaldcampesato  staff  1638  Jun  16  13:07  
+good-info.txt
+-rw-r--r--  1  oswaldcampesato  staff  45  Jun  16  13:07  
+abc.txt
+-rw-r--r--  1  oswaldcampesato  staff  35  Jun  16  13:07  
+names.txt
+The command ls -ltr  (the letters “l”, “t”, and “r”) displays a reversed time-based long 
+listing of filenames:
+-rw-r--r--  1  oswaldcampesato  staff  35  Jun  16  13:07  
+names.txt
+-rw-r--r--  1  oswaldcampesato  staff  45  Jun  16  13:07  
+abc.txt
+-rw-r--r--  1  oswaldcampesato  staff  1638  Jun  16  13:07  
+good-info.txt
+-rw-r--r--  1  oswaldcampesato  staff  2267  Jun  16  13:07  
+ReservedWords.txt
+-rw-r--r--  1  oswaldcampesato  staff  408  Jun  16  13:07  
+longfile.txtNOTE
+6 • Bash for Data Scientists 
+-rw-r--r--  1  oswaldcampesato  staff  407  Jun  16  13:07  
+longfile2.txt
+-rw-r--r--  1  oswaldcampesato  staff  29  Jun  16  13:07  
+data2.txt
+-rw-r--r--  1  oswaldcampesato  staff  2101  Jun  16  13:07  
+input-info.txt
+Here are the descriptions of all the listed columns in the preceding output:
+• Column #1: represents the file type and permission given on the file (see below)
+• Column #2: the number of memory blocks taken by the file or directory
+• Column #3: the (Bash user) owner of the file
+• Column #4: represents the group of the owner
+• Column #5: represents file size in bytes
+• Column #6: the date and time when this file was created or last modified
+• Column #7: represents the file or directory name
+In the ls -l listing example, every file line began with a d, -, or l. These characters 
+indicate the type of file that’s listed. These (and other) initial values are described as follows:
+• - Regular file (ASCII text file, binary executable, or hard link)
+• b Block special file (such as a physical hard drive)
+• c Character special file (such as a physical hard drive)
+• d Directory file that contains a listing of other files and directories
+• l Symbolic link file
+• p Named pipe (a mechanism for interprocess communications)
+• s Socket (for interprocess communication)
+Consult online documentation for more details regarding the ls command.
+DISPLAYING CONTENTS OF FILES
+This section introduces you to several commands for displaying different lines of text in a 
+text file. Before doing so, let’s invoke the wc (word count) command to display the number 
+of lines, words, and characters in a text file, as shown here:
+wc longfile.txt37      80     408 longfile.txt
+The preceding output shows that the file longfile.txt  contains 37 lines, 80 words, 
+and 408 characters, which means that the file size is actually quite small (despite its name).
+The cat Command
+Invoke the cat command to display the entire contents of longfile.txt :
+cat longfile.txt
+The preceding command displays the following text:
+the contents
+Introduction  • 7
+of this 
+long fileare too longto see in asingle screenand each linecontainsone ormore wordsand if youuse the catcommand the(other lines are omitted)
+The preceding command displays the entire contents of a file; however, there are several 
+commands that display only a portion of a file, such as less, more, page, head, and tail 
+(all of which are discussed later). 
+As another example, suppose that the file temp1 has the following contents:
+this is line1 of temp1this is line2 of temp1this is line3 of temp1
+Let’s also suppose that the file temp2 has these contents:
+this is line1 of temp2this is line2 of temp2
+Type the following command that contains the ? meta character (discussed in detail later 
+in this chapter):cat temp?
+The output from the preceding command is shown here:
+this is line1 of temp1this is line2 of temp1this is line3 of temp1this is line1 of temp2this is line2 of temp2
+The head and tail Commands
+The head command displays the first ten lines of a text file (by default), an example of 
+which is here:
+head longfile.txt
+The preceding command displays the following text:
+the contentsof this long file
+8 • Bash for Data Scientists 
+are too long
+to see in asingle screenand each linecontainsone ormore words
+The head command also provides an option to specify a different number of lines to 
+display, as shown here:head -4 longfile.txt
+The preceding command displays the following text:
+the contentsof this long fileare too long
+The tail command displays the last 10 lines (by default) of a text file:
+tail longfile.txt
+The preceding command displays the following text:
+is availablein every shellincluding thebash shellcshzshkshand Bourne shell
+NOTE The last two lines in the preceding output are blank lines (not a typographical error in this page).
+Similarly, the tail command allows you to specify a different number of lines to display: 
+tail –4 longfile.txt  displays the last 4 lines of longfile.txt .
+Use the more command to display a screenful of data, as shown here:
+more longfile.txt
+Press the <spacebar>  to view the next screen full of data, and press the <return>  
+key to see the next line of text in a file. Incidentally, some people prefer the less command, 
+which generates essentially the same output as the more command. (A geeky joke: “What’s 
+less? It’s more.”)
+The Pipe Symbol
+A very useful feature of Bash is its support for the pipe symbol (“ |”), which enables you 
+to “pipe” or redirect the output of one command to become the input of another command. 
+The pipe command is useful when you want to perform a sequence of operations involving various Bash commands.
+Introduction  • 9
+For example, the following code snippet combines the head command with the cat 
+command and the pipe (“|”) symbol:
+cat longfile.txt| head -2
+A technical point: the preceding command creates two Bash processes (more about pro-
+cesses later) whereas the command head -2 longfile.txt only creates a single Bash 
+process. 
+You can use the head and tail commands in more interesting ways. For example, the 
+following command sequence displays lines 11 through 15 of longfile.txt :
+head -15 longfile.txt |tail -5
+The preceding command displays the following text:
+and if youuse the catcommand thefile contentsscroll
+To display the line numbers for the preceding output, use the following:
+cat –n longfile.txt | head -15 | tail -5
+The preceding command displays the following text:
+    11 and if you
+    12 use the cat
+    13 command the
+    14 file contents
+    15 scroll
+You won’t see the “tab” character from the output, but it’s visible if you redirect the previ -
+ous command sequence to a file and then use the -t option with the cat command:cat –n longfile.txt | head -15 | tail -5 > 1cat –t 1    11^Iand if you    12^Iuse the cat    13^Icommand the    14^Ifile contents    15^Iscroll
+The fold Command
+The fold command enables you to “fold” the lines in a text file, which is useful for text 
+files that contain long lines of text that you want to split into shorter lines. For example, here 
+are the contents of longfile2.txt :
+the contents of this long file are too long to see in a single screen and each line contains one or more words and if you use the cat command the file contents scroll off the screen so you can use other commands such as the head or tail or more commands in conjunction with the pipe command that is very useful in Bash and 
+10 • Bash for Data Scientists 
+is available in every shell including the bash shell csh zsh ksh 
+and Bourne shell
+You can “fold” the contents of longfile2.txt  into lines whose length is 45 (just as an 
+example) with this command:cat longfile2.txt |fold -45
+The output of the preceding command is here:
+the contents of this long file are too long to see in a single screen and each line contains one or more words and if you use the cat command the file contents scroll off the screen so you can use other commands such as the head or tail or more commands in conjunction with the pipe command that is very useful in Unix and is available in every shell includingthe bash shell csh zsh ksh and Bourne shell
+Notice that some words in the preceding output are split based on the line width, and not 
+“newspaper style.”
+In Chapter 5, you will learn how to display the lines in a text file that match a string or a pat -
+tern, as well as how to replace a string with another string in a text file.
+FILE OWNERSHIP: OWNER, GROUP, AND WORLD
+Bash files can have partial or full rwx privileges, where r = read privilege, w = write 
+privilege, and x = file can be executed from the command line simply by typing the file name 
+(or the full path to the file if the file is not in your current directory). Invoking an executable 
+file from the command line will cause the operating system to attempt to execute commands inside the text file.
+Use the chmod command to set permissions for files. For example, if you need to set the 
+permission rwx rw- r--  for a file, use the following:
+chmod u=rwx g=rw o=r filename
+In the preceding command, the options u, g, and o represent user permissions, group 
+permissions, and others’ permissions, respectively.
+To add additional permissions on the current file, use + to add permission to the user, 
+group, or others and use - to remove the permissions. For example, given a file with the 
+permissions rwx rw- r-- , add the executable permission as follows:
+chmod o+x filename
+This command adds the x permission for others . Add the executable permission to all 
+permission categories that is, for user, group, and others as follows:chmod a+x filename
+In the preceding command, the letter a means “all groups.” Conversely, specify a - to 
+remove a permission from all groups, as shown here:chmod a-x filename
+Introduction  • 11
+HIDDEN FILES
+An “invisible” file is one whose first character is the dot or period character (.). Bash pro -
+grams (including the shell) use most of these files to store configuration information. Some 
+common examples of hidden files include the following files:
+• .profile: the Bourne shell (sh) initialization script
+• .bash_profile: the Bash shell (bash) initialization script
+• .kshrc: the Korn shell (ksh) initialization script
+• .cshrc: the C shell (csh) initialization script
+• .rhosts: the remote shell configuration file
+To list invisible files, specify the -a option to ls:
+ls -a
+.  .profile  docs  lib  test_results
+..  .rhosts  hosts  pub  users
+.emacs bin  hw1  res.01  work
+.exrc ch07  hw2  res.02
+.kshrc ch07.bak  hw3  res.03
+Single dot .: This represents the current directory.Double dot ..: This represents the parent directory.
+HANDLING PROBLEMATIC FILENAMES
+Problematic filenames contain one or more whitespaces, hidden (non-printing) charac -
+ters, or start with a dash (-) character. 
+You can use double quotes to list filenames that contain whitespaces, or you can precede 
+each whitespace by a backslash (\) character. 
+For example, if you have a file named One Space.txt , you can use the ls command 
+as follows:
+ls -1 ̎One Space.txt̎ls –l One\ Space.txt
+Filenames that start with a dash (-) character are difficult to handle because the dash 
+character is the prefix that specifies options for Bash commands. Consequently, if you have a file whose name is –abc, then the command ls –abz  will not work correctly, because -z 
+is interpreted as a switch for the ls command, and since there is no “z” option, you will see 
+the following type of output:
+ls: illegal option -- zusage: ls [-@ABCFGHLOPRSTUWabcdefghiklmnopqrstuwx1%] [file ...]
+In most cases, the best solution to this type of file is to rename the file. This can be done 
+in your operating system if your client isn’t a Unix shell, or you can use the following special syntax for the mv (“move”) command to rename the file. The preceding two dashes tell mv 
+to ignore the dash in the filename. An example is here:mv -- -abc.txt renamed-abc.txt
+12 • Bash for Data Scientists 
+WORKING WITH ENVIRONMENT VARIABLES
+There are many built-in environment variables available, and the following subsections 
+discuss the env command and then some of the more common variables.
+The env Command
+The env (“environment”) command displays the variables that are in your Bash environ -
+ment. An example of the output of the env command is here:
+SHELL=/bin/bashTERM=xterm-256colorTMPDIR=/var/folders/73/39lngcln4dj_scmgvsv53g_w0000gn/T/OLDPWD=/tmpTERM_SESSION_ID=63101060-9DF0-405E-84E1-EC56282F4803USER=ocampesatoCOMMAND_MODE=bash2003PATH=/opt/local/bin:/Users/ocampesato/
+android-sdk-mac_86/platform-tools:/Users/ocampesato/android-sdk-mac_86/tools:/usr/local/bin:
+PWD=/Users/ocampesatoJAVA_HOME=/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/
+Contents/Home
+LANG=en_US.UTF-8NODE_PATH=/usr/local/lib/node_modulesHOME=/Users/ocampesatoLOGNAME=ocampesatoDISPLAY=/tmp/launch-xnTgkE/org.macosforge.xquartz:0SECURITYSESSIONID=186a4_=/usr/bin/env
+Some interesting examples of setting an environment variable and also executing a com -
+mand are described online:
+https://stackoverflow.com/questions/13998075/setting-environment-variable-for-one-
+program-call-in-bash-using-env
+Useful Environment Variables
+This section discusses some important environment variables, most of which you prob -
+ably will not need to modify, but it’s useful to be aware of the existence of these variables and 
+their purpose.
+• The HOME variable contains the absolute path of the user’s home directory.
+• The HOSTNAME  variable specifies the Internet name of the host.
+• The LOGNAME  variable specifies the user’s login name.
+• The PATH variable specifies the search path (see the next subsection).
+• The SHELL variable specifies the absolute path of the current shell.
+• The USER specifies the user’s current username. This value might be different than 
+the login name if a superuser executes the su command to emulate another user’s 
+permissions.
+Introduction  • 13
+Setting the PATH Environment Variable
+Programs and other executable files can live in many directories, so operating systems 
+provide a search path that lists the directories that the operating system searches for execut -
+able files. Add a directory to your path so that you can invoke an executable file by specifying 
+just the filename: you don’t need to specify the full path to the executable file. 
+The search path is stored in an environment variable, which is a named string maintained 
+by the operating system. These variables contain information available to the command shell and other programs.
+The path variable is named PATH in Bash or Path in Windows (Bash is case-sensitive; 
+Windows is not).
+Setting the path in Bash/Linux :
+export PATH=$HOME/anaconda:$PATH
+To add the Python  directory to the path for a particular session in B ash, use the fol -
+lowing:
+export PATH=̎$PATH:/usr/local/bin/python̎ 
+In Bourne shell or ksh shell, enter this command:
+PATH=̎$PATH:/usr/local/bin/python̎
+NOTE/usr/local/bin/python  is the path of the Python directory.
+Specifying Aliases and Environment Variables
+The following command defines an environment variable called h1:
+h1=$HOME/test
+Now if you enter the following command,
+echo $h1
+you will see the following output on OS X:
+/Users/jsmith/test
+The next code snippet shows you how to set the alias ll so that it displays a long listing 
+of a directory:alias ll=̎ls -l̎
+The following three alias definitions involve the ls command and various switches:
+alias ll=̎ls –l̎alias lt=̎ls –lt̎alias ltr=̎ls –ltr̎
+As an example, you can replace the command ls -ltr  (the letters “l”, “t”, and “r”) that 
+you saw earlier in the chapter with the ltr alias and you will see the same reversed time-
+based long listing of filenames (reproduced here):total 56-rwx------  1 ocampesato  staff  176 Jan 06 19:21 ssl-
+instructions.txt
+-rw-r--r--  1 ocampesato  staff   12 Jan 06 19:21 output.txt-rw-r--r--  1 ocampesato  staff   11 Jan 06 19:21 outfile.txt
+14 • Bash for Data Scientists 
+-rwx------  1 ocampesato  staff   12 Jan 06 19:21 kyrgyzstan.txt
+-rwx------  1 ocampesato  staff  478 Jan 06 19:21 iphonemeetup.txt-rwx------  1 ocampesato  staff  146 Jan 06 19:21 checkin-
+commands.txt
+-rwx------  1 ocampesato  staff   25 Jan 06 19:21 apple-care.txt
+You can also define an alias that contains the Bash pipe (|) symbol:
+alias ltrm=̎ls –ltr|more̎
+In a similar manner, you can define aliases for directory related commands:
+alias ltd=̎ls –lt | grep ̍^d̍̎alias ltdm=̎ls –lt | grep ̍^d̍|more̎
+FINDING EXECUTABLE FILES
+There are several commands available for finding executable files (binary files or shell 
+scripts) by searching the directories in the PATH environment variable via the commands 
+which, whence, whereis, and whatis . 
+The preceding commands produce similar results to the which command. The which 
+command gives the full path to whatever executable you specify or a blank line if the execut -
+able is not in any directory that is specified in the PATH environment variable. This is useful 
+for finding out whether a particular command or utility is installed on the system.which rm
+The output of the preceding command is here:
+/bin/rm
+The whereis  command provides the information that you get from the where command:
+$ whereis rm/bin/rm
+The whatis  command looks up the specified command in the whatis  database, which 
+is useful for identifying system commands and important configuration files:
+git-rm(1)                -  Remove files from the working tree and 
+from the index
+grm(1), rm(1)            - remove files or directoriesrm(1), unlink(1)         - remove directory entries
+Consider it a simplified version of the man command, which displays concise details 
+about Bash commands (e.g., type man ls and you will see several pages of explanation 
+regarding the ls command).
+THE printf COMMAND AND THE echo COMMAND 
+In brief, use the printf  command instead of the echo command if you need to control 
+the output format. One key difference is that the echo command prints a newline character 
+whereas the printf statement does not print a newline character. Keep this point in mind when you see the printf statement in the awk code samples in Chapter 6.
+Introduction  • 15
+As a simple example, place the following code snippet in a shell script:
+printf ̎%-5s %-10s %-4s\n̎ ABC DEF GHI
+printf ̎%-5s %-10s %-4.2f\n̎ ABC DEF 12.3456
+Make the shell script executable and then launch the shell script, after which you will see 
+the following output:ABC   DEF        GHIABC   DEF        12.35
+However, if you type the following pair of commands:
+echo ̎ABC DEF GHI̎echo ̎ABC DEF 12.3456̎
+you will see the following output:
+ABC DEF GHIABC DEF 12.3456
+A detailed (and very lengthy) discussion regarding the printf  statement and the echo 
+command is here:
+https://unix.stackexchange.com/questions/65803/why-is-printf-better-than-echo
+THE cut COMMAND
+The cut command enables you to extract fields with a specified delimiter (another word 
+commonly used for IFS, especially when it’s part of a command syntax, instead of being set as an outside variable) as well as a range of columns from an input stream. Some examples 
+are here:
+x=̎abc def ghi̎echo $x | cut –d̎ ̎ –f2
+The following code snippet displays the contents of field 3 followed by field 1:
+x=̎abc def ghi̎echo $x | cut –d̎ ̎ –f3,2
+The output (using space ̎ ̎ as IFS, and -f2 to indicate the second column) of the 
+preceding code snippet is here:def
+Consider this code snippet:
+x=̎abc def ghi̎  
+echo $x | cut –c2-5
+The output of the preceding code snippet ( -c2-5 means “extract the characters in col -
+umns 2 through 5 from the variable”) is here:bc d
+Listing 1.1 displays the content of SplitName1.sh  that illustrates how to split a file-
+name containing the “.” character as a delimiter/ IFS.
+16 • Bash for Data Scientists 
+Listing 1.1: SplitName1.sh
+fileName=̎06.22.04p.vp.0.tgz̎
+ f1=̍echo $fileName | cut -d̎.̎ -f1̍f2=̍echo $fileName | cut -d̎.̎ -f2̍f3=̍echo $fileName | cut -d̎.̎ -f3̍
+f4=̍echo $fileName | cut -d̎.̎ -f4̍
+f5=̍echo $fileName | cut -d̎.̎ -f5̍
+f5=̍expr $f5 + 12̍
+ newFileName=̎${f1}.${f2}.${f3}.${f4}.${f5}̎echo ̎newFileName: $newFileName̎
+Listing 1.1 uses the echo command and the cut command to initialize the variables 
+f1, f2, f3, f4, and f5 , after which a new filename is constructed. The output of the 
+preceding shell script is here:newFileName: 06.22.04p.vp.12
+THE echo COMMAND AND WHITESPACES
+The echo command preserves whitespaces in variables, but in some cases, the results 
+might be different than your expectations.
+Listing 1.2 displays the content of EchoCut.sh  that illustrates the differences that can 
+occur when the echo command is used with the cut command.
+Listing 1.2: EchoCut.sh
+x1=̎123   456   789̎x2=̎123 456 789̎echo ̎x1 = $x1̎echo ̎x2 = $x2̎
+x3=̍echo $x1   | cut -c1-7̍
+x4=̍echo ̎$x1̎ | cut -c1-7̍x5=̍echo $x2   | cut -c1-7̍echo ̎x3 = $x3̎echo ̎x4 = $x4̎echo ̎x5 = $x5̎
+Launch the code in Listing 1.1 and you will see the following output:
+x1 = 123   456   789
+x2 = 123 456 789
+x3 = 123 456x4 = 123   4x5 = 123 456
+Introduction  • 17
+The value of x3 is probably different from what you expected: there is only one blank 
+space between 123 and 456 instead of the three blank spaces that appear in the definition 
+of the variable x1.
+This seemingly minor detail is important when you write shell scripts that check 
+the values contained in specific columns of text files, such as payroll files and other 
+files with financial data. The solution involves the use of double quote marks (and 
+sometimes the IFS variable that is discussed in Chapter 2) that you can see in the definition of x4.
+COMMAND SUBSTITUTION (“BACK TICK”)
+The back tick or command substitution feature of the Bourne shell is very powerful and 
+enables you to combine multiple Bash commands. You can also write very compact and 
+powerful (and complicated) shell scripts with command substitution. The syntax is to simply precede and follow your command with a “`” (back tick) character.  In Listing 1.3 below, the 
+command between back ticks is ̍ls *py̍ .
+Listing 1.3 displays the content of CommandSubst.sh  displays a subset of files in a 
+directory.
+Listing 1.3: CommandSubst.sh
+for f in `ls *py`do  echo ̎file is: $f̎done
+Listing 1.2 contains a for loop that displays the filenames (in the current directory) that 
+have a py suffix. The output of Listing 1.2 on my Macbook is here:file is: CapitalizeList.pyfile is: CompareStrings.pyfile is: FixedColumnCount1.pyfile is: FixedColumnWidth1.pyfile is: LongestShortest1.pyfile is: My2DMatrix.pyßfile is: PythonBash.pyfile is: PythonBash2.pyfile is: StringChars1.pyfile is: Triangular1.pyfile is: Triangular2.pyfile is: Zip1.py
+The output depends on whether you have any files with a . py suffix in the directory where 
+you execute CommandSubst.sh. 
+NOTE
+18 • Bash for Data Scientists 
+THE PIPE SYMBOL AND MULTIPLE COMMANDS
+At this point, you’ve seen various combinations of B ash commands that are connected 
+with the “|” symbol. In addition, you can redirect the output to a file. The general form looks 
+something like this:cmd1 | cmd2 | cmd3 …. >mylist
+What happens if there are intermediate errors? You can redirect error messages to /
+dev/null , and you can also redirect error messages to a text file if you want to review them. 
+Yet another option is to redirect stderr  (“standard error”) to stdout  (“standard out”), 
+which is beyond the scope of this chapter. For example, the following command shows you how to redirect errors from the ls command to /dev/null :
+ls /tmp2 2>/dev/null
+An intermediate error can cause an entire “pipeline” to fail. Unfortunately, it’s usually 
+a trial-and-error process to debug long and complex commands that involve multiple pipe 
+symbols.
+Now consider the case where you need to redirect the output of multiple commands to 
+the same location. For example, the following commands display output on the screen:
+ls | sort; echo ̎the contents of /tmp: ̎; ls /tmp
+You can easily redirect the output to the file myfile1.txt  with this command:
+(ls | sort; echo ̎the contents of /tmp:̎; ls /tmp) > myfile1.txt
+However, each of the preceding commands inside the parentheses spawns a subshell 
+(which is an extra process that consumes memory and increases CPU usage, both of which can sometimes be significant). You can avoid spawning subshells by using {} instead of (), 
+as shown here (and the whitespace after { and before } are required):{ ls | sort; echo ̎the contents of /tmp:̎; ls /tmp } > myfile1.txt
+Suppose that you want to set a variable, execute a command, and invoke a second com-
+mand via a pipe, as shown here:name=SMITH cmd1 | cmd2  
+Although cmd2 in the preceding code snippet does not recognize the value of name, 
+there is a simple solution, as shown here:(name=SMITH cmd1) | cmd2
+Use the double ampersand (&&) symbol if you want to execute a command only if a prior 
+command succeeds. For example, the cd command only works if the mkdir command suc -
+ceeds in the following code snippet:mkdir /tmp2/abc && cd /tmp2/abc
+The preceding command will fail because (by default) /tmp2 does not exist. However, 
+the following command succeeds because the –p option ensures that intermediate directo -
+ries are created:mkdir –p /tmp/abc/def && cd /tmp/abc && ls –l
+USING A SEMICOLON TO SEPARATE COMMANDS
+You can combine multiple commands with a semicolon (“;”), as shown here:
+cd /tmp; pwd; cd ~; pwd
+Introduction  • 19
+The preceding code snippet navigates to the /tmp directory, prints the full path to the 
+current directory, returns to the previous directory, and again prints the full path to the cur -
+rent directory. The output of the preceding command is here:
+/tmp/Users/jsmith
+You can use command substitution (discussed in the next section) to assign the output to 
+a variable, as shown here:x=`cd /tmp; pwd; cd ~; pwd`echo $x
+The output of the preceding snippet is here:
+/tmp /Users/jsmith
+THE paste COMMAND
+The paste command is useful when you need to combine two files in a pairwise fashion. 
+For example, Listing 1.4 and Listing 1.5 display the contents of the text files list1 and 
+list2, respectively. You can think of paste as treating the contents of the second file as 
+an additional column for the first file. In our first example, the first file has a list of files to copy, the second file has a list of files that are the destination for the cp command. Paste 
+then merges the two files into output that could then be run to execute all the cp commands 
+sequentially.
+Listing 1.4: list1 
+cp abc.sh  
+cp abc2.shcp abc3.sh
+Listing 1.5: list2
+def.sh  def2.shdef3.sh
+Listing 1.6 display the result of invoking the following command:
+paste list1 list2 >list1.sh
+Listing 1.6: list1.sh
+cp abc.sh    def.sh  cp abc2.sh   def2.shcp abc3.sh   def3.sh
+Listing 1.6 contains three cp commands that are the result of invoking the paste com-
+mand. If you want to execute the commands in Listing 1.6, make this shell script executable 
+and then launch the script, as shown here:
+chmod +x list1.sh./list1.sh
+20 • Bash for Data Scientists 
+Inserting Blank Lines with the paste Command
+Instead of merging two equal length files, paste can also be used to add the same thing 
+to every line in a file. 
+Suppose that the text file names.txt  contains the following lines:
+Jane Smith
+John JonesDave Edwards
+The following command inserts a blank line after every line in names.txt :  
+paste -d̍\n̍ - /dev/null < names.txt
+The output from the preceding command is here:
+Jane Smith
+John JonesDave Edwards
+Insert a blank line after every other line in names.txt  with this command:
+paste -d̍\n̍ - - /dev/null < names.txt
+The output is here:
+Jane Smith
+John JonesDave Edwards
+Insert a blank line after every third line in names.txt  with this command:
+paste -d̍\n̍ - - - /dev/null < names.txt
+The output is here:
+Jane SmithJohn JonesDave Edwards
+There is a blank line after the third line in the2 preceding output. The shell script  
+joinlines.sh (later in this chapter) also contains examples of one-line paste com -
+mands for joining consecutive lines of a dataset or text file.
+A SIMPLE USE CASE WITH THE paste COMMAND
+The code sample in this section shows you how to use the paste command in order to 
+join consecutive rows in a dataset. Listing 1.7 displays the content of linepairs.csv , which 
+contains letter and number pairs, and Listing 1.8 contains reversecolumns.sh,  which 
+illustrates how to match the pairs even though the line breaks are in different places between 
+numbers and letters.NOTE
+Introduction  • 21
+Listing 1.7: linepairs.csv
+a,b,c,d,e,f,g
+h,i,j,k,l1,2,3,4,5,6,7,8,910,11,12
+Listing 1.8: linepairs.sh
+inputfile=̎linepairs.csv̎outputfile=̎linepairsjoined.csv̎
+# join pairs of consecutive lines:
+paste -d ̎ ̎  - - < $inputfile > $outputfile
+# join three consecutive lines:
+#paste -d ̎ ̎  - - - < $inputfile > $outputfile
+# join four consecutive lines:
+#paste -d ̎ ̎  - - - - < $inputfile > $outputfile
+The contents of the output file are shown here (note that the script is just joining pairs of 
+lines, and the three- and four-line command examples are commented out):a,b,c,d,e,f,g h,i,j,k,l1,2,3,4,5,6,7,8,9 10,11,12
+Notice that the preceding output is not completely correct: there is a space “ ” instead of 
+a “,” whenever a pair of lines is joined (between “g” and “h” and “9 and 10”). We can make the necessary revision using the sed command (discussed in Chapter 4):cat $outputfile | sed ̎s/ /,/g̎ > $outputfile2
+Examine the contents of $outputfile  to see the result of the preceding code snippet.
+A SIMPLE USE CASE WITH cut AND paste COMMANDS
+The code sample in this section shows you how to use the cut and paste commands to 
+reverse the order of two columns in a dataset. The purpose of the shell script in Listing 1.10 is to help you get some practice for writing Bash scripts. The better solution involves a single 
+line of code (shown at the end of this section).
+Listing 1.9 displays the content of namepairs.csv  that contains the first name and last 
+name of a set of people, and Listing 1.10 contains reversecolumns.sh , which illustrates 
+how to reverse these two columns.
+22 • Bash for Data Scientists 
+Listing 1.9: namepairs.csv
+Jane,Smith
+Dave,JonesSara,Edwards
+Listing 1.10: reversecolumns.sh
+inputfile=̎namepairs.csv̎outputfile=̎reversenames.csv̎fnames=̎fnames̎lnames=̎lnames̎
+cat $inputfile|cut -d̎,̎ -f1 > $fnames
+cat $inputfile|cut -d̎,̎ -f2 > $lnames
+paste –d̎,̎ $lnames $fnames > $outputfile
+The contents of the output file $outputfile  are shown here:
+Smith,Jane
+Jones,DaveEdwards,Sara
+The code in Listing 1.10 (after removing blank lines) consists of seven lines of code that 
+involves creating two extra intermediate files. Unless you need those files, it’s a good idea to remove those two files (which you can do with one rm command).
+Although Listing 1.10 is straightforward, there is a simpler way to execute this task: use 
+the cat command and the awk command (discussed later). Specifically, compare the con -
+tents of reversecolumns.sh  with the following single line of code that combines the 
+cat command and the awk command to generate the same output:cat namepairs.txt |awk -F̎,̎ ̍{print $2 ̎,̎ $1}̍
+The output from the preceding code snippet is here:
+Smith,JaneJones,DaveEdwards,Sara
+As you can see, there is a big difference in these two solutions. If you are unfamiliar with 
+the awk command, then obviously you would not have thought of the second solution. How-
+ever, the more you learn about Bash commands and how to combine them, the more adept 
+you will become in terms of writing better shell scripts to solve data cleaning tasks. Another important point: document the commands as they become more complex, as they can be hard to interpret later by others (and even by yourself, if enough time has passed). A com-ment such as the following can be extremely helpful to interpreting code: 
+# This command reverses first and last names in namepairs.txt
+cat namepairs.txt |awk -F̎,̎ ̍{print $2 ̎,̎ $1}̍
+Introduction  • 23
+WORKING WITH META CHARACTERS
+Meta characters can be thought of as a complex set of wildcards. Regular expressions are 
+a “search pattern” which are a combination of normal text and meta characters. In concept, 
+it is much like a “find” tool (press ctrl-f  on your search engine), but Bash (and Unix in 
+general) allows for much more complex pattern matching because of its rich meta character 
+set. There are entire books devoted to regular expressions, but this section contains enough 
+information to get started, and the key concepts needed for data manipulation and cleansing.
+The following meta characters are useful with regular expressions:
+• The ? meta character refers to 0 or 1 occurrences of something.
+• The + meta character refers to 1 or more occurrences of something.
+• The * meta character refers to 0 or more occurrences of something.
+“Something” in the preceding descriptions can refer to a digit, letter, word, or more com -
+plex combinations.
+Some examples involving meta characters are shown here:
+The expression a? matches the string a and also the string a followed by a single char -
+acter, such as a1, a2, … , aa, ab, ac, and so forth. However, abc and a12 do not match 
+the expression a?.
+The expression a+ matches the string a followed by one or more characters, such as a1, 
+a2, …, aa, ab, ac, and so forth (but abc and a12 do not match).
+The expression a* matches the string a followed by zero or more characters, such as a, 
+a1, a2, …, aa, ab, ac, and so forth.
+The pipe “|” meta character (which has a different context from the pipe symbol in the 
+command line: regular expressions have their own syntax, which does not match that of the 
+operating system a lot of the time) provides a choice of options. For example, the expression 
+a|b means a or b, and the expression a|b|c means a or b or c.
+The “$” meta character refers to the end of a line of text, and in regular expressions inside 
+the vi editor, the “$” meta character refers to the last line in a file.
+The “^” meta character refers to the beginning of a string or a line of text. For example:
+*a$ matches ̎Mary Anna̎ but not ̎Anna Mary̎^A* matches ̎Anna Mary̎ but not ̎Mary Anna̎
+In the case of regular expressions, the “^” meta character can also mean “does not match.” 
+The next section contains some examples of the “^” meta character.
+WORKING WITH CHARACTER CLASSES
+Character classes enable you to express a range of digits, letters, or a combination of both. 
+For example, the character class [0-9] matches any single digit; [a-z] matches any lower -
+case letter; and [A-Z] matches any uppercase letter. You can also specify subranges of digits 
+or letters, such as [3-7], [g-p] , and [F-X], as well as other combinations:
+• [0-9][0-9] matches a consecutive pair of digits
+• [0-9[0-9][0-9] matches three consecutive digits
+• \d{3} also matches three consecutive digitsNOTE
+24 • Bash for Data Scientists 
+The previous section introduced you to the “^” meta character, and here are some exam-
+ples of using “^” with character classes:

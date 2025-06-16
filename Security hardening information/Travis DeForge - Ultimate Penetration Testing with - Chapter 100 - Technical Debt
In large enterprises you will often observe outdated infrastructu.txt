@@ -1,0 +1,53 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 100 - Technical Debt
+In large enterprises, you will often observe outdated infrastructure and devices. There are a myriad of reasons why this occurs, but most commonly it is because there had been a “if it’s not broken don’t fix it” mentality to funding infrastructure changes by leadership. Many organizations are now starting to prioritize security as not only a business necessity but also as a key market differentiator to make their offering more appealing to consumers. However, this was not always the case. In many industries, the focus was on profit and revenue growth rather than ensuring systems are kept modern and serviceable. This has resulted in many organizations having extremely out-of-date systems and software in production environments as the funding has just not been allocated to replace them.
+Example 1:
+Server infrastructure and industrial control devices are typically outdated more often than things like employee workstations in enterprise environments. These devices tend to be far more expensive to replace and have a longer lifetime, which makes them somewhat easier to forget about in the technology refresh cycle. Nmap has many scripts that are excellent at fingerprinting server infrastructure to identify if they are end-of-life or vulnerable to a specific exploit. Some of the most helpful are:
+Security Relevance Score: 9
+Word Count: 661
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Technical Debt
+In large enterprises, you will often observe outdated infrastructure and devices. There are a myriad of reasons why this occurs, but most commonly it is because there had been a “if it’s not broken don’t fix it” mentality to funding infrastructure changes by leadership. Many organizations are now starting to prioritize security as not only a business necessity but also as a key market differentiator to make their offering more appealing to consumers. However, this was not always the case. In many industries, the focus was on profit and revenue growth rather than ensuring systems are kept modern and serviceable. This has resulted in many organizations having extremely out-of-date systems and software in production environments as the funding has just not been allocated to replace them.
+Example 1:
+Server infrastructure and industrial control devices are typically outdated more often than things like employee workstations in enterprise environments. These devices tend to be far more expensive to replace and have a longer lifetime, which makes them somewhat easier to forget about in the technology refresh cycle. Nmap has many scripts that are excellent at fingerprinting server infrastructure to identify if they are end-of-life or vulnerable to a specific exploit. Some of the most helpful are:
+
+
+
+Ms-sql-info.nse
+
+
+Rdp-vuln-ms12-020.nse
+
+
+
+
+Rdp-ntlm-info.nse
+
+
+Realvnc-auth-bypass.nse
+
+
+
+
+Smb-os-discovery.nse
+
+
+Rmi-dumpregistry.nse
+
+
+
+These are just a small example of scripts that are available for fingerprinting potentially outdated systems (left-hand column), pinpointing specific vulnerabilities, and even exploiting them (right-hand column).
+Example 2:
+Common software that is seen out of date is Jenkins, which in older versions is absolutely riddled with vulnerabilities ripe for exploitation. Jenkins is often used in the CI/CD process, but without integrations with third-party applications, it does not have a lot of security controls built in. There are two ways you can easily identify instances of Jenkins on the network.
+First, the fact that by default Jenkins hosts a web interface on port 8080 would enable you to simply search for open ports 8080 across the scope. Depending on the number of results, you could either manually check them in a web browser, or use a screenshotting tool like EyeWitness to speed up the process.
+Alternatively, you can use a broadcast script built into Nmap called broadcast-jenkins-discover. As a broadcast script, this command does not need to be provided with a specific host or target list to run. However, it does tend to get hung up on a larger environment, so it is recommended to add an additional timeout setting with the –script-args timeout= command. This setting will essentially tell Nmap “if there is no response in X amount of time, move on”:
+Nmap --script broadcast-jenkins-discover --script-args timeout=15s
+Once you identify the interface for Jenkins, you can version the portal by triggering an error message when you navigate to a URL that does not exist, such as /error. If the version is particularly old (prior to v2.150.1), there are particularly grave exploits and multiple Metasploit modules associated with it that likely should be reported to the client immediately.
+Vulnerability Scanning with Nmap
+Nmap is not a replacement for a quality commercial vulnerability scanner. Tools such as Coda, Nessus, Netsparker and others are specifically designed to detect and report vulnerabilities. Even open-source options such as the trail version of OpenVas (https://openvas.org/) are better equipped to provide insight as long-term capable vulnerability scanning solutions.
+However, there may be instances where you do not have the luxury of installing additional tools in a client environment or are simply trying to remain undetected as you conduct vulnerability scanning. In these instances, kaliusing Nmap with some tailored NSE scripts may be the right move.
+As we discussed, several NSE scripts relate directly to vulnerability scanning such as vulners.nse and smb-vuln-*. However, what makes these scripts even more powerful as a vulnerability scanning option is the ability to combine them with additional flags. While we have not touched on the obfuscation techniques that would been commonly leveraged in red teaming (that will be covered in

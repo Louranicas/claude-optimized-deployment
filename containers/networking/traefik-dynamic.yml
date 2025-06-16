@@ -1,0 +1,245 @@
+# Traefik Dynamic Configuration
+# Security middleware and TLS options
+
+http:
+  middlewares:
+    # Security headers
+    security-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+        accessControlAllowOriginList:
+          - "https://localhost"
+          - "https://127.0.0.1"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        frameDeny: true
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        referrerPolicy: "same-origin"
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+          server: ""
+
+    # Rate limiting
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+        period: 1m
+        sourceCriterion:
+          ipStrategy:
+            depth: 1
+
+    # Authentication rate limiting (stricter)
+    auth-rate-limit:
+      rateLimit:
+        burst: 5
+        average: 2
+        period: 1m
+        sourceCriterion:
+          ipStrategy:
+            depth: 1
+
+    # Circuit breaker
+    circuit-breaker:
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.3 || ResponseCodeRatio(500, 600, 0, 600) > 0.3"
+        checkPeriod: 10s
+        fallbackDuration: 30s
+        recoveryDuration: 10s
+
+    # Retry middleware
+    retry:
+      retry:
+        attempts: 3
+        initialInterval: 100ms
+
+    # Compression
+    compression:
+      compress:
+        excludedContentTypes:
+          - "text/event-stream"
+
+    # IP allowlist for admin endpoints
+    admin-auth:
+      ipAllowList:
+        sourceRange:
+          - "127.0.0.1/32"
+          - "172.18.0.0/16"
+          - "172.19.0.0/16"
+
+    # Fail2ban (if plugin is available)
+    fail2ban:
+      plugin:
+        fail2ban:
+          rules:
+            bantime: "300s"
+            findtime: "120s"
+            maxretry: 4
+            enabled: true
+            logLevel: INFO
+
+    # Request size limit
+    request-limit:
+      buffering:
+        maxRequestBodyBytes: 10485760  # 10MB
+        memRequestBodyBytes: 2097152   # 2MB
+        retryExpression: "IsNetworkError() && Attempts() < 2"
+
+  # Services configuration
+  services:
+    # Python API service
+    python-api:
+      loadBalancer:
+        servers:
+          - url: "http://claude-api-prod:8000"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+          timeout: "5s"
+          scheme: "http"
+        sticky:
+          cookie:
+            name: "claude-session"
+            secure: true
+            httpOnly: true
+
+    # Rust service
+    rust-service:
+      loadBalancer:
+        servers:
+          - url: "http://claude-rust-prod:8000"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+          timeout: "5s"
+          scheme: "http"
+
+    # Monitoring services
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://claude-prometheus-prod:9090"
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://claude-grafana-prod:3000"
+
+  # Routers configuration
+  routers:
+    # API routes
+    api-router:
+      rule: "Host(`api.localhost`) || PathPrefix(`/api/`)"
+      service: "python-api"
+      middlewares:
+        - "security-headers"
+        - "rate-limit"
+        - "compression"
+        - "circuit-breaker"
+        - "retry"
+      tls:
+        certResolver: "letsencrypt"
+
+    # Rust service routes
+    rust-router:
+      rule: "PathPrefix(`/rust/`)"
+      service: "rust-service"
+      middlewares:
+        - "security-headers"
+        - "rate-limit"
+        - "compression"
+        - "circuit-breaker"
+      tls:
+        certResolver: "letsencrypt"
+
+    # Authentication routes (stricter rate limiting)
+    auth-router:
+      rule: "PathPrefix(`/auth/`) || PathPrefix(`/login/`) || PathPrefix(`/register/`)"
+      service: "python-api"
+      middlewares:
+        - "security-headers"
+        - "auth-rate-limit"
+        - "fail2ban"
+        - "request-limit"
+      tls:
+        certResolver: "letsencrypt"
+
+    # Admin/monitoring routes
+    prometheus-router:
+      rule: "Host(`prometheus.localhost`)"
+      service: "prometheus"
+      middlewares:
+        - "admin-auth"
+        - "security-headers"
+      tls:
+        certResolver: "letsencrypt"
+
+    grafana-router:
+      rule: "Host(`grafana.localhost`)"
+      service: "grafana"
+      middlewares:
+        - "admin-auth"
+        - "security-headers"
+      tls:
+        certResolver: "letsencrypt"
+
+    # Dashboard (admin only)
+    dashboard:
+      rule: "Host(`traefik.localhost`)"
+      service: "api@internal"
+      middlewares:
+        - "admin-auth"
+        - "security-headers"
+      tls:
+        certResolver: "letsencrypt"
+
+# TLS configuration
+tls:
+  options:
+    default:
+      sslStrategies:
+        - "tls.SniStrict"
+      minVersion: "VersionTLS12"
+      cipherSuites:
+        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
+      curvePreferences:
+        - "CurveP521"
+        - "CurveP384"
+      alpnProtocols:
+        - "h2"
+        - "http/1.1"
+
+# TCP routers for non-HTTP services
+tcp:
+  routers:
+    postgres-router:
+      rule: "HostSNI(`*`)"
+      service: "postgres"
+      entryPoints:
+        - "postgres"
+      tls:
+        passthrough: true
+
+  services:
+    postgres:
+      loadBalancer:
+        servers:
+          - address: "claude-postgres-prod:5432"

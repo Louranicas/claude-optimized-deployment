@@ -1,0 +1,527 @@
+# Comprehensive Monitoring and Alerting Configuration for MCP Production
+# Prometheus, Grafana, and AlertManager setup optimized for MCP servers
+
+---
+# ServiceMonitor for Prometheus to scrape MCP metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mcp-servers-metrics
+  namespace: mcp-production
+  labels:
+    app: mcp-servers
+    component: monitoring
+    tier: observability
+spec:
+  selector:
+    matchLabels:
+      component: security
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+    honorLabels: true
+  - port: metrics
+    interval: 30s
+    path: /health
+    honorLabels: true
+  namespaceSelector:
+    matchNames:
+    - mcp-production
+
+---
+# ServiceMonitor for Storage Servers
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mcp-storage-metrics
+  namespace: mcp-production
+  labels:
+    app: mcp-storage
+    component: monitoring
+    tier: observability
+spec:
+  selector:
+    matchLabels:
+      component: storage
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
+    honorLabels: true
+  namespaceSelector:
+    matchNames:
+    - mcp-production
+
+---
+# ServiceMonitor for Communication Servers
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mcp-communication-metrics
+  namespace: mcp-production
+  labels:
+    app: mcp-communication
+    component: monitoring
+    tier: observability
+spec:
+  selector:
+    matchLabels:
+      component: communication
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
+    honorLabels: true
+  namespaceSelector:
+    matchNames:
+    - mcp-production
+
+---
+# ServiceMonitor for TypeScript Performance Server
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mcp-typescript-metrics
+  namespace: mcp-production
+  labels:
+    app: mcp-typescript
+    component: monitoring
+    tier: observability
+spec:
+  selector:
+    matchLabels:
+      component: core
+      tier: performance
+  endpoints:
+  - port: metrics
+    interval: 10s  # High-frequency monitoring for performance tier
+    path: /metrics
+    honorLabels: true
+  namespaceSelector:
+    matchNames:
+    - mcp-production
+
+---
+# PrometheusRule for MCP-specific alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: mcp-production-alerts
+  namespace: mcp-production
+  labels:
+    app: mcp-servers
+    component: alerting
+    tier: observability
+spec:
+  groups:
+  - name: mcp.performance.rules
+    interval: 30s
+    rules:
+    # High CPU usage alert
+    - alert: MCPHighCPUUsage
+      expr: rate(container_cpu_usage_seconds_total{namespace="mcp-production"}[5m]) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        component: performance
+      annotations:
+        summary: "MCP server {{ $labels.pod }} has high CPU usage"
+        description: "CPU usage is {{ $value }}% for pod {{ $labels.pod }} in namespace {{ $labels.namespace }}"
+    
+    # High memory usage alert
+    - alert: MCPHighMemoryUsage
+      expr: (container_memory_usage_bytes{namespace="mcp-production"} / container_spec_memory_limit_bytes{namespace="mcp-production"}) * 100 > 85
+      for: 3m
+      labels:
+        severity: warning
+        component: performance
+      annotations:
+        summary: "MCP server {{ $labels.pod }} has high memory usage"
+        description: "Memory usage is {{ $value }}% for pod {{ $labels.pod }}"
+    
+    # Pod restart alert
+    - alert: MCPPodRestarting
+      expr: rate(kube_pod_container_status_restarts_total{namespace="mcp-production"}[15m]) > 0
+      for: 0m
+      labels:
+        severity: warning
+        component: availability
+      annotations:
+        summary: "MCP pod {{ $labels.pod }} is restarting"
+        description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+    
+    # Service availability alert
+    - alert: MCPServiceDown
+      expr: up{namespace="mcp-production"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        component: availability
+      annotations:
+        summary: "MCP service {{ $labels.job }} is down"
+        description: "Service {{ $labels.job }} has been down for more than 2 minutes"
+
+  - name: mcp.security.rules
+    interval: 60s
+    rules:
+    # Security scan failure rate
+    - alert: MCPSecurityScanFailureRate
+      expr: rate(mcp_security_scan_failures_total[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+        component: security
+      annotations:
+        summary: "High security scan failure rate detected"
+        description: "Security scan failure rate is {{ $value }} failures per second"
+    
+    # Suspicious activity detection
+    - alert: MCPSuspiciousActivity
+      expr: rate(mcp_security_alerts_total[5m]) > 5
+      for: 1m
+      labels:
+        severity: critical
+        component: security
+      annotations:
+        summary: "Suspicious activity detected in MCP servers"
+        description: "{{ $value }} security alerts per second detected"
+
+  - name: mcp.storage.rules
+    interval: 30s
+    rules:
+    # Storage operation failure rate
+    - alert: MCPStorageFailureRate
+      expr: rate(mcp_storage_operation_failures_total[5m]) / rate(mcp_storage_operations_total[5m]) > 0.05
+      for: 3m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "High storage operation failure rate"
+        description: "Storage failure rate is {{ $value | humanizePercentage }}"
+    
+    # High storage latency
+    - alert: MCPStorageHighLatency
+      expr: histogram_quantile(0.95, rate(mcp_storage_operation_duration_seconds_bucket[5m])) > 5
+      for: 2m
+      labels:
+        severity: warning
+        component: storage
+      annotations:
+        summary: "High storage operation latency"
+        description: "95th percentile latency is {{ $value }}s"
+
+  - name: mcp.communication.rules
+    interval: 30s
+    rules:
+    # Message delivery failure rate
+    - alert: MCPMessageDeliveryFailure
+      expr: rate(mcp_message_delivery_failures_total[5m]) / rate(mcp_messages_total[5m]) > 0.02
+      for: 2m
+      labels:
+        severity: warning
+        component: communication
+      annotations:
+        summary: "High message delivery failure rate"
+        description: "Message delivery failure rate is {{ $value | humanizePercentage }}"
+    
+    # Queue backlog alert
+    - alert: MCPMessageQueueBacklog
+      expr: mcp_message_queue_length > 1000
+      for: 5m
+      labels:
+        severity: warning
+        component: communication
+      annotations:
+        summary: "Large message queue backlog"
+        description: "Message queue has {{ $value }} pending messages"
+
+---
+# ConfigMap for Grafana dashboards
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-grafana-dashboards
+  namespace: mcp-production
+  labels:
+    app: grafana
+    component: monitoring
+    tier: observability
+data:
+  mcp-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "MCP Production Overview",
+        "tags": ["mcp", "production"],
+        "style": "dark",
+        "timezone": "browser",
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "MCP Server Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{namespace=\"mcp-production\"}",
+                "legendFormat": "{{ job }}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "green", "value": 1}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "CPU Usage by Server",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{namespace=\"mcp-production\"}[5m]) * 100",
+                "legendFormat": "{{ pod }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Memory Usage by Server",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "container_memory_usage_bytes{namespace=\"mcp-production\"} / 1024 / 1024",
+                "legendFormat": "{{ pod }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Request Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(mcp_requests_total{namespace=\"mcp-production\"}[5m])",
+                "legendFormat": "{{ service }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          }
+        ]
+      }
+    }
+
+  mcp-security.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "MCP Security Dashboard",
+        "tags": ["mcp", "security"],
+        "style": "dark",
+        "timezone": "browser",
+        "refresh": "15s",
+        "time": {
+          "from": "now-30m",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Security Scans Completed",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "increase(mcp_security_scans_total[1h])",
+                "legendFormat": "Total Scans"
+              }
+            ],
+            "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Vulnerabilities Detected",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "mcp_vulnerabilities_detected_total",
+                "legendFormat": "{{ severity }}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": 0},
+                    {"color": "yellow", "value": 1},
+                    {"color": "red", "value": 10}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 6, "w": 8, "x": 8, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Security Scan Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(mcp_security_scans_total[5m])",
+                "legendFormat": "{{ scanner }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 6}
+          }
+        ]
+      }
+    }
+
+---
+# ConfigMap for AlertManager configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-alertmanager-config
+  namespace: mcp-production
+  labels:
+    app: alertmanager
+    component: monitoring
+    tier: observability
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'localhost:587'
+      smtp_from: 'alerts@mcp-production.local'
+    
+    route:
+      group_by: ['alertname', 'component']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'default'
+      routes:
+      - match:
+          severity: critical
+        receiver: 'critical-alerts'
+      - match:
+          component: security
+        receiver: 'security-team'
+      - match:
+          component: performance
+        receiver: 'performance-team'
+    
+    receivers:
+    - name: 'default'
+      webhook_configs:
+      - url: 'http://mcp-slack-notifications-service:3000/webhook/alerts'
+        send_resolved: true
+    
+    - name: 'critical-alerts'
+      webhook_configs:
+      - url: 'http://mcp-slack-notifications-service:3000/webhook/critical'
+        send_resolved: true
+      - url: 'http://mcp-communication-hub-service:3000/alert/critical'
+        send_resolved: true
+    
+    - name: 'security-team'
+      webhook_configs:
+      - url: 'http://mcp-slack-notifications-service:3000/webhook/security'
+        send_resolved: true
+      - url: 'http://mcp-security-scanner-service:3000/alert/internal'
+        send_resolved: true
+    
+    - name: 'performance-team'
+      webhook_configs:
+      - url: 'http://mcp-typescript-service:3000/alert/performance'
+        send_resolved: true
+    
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'warning'
+      equal: ['alertname', 'component']
+
+---
+# Secret for monitoring credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mcp-monitoring-credentials
+  namespace: mcp-production
+  labels:
+    app: monitoring
+    component: security
+type: Opaque
+data:
+  # Base64 encoded credentials - these should be replaced with actual values
+  grafana-admin-password: YWRtaW4xMjM=  # admin123
+  prometheus-password: cHJvbWV0aGV1czEyMw==  # prometheus123
+  alertmanager-password: YWxlcnRtYW5hZ2VyMTIz  # alertmanager123
+
+---
+# NetworkPolicy for monitoring namespace access
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mcp-monitoring-network-policy
+  namespace: mcp-production
+  labels:
+    component: security
+    tier: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow access from Grafana
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app: grafana
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  # Allow access from AlertManager
+  - from:
+    - podSelector:
+        matchLabels:
+          app: alertmanager
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  egress:
+  # Allow scraping metrics from MCP servers
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53

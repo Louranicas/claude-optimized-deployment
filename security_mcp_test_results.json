@@ -1,0 +1,221 @@
+{
+  "timestamp": "2025-06-07T11:22:10.267858",
+  "servers": {
+    "SecurityScannerMCPServer": {
+      "server": "SecurityScannerMCPServer",
+      "tools_tested": {
+        "npm_audit": {
+          "status": "success",
+          "vulnerabilities_found": 0,
+          "execution_time": 0.007077455520629883
+        },
+        "python_safety_check": {
+          "status": "success",
+          "issues_found": 3,
+          "execution_time": 0.005674123764038086
+        },
+        "docker_security_scan": {
+          "status": "success",
+          "compliance_issues": 1,
+          "execution_time": 0.06692838668823242
+        },
+        "file_security_scan": {
+          "status": "success",
+          "total_findings": 6,
+          "secrets_found": 0,
+          "vulnerabilities_found": 6,
+          "execution_time": 0.0012073516845703125
+        },
+        "credential_scan": {
+          "status": "success",
+          "credentials_found": 1,
+          "high_entropy_strings": 1,
+          "execution_time": 0.4321126937866211
+        }
+      },
+      "performance": {
+        "rate_limiting": {
+          "total_attempts": 150,
+          "successful_calls": 0,
+          "rate_limited_calls": 51,
+          "test_duration": 0.0016224384307861328,
+          "rate_limit_working": true
+        },
+        "circuit_breaker": {
+          "failures_before_open": 1,
+          "circuit_opened": true,
+          "test_passed": true
+        }
+      },
+      "security_validation": [
+        {
+          "test": "path_traversal",
+          "status": "passed"
+        },
+        {
+          "test": "command_injection",
+          "status": "passed"
+        },
+        {
+          "test": "large_file_handling",
+          "status": "passed"
+        }
+      ],
+      "stress_test": {
+        "concurrent_operations": 20,
+        "completed": 10,
+        "failed": 10,
+        "total_time": 0.003495454788208008,
+        "avg_time_per_operation": 0.00017477273941040038
+      },
+      "issues": []
+    },
+    "SASTMCPServer": {
+      "server": "SASTMCPServer",
+      "tools_tested": {
+        "run_semgrep_scan": {
+          "status": "success",
+          "findings": 2,
+          "stats": {
+            "total": 2,
+            "by_severity": {
+              "ERROR": 1,
+              "WARNING": 1
+            },
+            "by_rule": {
+              "python.flask.security.insecure-deserialization.insecure-deserialization": 1,
+              "python.lang.security.deserialization.pickle.avoid-pickle": 1
+            }
+          },
+          "execution_time": 2.6095614433288574
+        },
+        "analyze_code_patterns": {
+          "status": "success",
+          "findings": 4,
+          "stats": {
+            "total_findings": 4,
+            "by_type": {
+              "sql_injection": 1,
+              "command_injection": 1,
+              "weak_crypto": 2
+            }
+          },
+          "execution_time": 0.0006475448608398438
+        },
+        "run_bandit_scan": {
+          "status": "success",
+          "findings": 0,
+          "metrics": {},
+          "execution_time": 0.10310912132263184
+        },
+        "detect_hardcoded_secrets": {
+          "status": "success",
+          "findings": 0,
+          "stats": {
+            "total_findings": 0,
+            "by_tool": {},
+            "by_type": {}
+          },
+          "execution_time": 0.0008454322814941406
+        },
+        "analyze_dependencies": {
+          "status": "success",
+          "vulnerabilities": 0,
+          "license_issues": 0,
+          "risk_assessment": {
+            "total_issues": 0,
+            "risk_level": "LOW",
+            "recommendations": []
+          },
+          "execution_time": 0.5307950973510742
+        }
+      },
+      "performance": {
+        "large_file_handling": {
+          "status": "success",
+          "file_size": 2987808,
+          "findings": 10002,
+          "execution_time": 4.195108652114868
+        }
+      },
+      "security_validation": {},
+      "stress_test": {
+        "concurrent_operations": 10,
+        "completed": 10,
+        "failed": 0,
+        "total_time": 0.09258699417114258
+      },
+      "issues": []
+    },
+    "SupplyChainSecurityMCPServer": {
+      "server": "SupplyChainSecurityMCPServer",
+      "tools_tested": {
+        "generate_sbom": {
+          "status": "success",
+          "total_packages": 5,
+          "sbom_generated": true,
+          "execution_time": 0.13969731330871582
+        },
+        "detect_dependency_confusion": {
+          "status": "success",
+          "typosquatting": 0,
+          "malicious_packages": 1,
+          "risk_level": "CRITICAL",
+          "execution_time": 0.0002989768981933594
+        },
+        "analyze_license_compliance": {
+          "status": "success",
+          "violations": 0,
+          "compliance_status": {
+            "compliant": true,
+            "total_packages": 5,
+            "violations_count": 0,
+            "unknown_count": 5,
+            "risk_level": "MEDIUM"
+          },
+          "execution_time": 2.3365020751953125e-05
+        },
+        "verify_package_integrity": {
+          "status": "success",
+          "integrity_score": 100.0,
+          "verified_count": 1,
+          "execution_time": 6.961822509765625e-05
+        },
+        "analyze_transitive_dependencies": {
+          "status": "success",
+          "circular_dependencies": 0,
+          "deep_dependencies": 0,
+          "max_depth_found": 1,
+          "execution_time": 6.341934204101562e-05
+        },
+        "assess_supply_chain_risk": {
+          "status": "success",
+          "overall_risk_score": 65.0,
+          "risk_level": "HIGH",
+          "critical_risks": 0,
+          "execution_time": 0.00010323524475097656
+        }
+      },
+      "performance": {
+        "cache_effectiveness": {
+          "first_call_time": 0.13846302032470703,
+          "cached_call_time": 0.14098405838012695,
+          "cache_speedup": 0.9821182757512725,
+          "cache_working": false
+        }
+      },
+      "security_validation": {},
+      "stress_test": {
+        "concurrent_sbom_generation": 6,
+        "completed": 4,
+        "failed": 2,
+        "total_time": 129.86663150787354
+      },
+      "issues": []
+    }
+  },
+  "performance_metrics": {},
+  "security_validation": {},
+  "stress_test_results": {},
+  "issues_found": []
+}

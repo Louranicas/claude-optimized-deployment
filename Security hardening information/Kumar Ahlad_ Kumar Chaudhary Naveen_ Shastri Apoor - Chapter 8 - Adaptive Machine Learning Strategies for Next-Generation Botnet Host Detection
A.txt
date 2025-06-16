@@ -1,0 +1,101 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 8 - Adaptive Machine Learning Strategies for Next-Generation Botnet Host Detection
+Aniket Jhariya, Dhvani Parekh, Anurag Mogal, Joshua Lobo and Mangal Singh
+DOI: 10.1201/9781032714813-8
+Security Relevance Score: 8
+Word Count: 1659
+Extracted: 2025-06-13 23:40:52
+
+---
+
+Adaptive Machine Learning Strategies for Next-Generation Botnet Host Detection
+Aniket Jhariya, Dhvani Parekh, Anurag Mogal, Joshua Lobo and Mangal Singh
+DOI: 10.1201/9781032714813-8
+
+
+8.1 Introduction
+The Internet of Things’ (IoT) explosive growth has changed the technical landscape by making it possible for a vast range of devices to connect and communicate with each other over the internet. But this rapid expansion has also brought forth serious weaknesses, especially in the area of cybersecurity. The most dangerous of them are botnets, which are hostile actor-controlled networks of infected devices. Large-scale attacks like Distributed Denial of Service (DDoS), data theft, and virus distribution can be carried out by these botnets, jeopardizing the security of individuals and organizations alike. Especially in IoT environments, traditional cybersecurity solutions frequently fail to identify and neutralize these attacks. The diverse and resource-constrained nature of IoT devices, which restricts the applicability of traditional security procedures, is mostly to blame for this deficiency. New research has brought attention to the need for more advanced and flexible detection systems. While [1] highlighted the potential of machine learning (ML) in addressing these challenges through anomaly detection and behavior analysis, [2] illustrated the shortcomings of signature-based detection methods in handling the dynamic and evolving nature of modern botnets.
+Despite the potential of ML, current methods frequently have problems with scalability, have high false positive rates, and are difficult to interpret, especially when used with large and varied datasets produced by IoT devices. Puri et al. [3] also point out that there is a significant void in the literature about the standardization of evaluation measures for these detection systems. These difficulties highlight the need for creative methods that improve detection precision while simultaneously guaranteeing that the solutions are interpretable, scalable, and able to function within the resource limitations that are characteristic of IoT contexts. By putting forth a sophisticated ML-based methodology for botnet host detection in IoT networks, this article seeks to close these gaps. Our method combines a balanced dataset to minimize biases in model training with dimensionality reduction approaches to manage high-dimensional data. We show that our strategy is efficient in increasing detection rates while keeping low false positive rates through extensive trials and evaluations. In addition, we investigate how scalable our method is in various network contexts, making a valuable contribution to the field of IoT security by providing a solid, dependable, and easily comprehensible resolution to the botnet identification issue. We aim to provide cybersecurity experts and researchers with the knowledge and tools necessary to counter these threats successfully and effectively, protecting the IoT’s future from the specter of botnet attacks through our meticulous analysis and original contributions.
+
+
+TABLE 8.1 Summary of Related Work for Botnet Host Detection Systems
+
+
+Authors
+Approach
+Metrics
+Features
+Contribution
+
+
+
+
+Hezam et al. [1]
+BiLSTM-CNN model for DDoS botnet attack detection in IoT networks
+High accuracy (89.79%)
+N-BaloT and IoT-23 datasets
+Proposes a model for enhancing detection of DDoS botnet attacks using DL, highlights need for realistic datasets and DL’s potential in IoT cybersecurity
+
+
+Moorthy et al. [2]
+AI for botnet malware detection from network flows
+High accuracy (92%)
+CTU-13, ISOT datasets
+Focuses on using AI for botnet malware detection, achieves high accuracy using decision tree model
+
+
+Puri et al. [3]
+AI-based botnet attack classification and detection in IoT devices using ML and DL algorithms
+Enhanced IoT security
+Real-world data from various IoT devices
+Explores AI-based botnet attack classification and detection in IoT devices, including API implementation, offers adaptability to evolving IoT devices and enhanced IoT security
+
+
+Suryotrisongko et al. [4]
+Model for detecting malicious botnet DGA traffic using statistical features
+Model effectiveness, robustness
+Datasets covering 55 DGA families
+Investigates malicious botnet DGA traffic, proposes model for detecting DGA-based traffic, discusses expanding cyber threat intelligence and enhancing model explainability through blending XAI and OSINT
+
+
+Macas et al. [5]
+Survey on DL applications in cybersecurity
+Comprehensive overview
+Applications of DL in cybersecurity, automated attack detection, tackling complex security problems
+Explores applications of DL in cybersecurity, identifies limitations, challenges, and outlines future research directions
+
+
+Senthil et al. [6]
+JBiRSA model for IoT botnet attack detection combining Bi-model RNN with Spatial Attention and GAN
+High accuracy (98.75%)
+N-BaIoT, IoT-23 datasets
+Proposes JBiRSA for IoT botnet attack detection, achieves high accuracy, addresses class imbalance, innovative GAN approach, potential for real-world implementation and exploration of scalability and efficiency.
+
+
+Hezam et al. [7]
+DL solution for IoT-based DDoS attacks using RNN, CNN, LSTM-RNN
+Addresses IoT-based DDoS attacks
+N-BaIoT dataset
+Proposes DL solution for IoT-based DDoS attacks, uses RNN, CNN, LSTM-RNN, tested on N-BaIoT dataset, addresses real-world data and DL comparison
+
+
+Dong et al. [8]
+”BotDetector,” a botnet detection model based on extreme learning machines for real-time IoT environments
+Accurate botnet identification, resource- efficient
+Real-time IoT environments
+Presents BotDetector, a botnet detection model based on extreme learning machines for real-time IoT environments, demonstrates accurate botnet identification and applicability in IoT scenarios.
+
+
+
+
+
+
+8.2 Background Work
+In recent years, the proliferation of botnets in IoT environments has spurred research efforts towards enhancing detection mechanisms. Hezam et al. [1] proposed a deep learning (DL) model, BiLSTMCNN, specifically tailored for detecting DDoS botnet attacks in IoT networks. Their model, trained on the N-BaloT and IoT-23 datasets, achieved an accuracy of 89.79%, outperforming other methods and highlighting the potential of DL in bolstering IoT cybersecurity. Building on this work, Moorthy et al. [2] delved into the application of artificial intelligence (AI) in detecting botnet malware from network flows, achieving a remarkable 92% accuracy using the CTU13 and ISOT datasets. However, they noted challenges in building a real-time alerting system for malware detection. Dong et al. [8] developed “Botdetector,” an extreme learning machine-based IoT botnet detection model, focusing on leveraging ML techniques to identify and mitigate botnet threats in IoT environments, providing a complementary perspective to the DL approach proposed by Hezam et al. [1] Puri et al. [3] extended the scope to AI-based botnet attack classification and detection in IoT devices, leveraging ML and DL algorithms. Their study emphasized the significance of real-world data collection from diverse IoT devices to enhance IoT security. Similarly, Suryotrisongko et al. [4] contributed by focusing on the robust detection of malicious botnet domain generation algorithm (DGA) traffic using explainable AI (XAI) and open-source intelligence (OSINT) for cyber threat intelligence sharing. Their model effectively detected DGA-based traffic across 55 DGA families, demonstrating its effectiveness and improved robustness. Additionally, Almuhaideb and Alynanbaawi [9] conducted a survey on the applications of AI to detect Android botnets, addressing the specific challenges posed by mobile devices in botnet detection. Their survey highlighted the diverse range of AI techniques being employed to detect and mitigate botnet threats in the Android ecosystem, offering valuable insights into the evolving landscape of mobile botnet detection. Alongside these efforts, Vormayr, Zseby, and Fabini [10] provided insights into botnet communication patterns, which are crucial for designing effective detection systems. Their study emphasized the complex nature of botnet operations and the need for advanced detection mechanisms. While their work lacked a specific dataset, it identified research gaps and suggested opportunities for further exploration in botnet DGA detection. In parallel, Macas et al. [5] conducted a comprehensive survey on the applications of DL in cybersecurity. Their survey shed light on various DL architectures, emerging trends, and resources in the field. It also highlighted the increasing volume of data and emerging attack strategies, identifying limitations and challenges associated with the implementation of DL in cybersecurity. The integration of AI techniques for botnet detection and the analysis of botnet communication patterns represents a significant advancement in IoT cybersecurity. These efforts contribute to the development of more robust and effective strategies for detecting and mitigating the threat of botnets in IoT environments. Future research in this area could focus on refining AI models for botnet detection, improving the accuracy of communication pattern analysis, and exploring new threats to further enhance the security of IoT networks
+
+
+8.3 Methodology
+
+8.3.1 Machine Learning Classification
+In this study, the analysis is conducted on the CICIDS2017 dataset, focusing on various network traffic scenarios to enhance botnet host detection techniques. To prepare the dataset for analysis, extensive data preprocessing steps were applied. Initially, a data frame-based architecture was used, and display options were configured to ensure comprehensive visibility of the dataset content. Subsequently, eight distinct divisions representing different network traffic instances were imported into the study. These divisions encompassed diverse attack types, including DDoS attacks, port scans, infiltration attempts, and web attacks, occurring during different days and times of the week. These individual divisions were loaded into separate data frames representing specific attack scenarios. The data frames serve as the foundation for subsequent analysis, allowing for a detailed exploration of network traffic patterns and facilitating the development of advanced botnet host detection mechanisms. To create a comprehensive dataset for analysis, individual data frames representing different attack scenarios were concatenated sequentially, ensuring a unified dataset. Subsequently, redundant data frames were removed. The resulting combined data frame, contained nRow rows and nCol columns, reflecting the consolidated network traffic data for in-depth analysis. The dataset was preprocessed to enable ML analysis. In the initial preprocessing tasks, label encoding was applied using a transformer-based function transforming categorical fields into numerical values. The dataset was then split into features (X) and fields (y). To ensure balanced training data, a stratified train test split was performed (80% training and 20% testing) using a random state articulation. Additionally, the imbalanced class distribution was addressed using the Synthetic Minority Over-sampling Technique (SMOTE) and Random Under Sampler. Specifically, SMOTE was applied to augment minority classes such as “DoS Hulk,” “DDoS,” and “PortScan,” while RandomUnderSampler was used to reduce the majority classes. Sampling strategies were set for each class, ensuring a more equitable representation of classes in the dataset, vital for robust ML model training and evaluation. The imbalanced dataset was addressed using a combination of over-sampling and under-sampling techniques to improve the training data’s class distribution. The under-sampling technique was applied to the majority class “BENIGN” to reduce its instances to 500,

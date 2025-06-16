@@ -208,69 +208,122 @@ class MCPDeploymentAutomation:
         return preparation_results
     
     async def execute_deployment_workflow(self) -> Dict[str, Any]:
-        """Execute automated deployment workflow."""
+        """Execute automated deployment workflow with deploy-code integration."""
         print("\n🚀 Executing Deployment Workflow...")
         
         deployment_results = {}
         
         try:
-            # Step 1: Build application (if Dockerfile exists)
-            if Path("Dockerfile").exists():
-                print("  🔨 Building Docker image...")
-                build_result = await self.mcp_manager.call_tool(
-                    "docker.docker_build",
+            # Step 1: Check for deploy-code configuration
+            config_files = [
+                "examples/deploy-code-configs/minimal.yaml",
+                "examples/deploy-code-configs/development.yaml",
+                "examples/deploy-code-configs/production.yaml",
+                "deploy-code.yaml"
+            ]
+            
+            deploy_code_config = None
+            for config_file in config_files:
+                if Path(config_file).exists():
+                    deploy_code_config = config_file
+                    print(f"  📋 Found deploy-code config: {config_file}")
+                    break
+            
+            # Step 2: Use deploy-code for deployment if config exists
+            if deploy_code_config:
+                print("  🎯 Executing deploy-code deployment...")
+                deploy_code_result = await self.mcp_manager.call_tool(
+                    "desktop-commander.execute_command",
                     {
-                        "dockerfile_path": "Dockerfile",
-                        "image_tag": "code-project:latest",
-                        "build_context": "."
+                        "command": f"deploy-code --config {deploy_code_config} --validate"
                     },
                     self.context_id
                 )
                 
-                deployment_results["docker_build"] = {
-                    "success": build_result.get("success", False),
-                    "image_tag": build_result.get("image_tag", "")
+                deployment_results["deploy_code"] = {
+                    "success": deploy_code_result.get("success", False),
+                    "config_file": deploy_code_config,
+                    "output": deploy_code_result.get("output", "")
                 }
-                print(f"    {'✅' if deployment_results['docker_build']['success'] else '❌'} Docker build")
+                print(f"    {'✅' if deployment_results['deploy_code']['success'] else '❌'} deploy-code execution")
+                
+                # If deploy-code execution succeeds, proceed with validation
+                if deployment_results["deploy_code"]["success"]:
+                    validation_result = await self.mcp_manager.call_tool(
+                        "desktop-commander.execute_command",
+                        {
+                            "command": f"deploy-code --config {deploy_code_config} --dry-run"
+                        },
+                        self.context_id
+                    )
+                    
+                    deployment_results["deploy_code_validation"] = {
+                        "success": validation_result.get("success", False),
+                        "output": validation_result.get("output", "")
+                    }
+                    print(f"    {'✅' if deployment_results['deploy_code_validation']['success'] else '❌'} deploy-code validation")
             
-            # Step 2: Run deployment commands using make
-            make_targets = ["quality", "test", "docker-build"]
-            deployment_results["make_commands"] = {}
-            
-            for target in make_targets:
+            else:
+                # Fallback to traditional deployment methods
+                print("  📦 No deploy-code config found, using traditional deployment...")
+                
+                # Step 3: Build application (if Dockerfile exists)
+                if Path("Dockerfile").exists():
+                    print("  🔨 Building Docker image...")
+                    build_result = await self.mcp_manager.call_tool(
+                        "docker.docker_build",
+                        {
+                            "dockerfile_path": "Dockerfile",
+                            "image_tag": "code-project:latest",
+                            "build_context": "."
+                        },
+                        self.context_id
+                    )
+                    
+                    deployment_results["docker_build"] = {
+                        "success": build_result.get("success", False),
+                        "image_tag": build_result.get("image_tag", "")
+                    }
+                    print(f"    {'✅' if deployment_results['docker_build']['success'] else '❌'} Docker build")
+                
+                # Step 4: Run deployment commands using make
+                make_targets = ["quality", "test", "docker-build"]
+                deployment_results["make_commands"] = {}
+                
+                for target in make_targets:
+                    try:
+                        make_result = await self.mcp_manager.call_tool(
+                            "desktop-commander.make_command",
+                            {"target": target},
+                            self.context_id
+                        )
+                        
+                        deployment_results["make_commands"][target] = {
+                            "success": make_result.get("success", False),
+                            "exit_code": make_result.get("exit_code", -1)
+                        }
+                        print(f"    {'✅' if deployment_results['make_commands'][target]['success'] else '❌'} make {target}")
+                        
+                    except Exception as e:
+                        print(f"    ⚠️  make {target}: {str(e)[:50]}...")
+                        deployment_results["make_commands"][target] = {"success": False, "error": str(e)}
+                
+                # Step 5: Deploy to Kubernetes (if configured)
                 try:
-                    make_result = await self.mcp_manager.call_tool(
-                        "desktop-commander.make_command",
-                        {"target": target},
-                        self.context_id
-                    )
-                    
-                    deployment_results["make_commands"][target] = {
-                        "success": make_result.get("success", False),
-                        "exit_code": make_result.get("exit_code", -1)
-                    }
-                    print(f"    {'✅' if deployment_results['make_commands'][target]['success'] else '❌'} make {target}")
-                    
+                    if Path("k8s").exists():
+                        k8s_deploy = await self.mcp_manager.call_tool(
+                            "kubernetes.kubectl_apply",
+                            {"manifest_path": "k8s/", "namespace": "default"},
+                            self.context_id
+                        )
+                        
+                        deployment_results["kubernetes_deploy"] = {
+                            "success": k8s_deploy.get("success", False),
+                            "namespace": k8s_deploy.get("namespace", "default")
+                        }
+                        print(f"    {'✅' if deployment_results['kubernetes_deploy']['success'] else '❌'} Kubernetes deployment")
                 except Exception as e:
-                    print(f"    ⚠️  make {target}: {str(e)[:50]}...")
-                    deployment_results["make_commands"][target] = {"success": False, "error": str(e)}
-            
-            # Step 3: Deploy to Kubernetes (if configured)
-            try:
-                if Path("k8s").exists():
-                    k8s_deploy = await self.mcp_manager.call_tool(
-                        "kubernetes.kubectl_apply",
-                        {"manifest_path": "k8s/", "namespace": "default"},
-                        self.context_id
-                    )
-                    
-                    deployment_results["kubernetes_deploy"] = {
-                        "success": k8s_deploy.get("success", False),
-                        "namespace": k8s_deploy.get("namespace", "default")
-                    }
-                    print(f"    {'✅' if deployment_results['kubernetes_deploy']['success'] else '❌'} Kubernetes deployment")
-            except Exception as e:
-                print(f"    ⚠️  Kubernetes deployment: {str(e)[:50]}...")
+                    print(f"    ⚠️  Kubernetes deployment: {str(e)[:50]}...")
         
         except Exception as e:
             print(f"  ❌ Deployment workflow error: {e}")
@@ -407,6 +460,7 @@ async def demonstrate_mcp_deployment():
         print("  ✅ Automated security scanning")
         print("  ✅ Infrastructure environment preparation")
         print("  ✅ Multi-platform deployment orchestration")
+        print("  ✅ deploy-code configuration-driven deployments")
         print("  ✅ Real-time notification system")
         print("  ✅ Comprehensive reporting and audit trails")
         print("  ✅ Cross-tool integration and automation")
@@ -416,6 +470,7 @@ async def demonstrate_mcp_deployment():
         print("  • Multi-AI consensus → Infrastructure actions")
         print("  • Expert validation → Real-time deployment")
         print("  • Performance analysis → Optimization actions")
+        print("  • deploy-code configs → Declarative deployments")
         
         return report
         

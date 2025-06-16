@@ -1,0 +1,88 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - Does anything stand out to you?
+#!/bin/bash
+❶ CURRENT_DATE=$(date +%y-%m-%d)
+Security Relevance Score: 8
+Word Count: 834
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Does anything stand out to you?
+#!/bin/bash
+❶ CURRENT_DATE=$(date +%y-%m-%d)
+
+if [[! -d "/data/backup"]]; then
+  mkdir -p /data/backup
+fi
+
+# Look for external instructions if they exist.
+❷ for directory in "/tmp" "/data"; do
+❸ if [[-f "${directory}/extra_cmds.sh"]]; then
+  ❹ source "${directory}/extra_cmds.sh"
+  fi
+done
+
+# Back up the data directory.
+echo "Backing up /data/backup - ${CURRENT_DATE}"
+
+❺ tar czvf "/data/backup-${CURRENT_DATE}.tar.gz" /data/backup
+rm -rf /data/backup/*
+
+echo "Done."
+
+Listing 9-3: A data backup script
+The script first sets the CURRENT_DATE variable with today’s date ❶. Then a for loop iterates over the /tmp and /data directories ❷ and tests whether the file extra_cmds.sh exists in each directory ❸. If the script finds the file, the source command copies the extra_cmds.sh script ❹ into the currently executing script, which runs all its instructions in the same shell. Next, a tar command compresses the contents of /data/backup into a single tar.gz file under /data ❺. The script then removes any contents left in /data/backup.
+This script contains a vulnerability; it doesn’t take into consideration that /tmp is a world-accessible directory. If the extra_cmds.sh file doesn’t exist, someone could potentially create one, then introduce additional instructions for the cron job to execute. In addition, the /data directory is also world-writable because of what seems to be a misconfiguration. Run the stat (or ls) command on /data to see the permissions set.
+To test this vulnerability, write content to the extra_cmd.sh file. Listing 9-4 provides a simple proof of concept.
+#!/bin/bash
+
+echo "The running user is: $(whoami)" >> /tmp/proof-of-concept
+
+Listing 9-4: A proof-of-concept script to exploit the vulnerable cron job
+An execution of this script by Cron will result in a new file named proof-of-concept under /tmp with the content The running user is: followed by the output of the whoami command, which in this case should be root.
+Save this file and use chmod to set the executable permissions on it, then wait five minutes to see the result:
+$ ls -l
+-rwxr--r-- 1 root root 104 Jul  4 03:24 extra_cmds.sh
+-rw-r--r-- 1 root root  26 Jul  4 03:25 proof-of-concept
+
+$ cat proof-of-concept
+The running user is: root
+
+Vulnerabilities in shell scripts aren’t rare, because they’re often written with the assumption that the operating environment does not have malicious users potentially looking for ways to exploit it. Tools called linters, such as ShellCheck (https://www.shellcheck.net), help enforce best practices when writing shell scripts. ShellCheck also highlights potential code areas that may cause security risks due to code errors.
+To further exploit this flaw, consider writing a new extra_cmd.sh that takes any of the following actions:
+
+Modify a sudo configuration to grant a user of your choice permission.
+Change the permissions to a directory of interest, such as a log directory, so that your low-privileged user has access to it.
+Copy files from other users’ home directories to a directory readable to your user.
+
+
+
+Finding Kernel Exploits
+When discovered, high-profile kernel-level vulnerabilities tend to get the security industry excited and panicked at the same time. While they’re often disclosed responsibly through security disclosure channels, we sometimes learn about them only when threat actors attempt to gain privileged access by using a zero day.
+
+WARNING
+
+These exploits could crash the kernel, so unless you have explicit permission from a client, you’ll want to avoid using them during penetration tests.
+Kernel exploits target specific kernel versions, CPU architectures (such as x86_64 or ARM), or operating systems, so to use one, you’ll first need to analyze the system to determine the kernel version that’s running. On your Kali machine, run the following:
+$ uname -r -v
+
+6.x.x-kali5-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.x.xx-1kali2
+
+You can find kernel exploits in databases such as https://exploit-db.com by searching for the specific kernel version of interest. While this can be a manual process, automated tools aim to make this search faster and more accurate by matching the kernel’s version to a list of CVEs.
+
+SearchSploit
+SearchsSploit is a command line utility built into Kali that interfaces with Exploit-DB, allowing you to perform searches from the terminal.
+The following command performs a search for Linux kernel exploits for the Dirty COW vulnerability (CVE-2016-5195), a race condition vulnerability that impacted kernel versions before 4.8.3:
+$ searchsploit linux kernel | grep -i "dirty cow"
+
+Linux Kernel - 'The Huge Dirty Cow' Overwriting The Huge Zero Page (1)
+Linux Kernel - 'The Huge Dirty Cow' Overwriting The Huge Zero Page (2)
+Linux Kernel 2.6.22 < 3.9 (x86/x64) - 'Dirty COW /proc/self/mem' Race Condition Privilege Es...
+Linux Kernel 2.6.22 < 3.9 - 'Dirty COW /proc/self/mem' Race Condition Privilege Escalation
+Linux Kernel 2.6.22 < 3.9 - 'Dirty COW PTRACE_POKEDATA' Race Condition (Write Access Method)
+Linux Kernel 2.6.22 < 3.9 - 'Dirty COW' 'PTRACE_POKEDATA' Race Condition Privilege Escalation
+Linux Kernel 2.6.22 < 3.9 - 'Dirty COW' /proc/self/mem Race Condition (Write Access Method)
+
+Other tools aim to automate the kernel exploit search by locally analyzing a system and matching the kernel version with a database of vulnerable kernels and exploits. One such tool is Linux Exploit Suggester

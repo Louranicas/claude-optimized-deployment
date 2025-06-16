@@ -1,0 +1,131 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - When such a file is found, run grep on the line containing the strings to write only the strings to a writable location of your choice.
+To test your script, you can create a fake file containing the string username=administrator or password=12345 and save it into the /tmp directory. If your cron job is working as expected, you should be able to see these two strings in the destination directory.
+Security Relevance Score: 10
+Word Count: 1095
+Extracted: 2025-06-13 23:40:57
+
+---
+
+When such a file is found, run grep on the line containing the strings to write only the strings to a writable location of your choice.
+To test your script, you can create a fake file containing the string username=administrator or password=12345 and save it into the /tmp directory. If your cron job is working as expected, you should be able to see these two strings in the destination directory.
+
+
+
+Hardware
+You can collect hardware-related information, such as memory allocation details, the number of CPUs and cores, and the manufacturer of hardware components such as the motherboard, network card, and other peripherals. To collect these details, you use commands such as lshw, dmidecode, and hwinfo.
+These commands may show only partial information when run using a nonprivileged user, because they often read from system files accessible only to the root user. They also may not necessarily be installed by default, so you might have to manually gather hardware information by looking at specific files and directories under /proc, /dev, and /sys.
+Let’s take a look at the output we get by running lshw on one of the lab machines, such as p-web-01 (172.16.10.10):
+$ lshw
+Remember that our lab is virtual, so the output may not accurately report the underlying physical hardware, such as the size of the memory, motherboard vendor, and sound card.
+The lshw command takes a -class (-C) argument, which allows you to view specific classes of hardware, such as disk (-C disk), processor (-C cpu), and network (-C network):
+$ lshw -C disk
+
+  *-disk
+       description: ATA Disk
+       product: VBOX HARDDISK
+       vendor: VirtualBox
+       size: 80GiB (86GB)
+--snip--
+
+In this disk example, you can see that the vendor name is VirtualBox, which hints that we ran this command in a virtual machine.
+Hardware utilities gather information from various files. Table 8-6 compiles some of the files and directories from which these tools aggregate hardware information.
+Table 8-6: Hardware Information Locations in the Filesystem
+
+
+
+Virtual filesystem
+Files and directories
+
+
+
+
+/proc
+/proc/bus/usb/devices /proc/dma /proc/interrupts /proc/partitions /proc/modules /proc/cpuinfo /proc/devices-tree /proc/devices /proc/efi/systab /proc/ide /proc/kcore /proc/mounts /proc/net/dev /proc/scsi /proc/sys /proc/sys/abi /proc/sys/dev/sensors
+
+
+/sys
+/sys/bus /sys/class /sys/devices /sys/firmware /sys/firmware/dmi/tables/DMI
+
+
+/dev
+/dev/cdrom/dev/input/dev/fb*/dev/machines/dev/snd/dev/mem/dev/scsi*
+
+
+
+
+
+Virtualization
+Administrators could install an operating system directly on a physical server or run a hypervisor (such as VirtualBox, Microsoft Hyper-V, or VMware ESXi) to host multiple virtual machines on the same hardware. Alternatively, they might use containerization technology to run virtual servers as containers.
+Determining whether an environment is virtual or physical is often important in the context of defense evasion. For example, malicious software often implements checks for virtual environments so they can evade reverse engineering attempts, since analysts often examine malware in such virtual environments.
+As in previous scenarios, we can use dedicated tools as well as living-off-the-land approaches to find this information. We’ll explore both options.
+
+Using Dedicated Tools
+Tools such as virt-who and virt-what can examine a system to determine whether it is physical or virtual. Here is the output of virt-what when run on Kali in VirtualBox:
+$ sudo apt install -y virt-what
+$ sudo virt-what
+
+virtualbox
+kvm
+
+Another useful tool, systemd-detect-virt, offers a comprehensive list of enumeration techniques to identify virtual environments for systemd-based systems. It can fingerprint numerous hypervisors and container runtime environments, a list of which you can find here: https://www.freedesktop.org/software/systemd/man/systemd-detect-virt.html.
+Try running systemd-detect-virt on any of the lab machines to see the output:
+$ systemd-detect-virt
+
+docker
+
+Using the dmesg command, you can also read virtualization information from the kernel ring buffer log:
+$ dmesg | grep  "Detected virtualization"
+
+[1075720.226245] systemd[1]: Detected virtualization oracle.
+
+In this example, oracle is the virtualization software, as we’re running VirtualBox, which is developed and maintained by Oracle.
+
+
+Living Off the Land
+Let’s highlight a few of the ways we can determine whether a system is running virtually.
+The Desktop Management Interface (DMI) is a management and tracking framework for hardware and software in a system. Under the /sys/class/dmi/id directory, a few files related to DMI could give away information about the various virtualization vendors. These files include product_name, sys_vendor, board_vendor, bios_vendor, and product_version. Take a look at their contents:
+$ cat /sys/class/dmi/id/product_name
+VirtualBox
+
+$ cat /sys/class/dmi/id/board_vendor
+Oracle Corporation
+
+The file /sys/hypervisor/type might also hint at the underlying hypervisor. For example, The Xen hypervisor might insert the value xen in that file, whereas Microsoft Hyper-V would use Hyper-V.
+Another file, accessible only to the root user, /proc/1/environ, may contain an environment variable named container= with relevant information. For example, Linux containers may use container=lxc, while Podman containers may use container=podman.
+Some container technologies, including Podman and Docker, use env files placed in specific locations. The existence of either of these would indicate a container environment:
+
+/run/.containerenv
+/.dockerenv
+
+On systemd systems, the /run/systemd/container file may exist:
+$ cat /run/systemd/container
+
+Docker
+
+Try running this command in any of the lab machines you have access to.
+
+
+
+Automating Information Gathering with LinEnum
+By now, you should realize that valuable information can live anywhere on the operating system. To efficiently cover certain base areas, including users and groups, cron jobs, processes, and so on, we can run information-gathering scripts, which rely on the predictability of file locations and common search patterns.
+LinEnum is a local information-gathering shell script used to automatically gather data from a host. It covers collection areas such as system information, user information, services and processes, versions, and privileges.
+Let’s use LinEnum to collect files locally in an automated fashion. First, we need to get LinEnum onto the compromised machine. As it’s a single shell script file, we can simply copy and paste it into a new file on the machine. Copy the content of /home/kali/tools/LinEnum.sh and save the file as LinEnum.sh on the compromised machines.
+Now run LinEnum with -t (thorough collection) and -r (report) to specify a file to send the output to:
+$ chmod u+x LinEnum.sh
+$ ./LinEnum.sh -t -r report.txt
+
+#########################################################
+# Local Linux Enumeration & Privilege Escalation Script #
+#########################################################
+--snip--
+[-] Debug Info
+[+] Report name = report.txt
+[+] Thorough tests = Disabled
+--snip--
+
+Read through the findings to see the kind of information that was collected. In the following exercise, you’ll read LinEnum’s code, build new functionality, and tailor it to your needs.
+Exercise 15: Adding Custom Functionality to LinEnum
+During penetration testing, you may find yourself repurposing proof-of-concept exploit code and scripts to suit a particular use case. This is an important skill to master because if you can avoid writing scripts from scratch, you can save a lot of time.
+In this exercise, your goal is to modify the LinEnum source code to build new features into it:

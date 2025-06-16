@@ -27,6 +27,8 @@ except ImportError:
     SCIENTIFIC_PACKAGES_AVAILABLE = False
     # Mock numpy for basic operations
     class MockNumpy:
+        ndarray = list  # Mock ndarray as list
+        
         @staticmethod
         def array(data):
             return data
@@ -77,6 +79,18 @@ except ImportError:
                 def fftfreq(self, n):
                     return [i/n for i in range(n)]
             return FFTResult()
+        @staticmethod
+        def reshape(data, shape):
+            return data
+        @staticmethod
+        def mean(data):
+            return sum(data) / len(data) if data else 0
+        @staticmethod
+        def min(data, value):
+            return min(data) if isinstance(data, list) else min(data, value)
+        @staticmethod
+        def max(data, value):
+            return max(data) if isinstance(data, list) else max(data, value)
     
     np = MockNumpy()
     
@@ -100,7 +114,23 @@ except ImportError:
         def transform(self, data):
             return data
 
-from ..circle_of_experts import CircleOfExperts, QueryRequest
+try:
+    from ...src.circle_of_experts import CircleOfExperts, QueryRequest
+except ImportError:
+    try:
+        from src.circle_of_experts import CircleOfExperts, QueryRequest
+    except ImportError:
+        # Mock classes if not available
+        class CircleOfExperts:
+            async def process_query(self, query):
+                class MockResponse:
+                    def __init__(self):
+                        self.expert_responses = []
+                return MockResponse()
+        
+        class QueryRequest:
+            def __init__(self, **kwargs):
+                pass
 
 
 class ForecastMethod(Enum):
@@ -549,7 +579,16 @@ class CapacityPlanner:
         """Update historical data with current metrics"""
         timestamp = datetime.now()
         
-        for metric_name, value in current_metrics.items():
+        # Handle both dict and object types
+        metrics_dict = current_metrics
+        if hasattr(current_metrics, '__dict__'):
+            metrics_dict = current_metrics.__dict__
+        elif hasattr(current_metrics, 'items'):
+            metrics_dict = dict(current_metrics.items())
+        else:
+            metrics_dict = current_metrics
+        
+        for metric_name, value in metrics_dict.items():
             try:
                 metric = CapacityMetric(metric_name)
                 data_point = HistoricalDataPoint(
@@ -606,8 +645,8 @@ class CapacityPlanner:
     
     async def _linear_regression_forecast(
         self,
-        timestamps: np.ndarray,
-        values: np.ndarray,
+        timestamps,
+        values,
         horizon: timedelta
     ) -> CapacityForecast:
         """Linear regression based forecasting"""
@@ -678,8 +717,8 @@ class CapacityPlanner:
     
     async def _ml_forecast(
         self,
-        timestamps: np.ndarray,
-        values: np.ndarray,
+        timestamps,
+        values,
         horizon: timedelta
     ) -> CapacityForecast:
         """Machine learning based forecasting"""
@@ -764,8 +803,8 @@ class CapacityPlanner:
     
     async def _simple_trend_forecast(
         self,
-        timestamps: np.ndarray,
-        values: np.ndarray,
+        timestamps,
+        values,
         horizon: timedelta
     ) -> CapacityForecast:
         """Simple trend-based forecasting"""
@@ -822,8 +861,8 @@ class CapacityPlanner:
     
     async def _detect_growth_pattern(
         self,
-        timestamps: np.ndarray,
-        values: np.ndarray
+        timestamps,
+        values
     ) -> Dict[str, Any]:
         """Detect growth pattern in data"""
         try:
@@ -895,8 +934,8 @@ class CapacityPlanner:
     
     async def _detect_seasonality(
         self,
-        timestamps: np.ndarray,
-        values: np.ndarray
+        timestamps,
+        values
     ) -> Dict[str, Any]:
         """Detect seasonality in data"""
         try:

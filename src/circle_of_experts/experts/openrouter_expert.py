@@ -17,6 +17,11 @@ from src.circle_of_experts.models.query import ExpertQuery
 from src.core.retry import retry_api_call, RetryConfig, RetryStrategy
 from src.circle_of_experts.experts.claude_expert import BaseExpertClient
 
+__all__ = [
+    "OpenRouterExpertClient"
+]
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -215,151 +220,36 @@ Format your response with clear sections and use markdown for structure."""
         
         # Model-specific optimizations
         if "claude" in model_name:
-            system_message += "\n\nUse your analytical capabilities for thorough, nuanced responses."
+            system_message += "
+
+Use your analytical capabilities for thorough, nuanced responses."
         elif "deepseek" in model_name and "coder" in model_name:
-            system_message += "\n\nFocus on code quality, optimization, and technical implementation details."
+            system_message += "
+
+Focus on code quality, optimization, and technical implementation details."
         elif "deepseek-r1" in model_name:
-            system_message += "\n\nShow your reasoning process step-by-step before providing conclusions."
+            system_message += "
+
+Show your reasoning process step-by-step before providing conclusions."
         elif "llama" in model_name:
-            system_message += "\n\nProvide comprehensive analysis with practical recommendations."
+            system_message += "
+
+Provide comprehensive analysis with practical recommendations."
         
         # Query-specific instructions
         if query.query_type == "review":
-            system_message += "\n\nFocus on: Code quality, potential bugs, performance, and maintainability."
+            system_message += "
+
+Focus on: Code quality, potential bugs, performance, and maintainability."
         elif query.query_type == "optimization":
-            system_message += "\n\nFocus on: Performance improvements, resource efficiency, and scalability."
+            system_message += "
+
+Focus on: Performance improvements, resource efficiency, and scalability."
         elif query.query_type == "architectural":
-            system_message += "\n\nFocus on: System design principles, patterns, trade-offs, and maintainability."
+            system_message += "
+
+Focus on: System design principles, patterns, trade-offs, and maintainability."
         
         user_message = query.content
         if query.context:
-            user_message += f"\n\nContext: {json.dumps(query.context)}"
-        if query.constraints:
-            user_message += f"\n\nConstraints: {', '.join(query.constraints)}"
-        
-        return [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": user_message}
-        ]
-    
-    def _get_temperature(self, model_name: str, query: ExpertQuery) -> float:
-        """Get optimal temperature for model and query."""
-        base_temp = 0.7
-        
-        # Lower temperature for reasoning models
-        if "deepseek-r1" in model_name or query.query_type == "review":
-            return 0.3
-        elif "coder" in model_name or query.query_type == "optimization":
-            return 0.5
-        elif query.priority == "critical":
-            return 0.6
-        
-        return base_temp
-    
-    def _get_max_tokens(self, model_name: str, query: ExpertQuery) -> int:
-        """Get optimal max tokens for model and query."""
-        base_tokens = 4096
-        
-        # Higher token limits for complex queries
-        if query.priority == "critical":
-            base_tokens = 8192
-        elif query.query_type == "architectural":
-            base_tokens = 6144
-        
-        # Model-specific adjustments
-        if "405b" in model_name or "claude-3-opus" in model_name:
-            return min(base_tokens * 2, 16384)  # These models can handle more
-        elif "8b" in model_name:
-            return min(base_tokens // 2, 2048)  # Smaller models
-        
-        return base_tokens
-    
-    def _calculate_confidence(self, content: str, model_name: str, query: ExpertQuery) -> float:
-        """Calculate confidence based on model capabilities and response quality."""
-        # Base confidence from model capabilities
-        model_caps = self.model_capabilities.get(model_name, {})
-        base_confidence = model_caps.get("reasoning", 7) / 10.0
-        
-        # Adjust based on response quality
-        quality_indicators = 0
-        if len(content) > 500:
-            quality_indicators += 0.05
-        if "```" in content:
-            quality_indicators += 0.05
-        if any(word in content.lower() for word in ["analysis", "recommendation", "solution"]):
-            quality_indicators += 0.03
-        
-        # Model-specific bonuses
-        if "claude" in model_name and len(content) > 1000:
-            quality_indicators += 0.05  # Claude excels at detailed responses
-        elif "deepseek-coder" in model_name and "```" in content:
-            quality_indicators += 0.07  # Coding specialist bonus
-        elif "deepseek-r1" in model_name and any(word in content.lower() for word in ["step", "reasoning", "because"]):
-            quality_indicators += 0.08  # Reasoning model bonus
-        
-        return min(0.98, base_confidence + quality_indicators)
-    
-    def _extract_recommendations(self, content: str) -> List[str]:
-        """Extract recommendations from OpenRouter response."""
-        recommendations = []
-        lines = content.split('\n')
-        
-        in_recommendations = False
-        for line in lines:
-            line = line.strip()
-            
-            if any(marker in line.lower() for marker in ["recommend", "suggestion", "advice", "should consider"]):
-                in_recommendations = True
-                continue
-            
-            if in_recommendations and line:
-                if line.startswith(('-', '*', '•', '1.', '2.', '3.', '4.', '5.')):
-                    rec = line.lstrip('-*•1234567890. ')
-                    if rec and len(rec) > 10:
-                        recommendations.append(rec)
-                elif line.startswith('#') or line == "":
-                    in_recommendations = False
-        
-        return recommendations[:10]
-    
-    def _extract_code_snippets(self, content: str) -> List[Dict[str, str]]:
-        """Extract code snippets from response."""
-        snippets = []
-        parts = content.split('```')
-        
-        for i in range(1, len(parts), 2):
-            if i < len(parts):
-                lines = parts[i].split('\n', 1)
-                language = lines[0].strip() if lines else ""
-                code = lines[1] if len(lines) > 1 else ""
-                
-                if code.strip():
-                    snippets.append({
-                        "language": language or "text",
-                        "code": code.strip(),
-                        "title": f"OpenRouter Code Example {len(snippets) + 1}",
-                        "description": f"Generated via OpenRouter"
-                    })
-        
-        return snippets
-    
-    async def health_check(self) -> bool:
-        """Check OpenRouter API availability."""
-        if not self.client:
-            return False
-        
-        try:
-            # Test with a fast, reliable model
-            completion = await self.client.chat.completions.create(
-                model=self.model_options["llama_8b"],
-                messages=[{"role": "user", "content": "Hi"}],
-                max_tokens=5,
-                extra_headers={
-                    "HTTP-Referer": "https://circle-of-experts.ai",
-                    "X-Title": "Circle of Experts Health Check"
-                }
-            )
-            return True
-        except Exception as e:
-            logger.error(f"OpenRouter health check failed: {e}")
-            return False
+            user_message += f"\n\nContext: {json.dumps(query.context)}"\n        if query.constraints:\n            user_message += f"\n\nConstraints: {', '.join(query.constraints)}"\n\n        return [\n            {"role": "system", "content": system_message},\n            {"role": "user", "content": user_message}\n        ]\n\n    def _get_temperature(self, model_name: str, query: ExpertQuery) -> float:\n        """Get optimal temperature for model and query."""\n        base_temp = 0.7\n\n        # Lower temperature for reasoning models\n        if "deepseek-r1" in model_name or query.query_type == "review":\n            return 0.3\n        elif "coder" in model_name or query.query_type == "optimization":\n            return 0.5\n        elif query.priority == "critical":\n            return 0.6\n\n        return base_temp\n\n    def _get_max_tokens(self, model_name: str, query: ExpertQuery) -> int:\n        """Get optimal max tokens for model and query."""\n        base_tokens = 4096\n\n        # Higher token limits for complex queries\n        if query.priority == "critical":\n            base_tokens = 8192\n        elif query.query_type == "architectural":\n            base_tokens = 6144\n\n        # Model-specific adjustments\n        if "405b" in model_name or "claude-3-opus" in model_name:\n            return min(base_tokens * 2, 16384)  # These models can handle more\n        elif "8b" in model_name:\n            return min(base_tokens // 2, 2048)  # Smaller models\n\n        return base_tokens\n\n    def _calculate_confidence(self, content: str, model_name: str, query: ExpertQuery) -> float:\n        """Calculate confidence based on model capabilities and response quality."""\n        # Base confidence from model capabilities\n        model_caps = self.model_capabilities.get(model_name, {})\n        base_confidence = model_caps.get("reasoning", 7) / 10.0\n\n        # Adjust based on response quality\n        quality_indicators = 0\n        if len(content) > 500:\n            quality_indicators += 0.05\n        if "```" in content:\n            quality_indicators += 0.05\n        if any(word in content.lower() for word in ["analysis", "recommendation", "solution"]):\n            quality_indicators += 0.03\n\n        # Model-specific bonuses\n        if "claude" in model_name and len(content) > 1000:\n            quality_indicators += 0.05  # Claude excels at detailed responses\n        elif "deepseek-coder" in model_name and "```" in content:\n            quality_indicators += 0.07  # Coding specialist bonus\n        elif "deepseek-r1" in model_name and any(word in content.lower() for word in ["step", "reasoning", "because"]):\n            quality_indicators += 0.08  # Reasoning model bonus\n\n        return min(0.98, base_confidence + quality_indicators)\n\n    def _extract_recommendations(self, content: str) -> List[str]:\n        """Extract recommendations from OpenRouter response."""\n        recommendations = []\n        lines = content.split('\n')\n\n        in_recommendations = False\n        for line in lines:\n            line = line.strip()\n\n            if any(marker in line.lower() for marker in ["recommend", "suggestion", "advice", "should consider"]):\n                in_recommendations = True\n                continue\n\n            if in_recommendations and line:\n                if line.startswith(('-', '*', '•', '1.', '2.', '3.', '4.', '5.')):\n                    rec = line.lstrip('-*•1234567890. ')\n                    if rec and len(rec) > 10:\n                        recommendations.append(rec)\n                elif line.startswith('#') or line == "":\n                    in_recommendations = False\n\n        return recommendations[:10]\n\n    def _extract_code_snippets(self, content: str) -> List[Dict[str, str]]:\n        """Extract code snippets from response."""\n        snippets = []\n        parts = content.split('```')\n\n        for i in range(1, len(parts), 2):\n            if i < len(parts):\n                lines = parts[i].split('\n', 1)\n                language = lines[0].strip() if lines else ""\n                code = lines[1] if len(lines) > 1 else ""\n\n                if code.strip():\n                    snippets.append({\n                        "language": language or "text",\n                        "code": code.strip(),\n                        "title": f"OpenRouter Code Example {len(snippets) + 1}",\n                        "description": f"Generated via OpenRouter"\n                    })\n\n        return snippets\n\n    async def health_check(self) -> bool:\n        """Check OpenRouter API availability."""\n        if not self.client:\n            return False\n\n        try:\n            # Test with a fast, reliable model\n            completion = await self.client.chat.completions.create(\n                model=self.model_options["llama_8b"],\n                messages=[{"role": "user", "content": "Hi"}],\n                max_tokens=5,\n                extra_headers={\n                    "HTTP-Referer": "https://circle-of-experts.ai",\n                    "X-Title": "Circle of Experts Health Check"\n                }\n            )\n            return True\n        except Exception as e:\n            logger.error(f"OpenRouter health check failed: {e}")\n            return False

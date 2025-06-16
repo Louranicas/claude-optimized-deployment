@@ -1,0 +1,1530 @@
+# Security Chapter Extract
+Book: Gregory C. Rasner - Cybersecurity and Third-Party Risk_ Third Party Threat Hunting (2021, Wiley) - libgen.li
+Chapter: 2018 - The post explains that HyperbBro is commonly attributed 
+to the cybercriminal group named “LuckyMouse,” a Chinese-  
+speaking threat actor known for highly targeted cyberattacks. 
+Primarily active in South East and Central Asia, many of their 
+attacks have a political aim. Tmanger is attributed to TA428, also 
+a Chinese Advanced Persistent Threat (APT) group. Because these 
+two applications are used normally by different APT s and are now 
+together in one attack, the ESET team theorizes that LuckyMouse 
+and TA428 are sharing data and weapons; they are also likely the 
+subgroup of a larger APT. Given the region and threat actors, it is 
+considered to be a political attack that had been planned as early 
+as May 2018, yet not carried out in earnest until two years later.
+Advanced Persistent Threat (APT) is the term given to 
+state actors (i.e., government run or authorized hackers) or 
+large cybercriminal syndicates that have a lot of time and 
+patience to perform very stealthy, large-scale attacks aimed 
+at political or economic goals.
+4 CYBERSECURITY AND THIRD-PARTY RISK
+The SolarWinds Supply-Chain Attack
+On December 13, 2020, FireEye, a global leader in cybersecurity, 
+publishes on its website the first details about the SolarWinds 
+Supply-Chain Attack, a global intrusion campaign inserting a 
+trojan into the SolarWinds Orion business software updates to 
+distribute the malware. FireEye names the malware  “Sunburst.” 
+After the attackers successfully hacked into FireEye, their 
+ activity demonstrated lateral movement and data exfiltration. 
+“The actors behind this campaign gained access to numerous 
+public and private organizations around the world. . . . This cam-
+paign may have begun as early as Spring 2020 and is currently 
+ongoing. . . . The campaign is the work of a highly skilled actor 
+and the operation was conducted with significant operational 
+security,” as explained in the Summary from FireEye’s website 
+on December 13th.
+The attackers added a .dll file (a configuration file) called 
+SolarWinds.Orion.Core.BusinessLayer.dll to the Orion prod-
+uct, which had been digitally signed and enabled backdoor com-
+munications over HTTP (i.e., normal, unencrypted web traffic), 
+to other servers. The Sunburst malware is suspected to have lain 
+quietly for two weeks, while it performed some reconnaissance 
+via executing commands that led to file transfers and to control-
+ling the victim’s servers (i.e., reboots, disabling services). Using a 
+native product within Orion, the Orion Improvement Program 
+(OIP), Sunburst blended in with the program’s normal functions 
+expertly. It even had the capability to sniff out the antivirus and 
+cybersecurity forensic tools being used, likely to learn how to 
+better go undetected.
+“As much as anything, this attack provides a moment of 
+reckoning. It requires that we look with clear eyes at the growing 
+threats we face and commit to more effective and collaborative 
+leadership by the government and the tech sector in the United 
+What Is the Risk? 5
+States to spearhead a strong and coordinated global cybersecu-
+rity response,” according to Brad Smith, President of Microsoft 
+(December 17, 2020) as posted on his blog about the SolarWinds 
+attack. This attack was used to steal valuable intellectual prop-
+erty from the top-tier security company FireEye. As of the time 
+of this writing, it has been confirmed to have affected dozens 
+of U.S. cabinet-level agencies. Due to the pervasiveness of the 
+SolarWinds product across the world, more breaches will be 
+discovered in the following days, weeks, months, and years to 
+come. Some may never be discovered (or admitted); however, 
+there will be international victims. It is a coup for the suspected 
+perpetrators, thought to be a state actor who used a supply side 
+attack, exploiting the weakness of a popular network and moni-
+toring tool, SolarWinds, to circumvent the tight defenses of the 
+intended victims.
+On December 18th, Microsoft released information iden-
+tifying more than 40 government agencies, higher learning 
+institutions, Non-Governmental Organizations (NGOs), and 
+information technology companies that were infiltrated, with 
+four-fifths of them being U.S.-based, and nearly half of those 
+being tech companies. On his blog, Brad Smith said
+This is not “espionage as usual,” even in the digital age. 
+Instead, it represents an act of recklessness that created a 
+serious technological vulnerability for the United States and 
+the world. While the most recent attack appears to reflect 
+a particular focus on the United States and many other 
+democracies, it also provides a powerful reminder that peo-
+ple in virtually every country are at risk and need protection 
+irrespective of the governments they live under.
+One act of recklessness that he refers to is that this pervasive 
+software, SolarWinds Orion, was clearly not performing its own 
+due diligence and due care to protect itself and its customers, 
+6 CYBERSECURITY AND THIRD-PARTY RISK
+and this product is used by nearly everyone. Further recklessness 
+was that all the customers of SolarWinds were not performing at 
+expectations for cybersecurity’s best practice.
+If customers had performed some key cybersecurity assess-
+ment on a third-party software maker like SolarWinds, this attack 
+could have been detected. Were intake questions asked about the 
+type of data to which SolarWinds had access and where that data 
+might go or be stored? Depending on a company’s solution type, 
+asking questions about how the secure software development life-
+cycle is managed and audited is considered to be appropriate.
+With the hardware device, what was SolarWind’s supply 
+chain security for the hardware parts and assembly? For the 
+company that had ventured to perform an on-site cybersecurity 
+physical validation of SolarWinds, was any evidence produced 
+on how they performed external security scans (which might 
+have detected the default password on their download page 
+“SolarWinds123”)? Who performed these external scans? The 
+company? Or did they hire an outside firm and were the results 
+viewable? Often, such companies will not share these results, so 
+you must negotiate to at least see the T able of Contents, who 
+performed such security scans, and when.
+Final question: Had SolarWinds remediated all the find-
+ings in the external security scan? While this is not the first time 
+a breach has occurred, the scale of the SolarWinds breach will 
+dwarf all others.
+The VGCA Supply-Chain Attack
+On December 17, 2020, ESET Research announced it had 
+detected a large supply-chain attack against the digital signing 
+authority of the government of Vietnam (ca.gov.vn), the website 
+for the Vietnam Government Certification Authority (VGCA), 
+What Is the Risk? 7
+which is part of the Government Cipher Committee under the 
+Ministry of Information and Communication. Vietnam has made 
+the digital leap, and almost anyone in the country who requires 
+a government service, product, or approval is required to use a 
+digital signature. These e-signatures have the same authority and 
+enforceability as a traditional paper document autograph accord-
+ing to government decree.
+The VGCA also develops and makes available for download 
+a toolkit to automate the process of e-signatures. This toolkit 
+is widely used by the government, private companies, and indi-
+viduals. VGCA ’s website was hacked as early as July 23rd, and no 
+later than August 16, 2020. The compromised toolkits contained 
+malware known as PhantomNet, and SManager ESET confirms 
+that the files were downloaded from the VGCA website directly, 
+and not the result of a redirect from another location. While 
+these infected files were not signed with proper digital certifi-
+cates, it appears that prior files were not correctly signed either. 
+This may have led to users not rejecting the improper digital 
+certificates of the trojan-infected files because they behaved the 
+same before the malware was added.
+When an infected file was downloaded and run, the correct 
+VGCA program ran along with the malware. This masqueraded 
+the trojan to the end user because they saw the normal program 
+running correctly, being unaware of the trojan or unlikely to look 
+for it because the program appeared to be running normally. The 
+file eT oken.exe extracted a Windows cabinet file (.cab), which 
+was used as an archive file to support compression and maintain 
+archive integrity. The file 7z.cab was the file that contained a 
+backdoor for the attackers to exploit. The attackers went to great 
+lengths to ensure that the backdoor ran, regardless of the user’s 
+privileges on the device.
+If the 7z.cab file was able to run as an administrator on 
+the machine, the program wrote the backdoor to c:\Windows\
+8 CYBERSECURITY AND THIRD-PARTY RISK
+appatch\netapi32.dll, which then registered it as a service to 
+ensure it kept running after any reboot. On a device that only 
+allowed the file to run as a normal user, the install placed it in a 
+temporary directory, but the program scheduled a task to ensure 
+its persistence. ESET named this backdoor PhantomNet. They 
+mentioned that the victim list included the Philippines, but no 
+evidence was found of a delivery mechanism.
+The trojan was determined to be a simple program, and 
+according to the sophistication of the attack, it is likely there were 
+other more malicious plugins added to exploit the backdoor. When 
+the victim’s web configuration was determined, then it reached 
+out to a command and control (C&C) server to get instructions. 
+Communications with the C&C servers was done over HTTPS 
+(secure, encrypted web traffic), and the attackers went to the trou-
+ble of preventing the interception of traffic (i.e., man-in-the-mid-
+dle attack on their own data) by using their own certificates.
+Data analysis indicates that the malware was used for lateral 
+movement. Once inside the computer, it enabled the attacker to 
+move around the network for other data. The malware collected 
+and transferred information about the computer, user accounts, 
+and victim. In the post-attack forensics, no data was discovered 
+nor was the goal of the attack.
+ESET wrote on its website:
+Conclusion: With the compromise of Able Desktop, the 
+attack on WIZVERA VeraPort by Lazarus and the recent 
+supply-chain attack on SolarWinds Orion, we see that sup-
+ply-chain attacks are a quite common compromise vector 
+for cyberespionage groups. In this specific case, they com-
+promised the website of a Vietnamese certificate authority, 
+in which users are likely to have a high level of trust. Supply-
+chain attacks are typically hard to find, as the malicious code 
+is generally hidden among a lot of legitimate code, making 
+its discovery significantly more difficult.
+What Is the Risk? 9
+The Zyxel Backdoor Attack
+On January 2, 2020, Zyxel (networking device maker) announced 
+over 100,000 of their firewalls, VPN gateways, and access point 
+controllers (i.e., Wi-Fi controllers) contained a hardcoded 
+administrator backdoor account, which gives root-level access 
+(i.e., a super administrator that can do anything on the device) 
+on both the secure shell (SSH) and web administrator portal. 
+This is on top of a previous similar incident with Zyxel in 2016, 
+where they had a backdoor that allowed any user to escalate their 
+account to root-level account privileges. This backdoor is still 
+being exploited by botnets to this day, four years later.
+A hardcoded backdoor root account is one that cannot be 
+underestimated in how critical the security flaw is. When 
+an account is built within the code of a product, it cannot 
+be removed unless the code itself is changed or updated by 
+the manufacturer. Additionally, the root account is what 
+is referred to as a “super user,” which has privileges as an 
+administrator. The products affected the manufacturers 
+Advanced Threat Protection (i.e., firewall), Unified Secu-
+rity Gateway (i.e., hybrid firewall/virtual private network 
+[VPN] gateway), USG FLEX (i.e., hybrid firewall/VPN 
+gateway), VPN, and NXC (i.e., Wi-Fi access point control-
+ler) series. These devices formed the perimeter and internal 
+security control points for thousands of companies world-
+wide. The attacker’s ability to exploit these network devices 
+most assuredly gives them lateral access into the victim’s 
+network. At the time of this backdoor announcement, Zyxel 
+offered patches for all of the products except for the NXC 
+series; it is not producing a patch for another four months.
+10 CYBERSECURITY AND THIRD-PARTY RISK
+The hardcoded user account “zyfwp” and password 
+“PrOw!N_fXp” were stored in visible plaintext (i.e., unencrypted 
+or obfuscated). Dutch researchers reported that the password 
+was clearly visible in the code binaries. Apparently the account 
+had the root-level access to install firmware updates. In the pre-
+vious 2016 incident, a hacker would’ve needed to already have a 
+user account on the device to exploit it and to become a super 
+user. In that instance, the root account is directly accessible on 
+HTTPS (port 443) connection to the device.
+According to Zyxel’s website, “A hardcoded credential vul-
+nerability was identified in the ‘zyfwp’ user account in some 
+Zyxel firewalls and AP controllers. The account was designed to 
+deliver automatic firmware updates to connected access points 
+through FTP .” A search on Shodan (a search engine that can find 
+computers and devices connected to the internet) shows nearly 
+30,000 of these devices deployed in Russia; 5,000  in T aiwan, 
+Germany, and Finland; with nearly 3,000 in the United States.
+Other Supply-Chain Attacks
+Starting in early December 2020 and into early 2021 ( January 
+2), there were four major third-party (supply-chain) attacks and 
+vulnerabilities announced in the span of 20 days. These attacks 
+or vulnerabilities went on for months or longer. Evidence in the Zyxel Patch Release
+The expected patch release is April 2021. Until then, the 
+only option for organizations is to unplug and replace the 
+devices to ensure security posture.
+What Is the Risk? 11
+SolarWinds and Vietnam attacks pointed to advanced persistent 
+threats launching into the weaponization of the supply chain. 
+In two of the cases, the attacks were directed at nearly a whole 
+country (Vietnam through the VGCA, and Mongolia through 
+the Able Desktop). In three of the instances, the attackers were all 
+APT s and were stealthy enough to remain undetected for months 
+or longer. These attackers have seen what they can do with the 
+weakest links—vendors—to get to a wide range of targets.
+Chief Information Security Officers (CISOs) at Fortune 
+500 companies have spent billions of dollars in the last decade 
+securing their networks from such breaches. Some great tools 
+have been implemented, like Intrusion Detection/Prevention 
+Systems (IDS, IPS), Cloud Access Security Broker (CASB), Priv-
+ileged Access Manager (PAM), Security Information and Event 
+Management (SIEM), and Security Operations Centers (also 
+referred to as Cyber Fusion Centers) have been built to track 
+and eliminate threats. However, the level of breaches in 2020 
+continued to increase exponentially. The number of third-party 
+breach instances grew because every company is some other 
+company’s vendor. As the number of these breaches increased, it 
+meant another vendor with hundreds, thousands, or millions of 
+customers became a victim as well.
+Public law enforcement is also sounding the alarm. On 
+December 8, 2020, at the American Bankers Association (ABA) 
+Financial Crimes Enforcement Conference, FBI Director Chris-
+topher Wray stated, “The financial sector has the most robust 
+cybersecurity of any industry,” which is why cybercriminals try 
+third-party channels. Banks can also be affected by ransomware 
+targeting third parties, a threat that Wray said “may be somewhat 
+underestimated by a lot of people.” While he specifically called 
+out financial firms, the same could be said of many other sectors, 
+including aerospace, energy, technology, biotech, and others, 
+which generally have excellent security on their own company’s 
+12 CYBERSECURITY AND THIRD-PARTY RISK
+assets. Most of the victims of the SolarWinds attack have been in 
+the technology and government sectors, which typically have had 
+good-to-excellent security. In those cases, hackers will target the 
+weakest link, attacking vendors who take security less seriously.
+Hundreds of examples like this have occurred over the last 
+decade, across the world, and in every industry: Ticketmaster, 
+Capital One, T esla, Under Armor, Boeing, PayPal, Chubb, nearly 
+every major worldwide automaker, Sears, Best Buy, Entercom, 
+and T-Mobile. In the case of FireEye or a customer of Zyxel, 
+these companies lost protected data as a result of a third (or 
+fourth) party. No one in the public realm remembers that third 
+party; they simply remember the company they trusted with their 
+data who let them down. Such breaches cost these companies 
+large amounts of money, which directly affected consumers, and 
+extensively damaged the companies’ reputations. In areas where 
+there was a heavy regulatory presence, the breached firms were 
+often left holding fines as well. In August 2020, the Office of 
+the Comptroller of the Currency (OCC) assessed an $80 million 
+civil penalty against Capital One for failure to establish effective 
+risk assessment processes prior to migrating significant informa-
+tion technology operations to its public cloud environment. It is 
+expected to cost Capital One up to $150 million, and it cost the 
+company’s CISO his job at the firm.
+Problem Scope
+The secret is out: If you want to attain protected data as a hacker, 
+you do not attack a big company or organization that likely has 
+good security. You go after a third party that more likely does 
+not. Companies have created the equivalent of how to deter car 
+thieves: Ensure that your car looks difficult enough to break into 
+so that thieves move onto the automobile with its doors unlocked 
+What Is the Risk? 13
+and keys in the ignition. When a burglar sees a car with a car 
+alarm, they know that they can look and eventually find a target 
+that isn’t so well protected. Exploiting the weakest link is not 
+new. A bank robber could go to the bank to steal money, but a 
+softer target would likely be the courier service as it brings the 
+money into and out of the bank.
+T o date, cybersecurity and third-party risk teams have not 
+often collaborated or understood the common threat, instead 
+focusing their security on their own silos. In most regulated 
+industries, this has led to the typical rush to the bottom to meet 
+the regulatory requirements; meaning, rather than create a secu-
+rity program that secures their data and network, they do just 
+enough to keep the regulators happy. Regulators are never con-
+sidered to be on the leading edge. Whether it is in financial fraud 
+or cybercrime, they simply do not lead in best practices for any 
+field. However, it is not their responsibility. Regulations are typi-
+cally designed to limit the behavior of a company that may cause 
+financial or bodily harm. The most highly regulated industries, 
+such as energy, biotechnology, finance, telecommunications, aer -
+ospace, and many others, have robust Third-Party Risk Manage-
+ment and cybersecurity teams. However, if these industries rely 
+on doing what the regulators require of them, they are not going 
+to be performing their best practices.
+The most successful companies at preventing their systems 
+from being compromised go beyond what a regulator or reg-
+ulation mandates them to do for compliance. The regulations 
+and their enforcers get involved after something bad has already 
+occurred. Sarbanes-Oxley (SOX) was a financial regulation 
+designed to lower the risk of financial fraud by publicly traded 
+companies after the damage done by the tech bubble crash in 
+the early 2000s. The Dodd-Frank Wall Street Reform and Con-
+sumer Protection Act was passed in 2010 after the financial melt-
+down leading to the Great Recession. These widespread changes 
+14 CYBERSECURITY AND THIRD-PARTY RISK
+in regulation occurred as a reaction to the excesses and missteps 
+that lawmakers felt led to the meltdown. Nearly every regulation 
+passed is due to a previous misstep, not in anticipation of the next 
+misstep or mistake
+Being reliant on the government to set the standard for what 
+to do and how to do it is a recipe for disaster. This is not to say, 
+however, that regulations are without their merit when enforced 
+correctly. The argument here is not about whether there should 
+be regulations, but more about if organizations should be advised 
+to view those regulations as the bare minimum to perform. In the 
+case of cybersecurity and third-party risk, regulations provide 
+some excellent guidance on what is important for organizations. 
+However, if a cybersecurity or third-party risk team only relies 
+on regulators for the best practical procedures to follow, there’s a 
+high likelihood their companies will be hacked. In fact, the likeli-
+hood is that they will be hacked quite a bit faster than those com-
+panies that view regulatory requirements as their starting point.
+T o illustrate the point, we can look at the Payment Card 
+Industry Security Standard (PCI-DSS), which is the payment 
+card standard (using credit and debit cards), to guarantee con-
+sumer financial data protection. PCI-DSS has very specific 
+recommendations and is regularly updated for how to secure 
+networks, protect user data, require strong access controls, per -
+form network security tests, and regularly review information 
+security policies. PCI-DSS is tested regularly, and its standards 
+are considered rigorous. It is not regulated by the government; 
+instead, it’s a group of companies that standardized their prac-
+tices. Meaning, private companies collaborated to create what is 
+nationally viewed as a success in security.
+Third-party risk, or what another company is doing to lower 
+risk to your company, might seem like it places a CISO and the 
+cybersecurity organization at a disadvantage because they cannot 
+control what goes on at another entity. However, that is a myth. 
+What Is the Risk? 15
+While a third party cannot be directly controlled, there are ways 
+to direct and monitor their behavior and choices to greatly reduce 
+your risk. Anyone who has ever been taught risk or worked as 
+a risk professional knows the mantra: Risk can never be zero. 
+In fact, anything is possible. Regardless of whether your com-
+pany is using all the fancy technology and expensive software, or 
+employing hundreds of cybersecurity professionals hunting for 
+vulnerabilities, there still is a chance, or risk, of a breach.
+The goal is reduce risk to a level that is commensurate with 
+your company’s effort to reduce it, based upon its risk appetite. 
+This risk reduction effort of a third party requires a change in a 
+company’s cybersecurity approach and attitude. As we dive into 
+the numbers, it will become apparent that not enough companies 
+perform the required due diligence. Out of those that do, some do 
+not perform it at the level necessary to reduce the risk. Often, risk 
+reduction is performed as a compliance effort, and merely viewed 
+as a checkbox to complete in order to keep regulators and auditors 
+at bay. This attitude of “ignoring the risk” or “doing it as ‘check-
+box’ security” has caused cybersecurity Third-Party Risk Manage-
+ment (TPRM) to be absent from adequate attention and activity.
+Compliance Does Not Equal Security
+Compliance is not security, yet security is an important piece of 
+compliance. By definition, being compliant is when your organiza-
+tion meets the minimum requirements for specific regulations at 
+a specific moment in time. If we look at many of the companies 
+on the recently breached list, it’s likely all were meeting their 
+regulatory obligations for compliance in their respective indus-
+tries. In the case of T arget when its payment system was hacked, 
+it had just completed a certification of its PCI-DSS. Most regu-
+lations are simply a form of deterrence (of things like insider 
+16 CYBERSECURITY AND THIRD-PARTY RISK
+trading or dumping chemicals into a river). Regulations discour -
+age bad behavior either by people or companies.
+Security is an ongoing activity—a continuously occurring 
+activity and not one that occurs at a point in time. Compliance 
+activities are performed as a checklist by internal or external 
+auditors to verify that a company’s team is following regulations. 
+It’s is an important activity that helps prevent bad acts. Employ-
+ees and companies see these checks being performed, then are 
+discouraged from doing bad things, such as ill-gotten gains via 
+insider trading or killing fish by dumping chemicals. Security has 
+the dubious distinction of being sure data is not lost. Once data is 
+lost, it cannot be retrieved—it is gone forever into the Dark Web 
+or other places. The deterrent must come from the company’s 
+cybersecurity efforts, not the government regulators.
+A company can be 100-percent compliant and also be 
+100-percent owned by hackers. For example, you can drive a car 
+with seatbelts, an automatic brake system (ABS), collision detec-
+tion and avoidance, blind spot detection, and more, all turned on. 
+Say your car is up to current safety regulations, you, the driver, 
+are all buckled up and sober. There should be no accidents or 
+injuries. Yet, another driver who doesn’t always pay attention to 
+the safety warnings fails to perform their best practices while 
+driving, resulting in a collision with injuries. You, a driver, were 
+100-percent compliant, yet another driver was not.
+Another difference in compliance activities is the timing of 
+each action. Compliance activities are done at a certain point in 
+time for what is present in terms of controls and checks. Another 
+third party (i.e., auditors, regulators) or an internal team ensures 
+that the company they’re working with satisfies a set of require-
+ments that allows it to continue to perform business. When all 
+conditions have been satisfied, the compliance activity is finished. 
+Security, however, is never finished. It is continually monitored, 
+reviewed, and improved.
+What Is the Risk? 17
+Third-Party Breach Examples
+Throughout many chapters in this book, you will find case study 
+sections where we dive into some of these breaches. However, it 
+is important to understand the scope and history of how often 
+third-party incidents occur. Many public breaches attributed to 
+a particular company are, in fact, the result of a third party. One 
+of the most well-known examples is the T arget breach. In fact, it 
+was T arget’s Heating, Ventilation, and Air Conditioning (HVAC) 
+provider that was breached to get access to T arget’s data.
+Following are a few examples of the major third-party 
+breaches to show how easily they cross over any boundary (i.e., 
+geographic, sectors, sizes):
+• Target (2013): The data of 70  million customers and 
+40 million credit/debit card information records was leaked 
+by HVAC company Fazio Mechanical Services.
+• Lowe’s (2014): Millions of drivers’ records were exposed 
+by SafetyFirst, a vendor that stored the exposed data in an 
+online database.
+• JP Morgan Chase & Co (2014): Contact information for 
+76  million consumers and 7  million small businesses was 
+exposed by a third-party website used to sponsor a foot race.
+• Sam’s Club, Costco, CVS, RiteAid, Walmart Canada, 
+Tesco (2015): Millions of customer data records were 
+hacked at PNI Digital Media, which is used for online photo 
+ordering and printing.
+• T-Mobile (2015): A total of 15 million personally identifi-
+able information (PII) records were leaked by Experian, a 
+customer credit assessment company.
+• Forever 21 and Hyatt Hotels (2017): An unknown num-
+ber of credit card data records were released due to its 
+POS system.
+18 CYBERSECURITY AND THIRD-PARTY RISK
+• Uber (2017): Coding site GitHub’s misconfiguration 
+caused data for 57 million users to be exposed.
+• Equifax (2017): Highly confidential data for 143 million 
+consumers was released due to an undisclosed third-party 
+tool used to build web applications.
+• Verizon (2017): The restricted data of 14 million customers 
+was exposed by customer analytics provider NICE Systems.
+• Hard Rock Hotels & Casinos (2017): Sabre Corp, a travel 
+reservation service, was exploited, causing a leak of credit 
+card data for an undisclosed number of customers at 11 of 
+its properties.
+• ShadowPad (2017): A server management software (made 
+by NetSarang) used by hundreds of multinational and large 
+companies worldwide exposed a still unknown number of 
+protected data records.
+• Republican National Committee (2017): The PII for 
+200 million registered Republican voters was leaked via the 
+third-party Deep Root.
+• BevMo (2018): Online payment provider NCR Corpora-
+tion was breached for over 14,000 BevMo customers.
+• Nordstrom (2018): A third-party tool that managed the 
+direct deposit permitted the personal information about 
+Nordstrom’s employees to be leaked.
+• Ontario Cannabis Store (2018): Canada Post, an online 
+tracking tool, allowed the loss of the store’s customer data.
+• SuperMicro (2018): A flaw present in the microchips used 
+by major companies, such as Apple and Amazon, caused an 
+unknown amount of data to be leaked.
+• Facebook (2018): Any platform that shared login creden-
+tials with Facebook resulted in the exposure of 50 million 
+user accounts.
+What Is the Risk? 19
+• The Conservative Party (UK) (2018): CrowdComms, a 
+conference application used by the Conservative Party, was 
+the party responsible for the loss of protected data about 
+Ministers of Parliament (MP), conference attendees, and 
+journalists.
+• British Airways (2018): An undisclosed third-party mis-
+configuration of JavaScript caused the financial and per -
+sonal information of over 300,000 customers to be released.
+• University of Louisville (2018): Health Fitness, a fitness 
+vendor, released employee names, employee IDs, and physi-
+cians’ names.
+• Washoe County School District (2018): District teach-
+ers’ emails, usernames, and passwords were exposed by an 
+instructional tool provided by Edmodo.
+• MedCall Healthcare Advisers (2018): Over 150 busi-
+nesses were affected by this third-party breach, with 7 GB 
+of medical information data being exfiltrated.
+• GoDaddy (2018): Sensitive records for over 30,000 servers 
+were released by a misconfigured Amazon S3 bucket.
+• Air Canada (2018): An undisclosed mobile application 
+provider caused the loss of customer data.
+• Fiserv (2018): This financial third-party website provider 
+was the reason that hundreds of banks had the records for 
+their customers exposed.
+• Ticketmaster (2018): Inbeta, a provider of Ticketmaster’s 
+website application, caused a leak of customer data.
+• Universal Music Group (2018): Cloud-storage provider 
+Agilisium caused the loss of internal File T ransfer Protocol 
+(FTP) credentials, Amazon Web Services (AWS) secret keys 
+and passwords, along with internal root passwords for struc-
+tured query language (SQL) databases.
+20 CYBERSECURITY AND THIRD-PARTY RISK
+• Chili’s Grill & Bar (2018):  Chili’s POS system was breached, 
+causing the loss of an undisclosed number of credit card 
+data records.
+• Best Buy, Sears, Kmart, and Delta (2018): An online chat 
+provider used by these firms lost over a million customer 
+records in total.
+• Applebee’s (2018): 160 restaurants and their customer data 
+were released by the chain’s POS system.
+• Western Union (2018): Private data about transactions 
+was released by an undisclosed vendor who performed off-
+site cloud storage.
+• Ascension (2019): A misconfigured server at a third party 
+exposed millions of bank loan and mortgage documents.
+• Amadeus (2019): The online booking systems for over 140 
+airlines worldwide had a critical flaw that allowed hackers to 
+get access to the flight reservation systems.
+• Adverline (2019):  A third party to online European sellers had 
+malicious code injected, exfiltrating credit card information.
+• Click2Gov (2019): An online payment tool used by many 
+U.S. and Canadian municipalities was compromised, releas-
+ing information on citizens in St. John in Canada and Han-
+over County in Virginia.
+• BankersLife (2019): Breached third party allowed the 
+information about Humana’s customers to leak.
+• BenefitMall (2019): A third-party administrator for High-
+mark BCBS, Aetna, Humana, and United Health caused a 
+leak of customer data.
+• Quest Diagnostics (2019): From August 2018 to March 
+2019, a hacker gained access to Quest’s data at a billing col-
+lections vendor called American Medical Collection Agency 
+(AMCA). A total of 11.9 million records were exposed.
+What Is the Risk? 21
+• Suprema (2019): A firm offering biometric security soft-
+ware exposed 27.8  million unencrypted records for over 
+6,000 firms, including U.K. Metro Police, Power World 
+Gyms, and Global Village.
+• LensCrafters, Target, EyeMed (2020):  Luxottica, a breached 
+online appointment application provider, caused the loss of 
+thousands of protected health information (PHI) records.
+• Insurance companies in Texas and Colorado (2020): 
+Insurance carriers were impacted by a breach at Vertafore, 
+which provides software to insurance companies.
+• First Federal Community Bank, Bank of Swainsboro, 
+First Bank & Trust, Rio Bank (2020): ABS, a bank soft-
+ware provider, released the PII for the banks’ customers.
+• Hotels.com and Expedia (2020): Channel manager ven-
+dor, Prestige Software, was breached, exposing names, credit 
+card information, and reservation details.
+• Australian Stock Exchange (2020): An undisclosed 
+amount of protected data was exfiltrated from the media-
+monitoring vendor Insentia.
+• Google (2020): A law firm known as Fragomen, Del Rey, 
+Bernsen & Loewy disclosed information that Google used 
+for the I-9 process (i.e., proof of ability to work in the 
+United States).
+• City of Odessa (2020): Click2Gov, a frequently breached 
+vendor, leaked details on how Odessa residents paid their 
+utility bills.
+• Tribune Media and Times Media Group (2020): Mar -
+keting company, View Media, was breached, releasing infor -
+mation about 38 million U.S. residents.
+• Buffalo, NY, area hospitals; FeedMore; and Phipps 
+Conservatory (2020): Blackbaud, a data management 
+22 CYBERSECURITY AND THIRD-PARTY RISK
+vendor, released the names, medical services numbers, dates 
+of patient services, and a list of donors.
+• Rochester YMCA (2020): An undisclosed software ven-
+dor was breached for the names, addresses, and gift history 
+of donors.
+• SEI Investments (2020): MJ Brunner, a third-party soft-
+ware provider to SEI Investments, was breached, affecting 
+customers at dozens of investment banks.
+• Bank of America (2020): Caused by an unnamed third-
+party merchant, Paycheck Protection Plan (PPP) applica-
+tion business details, including Social Security numbers 
+(SSNs), emails, addresses, and more, were released.
+• Citrix (2020): An undisclosed vendor disclosed Citrix’s cus-
+tomer data, which was exposed on the Dark Web.
+• Marriott (2020):  A Russian franchise operator was 
+the reason for the second breach at this hotel chain in 
+just two years. This time over 5  million records were 
+compromised.
+• T-Mobile (2020): An email vendor’s breach was the reason 
+that thousands of customer names, addresses, phone num-
+bers, emails, rate plans, and more were exposed. This is the 
+second public breach for T-Mobile, with the last one occur -
+ring in 2015.
+• Radio.com (2020): Its cloud-hosting provider misconfig-
+ured their instance, which resulted in its customers’ PII 
+being made public.
+• Chubb (2020): A third-party service provider released 
+internal sensitive data about Chubb.
+• General Electric (2020): Canon, which was used by GE 
+for business processes, was breached, resulting in informa-
+tion on past and current GE employees and sensitive data 
+being released.
+What Is the Risk? 23
+• Amazon, eBay, Shopify, Stripe, PayPal (2020): A third-
+party application breach was the reason for the release 
+of over 8  million records on sales information, customer 
+names, emails, mailing addresses, and credit card informa-
+tion including the last four digits of account numbers.
+• SpaceX, Tesla, Boeing, Lockheed Martin (2020): Viser, a 
+parts manufacturer, released partial schematics for a missile 
+antenna and other restricted internal data.
+• Carson City (2020): Click2Gov caused the release of resi-
+dents’ names, addresses, email, debit/credit cards, card secu-
+rity codes (CVV), and bank account and routing numbers.
+• Idaho Central Credit Union (2020): A mortgage por tal 
+provider was hacked, releasing customer banking information.
+• Nedbank (2020): Nearly 2 million customer PII records 
+were released by Computer Facilities (Pty) Ltd., a market-
+ing and promotional firm.
+• Mitsubishi (2020): A large amount of internal restricted 
+data was exfiltrated via an undisclosed vendor in China.
+• P&N Bank (2020): A third-party customer relationship 
+manager (CRM) hosting company caused the loss of nearly 
+100,000 customer records.
+• Ubiquiti Inc (2021): A maker of Internet of Things devices, 
+it lost an undisclosed amount of customer names, email 
+addresses, passwords, addresses and phone numbers due to 
+a third-party cloud provider.
+• Bonobos (2021): This men’s clothing retailer had the data 
+for over 7 million customers (addresses, phones numbers, 
+account info, partial credit card information) stolen from its 
+cloud data provider.
+• US Cellular (2021): The fourth largest wireless carrier in 
+the U.S. exposed the private data of almost 5 million cus-
+tomers from its CRM software.
+24 CYBERSECURITY AND THIRD-PARTY RISK
+According to a Ponemon Institute survey in 2019, 60 per -
+cent of the companies surveyed admitted to not performing 
+adequate cybersecurity vetting of their third parties. Thirty-
+three percent replied they had no or an ad-hoc cybersecurity 
+vetting process. Fifty-nine percent admitted being affected by 
+a third-party breach in the previous year. In that same survey, 
+the companies also admitted to sharing their data on average 
+with and requiring protection from a whopping 588 third par -
+ties. Following those numbers, this means over half the com-
+panies admitted to not performing their cybersecurity due 
+diligence on nearly 600 third parties. Note, these statistics are 
+pre-COVID-19 pandemic. However, post pandemic, the cyber -
+attack increase was over 800 percent, according to the FBI as of 
+May 2020. Prior to the pandemic, the problem was pronounced, 
+with the breaches listed including Capital One, Home Depot, 
+and others. However, the lack of due diligence and programs to 
+review the cybersecurity of third parties by so many firms led 
+to an explosion of breaches. And, as everyone is someone else’s 
+third party (i.e., every company is selling to someone and using 
+vendors to assist in that effort), the problem was magnified to a 
+boiling point.
+Third-Party Risk Management
+Third-Party Risk Management (TPRM) as a discipline is not 
+very old. In the financial sector, it was not mandated by the Office 
+of the Comptroller of the Currency (OCC) until 2013, when it 
+regulated that all banks must manage the risk of all their third 
+parties. OCC 2013-29 defined “third party” as any entity a com-
+pany does business with, including vendors, suppliers, partners, 
+affiliates, brokers, manufacturers, and agents. Third parties can 
+include upstream (i.e., vendors) and downstream (i.e., resellers) 
+and non-contractual parties. Other regulated sectors have seen 
+similar requirements, often indirectly via privacy regulations. For 
+What Is the Risk? 25
+example, General Data Protection Regulation (GDPR) or the 
+California Privacy Rights Act (CPRA) require many companies 
+subject to these regulations to perform due diligence on vendors 
+who have access to their customer data. This may not lead to a 
+full-blown risk management division or group, but someone will 
+be required to perform some oversight in an organized process, 
+lest they get subjected to the extreme financial penalties both 
+regulations require.
+Other risk domains exist in TPRM: strategic, reputation, 
+operational, transaction, and compliance domains. Why is the 
+focus in this book on the cybersecurity domain exclusively? 
+That is where the money is. While there are financial and repu-
+tational risks for the other domains, none of them provide the 
+level of risk to a firm such as the risk of information security. 
+As described previously, there are number of breaches that can 
+be directly attributed to a cybersecurity breach at a vendor. It 
+is not that these other domains aren’t important, but none of 
+them have the impact that a cybersecurity risk poses to a firm, 
+financially or reputationally. Perform an internet search on the 
+other domains, and you will struggle to find results. A similar 
+search on cybersecurity breaches produces more results than 
+one can list in a single page. Like any organization with more 
+than one domain, if one of those domains presents a higher risk 
+for practitioners, and evidence shows that Information Secu-
+rity does, then that domain needs more research, resources, 
+and results.
+While TRPM organizations struggle to keep up with the 
+level of breaches and incidents with vendors, evidence shows most 
+cybersecurity organizations are not taking a lead in this domain, 
+and that TPRM groups do not have the expertise to address 
+this gap. According to the Ponemon Institute “Data Risk in the 
+Third-Party Ecosystem” study (2018), only 40 percent perform 
+any cybersecurity due diligence. Sixty percent perform none or 
+only ad-hoc cybersecurity reviews. The evidence indicates that 
+26 CYBERSECURITY AND THIRD-PARTY RISK
+a large percent of the 40 percent (i.e., those that perform some 
+cybersecurity due diligence) do not do enough (as evidenced by 
+the level of breaches/incidents). TPRM organizations must begin 
+focusing more on the Information Security domain, and either 
+directly bring cybersecurity experts into their organizations or 
+partner with cybersecurity teams to address the gap. Doing so 
+will also require that a cybersecurity team is able to understand 
+the problem with third parties and address the risk.
+While the fines and publicity for failure to follow TPRM 
+guidelines are not as big, instances of regulators acting can be  
+found:
+• In 2020, the OCC assessed an $85 million civil money pen-
+alty against USAA for failure to implement and maintain an 
+effective risk management compliance.
+• In 2020, the OCC assessed a $60 million civil money penalty 
+against Morgan Stanley for not properly decommissioning 
+some Wealth Management business data centers.
+• In 2020, the OCC assessed a $400 million civil money penalty 
+against Citibank for failures in enterprise risk management.
+• In 2020, the Federal Reserve announced an enforcement 
+action against Citigroup Inc., requiring that the firm cor -
+rect several longstanding deficiencies.
+• In 2020, the OCC assessed an $80  million civil money 
+penalty against Capital One for not establishing an effec-
+tive risk assessment process, which led to the breach in its 
+public cloud.
+• In 2013, the U.S. Security and Exchange Commission (SEC) 
+lowered the burden of proof for proxy disclosure enhance-
+ments on risk management inadequacy from fraud to simply 
+negligence. This means that boards of directors and senior
+Security Relevance Score: 30
+Word Count: 6810
+Extracted: 2025-06-13 23:40:22
+
+---
+
+The post explains that HyperbBro is commonly attributed 
+to the cybercriminal group named “LuckyMouse,” a Chinese-  
+speaking threat actor known for highly targeted cyberattacks. 
+Primarily active in South East and Central Asia, many of their 
+attacks have a political aim. Tmanger is attributed to TA428, also 
+a Chinese Advanced Persistent Threat (APT) group. Because these 
+two applications are used normally by different APT s and are now 
+together in one attack, the ESET team theorizes that LuckyMouse 
+and TA428 are sharing data and weapons; they are also likely the 
+subgroup of a larger APT. Given the region and threat actors, it is 
+considered to be a political attack that had been planned as early 
+as May 2018, yet not carried out in earnest until two years later.
+Advanced Persistent Threat (APT) is the term given to 
+state actors (i.e., government run or authorized hackers) or 
+large cybercriminal syndicates that have a lot of time and 
+patience to perform very stealthy, large-scale attacks aimed 
+at political or economic goals.
+4 CYBERSECURITY AND THIRD-PARTY RISK
+The SolarWinds Supply-Chain Attack
+On December 13, 2020, FireEye, a global leader in cybersecurity, 
+publishes on its website the first details about the SolarWinds 
+Supply-Chain Attack, a global intrusion campaign inserting a 
+trojan into the SolarWinds Orion business software updates to 
+distribute the malware. FireEye names the malware  “Sunburst.” 
+After the attackers successfully hacked into FireEye, their 
+ activity demonstrated lateral movement and data exfiltration. 
+“The actors behind this campaign gained access to numerous 
+public and private organizations around the world. . . . This cam-
+paign may have begun as early as Spring 2020 and is currently 
+ongoing. . . . The campaign is the work of a highly skilled actor 
+and the operation was conducted with significant operational 
+security,” as explained in the Summary from FireEye’s website 
+on December 13th.
+The attackers added a .dll file (a configuration file) called 
+SolarWinds.Orion.Core.BusinessLayer.dll to the Orion prod-
+uct, which had been digitally signed and enabled backdoor com-
+munications over HTTP (i.e., normal, unencrypted web traffic), 
+to other servers. The Sunburst malware is suspected to have lain 
+quietly for two weeks, while it performed some reconnaissance 
+via executing commands that led to file transfers and to control-
+ling the victim’s servers (i.e., reboots, disabling services). Using a 
+native product within Orion, the Orion Improvement Program 
+(OIP), Sunburst blended in with the program’s normal functions 
+expertly. It even had the capability to sniff out the antivirus and 
+cybersecurity forensic tools being used, likely to learn how to 
+better go undetected.
+“As much as anything, this attack provides a moment of 
+reckoning. It requires that we look with clear eyes at the growing 
+threats we face and commit to more effective and collaborative 
+leadership by the government and the tech sector in the United 
+What Is the Risk? 5
+States to spearhead a strong and coordinated global cybersecu-
+rity response,” according to Brad Smith, President of Microsoft 
+(December 17, 2020) as posted on his blog about the SolarWinds 
+attack. This attack was used to steal valuable intellectual prop-
+erty from the top-tier security company FireEye. As of the time 
+of this writing, it has been confirmed to have affected dozens 
+of U.S. cabinet-level agencies. Due to the pervasiveness of the 
+SolarWinds product across the world, more breaches will be 
+discovered in the following days, weeks, months, and years to 
+come. Some may never be discovered (or admitted); however, 
+there will be international victims. It is a coup for the suspected 
+perpetrators, thought to be a state actor who used a supply side 
+attack, exploiting the weakness of a popular network and moni-
+toring tool, SolarWinds, to circumvent the tight defenses of the 
+intended victims.
+On December 18th, Microsoft released information iden-
+tifying more than 40 government agencies, higher learning 
+institutions, Non-Governmental Organizations (NGOs), and 
+information technology companies that were infiltrated, with 
+four-fifths of them being U.S.-based, and nearly half of those 
+being tech companies. On his blog, Brad Smith said
+This is not “espionage as usual,” even in the digital age. 
+Instead, it represents an act of recklessness that created a 
+serious technological vulnerability for the United States and 
+the world. While the most recent attack appears to reflect 
+a particular focus on the United States and many other 
+democracies, it also provides a powerful reminder that peo-
+ple in virtually every country are at risk and need protection 
+irrespective of the governments they live under.
+One act of recklessness that he refers to is that this pervasive 
+software, SolarWinds Orion, was clearly not performing its own 
+due diligence and due care to protect itself and its customers, 
+6 CYBERSECURITY AND THIRD-PARTY RISK
+and this product is used by nearly everyone. Further recklessness 
+was that all the customers of SolarWinds were not performing at 
+expectations for cybersecurity’s best practice.
+If customers had performed some key cybersecurity assess-
+ment on a third-party software maker like SolarWinds, this attack 
+could have been detected. Were intake questions asked about the 
+type of data to which SolarWinds had access and where that data 
+might go or be stored? Depending on a company’s solution type, 
+asking questions about how the secure software development life-
+cycle is managed and audited is considered to be appropriate.
+With the hardware device, what was SolarWind’s supply 
+chain security for the hardware parts and assembly? For the 
+company that had ventured to perform an on-site cybersecurity 
+physical validation of SolarWinds, was any evidence produced 
+on how they performed external security scans (which might 
+have detected the default password on their download page 
+“SolarWinds123”)? Who performed these external scans? The 
+company? Or did they hire an outside firm and were the results 
+viewable? Often, such companies will not share these results, so 
+you must negotiate to at least see the T able of Contents, who 
+performed such security scans, and when.
+Final question: Had SolarWinds remediated all the find-
+ings in the external security scan? While this is not the first time 
+a breach has occurred, the scale of the SolarWinds breach will 
+dwarf all others.
+The VGCA Supply-Chain Attack
+On December 17, 2020, ESET Research announced it had 
+detected a large supply-chain attack against the digital signing 
+authority of the government of Vietnam (ca.gov.vn), the website 
+for the Vietnam Government Certification Authority (VGCA), 
+What Is the Risk? 7
+which is part of the Government Cipher Committee under the 
+Ministry of Information and Communication. Vietnam has made 
+the digital leap, and almost anyone in the country who requires 
+a government service, product, or approval is required to use a 
+digital signature. These e-signatures have the same authority and 
+enforceability as a traditional paper document autograph accord-
+ing to government decree.
+The VGCA also develops and makes available for download 
+a toolkit to automate the process of e-signatures. This toolkit 
+is widely used by the government, private companies, and indi-
+viduals. VGCA ’s website was hacked as early as July 23rd, and no 
+later than August 16, 2020. The compromised toolkits contained 
+malware known as PhantomNet, and SManager ESET confirms 
+that the files were downloaded from the VGCA website directly, 
+and not the result of a redirect from another location. While 
+these infected files were not signed with proper digital certifi-
+cates, it appears that prior files were not correctly signed either. 
+This may have led to users not rejecting the improper digital 
+certificates of the trojan-infected files because they behaved the 
+same before the malware was added.
+When an infected file was downloaded and run, the correct 
+VGCA program ran along with the malware. This masqueraded 
+the trojan to the end user because they saw the normal program 
+running correctly, being unaware of the trojan or unlikely to look 
+for it because the program appeared to be running normally. The 
+file eT oken.exe extracted a Windows cabinet file (.cab), which 
+was used as an archive file to support compression and maintain 
+archive integrity. The file 7z.cab was the file that contained a 
+backdoor for the attackers to exploit. The attackers went to great 
+lengths to ensure that the backdoor ran, regardless of the user’s 
+privileges on the device.
+If the 7z.cab file was able to run as an administrator on 
+the machine, the program wrote the backdoor to c:\Windows\
+8 CYBERSECURITY AND THIRD-PARTY RISK
+appatch\netapi32.dll, which then registered it as a service to 
+ensure it kept running after any reboot. On a device that only 
+allowed the file to run as a normal user, the install placed it in a 
+temporary directory, but the program scheduled a task to ensure 
+its persistence. ESET named this backdoor PhantomNet. They 
+mentioned that the victim list included the Philippines, but no 
+evidence was found of a delivery mechanism.
+The trojan was determined to be a simple program, and 
+according to the sophistication of the attack, it is likely there were 
+other more malicious plugins added to exploit the backdoor. When 
+the victim’s web configuration was determined, then it reached 
+out to a command and control (C&C) server to get instructions. 
+Communications with the C&C servers was done over HTTPS 
+(secure, encrypted web traffic), and the attackers went to the trou-
+ble of preventing the interception of traffic (i.e., man-in-the-mid-
+dle attack on their own data) by using their own certificates.
+Data analysis indicates that the malware was used for lateral 
+movement. Once inside the computer, it enabled the attacker to 
+move around the network for other data. The malware collected 
+and transferred information about the computer, user accounts, 
+and victim. In the post-attack forensics, no data was discovered 
+nor was the goal of the attack.
+ESET wrote on its website:
+Conclusion: With the compromise of Able Desktop, the 
+attack on WIZVERA VeraPort by Lazarus and the recent 
+supply-chain attack on SolarWinds Orion, we see that sup-
+ply-chain attacks are a quite common compromise vector 
+for cyberespionage groups. In this specific case, they com-
+promised the website of a Vietnamese certificate authority, 
+in which users are likely to have a high level of trust. Supply-
+chain attacks are typically hard to find, as the malicious code 
+is generally hidden among a lot of legitimate code, making 
+its discovery significantly more difficult.
+What Is the Risk? 9
+The Zyxel Backdoor Attack
+On January 2, 2020, Zyxel (networking device maker) announced 
+over 100,000 of their firewalls, VPN gateways, and access point 
+controllers (i.e., Wi-Fi controllers) contained a hardcoded 
+administrator backdoor account, which gives root-level access 
+(i.e., a super administrator that can do anything on the device) 
+on both the secure shell (SSH) and web administrator portal. 
+This is on top of a previous similar incident with Zyxel in 2016, 
+where they had a backdoor that allowed any user to escalate their 
+account to root-level account privileges. This backdoor is still 
+being exploited by botnets to this day, four years later.
+A hardcoded backdoor root account is one that cannot be 
+underestimated in how critical the security flaw is. When 
+an account is built within the code of a product, it cannot 
+be removed unless the code itself is changed or updated by 
+the manufacturer. Additionally, the root account is what 
+is referred to as a “super user,” which has privileges as an 
+administrator. The products affected the manufacturers 
+Advanced Threat Protection (i.e., firewall), Unified Secu-
+rity Gateway (i.e., hybrid firewall/virtual private network 
+[VPN] gateway), USG FLEX (i.e., hybrid firewall/VPN 
+gateway), VPN, and NXC (i.e., Wi-Fi access point control-
+ler) series. These devices formed the perimeter and internal 
+security control points for thousands of companies world-
+wide. The attacker’s ability to exploit these network devices 
+most assuredly gives them lateral access into the victim’s 
+network. At the time of this backdoor announcement, Zyxel 
+offered patches for all of the products except for the NXC 
+series; it is not producing a patch for another four months.
+10 CYBERSECURITY AND THIRD-PARTY RISK
+The hardcoded user account “zyfwp” and password 
+“PrOw!N_fXp” were stored in visible plaintext (i.e., unencrypted 
+or obfuscated). Dutch researchers reported that the password 
+was clearly visible in the code binaries. Apparently the account 
+had the root-level access to install firmware updates. In the pre-
+vious 2016 incident, a hacker would’ve needed to already have a 
+user account on the device to exploit it and to become a super 
+user. In that instance, the root account is directly accessible on 
+HTTPS (port 443) connection to the device.
+According to Zyxel’s website, “A hardcoded credential vul-
+nerability was identified in the ‘zyfwp’ user account in some 
+Zyxel firewalls and AP controllers. The account was designed to 
+deliver automatic firmware updates to connected access points 
+through FTP .” A search on Shodan (a search engine that can find 
+computers and devices connected to the internet) shows nearly 
+30,000 of these devices deployed in Russia; 5,000  in T aiwan, 
+Germany, and Finland; with nearly 3,000 in the United States.
+Other Supply-Chain Attacks
+Starting in early December 2020 and into early 2021 ( January 
+2), there were four major third-party (supply-chain) attacks and 
+vulnerabilities announced in the span of 20 days. These attacks 
+or vulnerabilities went on for months or longer. Evidence in the Zyxel Patch Release
+The expected patch release is April 2021. Until then, the 
+only option for organizations is to unplug and replace the 
+devices to ensure security posture.
+What Is the Risk? 11
+SolarWinds and Vietnam attacks pointed to advanced persistent 
+threats launching into the weaponization of the supply chain. 
+In two of the cases, the attacks were directed at nearly a whole 
+country (Vietnam through the VGCA, and Mongolia through 
+the Able Desktop). In three of the instances, the attackers were all 
+APT s and were stealthy enough to remain undetected for months 
+or longer. These attackers have seen what they can do with the 
+weakest links—vendors—to get to a wide range of targets.
+Chief Information Security Officers (CISOs) at Fortune 
+500 companies have spent billions of dollars in the last decade 
+securing their networks from such breaches. Some great tools 
+have been implemented, like Intrusion Detection/Prevention 
+Systems (IDS, IPS), Cloud Access Security Broker (CASB), Priv-
+ileged Access Manager (PAM), Security Information and Event 
+Management (SIEM), and Security Operations Centers (also 
+referred to as Cyber Fusion Centers) have been built to track 
+and eliminate threats. However, the level of breaches in 2020 
+continued to increase exponentially. The number of third-party 
+breach instances grew because every company is some other 
+company’s vendor. As the number of these breaches increased, it 
+meant another vendor with hundreds, thousands, or millions of 
+customers became a victim as well.
+Public law enforcement is also sounding the alarm. On 
+December 8, 2020, at the American Bankers Association (ABA) 
+Financial Crimes Enforcement Conference, FBI Director Chris-
+topher Wray stated, “The financial sector has the most robust 
+cybersecurity of any industry,” which is why cybercriminals try 
+third-party channels. Banks can also be affected by ransomware 
+targeting third parties, a threat that Wray said “may be somewhat 
+underestimated by a lot of people.” While he specifically called 
+out financial firms, the same could be said of many other sectors, 
+including aerospace, energy, technology, biotech, and others, 
+which generally have excellent security on their own company’s 
+12 CYBERSECURITY AND THIRD-PARTY RISK
+assets. Most of the victims of the SolarWinds attack have been in 
+the technology and government sectors, which typically have had 
+good-to-excellent security. In those cases, hackers will target the 
+weakest link, attacking vendors who take security less seriously.
+Hundreds of examples like this have occurred over the last 
+decade, across the world, and in every industry: Ticketmaster, 
+Capital One, T esla, Under Armor, Boeing, PayPal, Chubb, nearly 
+every major worldwide automaker, Sears, Best Buy, Entercom, 
+and T-Mobile. In the case of FireEye or a customer of Zyxel, 
+these companies lost protected data as a result of a third (or 
+fourth) party. No one in the public realm remembers that third 
+party; they simply remember the company they trusted with their 
+data who let them down. Such breaches cost these companies 
+large amounts of money, which directly affected consumers, and 
+extensively damaged the companies’ reputations. In areas where 
+there was a heavy regulatory presence, the breached firms were 
+often left holding fines as well. In August 2020, the Office of 
+the Comptroller of the Currency (OCC) assessed an $80 million 
+civil penalty against Capital One for failure to establish effective 
+risk assessment processes prior to migrating significant informa-
+tion technology operations to its public cloud environment. It is 
+expected to cost Capital One up to $150 million, and it cost the 
+company’s CISO his job at the firm.
+Problem Scope
+The secret is out: If you want to attain protected data as a hacker, 
+you do not attack a big company or organization that likely has 
+good security. You go after a third party that more likely does 
+not. Companies have created the equivalent of how to deter car 
+thieves: Ensure that your car looks difficult enough to break into 
+so that thieves move onto the automobile with its doors unlocked 
+What Is the Risk? 13
+and keys in the ignition. When a burglar sees a car with a car 
+alarm, they know that they can look and eventually find a target 
+that isn’t so well protected. Exploiting the weakest link is not 
+new. A bank robber could go to the bank to steal money, but a 
+softer target would likely be the courier service as it brings the 
+money into and out of the bank.
+T o date, cybersecurity and third-party risk teams have not 
+often collaborated or understood the common threat, instead 
+focusing their security on their own silos. In most regulated 
+industries, this has led to the typical rush to the bottom to meet 
+the regulatory requirements; meaning, rather than create a secu-
+rity program that secures their data and network, they do just 
+enough to keep the regulators happy. Regulators are never con-
+sidered to be on the leading edge. Whether it is in financial fraud 
+or cybercrime, they simply do not lead in best practices for any 
+field. However, it is not their responsibility. Regulations are typi-
+cally designed to limit the behavior of a company that may cause 
+financial or bodily harm. The most highly regulated industries, 
+such as energy, biotechnology, finance, telecommunications, aer -
+ospace, and many others, have robust Third-Party Risk Manage-
+ment and cybersecurity teams. However, if these industries rely 
+on doing what the regulators require of them, they are not going 
+to be performing their best practices.
+The most successful companies at preventing their systems 
+from being compromised go beyond what a regulator or reg-
+ulation mandates them to do for compliance. The regulations 
+and their enforcers get involved after something bad has already 
+occurred. Sarbanes-Oxley (SOX) was a financial regulation 
+designed to lower the risk of financial fraud by publicly traded 
+companies after the damage done by the tech bubble crash in 
+the early 2000s. The Dodd-Frank Wall Street Reform and Con-
+sumer Protection Act was passed in 2010 after the financial melt-
+down leading to the Great Recession. These widespread changes 
+14 CYBERSECURITY AND THIRD-PARTY RISK
+in regulation occurred as a reaction to the excesses and missteps 
+that lawmakers felt led to the meltdown. Nearly every regulation 
+passed is due to a previous misstep, not in anticipation of the next 
+misstep or mistake
+Being reliant on the government to set the standard for what 
+to do and how to do it is a recipe for disaster. This is not to say, 
+however, that regulations are without their merit when enforced 
+correctly. The argument here is not about whether there should 
+be regulations, but more about if organizations should be advised 
+to view those regulations as the bare minimum to perform. In the 
+case of cybersecurity and third-party risk, regulations provide 
+some excellent guidance on what is important for organizations. 
+However, if a cybersecurity or third-party risk team only relies 
+on regulators for the best practical procedures to follow, there’s a 
+high likelihood their companies will be hacked. In fact, the likeli-
+hood is that they will be hacked quite a bit faster than those com-
+panies that view regulatory requirements as their starting point.
+T o illustrate the point, we can look at the Payment Card 
+Industry Security Standard (PCI-DSS), which is the payment 
+card standard (using credit and debit cards), to guarantee con-
+sumer financial data protection. PCI-DSS has very specific 
+recommendations and is regularly updated for how to secure 
+networks, protect user data, require strong access controls, per -
+form network security tests, and regularly review information 
+security policies. PCI-DSS is tested regularly, and its standards 
+are considered rigorous. It is not regulated by the government; 
+instead, it’s a group of companies that standardized their prac-
+tices. Meaning, private companies collaborated to create what is 
+nationally viewed as a success in security.
+Third-party risk, or what another company is doing to lower 
+risk to your company, might seem like it places a CISO and the 
+cybersecurity organization at a disadvantage because they cannot 
+control what goes on at another entity. However, that is a myth. 
+What Is the Risk? 15
+While a third party cannot be directly controlled, there are ways 
+to direct and monitor their behavior and choices to greatly reduce 
+your risk. Anyone who has ever been taught risk or worked as 
+a risk professional knows the mantra: Risk can never be zero. 
+In fact, anything is possible. Regardless of whether your com-
+pany is using all the fancy technology and expensive software, or 
+employing hundreds of cybersecurity professionals hunting for 
+vulnerabilities, there still is a chance, or risk, of a breach.
+The goal is reduce risk to a level that is commensurate with 
+your company’s effort to reduce it, based upon its risk appetite. 
+This risk reduction effort of a third party requires a change in a 
+company’s cybersecurity approach and attitude. As we dive into 
+the numbers, it will become apparent that not enough companies 
+perform the required due diligence. Out of those that do, some do 
+not perform it at the level necessary to reduce the risk. Often, risk 
+reduction is performed as a compliance effort, and merely viewed 
+as a checkbox to complete in order to keep regulators and auditors 
+at bay. This attitude of “ignoring the risk” or “doing it as ‘check-
+box’ security” has caused cybersecurity Third-Party Risk Manage-
+ment (TPRM) to be absent from adequate attention and activity.
+Compliance Does Not Equal Security
+Compliance is not security, yet security is an important piece of 
+compliance. By definition, being compliant is when your organiza-
+tion meets the minimum requirements for specific regulations at 
+a specific moment in time. If we look at many of the companies 
+on the recently breached list, it’s likely all were meeting their 
+regulatory obligations for compliance in their respective indus-
+tries. In the case of T arget when its payment system was hacked, 
+it had just completed a certification of its PCI-DSS. Most regu-
+lations are simply a form of deterrence (of things like insider 
+16 CYBERSECURITY AND THIRD-PARTY RISK
+trading or dumping chemicals into a river). Regulations discour -
+age bad behavior either by people or companies.
+Security is an ongoing activity—a continuously occurring 
+activity and not one that occurs at a point in time. Compliance 
+activities are performed as a checklist by internal or external 
+auditors to verify that a company’s team is following regulations. 
+It’s is an important activity that helps prevent bad acts. Employ-
+ees and companies see these checks being performed, then are 
+discouraged from doing bad things, such as ill-gotten gains via 
+insider trading or killing fish by dumping chemicals. Security has 
+the dubious distinction of being sure data is not lost. Once data is 
+lost, it cannot be retrieved—it is gone forever into the Dark Web 
+or other places. The deterrent must come from the company’s 
+cybersecurity efforts, not the government regulators.
+A company can be 100-percent compliant and also be 
+100-percent owned by hackers. For example, you can drive a car 
+with seatbelts, an automatic brake system (ABS), collision detec-
+tion and avoidance, blind spot detection, and more, all turned on. 
+Say your car is up to current safety regulations, you, the driver, 
+are all buckled up and sober. There should be no accidents or 
+injuries. Yet, another driver who doesn’t always pay attention to 
+the safety warnings fails to perform their best practices while 
+driving, resulting in a collision with injuries. You, a driver, were 
+100-percent compliant, yet another driver was not.
+Another difference in compliance activities is the timing of 
+each action. Compliance activities are done at a certain point in 
+time for what is present in terms of controls and checks. Another 
+third party (i.e., auditors, regulators) or an internal team ensures 
+that the company they’re working with satisfies a set of require-
+ments that allows it to continue to perform business. When all 
+conditions have been satisfied, the compliance activity is finished. 
+Security, however, is never finished. It is continually monitored, 
+reviewed, and improved.
+What Is the Risk? 17
+Third-Party Breach Examples
+Throughout many chapters in this book, you will find case study 
+sections where we dive into some of these breaches. However, it 
+is important to understand the scope and history of how often 
+third-party incidents occur. Many public breaches attributed to 
+a particular company are, in fact, the result of a third party. One 
+of the most well-known examples is the T arget breach. In fact, it 
+was T arget’s Heating, Ventilation, and Air Conditioning (HVAC) 
+provider that was breached to get access to T arget’s data.
+Following are a few examples of the major third-party 
+breaches to show how easily they cross over any boundary (i.e., 
+geographic, sectors, sizes):
+• Target (2013): The data of 70  million customers and 
+40 million credit/debit card information records was leaked 
+by HVAC company Fazio Mechanical Services.
+• Lowe’s (2014): Millions of drivers’ records were exposed 
+by SafetyFirst, a vendor that stored the exposed data in an 
+online database.
+• JP Morgan Chase & Co (2014): Contact information for 
+76  million consumers and 7  million small businesses was 
+exposed by a third-party website used to sponsor a foot race.
+• Sam’s Club, Costco, CVS, RiteAid, Walmart Canada, 
+Tesco (2015): Millions of customer data records were 
+hacked at PNI Digital Media, which is used for online photo 
+ordering and printing.
+• T-Mobile (2015): A total of 15 million personally identifi-
+able information (PII) records were leaked by Experian, a 
+customer credit assessment company.
+• Forever 21 and Hyatt Hotels (2017): An unknown num-
+ber of credit card data records were released due to its 
+POS system.
+18 CYBERSECURITY AND THIRD-PARTY RISK
+• Uber (2017): Coding site GitHub’s misconfiguration 
+caused data for 57 million users to be exposed.
+• Equifax (2017): Highly confidential data for 143 million 
+consumers was released due to an undisclosed third-party 
+tool used to build web applications.
+• Verizon (2017): The restricted data of 14 million customers 
+was exposed by customer analytics provider NICE Systems.
+• Hard Rock Hotels & Casinos (2017): Sabre Corp, a travel 
+reservation service, was exploited, causing a leak of credit 
+card data for an undisclosed number of customers at 11 of 
+its properties.
+• ShadowPad (2017): A server management software (made 
+by NetSarang) used by hundreds of multinational and large 
+companies worldwide exposed a still unknown number of 
+protected data records.
+• Republican National Committee (2017): The PII for 
+200 million registered Republican voters was leaked via the 
+third-party Deep Root.
+• BevMo (2018): Online payment provider NCR Corpora-
+tion was breached for over 14,000 BevMo customers.
+• Nordstrom (2018): A third-party tool that managed the 
+direct deposit permitted the personal information about 
+Nordstrom’s employees to be leaked.
+• Ontario Cannabis Store (2018): Canada Post, an online 
+tracking tool, allowed the loss of the store’s customer data.
+• SuperMicro (2018): A flaw present in the microchips used 
+by major companies, such as Apple and Amazon, caused an 
+unknown amount of data to be leaked.
+• Facebook (2018): Any platform that shared login creden-
+tials with Facebook resulted in the exposure of 50 million 
+user accounts.
+What Is the Risk? 19
+• The Conservative Party (UK) (2018): CrowdComms, a 
+conference application used by the Conservative Party, was 
+the party responsible for the loss of protected data about 
+Ministers of Parliament (MP), conference attendees, and 
+journalists.
+• British Airways (2018): An undisclosed third-party mis-
+configuration of JavaScript caused the financial and per -
+sonal information of over 300,000 customers to be released.
+• University of Louisville (2018): Health Fitness, a fitness 
+vendor, released employee names, employee IDs, and physi-
+cians’ names.
+• Washoe County School District (2018): District teach-
+ers’ emails, usernames, and passwords were exposed by an 
+instructional tool provided by Edmodo.
+• MedCall Healthcare Advisers (2018): Over 150 busi-
+nesses were affected by this third-party breach, with 7 GB 
+of medical information data being exfiltrated.
+• GoDaddy (2018): Sensitive records for over 30,000 servers 
+were released by a misconfigured Amazon S3 bucket.
+• Air Canada (2018): An undisclosed mobile application 
+provider caused the loss of customer data.
+• Fiserv (2018): This financial third-party website provider 
+was the reason that hundreds of banks had the records for 
+their customers exposed.
+• Ticketmaster (2018): Inbeta, a provider of Ticketmaster’s 
+website application, caused a leak of customer data.
+• Universal Music Group (2018): Cloud-storage provider 
+Agilisium caused the loss of internal File T ransfer Protocol 
+(FTP) credentials, Amazon Web Services (AWS) secret keys 
+and passwords, along with internal root passwords for struc-
+tured query language (SQL) databases.
+20 CYBERSECURITY AND THIRD-PARTY RISK
+• Chili’s Grill & Bar (2018):  Chili’s POS system was breached, 
+causing the loss of an undisclosed number of credit card 
+data records.
+• Best Buy, Sears, Kmart, and Delta (2018): An online chat 
+provider used by these firms lost over a million customer 
+records in total.
+• Applebee’s (2018): 160 restaurants and their customer data 
+were released by the chain’s POS system.
+• Western Union (2018): Private data about transactions 
+was released by an undisclosed vendor who performed off-
+site cloud storage.
+• Ascension (2019): A misconfigured server at a third party 
+exposed millions of bank loan and mortgage documents.
+• Amadeus (2019): The online booking systems for over 140 
+airlines worldwide had a critical flaw that allowed hackers to 
+get access to the flight reservation systems.
+• Adverline (2019):  A third party to online European sellers had 
+malicious code injected, exfiltrating credit card information.
+• Click2Gov (2019): An online payment tool used by many 
+U.S. and Canadian municipalities was compromised, releas-
+ing information on citizens in St. John in Canada and Han-
+over County in Virginia.
+• BankersLife (2019): Breached third party allowed the 
+information about Humana’s customers to leak.
+• BenefitMall (2019): A third-party administrator for High-
+mark BCBS, Aetna, Humana, and United Health caused a 
+leak of customer data.
+• Quest Diagnostics (2019): From August 2018 to March 
+2019, a hacker gained access to Quest’s data at a billing col-
+lections vendor called American Medical Collection Agency 
+(AMCA). A total of 11.9 million records were exposed.
+What Is the Risk? 21
+• Suprema (2019): A firm offering biometric security soft-
+ware exposed 27.8  million unencrypted records for over 
+6,000 firms, including U.K. Metro Police, Power World 
+Gyms, and Global Village.
+• LensCrafters, Target, EyeMed (2020):  Luxottica, a breached 
+online appointment application provider, caused the loss of 
+thousands of protected health information (PHI) records.
+• Insurance companies in Texas and Colorado (2020): 
+Insurance carriers were impacted by a breach at Vertafore, 
+which provides software to insurance companies.
+• First Federal Community Bank, Bank of Swainsboro, 
+First Bank & Trust, Rio Bank (2020): ABS, a bank soft-
+ware provider, released the PII for the banks’ customers.
+• Hotels.com and Expedia (2020): Channel manager ven-
+dor, Prestige Software, was breached, exposing names, credit 
+card information, and reservation details.
+• Australian Stock Exchange (2020): An undisclosed 
+amount of protected data was exfiltrated from the media-
+monitoring vendor Insentia.
+• Google (2020): A law firm known as Fragomen, Del Rey, 
+Bernsen & Loewy disclosed information that Google used 
+for the I-9 process (i.e., proof of ability to work in the 
+United States).
+• City of Odessa (2020): Click2Gov, a frequently breached 
+vendor, leaked details on how Odessa residents paid their 
+utility bills.
+• Tribune Media and Times Media Group (2020): Mar -
+keting company, View Media, was breached, releasing infor -
+mation about 38 million U.S. residents.
+• Buffalo, NY, area hospitals; FeedMore; and Phipps 
+Conservatory (2020): Blackbaud, a data management 
+22 CYBERSECURITY AND THIRD-PARTY RISK
+vendor, released the names, medical services numbers, dates 
+of patient services, and a list of donors.
+• Rochester YMCA (2020): An undisclosed software ven-
+dor was breached for the names, addresses, and gift history 
+of donors.
+• SEI Investments (2020): MJ Brunner, a third-party soft-
+ware provider to SEI Investments, was breached, affecting 
+customers at dozens of investment banks.
+• Bank of America (2020): Caused by an unnamed third-
+party merchant, Paycheck Protection Plan (PPP) applica-
+tion business details, including Social Security numbers 
+(SSNs), emails, addresses, and more, were released.
+• Citrix (2020): An undisclosed vendor disclosed Citrix’s cus-
+tomer data, which was exposed on the Dark Web.
+• Marriott (2020):  A Russian franchise operator was 
+the reason for the second breach at this hotel chain in 
+just two years. This time over 5  million records were 
+compromised.
+• T-Mobile (2020): An email vendor’s breach was the reason 
+that thousands of customer names, addresses, phone num-
+bers, emails, rate plans, and more were exposed. This is the 
+second public breach for T-Mobile, with the last one occur -
+ring in 2015.
+• Radio.com (2020): Its cloud-hosting provider misconfig-
+ured their instance, which resulted in its customers’ PII 
+being made public.
+• Chubb (2020): A third-party service provider released 
+internal sensitive data about Chubb.
+• General Electric (2020): Canon, which was used by GE 
+for business processes, was breached, resulting in informa-
+tion on past and current GE employees and sensitive data 
+being released.
+What Is the Risk? 23
+• Amazon, eBay, Shopify, Stripe, PayPal (2020): A third-
+party application breach was the reason for the release 
+of over 8  million records on sales information, customer 
+names, emails, mailing addresses, and credit card informa-
+tion including the last four digits of account numbers.
+• SpaceX, Tesla, Boeing, Lockheed Martin (2020): Viser, a 
+parts manufacturer, released partial schematics for a missile 
+antenna and other restricted internal data.
+• Carson City (2020): Click2Gov caused the release of resi-
+dents’ names, addresses, email, debit/credit cards, card secu-
+rity codes (CVV), and bank account and routing numbers.
+• Idaho Central Credit Union (2020): A mortgage por tal 
+provider was hacked, releasing customer banking information.
+• Nedbank (2020): Nearly 2 million customer PII records 
+were released by Computer Facilities (Pty) Ltd., a market-
+ing and promotional firm.
+• Mitsubishi (2020): A large amount of internal restricted 
+data was exfiltrated via an undisclosed vendor in China.
+• P&N Bank (2020): A third-party customer relationship 
+manager (CRM) hosting company caused the loss of nearly 
+100,000 customer records.
+• Ubiquiti Inc (2021): A maker of Internet of Things devices, 
+it lost an undisclosed amount of customer names, email 
+addresses, passwords, addresses and phone numbers due to 
+a third-party cloud provider.
+• Bonobos (2021): This men’s clothing retailer had the data 
+for over 7 million customers (addresses, phones numbers, 
+account info, partial credit card information) stolen from its 
+cloud data provider.
+• US Cellular (2021): The fourth largest wireless carrier in 
+the U.S. exposed the private data of almost 5 million cus-
+tomers from its CRM software.
+24 CYBERSECURITY AND THIRD-PARTY RISK
+According to a Ponemon Institute survey in 2019, 60 per -
+cent of the companies surveyed admitted to not performing 
+adequate cybersecurity vetting of their third parties. Thirty-
+three percent replied they had no or an ad-hoc cybersecurity 
+vetting process. Fifty-nine percent admitted being affected by 
+a third-party breach in the previous year. In that same survey, 
+the companies also admitted to sharing their data on average 
+with and requiring protection from a whopping 588 third par -
+ties. Following those numbers, this means over half the com-
+panies admitted to not performing their cybersecurity due 
+diligence on nearly 600 third parties. Note, these statistics are 
+pre-COVID-19 pandemic. However, post pandemic, the cyber -
+attack increase was over 800 percent, according to the FBI as of 
+May 2020. Prior to the pandemic, the problem was pronounced, 
+with the breaches listed including Capital One, Home Depot, 
+and others. However, the lack of due diligence and programs to 
+review the cybersecurity of third parties by so many firms led 
+to an explosion of breaches. And, as everyone is someone else’s 
+third party (i.e., every company is selling to someone and using 
+vendors to assist in that effort), the problem was magnified to a 
+boiling point.
+Third-Party Risk Management
+Third-Party Risk Management (TPRM) as a discipline is not 
+very old. In the financial sector, it was not mandated by the Office 
+of the Comptroller of the Currency (OCC) until 2013, when it 
+regulated that all banks must manage the risk of all their third 
+parties. OCC 2013-29 defined “third party” as any entity a com-
+pany does business with, including vendors, suppliers, partners, 
+affiliates, brokers, manufacturers, and agents. Third parties can 
+include upstream (i.e., vendors) and downstream (i.e., resellers) 
+and non-contractual parties. Other regulated sectors have seen 
+similar requirements, often indirectly via privacy regulations. For 
+What Is the Risk? 25
+example, General Data Protection Regulation (GDPR) or the 
+California Privacy Rights Act (CPRA) require many companies 
+subject to these regulations to perform due diligence on vendors 
+who have access to their customer data. This may not lead to a 
+full-blown risk management division or group, but someone will 
+be required to perform some oversight in an organized process, 
+lest they get subjected to the extreme financial penalties both 
+regulations require.
+Other risk domains exist in TPRM: strategic, reputation, 
+operational, transaction, and compliance domains. Why is the 
+focus in this book on the cybersecurity domain exclusively? 
+That is where the money is. While there are financial and repu-
+tational risks for the other domains, none of them provide the 
+level of risk to a firm such as the risk of information security. 
+As described previously, there are number of breaches that can 
+be directly attributed to a cybersecurity breach at a vendor. It 
+is not that these other domains aren’t important, but none of 
+them have the impact that a cybersecurity risk poses to a firm, 
+financially or reputationally. Perform an internet search on the 
+other domains, and you will struggle to find results. A similar 
+search on cybersecurity breaches produces more results than 
+one can list in a single page. Like any organization with more 
+than one domain, if one of those domains presents a higher risk 
+for practitioners, and evidence shows that Information Secu-
+rity does, then that domain needs more research, resources, 
+and results.
+While TRPM organizations struggle to keep up with the 
+level of breaches and incidents with vendors, evidence shows most 
+cybersecurity organizations are not taking a lead in this domain, 
+and that TPRM groups do not have the expertise to address 
+this gap. According to the Ponemon Institute “Data Risk in the 
+Third-Party Ecosystem” study (2018), only 40 percent perform 
+any cybersecurity due diligence. Sixty percent perform none or 
+only ad-hoc cybersecurity reviews. The evidence indicates that 
+26 CYBERSECURITY AND THIRD-PARTY RISK
+a large percent of the 40 percent (i.e., those that perform some 
+cybersecurity due diligence) do not do enough (as evidenced by 
+the level of breaches/incidents). TPRM organizations must begin 
+focusing more on the Information Security domain, and either 
+directly bring cybersecurity experts into their organizations or 
+partner with cybersecurity teams to address the gap. Doing so 
+will also require that a cybersecurity team is able to understand 
+the problem with third parties and address the risk.
+While the fines and publicity for failure to follow TPRM 
+guidelines are not as big, instances of regulators acting can be  
+found:
+• In 2020, the OCC assessed an $85 million civil money pen-
+alty against USAA for failure to implement and maintain an 
+effective risk management compliance.
+• In 2020, the OCC assessed a $60 million civil money penalty 
+against Morgan Stanley for not properly decommissioning 
+some Wealth Management business data centers.
+• In 2020, the OCC assessed a $400 million civil money penalty 
+against Citibank for failures in enterprise risk management.
+• In 2020, the Federal Reserve announced an enforcement 
+action against Citigroup Inc., requiring that the firm cor -
+rect several longstanding deficiencies.
+• In 2020, the OCC assessed an $80  million civil money 
+penalty against Capital One for not establishing an effec-
+tive risk assessment process, which led to the breach in its 
+public cloud.
+• In 2013, the U.S. Security and Exchange Commission (SEC) 
+lowered the burden of proof for proxy disclosure enhance-
+ments on risk management inadequacy from fraud to simply 
+negligence. This means that boards of directors and senior

@@ -1,0 +1,69 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 7 - Advanced Obfuscation and Firewall Evasion Techniques), there are still many scan configurations combining vulnerability analysis with fundamental and intermediate flags for the best results.
+To illustrate this point, let’s break down a few Nmap scans that would be expected of a junior Penetration Tester and analyze how they work for vulnerability analysis:
+Nmap -Pn --top-ports 500 -T2 -sV --version-all --script vulners.nse -iL targets.txt -oX results.txt
+In this scan, the user is attempting to determine an accurate CPE by using the --version-all flag, but has reduced the total number of ports from the default of 1,000 to 500. This is likely in an effort to increase the speed of the scan, which is slowed by the -T2 flag. While these two flags may seem contradictory to one other, there are several instances when a production environment may require both a light touch in terms of impact (-T2) and also a rapid assessment (--top-ports 500). This service version information is then fed into the vulners.nse script, which will look it up against a public vulnerability database. This is a less intrusive method of scanning than often seen with other methods:
+Security Relevance Score: 18
+Word Count: 1851
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Advanced Obfuscation and Firewall Evasion Techniques), there are still many scan configurations combining vulnerability analysis with fundamental and intermediate flags for the best results.
+To illustrate this point, let’s break down a few Nmap scans that would be expected of a junior Penetration Tester and analyze how they work for vulnerability analysis:
+Nmap -Pn --top-ports 500 -T2 -sV --version-all --script vulners.nse -iL targets.txt -oX results.txt
+In this scan, the user is attempting to determine an accurate CPE by using the --version-all flag, but has reduced the total number of ports from the default of 1,000 to 500. This is likely in an effort to increase the speed of the scan, which is slowed by the -T2 flag. While these two flags may seem contradictory to one other, there are several instances when a production environment may require both a light touch in terms of impact (-T2) and also a rapid assessment (--top-ports 500). This service version information is then fed into the vulners.nse script, which will look it up against a public vulnerability database. This is a less intrusive method of scanning than often seen with other methods:
+
+
+
+Figure 4.9: Demonstrating a moderately complex versioning scan
+Nmap -F -T5 –version-light -sV --script vulners.nse -iL targets.txt -oX results.txt
+This scan is clearly focused on speed. The -F flag reduces the total ports scanned from 1,000 to 100 and is followed by the maximum speed rating, and the lightest service versioning across the target list before calling vulners.nse. This type of scan would be used when the most important thing is identifying both obvious and critical vulnerabilities across in-scope systems. In these cases, there would be no concern of overloading the targets, and there would be enough understanding of the systems to warrant reducing the quality-of-service versioning in favor of sheer speed:
+
+
+
+Figure 4.10: Demonstrating a simple versioning scan
+Nmap –p 139,445 --script smb-vun* -iL targets.txt -oX results.txt
+This scan is focused on SMB vulnerabilities, specifically on Windows hosts. Likely, the user would have identified a subnet or VLAN in the target environment that is used for Windows Servers and is in the stage of the penetration test, where assessing them for major SMB-based vulnerabilities is a prudent next step. While this often results in detection, it is more of a concern in a Red Team engagement than a traditional penetration test:
+
+
+
+Figure 4.11: Demonstrating an SMB vulnerability enumeration scan using multiple scripts
+Nmap -p 139,445 --open --script smb2-security-mode 10.0.2.5
+Far less intensive than smb-vuln-*, this script is useful in determining if SMB signing is enforced. In this example, we see it being used on a single endpoint, but this is a quick and relatively subtle scan to identify a potentially critical vulnerability that may be used on an entire scope:
+
+
+
+Figure 4.12: Identifying SMB signing not being required, a high-severity vulnerability
+Nmap –p 8080 –script vulners.nse -sV -v -iL targets.txt -oX results.txt
+While many web servers will run on port 8080, one specific way to this script is to dive deeper into Jenkins hosts that were identified with the broadcast-jenkins-discover.nse script. By scanning a single port that has previous been identified and versioned, the risk of detection is fairly minimal while the opportunity for exploitation is quite high:
+
+
+
+Figure 4.13: Using the vulners.nse script to print CVEs specific to an outdated version of Jenkins
+Nmap -p 80,443 -sV --script http-csrf scanme.nmap.org
+While Nmap is most commonly considered for its applicability in network pentesting engagement, there are several scripts and options that make it a helpful resource for application-specific vulnerability identification as well. This script in particular does several checks to identify possibilities of Cross-Site Request Forgery (CSRF) on the target domain(s).
+CSRF is an attack by which an attacker forces a user to execute an unwanted action on a web application while authenticated, most typically through social engineering. This Nmap script can help quickly identify areas of user input that may provide a potential initial foothold if leveraged in the right social engineering campaign:
+
+
+
+Figure 4.14: Demonstrating CSRF scanning of a web application with Nmap
+Case Study – Real-World Internal and External Penetration Test
+During a combined internal and external penetration test for one of my all-time favorite clients, a multinational financial services organization, I counted the times that I used Nmap just to see how often it would come in handy. When I did this, it wasn’t a challenge to see how many times I ‘could’ use it, but simply to objectively consider how often it was the best tool for the job. The results surprised me in that I used Nmap a total of 19 times during the engagement.
+Starting on the external, we were provided a scope that included all of the client’s externally facing IP addresses, which essentially allowed me to skip the domain discovery phase. After an initial set of OSINT tasks, I was ready to transition into active reconnaissance and used Nmap to do service versioning and port scanning of the entire scope, outputting the results of course to a .xml for use in Zenmap later. Once the initial scan results came in, a few endpoints using WordPress were observed, so an Nmap script was performed to identify any vulnerabilities with the plugins. Sure enough, there were several. However, there were also some outdated Windows servers externally exposed, which necessitated another set of scans aimed at fingerprinting any Windows server-specific vulnerabilities. By the time the external attack surface had truly been mapped, a total of five scans had been run with Nmap.
+On the internal side, I first scanned my local subnet, then did a discovery scan to identify open hosts on a /8 subnet that we were provided (more on enumerating huge scopes like this in the next chapter). With a list of live subnets, I then narrowed it down even more by quickly scanning a select few ports which are often the most interesting. The subnets with the majority of the results then got more intricate scans of all ports and services, SMB-related vulnerabilities, port-specific vulnerabilities like IPMIv2 and MQMT, and broadcast searches for Jenkins servers. By the time the internal attack surface was truly understood, and I moved into the active exploitation phase, I had run a total of 14 Nmap scans.
+While at each turn there were technically other tools that I could have used, my comfortability with Nmap let me leverage its versatility to fill the need seamlessly. In this particular example, I was not able to compromise the external perimeter. They were well-secured and the vulnerabilities I found related to WordPress plugins had compensating controls to prevent exploitation. However, the internal environment was a very different story.
+Internally, I was able to identify numerous endpoints that had default credentials on them, as well as two different devices with Cisco Smart Install enabled, which enabled pulling the configuration files for Cisco switches. Within those config files were hashed credentials for the network administrator who set up the switches. These hashes were cracked using Hashcat in an offline dictionary attack and then used to conduct a Kerberoasting attack against Active Directory, which inevitably led to a complete Active Directory domain compromise.
+Nmap wasn’t the only tool that was used to achieve AD domain admin access. I used Siet.py to pull the Cisco Smart Install config, Hashcat to crack the hash of the network administrator, and several components of Impacket to conduct the Kerberoasting attack. However, all of that exploitation was only possible because of a very thorough and strategic mapping of the attack surface using Nmap.
+Challenge 1: Fingerprinting Vulnerable Systems
+Use every technique and script at your disposal to fully fingerprint every virtual machine in your home lab and at https://pentest-ground.com. Pentest-ground.com is a very well-put-together open target for testing tools and techniques, which is publicly accessible and completely legal to target. It is maintained by the world-class team behind Pentest-tools.com and has several interesting web applications that are ripe for enumeration and exploitation.
+Consider writing a report of your findings combining both your home lab environment as well as pentest-ground. Include the scope of your testing, your methodology, and descriptions (with screenshots) of your process from start to finish. This will make a great sample report to demonstrate your skills, which you can post to your blog, GitHub, or LinkedIn account.
+Challenge 2: Home Network Vulnerability Scanning
+Take the skills you practiced in the previous challenge and turn them inward by conducting a true vulnerability analysis of the systems on your home network. Try to fingerprint each device and determine if there are any vulnerabilities that you were unaware of.
+This is another great exercise to chronicle on a blog or write up into a sample report for your GitHub. Having spoken with hundreds of people trying to break into the cyber security industry, I would say less than 5% have ever actually conducted an analysis of their security posture, but it is a great thing to talk about in interviews.
+Conclusion
+Employing Nmap in a professional penetration test or vulnerability assessment is not a simple checklist. Asking twenty professionals what steps and commands they take will likely yield twenty different (yet similar) answers. Trying to build and follow a checklist is one of the most common pitfalls that people new to cybersecurity will make. This is simply not a career path that can be reduced to checklists.
+Instead, it requires a lot of analytical thinking and the ability to pivot based on the situation at hand. This is why so many different methods and techniques for fingerprinting systems, determining the CPEs and eventually the CVEs were presented within this chapter. There will be real-world engagements where you will never use 80% of the commands that were discussed here. But there will very likely also be engagements where you use them all multiple times. No two penetration tests are the same, and when there is that much versatility in potential targets, you need an equal level of versatility in your tools.
+Nmap is capable of fingerprinting many systems, identifying and checking for many vulnerabilities, and providing tremendous insight into how systems are configured, but only if you know how to best leverage it. This chapter explored how to dig deep into individual systems and subnets to gather the information necessary to plan the next steps of exploitation.
+In the next chapter, we are going to look at one of the most unique and challenging aspects of professional penetration testing, dealing with a huge scope. Most training environments and certification exams consist of only a small handful of systems and allow for a lot of time to dig into the details of every single port and service on those systems. But what happens when you have three weeks to conduct an engagement and the scope is 3 separate /8 subnets? That’s 50,331,648 possible IP addresses. If you spent only 1 second on each one, that would be about a year and a half. What do you do when you have that many possible IPs but only three weeks to do the penetration test? That is the question we will answer in

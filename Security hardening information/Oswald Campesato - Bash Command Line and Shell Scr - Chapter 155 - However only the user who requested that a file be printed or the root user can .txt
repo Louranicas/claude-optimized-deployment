@@ -1,0 +1,387 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 155 - However, only the user who requested that a file be printed (or the root user) can cancel printing of the file.
+Creating a Report with the printf() Command
+Listing 10.16 displays the contents of SimpleReport.sh that illustrates how to update a set of users.
+Listing 10.16 SimpleReport.sh
+Security Relevance Score: 3
+Word Count: 2334
+Extracted: 2025-06-13 23:40:50
+
+---
+
+However, only the user who requested that a file be printed (or the root user) can cancel printing of the file.
+Creating a Report with the printf() Command
+Listing 10.16 displays the contents of SimpleReport.sh that illustrates how to update a set of users.
+Listing 10.16 SimpleReport.sh
+
+DataFile="users.txt"
+NAME="John Doe"
+ADDRESS="1234 Appian Way, SF"
+PHONE="(555) 555-5555"
+GPA="3.885"
+
+# display the aligned output:
+printf "%20s | %30s | %14s | %5s\n" "Name" "Address"
+"Phone Number" "GPA"
+printf "%20s | %30s | %14s | %5.2f\n" "$NAME"
+"$ADDRESS" "$PHONE" "$GPA"
+
+Listing 10.16 starts by initializing several variables with simulated data pertaining to a hypothetical user. The second portion of Listing 10.16 invokes the printf statement twice in order to display the user-related information in column-aligned format.
+The output from Listing 10.16 is here:
+
+Name		|	Address |   Phone Number |	GPA
+John Doe	|	1234 Main Street, SF, CA |   (555)
+555-5555 |   3.88
+
+CHECKING UPDATES IN A LOGFILE
+Listing 10.17 displays the contents of CheckLogUpdates.sh that illustrates how to periodically check the last line in a log file to determine the status of a system. This shell script simulates the status of a system by appending a new row that is based on the current timestamp.
+The shell script sleeps for a specified number of seconds, and on the third iteration the script appends a row with an error status in order to simulate an error. In the case of a shell script that is monitoring a live system, the error code is obviously generated outside the shell script.
+Listing 10.17 CheckLogUpdates.sh
+
+DataFile="mylogfile.txt"
+OK="okay"
+ERROR="error"
+sleeptime="2"
+loopcount=0
+
+rm -f $DataFile 2>/dev/null; touch $DataFile
+newline="`date` SYSTEM IS OKAY"
+echo $newline >> $DataFile
+
+while (true)
+do
+  loopcount=`expr $loopcount + 1`
+
+  echo "sleeping $sleeptime seconds..."
+  sleep $sleeptime
+  echo "awake again..."
+
+  lastline=`tail -1 $DataFile`
+
+  if [ "$lastline" == "" ]
+
+  then
+     continue
+  fi
+
+  okstatus=`echo $lastline |grep -i $OK`
+  badstatus=`echo $lastline |grep -i $ERROR`
+
+  if [ "$okstatus" != "" ]
+  then
+    echo "system is normal"
+    if [ $loopcount == "3" ]
+    then
+       newline="`date` SYSTEM IS OKAY"
+    else
+       newline="`date` SYSTEM ERROR"
+    fi
+    echo $newline >> $DataFile
+  elif [ "$badstatus" != "" ]
+  then
+    echo "Error in logfile: $lastline"
+    break
+  fi
+done
+
+Listing 10.17 starts by initializing some variables with hard-coded values that pertain to a log file that is specified via the variable DataFile, as shown here:
+
+DataFile="mylogfile.txt"
+OK="okay"
+ERROR="error"
+sleeptime="2"
+loopcount=0
+
+The next section of code unconditionally deletes the file DataFile in order to ensure that it’s initially empty whenever this shell script is invoked.
+The main portion of Listing 10.17 is a while loop that contains several subsections. The first subsection sleeps for $sleeptime seconds and then checks the last line in the text file defined by the variable DataFile. If the last line is empty, then the continue statement returns execution to the top of the while loop.
+Otherwise, the next subsection initializes the variables okstatus and badstatus by invoking the grep command to find occurrences of the variables OK and ERROR that are initialized with the values okay and error, respectively. If the variable okstatus is non-empty, then a message is appended to the log file, depending on the value of the variable loopcount. Notice that two different messages can be appended to the log file: if an error message is appended, then this message will be detected during a subsequent iteration of the while loop.
+On the other hand, if okstatus is empty and the variable badstatus is non-empty, then an error message is appended to the log file and the break statement exits the while loop. A sample invocation of Listing 10.17 is here:
+
+sleeping 2 seconds...
+awake again...
+system is normal
+sleeping 2 seconds...
+awake again...
+Error in logfile: Fri Sep 27 21:28:53 PDT 2013 SYSTEM
+ERROR
+
+This code sample is admittedly contrived, but you can use the same (or similar) logic in case you need to parse the contents of a log file to check for error messages, after which you can provide some type of status update.
+LISTING ACTIVE USERS ON A MACHINE
+There are various commands for finding out information about users on a Unix system, such as finger, who, uname, and whoami. The who command lists information about various users, as shown here:
+
+ocampesato console Aug 17 08:15
+ocampesato ttys000 Aug 17 08:16
+ocampesato ttys001 Aug 17 08:16
+. . .
+ocampesato ttys011 Aug 17 08:16
+ocampesato ttys012 Aug 17 08:16
+
+The w command provides additional information about users, as shown here:
+
+22:30 up 28 days, 14:18, 14 users, load averages:
+1.14 1.33 1.90
+USER	TTY	FROM		LOGIN@	IDLE WHAT
+ocampesato console -    Thu05AM 28days -
+ocampesato s011    -    Thu05AM    10 vi shell-
+		        programming-outline.txt
+ocampesato s012    -    Thu05AM 2days -bash
+ocampesato s000    -    Thu05AM 27:01 -bash
+ocampesato s002    -    Thu05AM 3:31 vi demo-list.
+			txt
+ocampesato s001    -    Thu05AM 2days -bash
+ocampesato s004    -    Thu05AM 33:52 vi todoevents.
+			txt
+ocampesato s007    -    Thu05AM 2days -bash
+
+You can also view the users who are logged into a Unix machine with the users command. If you have a Macbook, you will probably be the only person logged into your machine.
+MISCELLANEOUS COMMANDS
+The who command displays a list of logged in users. If you are the only user on your Macbook, you will see something like this:
+The df command displays the amount of free disk space, and when you invoke this command with the –k option, the output looks something like this:
+
+Filesystem	1024-blocks	Used Available Capacity
+iused	  ifree %iused	  Mounted on
+/dev/disk1	936490368  839326208  96908160	  90%
+17483073 4277484206	0%   /
+devfs		     189	189	   0   100%
+655	     0	 100%  /dev
+map -hosts		 0	  0	   0   100%
+0	   0   100%   /net
+map auto_home		 0	  0	   0   100%
+0	   0   100%   /home
+
+The man and info commands provide a summary for bash commands. An
+example of the initial portion of the output from man ls is here:
+
+LS(1)		BSD General Commands Manual
+LS(1)
+
+NAME
+    ls -- list directory contents
+
+SYNOPSIS
+    ls [-ABCFGHLOPRSTUW@abcdefghiklmnopqrstuwx1] [file
+...]
+
+DESCRIPTION
+    For each operand that names a file of a type other
+than directory,
+  ls displays its name as well as any requested,
+associated information.
+   For each operand that names a file of type
+directory, ls
+  displays the names of files contained within that
+directory, as
+  well as any requested, associated information.
+
+The curl command is a utility that reads the contents of a URL from the command line. For example, you can read the contents of the Google homepage and redirect its contents to a file with the following command:
+
+curl https://www.google.com >y1
+
+The sleep command is the shell equivalent of a wait loop. It pauses for a specified number of seconds, doing nothing. It can be useful for timing or in processes running in the background, checking for a specific event every so often (polling).
+
+sleep 4		# Pauses 4 seconds.
+
+Note: the sleep command defaults to seconds, but minute, hours, or days may also be specified.
+
+sleep 4 h	# Pauses 4 hours
+
+The su command enables you to switch to the “superuser,” whereas the sudo command enables you to execute a specific command as superuser, but without switching to the superuser.
+The make utility is primarily for compiling C or C++ programs, but you can use this command for other purposes as well. By default, the make utility searches for the file Makefile (“big make”), followed by the file makefile (“small make”). You can specify a different file via the “-f” switch, as shown here:
+
+make –f myfile
+
+The tee command enables you to redirect a copy of the output of a command to a file, as shown here:
+
+ls –1 | tee /tmp/files
+
+You can append to an existing file with the “-a” option, as shown here:
+
+ls –1 | tee –a /tmp/files
+
+The nice command changes the scheduling priority of a command, which means that you can increase or decrease its priority.
+The sync command synchronizes the contents of your hard disk with the contents of in-memory buffers.
+The finger command provides user-related information for a particular user.
+The cal command displays calendar-related information. Execute the cal command with no arguments if you want information about the current month and year, and execute cal 2020 if you want information about all the months in the year 2020 (or some other year). For example, if the current month and year are February 2020, the cal command displays the following output:
+
+   February 2020
+Su Mo Tu We Th Fr Sa
+		  1
+ 2  3  4  5  6  7  8
+ 9  10 11 12 13 14 15
+16  17 18 19 20 21 22
+23  24 25 26 27 28 29
+
+The mktemp enables you to create temporary file names, which are useful for storing intermediate results during the execution of long-running shell scripts.
+SUMMARY
+In this chapter, you learned how to selectively copy and delete files from a directory tree. Then you saw how to create sub-directories in a directory, based on a set of strings. One of those shell scripts shows you how to check whether or not a given string is an existing sub-directory or a file.
+In addition, you learned how to work with compression-related files such as gzip, gunzip, and so forth. Then you saw how to schedule tasks with the at and crontab commands, and also how to terminate processes with the kill command. Finally, you learned an assortment of miscellaneous commands, such as displaying logged-in users, displaying disk-related information, and displaying calendar-related information.
+At this point, there is one more thing to say: Congratulations! You have completed a fast-paced yet dense book, and if you are a bash neophyte, the material will probably keep you busy for many hours. The examples in the chapters provide a solid foundation, and the appendix contains additional examples and use cases to further illustrate how the bash commands work together. The combined effect demonstrates that the universe of possibilities is larger than the examples in this book, and ultimately they will spark ideas in you. Good luck!
+
+
+
+
+
+
+
+INDEX
+A
+absolute directories, 14, 41-43, 251
+arithmetic operator, 71-73, 161
+arrays, 3, 71, 87, 96, 98, 102
+Assigning values to variable, 75
+AT&T Unix, 2
+Awk command, 17, 25, 149-151, 159, 163, 165, 167, 169, 171, 174, 177-179, 181, 183, 209, 213, 215, 221, 223-224, 230
+B
+Backtick, 19-20, 30, 72, 97, 118, 228
+Basename command, 38
+bash shell, 1, 3, 9, 11-13, 15-16, 25-26, 30, 48, 71, 73, 78, 79, 85, 92, 144, 187, 251
+bash commands, 5, 10, 13, 17, 20, 25, 29, 45, 50-52, 68, 78, 137, 149, 175, 186, 208, 230, 244, 259, 261
+bash scripts, 1, 24, 78, 209, 231
+bash systems, 2
+boolean operator, 71, 72, 76, 79
+Bourne Again shell (bash), 3
+bourne shell, 9, 11-12, 15
+bunzip2 Command, 64
+C
+C shell (csh), 2, 3, 12
+case statement, 239
+cd (change directory), 4
+character classes, 46-48, 103, 110, 136
+chmod Command, 12, 39, 40, 186, 188
+columnCount variable, 171
+compound operator, 74, 77, 79, 80
+compression-related commands, 51, 69
+Copying Files, 30
+cpio Command, 63, 64
+creating directories, 42
+creating text files, 29
+crontab utility, 2, 186
+curly brackets, 84, 93, 189
+cut command, 1, 17, 18, 27, 67, 112, 216
+D
+date command, 252, 253
+dd command, 241, 242
+deleting files, 31
+diff command, 38, 56, 57
+dirname Command, 39
+disk usage command, 250
+dotting, 188
+drop-down, 26
+E
+else statement, 80, 91
+env command, 13, 14
+esac statement, 81, 84, 91, 102, 240, 253
+expr command, 71-73
+F
+fgrep command, 103, 121, 123
+file command, 33, 252
+file operator, 79
+find command, 46, 51, 61-62, 64, 68, 103, 118, 233, 245
+fold Command, 11, 52
+G
+Greatest common divisor (GCD), 204, 208
+grep command, 103-106, 110-111, 114, 116-119, 121, 123, 125, 134, 139, 149, 171, 185, 209, 212, 216, 233, 258
+group together, 98
+gzip command, 64
+H
+head and tail Command, 8-10, 36, 112
+hidden file, 12, 26
+history command, 4-5
+home variable, 14
+hostname variable, 14
+I
+If statement, 67, 79, 80, 89, 162
+IFS (Internal Field Separator), 98
+ln Command, 32
+J
+Join command, 52, 123, 216
+K
+Ken Thompson, 2
+Korn shell (ksh), 2, 3, 122
+L
+less command, 10, 34, 35
+line up, 51, 162
+linefeed character, 59, 172
+Linux Torvalds, 2
+LOGNAME variable, 14
+Loops, 66, 71, 85, 87, 101-102, 149, 152, 183
+Lowest common multiple (LCM), 205
+ls command, 4, 5, 7, 12-13, 15, 17, 31, 33, 42, 49, 65
+M
+Mac OS X, 2, 3
+man cat, 4
+more command, 10, 11, 16, 34, 35
+moving directories, 44
+moving files, 32
+mv command, 32, 44, 133, 231, 232
+N
+nested loops, 87, 102
+numeric operator, 73, 74, 80
+O
+OD command, 57
+P
+past command, 1, 22, 23
+paste command, 1, 22-24, 27
+PATH environment variable, 14-16, 187
+PATH variable, 14, 15
+pipe command, 10, 11, 17, 19, 51
+POSIX shell (sh), 3
+POSIX standard shell, 2
+Print Command, 104, 118
+Printing lines, 135, 160
+problematic filename, 13
+pwd (print working directory), 4
+R
+read command, 4, 76, 199, 244
+redirecting error message, 119, 121
+relative directory, 41
+removing control characters, 137
+removing directories, 43
+rwx privileges, 11
+S
+Schedule task, 231, 244, 245, 261
+sed snippet, 60
+shell variable, 14, 44, 45
+sort command, 53-55, 104, 178
+split command, 53
+split function, 162, 221, 230
+Stephen R Bourne, 2, 3
+string operator, 71, 72, 79, 102
+suid, 40
+T
+tee command, 62, 260
+TENEX/TOPS C shell (tcsh), 3
+terminating multiple process, 245
+touch command, 29, 39, 232
+TR command, 57
+U
+ulimit Commands, 41
+Umask Command, 41
+Uniq command, 51, 140
+Unix, 1, 26, 39, 127, 187, 258, 259
+until loop, 71, 85, 92, uuencode command, 241
+X
+xargs Command, 51, 62, 68, 69, 103, 110, 118, 121
+W
+wc command, 33, 36
+while loop, 66, 67, 71, 83-85, 89, 90, 91, 95, 102, 149, 152, 153, 183, 208, 219, 257, 258
+Z
+zip Command, 64, 65
+zsh (Zee shell), 3
+
+
+
+
+
+
+
+
+Contents
+
+Cover Page
+Title
+Copyright
+Dedication
+Contents
+Preface

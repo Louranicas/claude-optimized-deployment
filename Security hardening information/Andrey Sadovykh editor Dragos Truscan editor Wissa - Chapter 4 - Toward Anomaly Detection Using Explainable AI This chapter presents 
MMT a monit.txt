@@ -1,0 +1,280 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 4 - “Toward Anomaly Detection Using Explainable AI.” This chapter presents 
+MMT, a monitoring framework for anomaly detection. It is extended with explainable AI (XAI) capabilities for better understanding AI/ML-based clas-siﬁcations. The chapter includes experimental results using SHAP, LIME, and 
+SHAPASH technologies. 
+Acknowledgments We are grateful to the reviewers who dedicated their time and expertise to 
+evaluate the manuscripts submitted for this book. Their constructive comments and suggestions have helped the authors to enhance the quality and clarity of their chapters: Tanwir Ahmad, Hayretdin Bahsi, Jean-Michel Bruel, Eduard Paul Enoiu, Marcel Kyas, Vinh Hoa La, Ángel Longueira-Romero, Nan Messe, Mikael Ebrahimi Salari, Alessandra Somma, Jüri Vain, Valeria 
+Valdés, and Anis Bouaziz.
+x Preface
+This book is largely a result of the VeriDevOps project, which was supported by the Horizon 
+Europe program of the European Commission. We are grateful for the chance to collaborate with 
+our partners for 3 years and to contribute to the advancement of knowledge in this ﬁeld. The project was a rewarding and enjoyable experience for us, and we hope that the readers will ﬁnd our research useful and insightful. 
+Paris, France Andrey Sadovykh 
+Turku, Finland Dragos Truscan 
+Paris, France Wissam Mallouli 
+Paris, France Ana Rosa Cavalli Västerås, Sweden Cristina Seceleanu 
+Paris, France Alessandra Bagnato June, 2023
+Contents 
+Part I Security Requirements Engineering 
+1 A Taxonomy of Vulnerabilities, Attacks, and Security 
+Solutions in Industrial PLCs .............................................. 3 
+Eduard Paul Enoiu, Kejsi Biçoku, Cristina Seceleanu, 
+and Michael Felderer
+Security Relevance Score: 9
+Word Count: 1509
+Extracted: 2025-06-13 23:40:22
+
+---
+
+“Toward Anomaly Detection Using Explainable AI.” This chapter presents 
+MMT, a monitoring framework for anomaly detection. It is extended with explainable AI (XAI) capabilities for better understanding AI/ML-based clas-siﬁcations. The chapter includes experimental results using SHAP, LIME, and 
+SHAPASH technologies. 
+Acknowledgments We are grateful to the reviewers who dedicated their time and expertise to 
+evaluate the manuscripts submitted for this book. Their constructive comments and suggestions have helped the authors to enhance the quality and clarity of their chapters: Tanwir Ahmad, Hayretdin Bahsi, Jean-Michel Bruel, Eduard Paul Enoiu, Marcel Kyas, Vinh Hoa La, Ángel Longueira-Romero, Nan Messe, Mikael Ebrahimi Salari, Alessandra Somma, Jüri Vain, Valeria 
+Valdés, and Anis Bouaziz.
+x Preface
+This book is largely a result of the VeriDevOps project, which was supported by the Horizon 
+Europe program of the European Commission. We are grateful for the chance to collaborate with 
+our partners for 3 years and to contribute to the advancement of knowledge in this ﬁeld. The project was a rewarding and enjoyable experience for us, and we hope that the readers will ﬁnd our research useful and insightful. 
+Paris, France Andrey Sadovykh 
+Turku, Finland Dragos Truscan 
+Paris, France Wissam Mallouli 
+Paris, France Ana Rosa Cavalli Västerås, Sweden Cristina Seceleanu 
+Paris, France Alessandra Bagnato June, 2023
+Contents 
+Part I Security Requirements Engineering 
+1 A Taxonomy of Vulnerabilities, Attacks, and Security 
+Solutions in Industrial PLCs .............................................. 3 
+Eduard Paul Enoiu, Kejsi Biçoku, Cristina Seceleanu, 
+and Michael Felderer 
+1.1 Introduction ........................................................... 4 
+1.2 Background: Industrial Control Systems ............................ 5 
+1.3 Related Work ......................................................... 6 
+1.4 Method ................................................................ 7 
+1.4.1 Taxonomy Protocol ......................................... 7 
+1.4.2 Mapping Study Protocol ................................... 9 
+1.5 Search Results ........................................................ 13 
+1.6 Taxonomy Results .................................................... 14 
+1.6.1 Security Vulnerabilities .................................... 14 
+1.6.2 Attacks ...................................................... 17 
+1.6.3 Security Solutions .......................................... 18 
+1.6.4 A Taxonomy for PLC-Based Vulnerabilities, 
+Attacks, and Security Solutions ............................ 21 
+1.7 Validity Threats ....................................................... 27 
+1.8 Conclusions and Relation to DevOps ............................... 28 
+1.9 Annex: Primary Studies .............................................. 29 
+References .................................................................... 32 
+2 Natural Language Processing with Machine Learning for 
+Security Requirements Analysis: Practical Approaches ............... 35 
+Andrey Sadovykh, Kirill Yakovlev, Alexandr Naumchev, 
+and Vladimir Ivanov 
+2.1 Introduction ........................................................... 35 
+2.2 Security Requirements Engineering ................................. 37
+xi
+xii Contents
+2.3 Natural Language Processing for Requirements 
+Engineering (NLP4RE) .............................................. 39 
+2.3.1 Statistical and Classical Machine Learning Methods ..... 41 
+2.3.2 Deep Learning .............................................. 44 
+2.3.3 Transfer Learning ........................................... 45 
+2.4 Practical Examples of NLP4RE ..................................... 46 
+2.4.1 ReqExp: Requirements Extraction from a Text ........... 47 
+2.4.2 SeqReq: Security Requirements Classiﬁcation ............ 51 
+2.4.3 STIGSearch: Semantic Search for Security 
+Technology Implementation Guides ....................... 54 
+2.5 Discussion ............................................................ 58 
+2.6 Conclusions ........................................................... 60 
+References .................................................................... 61 
+3 Security Requirements Formalization with RQCODE ................. 65 
+Andrey Sadovykh, Nan Messe, Ildar Nigmatullin, Sophie Ebersold, 
+Maria Naumcheva, and Jean-Michel Bruel 
+3.1 Introduction ........................................................... 66 
+3.1.1 Context ...................................................... 66 
+3.1.2 Motivation .................................................. 67 
+3.2 Related Work ......................................................... 69 
+3.2.1 Requirements Formalization Methods ..................... 69 
+3.2.2 Static Veriﬁcation and Security Patterns ................... 71 
+3.2.3 Dynamic Veriﬁcation and Security Patterns ............... 72 
+3.3 The RQCODE Approach ............................................ 73 
+3.3.1 Seamless Object-Oriented Requirements (SOOR) ........ 73 
+3.3.2 Requirements as Code (RQCODE) ........................ 74 
+3.3.3 RQCODE and Temporal Requirements Patterns .......... 77 
+3.3.4 RQCODE and Security Technical 
+Implementation Guide (STIG) ............................. 78 
+3.3.5 RQCODE Framework ...................................... 83 
+3.4 Discussion ............................................................ 83 
+3.4.1 Approach for Evaluation ................................... 83 
+3.4.2 Comparison to Other Requirements 
+Formalization Methods ..................................... 85 
+3.5 Conclusions ........................................................... 89 
+References .................................................................... 90 
+Part II Prevention at Development Time 
+4 Vulnerability Detection and Response: Current Status and 
+New Approaches ............................................................ 95 
+Ángel Longueira-Romero, Rosa Iglesias, Jose Luis Flores, 
+and Iñaki Garitano 
+4.1 Introduction ........................................................... 96 
+4.2 Background ........................................................... 96
+Contents xiii
+4.3 State of the Art of Vulnerability Analysis in ESs ................... 98 
+4.3.1 Vulnerability Analysis in Security Standards ............. 99 
+4.3.2 Vulnerability Analysis in the Literature ................... 99 
+4.4 Vulnerability Analysis Approaches: Analyzing Extended 
+Dependency Graphs (EDG) .......................................... 100 
+4.4.1 Description of the Model ................................... 101 
+4.4.2 Types of Node .............................................. 103 
+4.4.3 Types of Edge ............................................... 106 
+4.4.4 Steps to Build the Model ................................... 106 
+4.5 Security Metrics ...................................................... 108 
+4.5.1 Basic Deﬁnitions ........................................... 109 
+4.5.2 Metrics ...................................................... 111 
+4.5.3 Properties ................................................... 111 
+4.6 Use Case .............................................................. 115 
+4.6.1 Structure of OpenPLC ...................................... 115 
+4.6.2 Building the EDG .......................................... 116 
+4.6.3 Analysis of the EDG ........................................ 117 
+4.7 Conclusions ........................................................... 119 
+References .................................................................... 120 
+5 Metamorphic Testing for Veriﬁcation and Fault Localization 
+in Industrial Control Systems ............................................. 127 
+Gaadha Sudheerbabu, Tanwir Ahmad, Dragos Truscan, and Jüri Vain 
+5.1 Introduction ........................................................... 127 
+5.2 Prerequisites .......................................................... 129 
+5.2.1 Metamorphic Testing ....................................... 129 
+5.2.2 Fault Localization .......................................... 130 
+5.3 Overview of the Approach ........................................... 132 
+5.3.1 Metamorphic Testing Phase ................................ 133 
+5.3.2 Fault Localization Phase ................................... 135 
+5.4 Evaluation ............................................................ 141 
+5.4.1 Metamorphic Testing Phase ................................ 143 
+5.4.2 Fault Localization Phase ................................... 147 
+5.4.3 Tool Support ................................................ 153 
+5.5 Threats to Validity .................................................... 154 
+5.5.1 Construct Validity .......................................... 154 
+5.5.2 External Validity ............................................ 154 
+5.5.3 Conclusion Validity ......................................... 155 
+5.6 Related Work ......................................................... 155 
+5.7 Conclusions and Future work ........................................ 156 
+References .................................................................... 157
+xiv Contents
+6 Interactive Application Security Testing with Hybrid 
+Fuzzing and Statistical Estimators ....................................... 161 
+Ramon Barakat, Jasper von Blanckenburg, Roman Kraus, 
+Fabian Jezuita, Steffen Lüdtke, and Martin A. Schneider 
+6.1 Introduction ........................................................... 162 
+6.2 Related Work ......................................................... 163 
+6.2.1 Interactive Application Security Testing .................. 166 
+6.3 Methodology ......................................................... 167 
+6.3.1 Interactive Application Security Testing: 
+Combining Static Analysis and Security Testing ......... 168 
+6.3.2 Our Approach to IAST ..................................... 170 
+6.4 Implementation ....................................................... 176 
+6.4.1 Static Analysis .............................................. 177 
+6.4.2 Test Case Generation ....................................... 178 
+6.4.3 Test Data Generation ....................................... 179 
+6.4.4 Test Oracle .................................................. 181 
+6.5 Evaluation ............................................................ 181 
+6.5.1 Experimental Plan .......................................... 182 
+6.5.2 RQ1: Information Exchange ............................... 182 
+6.5.3 RQ2: Is IAST Worth the Effort? ........................... 184 
+6.5.4 RQ3 and RQ4: Identifying True and False 
+Positives and Uncertainty .................................. 185 
+6.5.5 Threats to Validity .......................................... 187 
+6.6 Conclusion, Limitations, and Outlook .............................. 188 
+References .................................................................... 189 
+Part III Protection at Operations 
+7C TAM : A Tool for Continuous Threat Analysis and Management .... 195 
+Laurens Sion, Dimitri Van Landuyt, Koen Yskout, Stef Verreydt, 
+and Wouter Joosen 
+7.1 Introduction ........................................................... 196 
+7.2 Related Work ......................................................... 198 
+7.2.1 Threat Modeling Support During Development .......... 198 
+7.2.2 Quality Assessment in Continuous Integration 
+Pipelines .................................................... 199 
+7.3 Continuous Threat Analysis and Management ..................... 200 
+7.3.1 Threat Analysis Inputs ..................................... 201 
+7.3.2 Threat Analysis Engine ..................................... 202 
+7.3.3 Analysis Activities .......................................... 203 
+7.3.4 Server ....................................................... 205 
+7.4 Functional Validation ................................................ 205 
+7.4.1 Description of the Case ..................................... 206 
+7.4.2 Change Scenarios ........................................... 207 
+7.4.3 Results ...................................................... 208
+Contents xv
+7.5 Evaluation ............................................................ 209 
+7.5.1 Modeling Approach ........................................ 210 
+7.5.2 Results ...................................................... 211 
+7.6 Discussion ............................................................ 214 
+7.6.1 Using Another Threat Elicitation Engine .................. 214 
+7.6.2 Scope of the Model ......................................... 214 
+7.6.3 Model Granularity .......................................... 215 
+7.6.4 Triggering the Analysis Process ........................... 215 
+7.6.5 Avoiding Model Drift ...................................... 216 
+7.6.6 Using Detailed Threat Analysis Information .............. 216 
+7.6.7 Security Metrics ............................................ 217 
+7.7 Future Work .......................................................... 217 
+7.7.1 DFD Model Inputs .......................................... 217 
+7.7.2 Monitoring and Aligning the Operational System ........ 218 
+7.7.3 Project-Centric Risk Analysis and Management 
+Use Cases ................................................... 219 
+7.8 Conclusion ............................................................ 220 
+References .................................................................... 220 
+8 EARLY: A Tool for Real-Time Security Attack Detection ............. 225 
+Tanwir Ahmad, Dragos Truscan, and Jüri Vain 
+8.1 Introduction ........................................................... 226 
+8.2 Overview of the Early Tool .......................................... 228 
+8.2.1 Flow Processing ............................................ 229 
+8.2.2 Training ..................................................... 231 
+8.2.3 Monitoring .................................................. 234 
+8.3 Evaluation ............................................................ 236 
+8.3.1 Datasets ..................................................... 237 
+8.3.2 Model Architectures ........................................ 238 
+8.3.3 Evaluation Metrics .......................................... 239 
+8.3.4 RQ1: Classiﬁcation Performance .......................... 242 
+8.3.5 RQ2: Earliness Performance ............................... 244 
+8.4 Related Work ......................................................... 246 
+8.5 Conclusion ............................................................ 248 
+References .................................................................... 249 
+9 A Stream-Based Approach to Intrusion Detection ...................... 253 
+Sylvain Hallé 
+9.1 Introduction ........................................................... 254 
+9.2 Related Work ......................................................... 255 
+9.3 Formalizing Intrusion Detection ..................................... 258 
+9.3.1 Formal Preliminaries ....................................... 259 
+9.3.2 Monitors .................................................... 260 
+9.3.3 Pattern Detection as Monitoring ........................... 262 
+9.4 State-Based Simpliﬁcations .......................................... 264 
+9.4.1 Processor State .............................................. 264
+xvi Contents
+9.4.2 A State-Aware Detection Algorithm ....................... 267 
+9.4.3 Progressing Subsequences ................................. 268 
+9.4.4 Combining Reduction Strategies ........................... 270 
+9.5 A Compositional Approach to Pattern Detection ................... 271 
+9.5.1 Building Blocks for Pattern Detection ..................... 272 
+9.5.2 Progressive Subsequences for Processor Pipelines ....... 276 
+9.6 Experimental Evaluation ............................................. 279 
+9.6.1 Implementation ............................................. 279 
+9.6.2 Empirical Analysis ......................................... 281 
+9.7 Discussion and Conclusion .......................................... 286 
+References .................................................................... 288 
+10 Toward Anomaly Detection Using Explainable AI ..................... 293 
+Manh-Dung Nguyen, Vinh-Hoa La, Wissam Mallouli, 
+Ana Rosa Cavalli, and Edgardo Montes de Oca 
+10.1 Introduction ........................................................... 294 
+10.2 Network Monitoring Approaches: MMT Monitoring 
+Framework Example ................................................. 295 
+10.2.1 Classiﬁcation Techniques .................................. 296 
+10.2.2 Global MMT Monitoring Architecture .................... 297 
+10.2.3 Application of MMT for Anomaly Detection ............. 300 
+10.3 Interpreting ML Models for User Network Activity 
+Classiﬁcation ......................................................... 304 
+10.3.1 Motivation .................................................. 304 
+10.3.2 Classiﬁcation of User Network Activities ................. 305 
+10.3.3 Evaluation ................................................... 309 
+10.3.4 Explainable AI (XAI) ...................................... 312 
+10.4 Discussion ............................................................ 321 
+10.4.1 Conclusion and Future Work ............................... 322 
+References .................................................................... 322
+Part I 
+Security Requirements Engineering

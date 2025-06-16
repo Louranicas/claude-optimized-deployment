@@ -200,14 +200,56 @@ rust-build: ## Build Rust extensions
 .PHONY: rust-test
 rust-test: ## Test Rust code
 	@echo "🦀 Testing Rust code..."
-	cd $(RUST_DIR) && cargo test
+	cd $(RUST_DIR) && cargo test --all-features
 	@echo "✅ Rust tests passed!"
+
+.PHONY: rust-test-unit
+rust-test-unit: ## Run only Rust unit tests
+	@echo "🦀 Running Rust unit tests..."
+	cd $(RUST_DIR) && cargo test --lib --all-features
+	@echo "✅ Unit tests passed!"
+
+.PHONY: rust-test-integration
+rust-test-integration: ## Run only Rust integration tests
+	@echo "🦀 Running Rust integration tests..."
+	cd $(RUST_DIR) && cargo test --test '*' --all-features
+	@echo "✅ Integration tests passed!"
+
+.PHONY: rust-test-property
+rust-test-property: ## Run Rust property-based tests
+	@echo "🦀 Running Rust property tests..."
+	cd $(RUST_DIR) && PROPTEST_CASES=256 cargo test property --all-features
+	@echo "✅ Property tests passed!"
+
+.PHONY: rust-test-all
+rust-test-all: rust-build ## Run comprehensive Rust test suite
+	@echo "🦀 Running comprehensive Rust test suite..."
+	cd $(RUST_DIR) && ./test_runner.sh --all
+	@echo "✅ All tests passed!"
+
+.PHONY: rust-test-quick
+rust-test-quick: ## Run quick Rust tests (for pre-commit)
+	@echo "🦀 Running quick Rust tests..."
+	cd $(RUST_DIR) && ./test_runner.sh --quick
+	@echo "✅ Quick tests passed!"
+
+.PHONY: rust-coverage
+rust-coverage: ## Generate Rust test coverage report
+	@echo "🦀 Generating Rust test coverage..."
+	cd $(RUST_DIR) && cargo tarpaulin --all-features --timeout 300 --out Html --output-dir ../target/coverage
+	@echo "✅ Coverage report generated: target/coverage/tarpaulin-report.html"
 
 .PHONY: rust-bench
 rust-bench: ## Run Rust benchmarks
 	@echo "🦀 Running Rust benchmarks..."
 	cd $(RUST_DIR) && cargo bench
 	@echo "✅ Benchmarks complete!"
+
+.PHONY: test-rust-bindings
+test-rust-bindings: rust-build ## Test Python-Rust bindings
+	@echo "🐍🦀 Testing Python-Rust bindings..."
+	$(PYTEST) tests/test_rust_mcp_bindings.py -v --asyncio-mode=auto
+	@echo "✅ Binding tests passed!"
 
 #########################
 # Docker

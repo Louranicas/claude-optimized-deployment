@@ -1,0 +1,32 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 3 - year = result.group(1)    month = result.group(2)    day = result.group(3)    print(year, month, day)      # 2024 12 31 
+9.5.1    Example: Verifying a MAC Address
+In the following script, you’ll be prompted to enter a Media Access Control (MAC) address for identifying network devices. A MAC address is a 12-digit hexadecimal number. The script accepts input in the 00-80-41-ae-fd-7e and 00:80:41:ae:fd:7e formats (i.e., with hyphens or colons between the groups of two). a through f are also accepted as uppercase letters.
+Here is a brief explanation of the pattern: Exactly two hexadecimal digits must be followed by either the - or : character. This group must appear five times in the pattern and must be followed by two hexadecimal digits.
+Security Relevance Score: 4
+Word Count: 670
+Extracted: 2025-06-13 23:41:06
+
+---
+
+year = result.group(1)    month = result.group(2)    day = result.group(3)    print(year, month, day)      # 2024 12 31 
+9.5.1    Example: Verifying a MAC Address
+In the following script, you’ll be prompted to enter a Media Access Control (MAC) address for identifying network devices. A MAC address is a 12-digit hexadecimal number. The script accepts input in the 00-80-41-ae-fd-7e and 00:80:41:ae:fd:7e formats (i.e., with hyphens or colons between the groups of two). a through f are also accepted as uppercase letters.
+Here is a brief explanation of the pattern: Exactly two hexadecimal digits must be followed by either the - or : character. This group must appear five times in the pattern and must be followed by two hexadecimal digits.
+# Sample file input-mac.pyimport reok = Falsepattern = r'^([a-fA-F0-9]{2}[:-]){5}[a-fA-F0-9]{2}$'while not ok:    mac = input('Enter a MAC address: ')    ok = re.match(pattern, mac)    if not ok:        print('Not valid, please try again:')print('Valid address:', mac) 
+9.5.2    Example: Anonymizing a Logging File
+In the previous chapter, I presented multiple usage examples for grep, sort, and uniq. The sample file access.log used there is a real Apache logging file of a web server, but I have anonymized it for privacy reasons. The logging file uses the Apache Combined Log format, described at https://httpd.apache.org/docs/2.4/logs.html.
+The following listing contains excerpts from the anonymize-log.py script, which you can find in the sample files within the directory for the previous chapter. The regular expression consists of ten groups for recognizing the components of a line in the Apache Combined Log format. Although only one match per line is expected (result(0)), I used findall in this case, which simplifies the further analysis of the results. findall provides a tuple, which is converted into a list. Then, some components are replaced, and finally, the logging line is output again.
+# Sample file anonymize-log.py# (in the directory for the previous chapter)# usage: ./anonymize-log.py in.log > out.logimport random, re, string, sysdef randomIPv4(): ...     # Functions for generating random IP addressesdef randomIPv6(): ...     # URLs and namesdef randomUrl(): ...def randomUsername(): ...# Dictionary, assigns random addresses to real IP addressesips = {}# Pattern with 10 groups for the Apache Combined Log Formatpattern = r'(.+?) - (.+?) \[(.+?)\] \"(.+?) (.+?) (.+?)\"            (.+?) (.+?) \"(.+?)\" \"(.+?)\"'# open file passed in the first parameterwith open(sys.argv[1], 'r') as f:    # loop through all lines    for line in f:        result = re.findall(pattern, line)        if len(result):            groups = list(result[0])  # list -> tupel            # replace IP address with random address            # and save in ips dictionary            ip = groups[0]            if ip not in ips:                if ':' in ip:                    ips[ip] = randomIPv6()                else:                    ips[ip] = randomIPv4()            groups[0] = ips[ip]            # analogous code for names, URLs etc. ...            # output of the line (stdout)            print('%s - %s [%s] "%s %s %s" %s %s "%s" "%s"' %                  tuple(groups)) 
+
+
+
+
+
+
+
+
+10    JSON, XML, and INIJavaScript Object Notation (JSON) has established itself over the last decade as the dominant format when programs or web services such as REST APIs are supposed to exchange data. The hype of the 2000s surrounding the Extensible Markup Language (XML) has now faded: Not only is the comparatively complex syntax, with its many special cases, difficult for humans to read, but also tedious to analyze through code. But even as XML is used less and less in new projects, you may still encounter its huge legacy of programs and web services based on XML. But we are not limited to only JSON or XML: To save a few configuration settings, the INI format is also completely sufficient.In this chapter, I want to present some functions that PowerShell and Python provide for creating and processing such files. If necessary, these tasks can also be performed in Bash, but you would have to use external commands, such as jq or xmllint.
+Prerequisites for This Chapter
+This chapter takes all three scripting languages described in this book into account, this time with a focus on PowerShell and Python: These two languages provide excellent support for the JSON and XML formats. A good logical follow-up to this chapter is

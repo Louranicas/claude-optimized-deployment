@@ -1,0 +1,111 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'claude-deployment-engine'
+    replica: 'prometheus-01'
+
+rule_files:
+  - "alert_rules.yaml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Claude Deployment Engine main application
+  - job_name: 'claude-deployment-engine'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # Adjust port as needed
+    metrics_path: '/monitoring/metrics'
+    scrape_timeout: 10s
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor for container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  # PostgreSQL metrics (if postgres_exporter is available)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: '/metrics'
+
+  # AlertManager metrics
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+
+  # Jaeger metrics
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+
+  # Custom health check endpoints
+  - job_name: 'health-checks'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+    metrics_path: '/monitoring/health'
+    params:
+      detailed: ['true']
+
+  # MCP servers health (if they expose metrics)
+  - job_name: 'mcp-servers'
+    scrape_interval: 30s
+    static_configs:
+      - targets: 
+        - 'host.docker.internal:8001'  # Desktop Commander MCP
+        - 'host.docker.internal:8002'  # Docker MCP
+        - 'host.docker.internal:8003'  # Kubernetes MCP
+        - 'host.docker.internal:8004'  # Azure DevOps MCP
+        - 'host.docker.internal:8005'  # Windows System MCP
+        - 'host.docker.internal:8006'  # Prometheus Monitoring MCP
+        - 'host.docker.internal:8007'  # Security Scanner MCP
+        - 'host.docker.internal:8008'  # Slack Notifications MCP
+        - 'host.docker.internal:8009'  # S3 Storage MCP
+        - 'host.docker.internal:8010'  # Brave Search MCP
+    metrics_path: '/health'
+
+  # AI providers health checks
+  - job_name: 'ai-providers'
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+    metrics_path: '/monitoring/health'
+    params:
+      check: ['ai_providers']
+
+# Remote write for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint"
+#     basic_auth:
+#       username: "username"
+#       password: "password"
+
+# Recording rules for performance optimization
+rule_files:
+  - "recording_rules.yaml"

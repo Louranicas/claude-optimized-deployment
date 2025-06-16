@@ -1,0 +1,598 @@
+{
+  "dashboard": {
+    "id": "system_health_dashboard",
+    "title": "System Health Overview Dashboard",
+    "description": "Comprehensive system health monitoring with real-time indicators",
+    "refresh_interval": 5000,
+    "auto_refresh": true,
+    "theme": "dark",
+    "layout": {
+      "type": "grid",
+      "columns": 12,
+      "row_height": 80,
+      "gap": 15
+    }
+  },
+  "widgets": [
+    {
+      "id": "overall_health_score",
+      "type": "large_gauge",
+      "title": "Overall System Health",
+      "position": { "x": 0, "y": 0, "width": 4, "height": 5 },
+      "config": {
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "thresholds": [
+          { "value": 90, "color": "#4CAF50", "label": "Excellent" },
+          { "value": 75, "color": "#8BC34A", "label": "Good" },
+          { "value": 60, "color": "#FF9800", "label": "Warning" },
+          { "value": 40, "color": "#FF5722", "label": "Poor" },
+          { "value": 0, "color": "#F44336", "label": "Critical" }
+        ],
+        "needle_color": "#2196F3",
+        "show_value": true,
+        "show_label": true,
+        "animate": true,
+        "arc_width": 15
+      },
+      "data_sources": ["system_health_score"]
+    },
+    {
+      "id": "component_health_grid",
+      "type": "health_grid",
+      "title": "Component Health Status",
+      "position": { "x": 4, "y": 0, "width": 8, "height": 5 },
+      "config": {
+        "components": [
+          {
+            "id": "cpu",
+            "name": "CPU",
+            "data_source": "cpu_health_score",
+            "threshold_warning": 0.8,
+            "threshold_critical": 0.9
+          },
+          {
+            "id": "memory",
+            "name": "Memory",
+            "data_source": "memory_health_score",
+            "threshold_warning": 0.85,
+            "threshold_critical": 0.95
+          },
+          {
+            "id": "disk",
+            "name": "Disk",
+            "data_source": "disk_health_score",
+            "threshold_warning": 0.85,
+            "threshold_critical": 0.95
+          },
+          {
+            "id": "network",
+            "name": "Network",
+            "data_source": "network_health_score",
+            "threshold_warning": 0.8,
+            "threshold_critical": 0.9
+          },
+          {
+            "id": "database",
+            "name": "Database",
+            "data_source": "database_health_score",
+            "threshold_warning": 0.8,
+            "threshold_critical": 0.9
+          },
+          {
+            "id": "api",
+            "name": "API",
+            "data_source": "api_health_score",
+            "threshold_warning": 0.8,
+            "threshold_critical": 0.9
+          },
+          {
+            "id": "circle_of_experts",
+            "name": "Experts",
+            "data_source": "circle_of_experts_health_score",
+            "threshold_warning": 0.8,
+            "threshold_critical": 0.9
+          },
+          {
+            "id": "mcp_servers",
+            "name": "MCP",
+            "data_source": "mcp_health_score",
+            "threshold_warning": 0.8,
+            "threshold_critical": 0.9
+          }
+        ],
+        "layout": "4x2",
+        "show_values": true,
+        "show_trends": true
+      },
+      "data_sources": [
+        "cpu_health_score",
+        "memory_health_score",
+        "disk_health_score",
+        "network_health_score",
+        "database_health_score",
+        "api_health_score",
+        "circle_of_experts_health_score",
+        "mcp_health_score"
+      ]
+    },
+    {
+      "id": "resource_utilization_summary",
+      "type": "radial_progress",
+      "title": "Resource Utilization",
+      "position": { "x": 0, "y": 5, "width": 6, "height": 4 },
+      "config": {
+        "metrics": [
+          {
+            "label": "CPU Usage",
+            "data_source": "cpu_usage_percent_total",
+            "color": "#FF6B6B",
+            "max": 100,
+            "warning_threshold": 80,
+            "critical_threshold": 95
+          },
+          {
+            "label": "Memory Usage",
+            "data_source": "memory_usage_percent",
+            "color": "#4ECDC4",
+            "max": 100,
+            "warning_threshold": 85,
+            "critical_threshold": 95
+          },
+          {
+            "label": "Disk Usage",
+            "data_source": "disk_usage_percent",
+            "color": "#45B7D1",
+            "max": 100,
+            "warning_threshold": 90,
+            "critical_threshold": 98
+          },
+          {
+            "label": "Network I/O",
+            "data_source": "network_utilization_percent",
+            "color": "#96CEB4",
+            "max": 100,
+            "warning_threshold": 80,
+            "critical_threshold": 95
+          }
+        ],
+        "show_labels": true,
+        "show_values": true,
+        "animate": true
+      },
+      "data_sources": [
+        "cpu_usage_percent_total",
+        "memory_usage_percent",
+        "disk_usage_percent",
+        "network_utilization_percent"
+      ]
+    },
+    {
+      "id": "performance_indicators",
+      "type": "kpi_panel",
+      "title": "Key Performance Indicators",
+      "position": { "x": 6, "y": 5, "width": 6, "height": 4 },
+      "config": {
+        "kpis": [
+          {
+            "label": "System Uptime",
+            "data_source": "system_uptime_hours",
+            "format": "duration",
+            "unit": "hours",
+            "color": "#4CAF50",
+            "trend_data_source": "uptime_trend"
+          },
+          {
+            "label": "Error Rate",
+            "data_source": "system_error_rate",
+            "format": "percentage",
+            "color": "#F44336",
+            "trend_data_source": "error_rate_trend",
+            "invert_trend": true
+          },
+          {
+            "label": "Avg Response Time",
+            "data_source": "avg_response_time",
+            "format": "number",
+            "unit": "ms",
+            "color": "#2196F3",
+            "trend_data_source": "response_time_trend",
+            "invert_trend": true
+          },
+          {
+            "label": "Throughput",
+            "data_source": "system_throughput",
+            "format": "number",
+            "unit": "req/s",
+            "color": "#FF9800",
+            "trend_data_source": "throughput_trend"
+          },
+          {
+            "label": "Active Users",
+            "data_source": "active_users_count",
+            "format": "number",
+            "color": "#9C27B0",
+            "trend_data_source": "users_trend"
+          },
+          {
+            "label": "Memory Efficiency",
+            "data_source": "memory_efficiency_score",
+            "format": "percentage",
+            "color": "#00BCD4",
+            "trend_data_source": "memory_efficiency_trend"
+          }
+        ],
+        "layout": "3x2",
+        "show_trends": true,
+        "show_sparklines": true
+      },
+      "data_sources": [
+        "system_uptime_hours",
+        "system_error_rate",
+        "avg_response_time",
+        "system_throughput",
+        "active_users_count",
+        "memory_efficiency_score"
+      ]
+    },
+    {
+      "id": "system_load_trend",
+      "type": "area_chart",
+      "title": "System Load Trend",
+      "position": { "x": 0, "y": 9, "width": 8, "height": 4 },
+      "config": {
+        "y_axis": {
+          "min": 0,
+          "label": "Load Average"
+        },
+        "x_axis": {
+          "type": "time",
+          "label": "Time"
+        },
+        "series": [
+          {
+            "label": "1 minute",
+            "color": "#4CAF50",
+            "data_source": "load_average_1min",
+            "fill_opacity": 0.3
+          },
+          {
+            "label": "5 minutes",
+            "color": "#FF9800",
+            "data_source": "load_average_5min",
+            "fill_opacity": 0.2
+          },
+          {
+            "label": "15 minutes",
+            "color": "#F44336",
+            "data_source": "load_average_15min",
+            "fill_opacity": 0.1
+          }
+        ],
+        "max_points": 60,
+        "show_legend": true,
+        "stacked": false
+      },
+      "data_sources": [
+        "load_average_1min",
+        "load_average_5min",
+        "load_average_15min"
+      ]
+    },
+    {
+      "id": "alert_severity_distribution",
+      "type": "donut_chart",
+      "title": "Alert Distribution",
+      "position": { "x": 8, "y": 9, "width": 4, "height": 4 },
+      "config": {
+        "segments": [
+          {
+            "label": "Info",
+            "color": "#4CAF50",
+            "data_source": "alerts_info_count"
+          },
+          {
+            "label": "Warning",
+            "color": "#FF9800",
+            "data_source": "alerts_warning_count"
+          },
+          {
+            "label": "Critical",
+            "color": "#F44336",
+            "data_source": "alerts_critical_count"
+          },
+          {
+            "label": "Emergency",
+            "color": "#9C27B0",
+            "data_source": "alerts_emergency_count"
+          }
+        ],
+        "show_percentages": true,
+        "show_values": true,
+        "center_text": "Active Alerts",
+        "animate": true
+      },
+      "data_sources": [
+        "alerts_info_count",
+        "alerts_warning_count",
+        "alerts_critical_count",
+        "alerts_emergency_count"
+      ]
+    },
+    {
+      "id": "service_status_matrix",
+      "type": "status_matrix",
+      "title": "Service Status Matrix",
+      "position": { "x": 0, "y": 13, "width": 12, "height": 3 },
+      "config": {
+        "services": [
+          {
+            "category": "Core Services",
+            "services": [
+              { "id": "api_gateway", "name": "API Gateway", "data_source": "api_gateway_status" },
+              { "id": "load_balancer", "name": "Load Balancer", "data_source": "load_balancer_status" },
+              { "id": "auth_service", "name": "Authentication", "data_source": "auth_service_status" },
+              { "id": "database", "name": "Database", "data_source": "database_status" }
+            ]
+          },
+          {
+            "category": "AI Services",
+            "services": [
+              { "id": "circle_of_experts", "name": "Circle of Experts", "data_source": "circle_of_experts_status" },
+              { "id": "claude_expert", "name": "Claude Expert", "data_source": "claude_expert_status" },
+              { "id": "openai_expert", "name": "OpenAI Expert", "data_source": "openai_expert_status" },
+              { "id": "local_expert", "name": "Local Expert", "data_source": "local_expert_status" }
+            ]
+          },
+          {
+            "category": "MCP Servers",
+            "services": [
+              { "id": "mcp_communication", "name": "Communication", "data_source": "mcp_communication_status" },
+              { "id": "mcp_devops", "name": "DevOps", "data_source": "mcp_devops_status" },
+              { "id": "mcp_infrastructure", "name": "Infrastructure", "data_source": "mcp_infrastructure_status" },
+              { "id": "mcp_monitoring", "name": "Monitoring", "data_source": "mcp_monitoring_status" }
+            ]
+          },
+          {
+            "category": "Support Services",
+            "services": [
+              { "id": "monitoring", "name": "Monitoring", "data_source": "monitoring_status" },
+              { "id": "logging", "name": "Logging", "data_source": "logging_status" },
+              { "id": "backup", "name": "Backup", "data_source": "backup_status" },
+              { "id": "security", "name": "Security", "data_source": "security_status" }
+            ]
+          }
+        ],
+        "status_colors": {
+          "healthy": "#4CAF50",
+          "warning": "#FF9800",
+          "critical": "#F44336",
+          "offline": "#9E9E9E",
+          "maintenance": "#2196F3"
+        },
+        "show_tooltips": true,
+        "compact_mode": false
+      },
+      "data_sources": [
+        "api_gateway_status", "load_balancer_status", "auth_service_status", "database_status",
+        "circle_of_experts_status", "claude_expert_status", "openai_expert_status", "local_expert_status",
+        "mcp_communication_status", "mcp_devops_status", "mcp_infrastructure_status", "mcp_monitoring_status",
+        "monitoring_status", "logging_status", "backup_status", "security_status"
+      ]
+    },
+    {
+      "id": "recent_events_feed",
+      "type": "event_feed",
+      "title": "Recent System Events",
+      "position": { "x": 0, "y": 16, "width": 8, "height": 5 },
+      "config": {
+        "max_events": 20,
+        "event_types": [
+          {
+            "type": "info",
+            "icon": "info",
+            "color": "#2196F3"
+          },
+          {
+            "type": "warning",
+            "icon": "warning",
+            "color": "#FF9800"
+          },
+          {
+            "type": "error",
+            "icon": "error",
+            "color": "#F44336"
+          },
+          {
+            "type": "success",
+            "icon": "check",
+            "color": "#4CAF50"
+          },
+          {
+            "type": "deployment",
+            "icon": "rocket",
+            "color": "#9C27B0"
+          }
+        ],
+        "show_timestamps": true,
+        "show_source": true,
+        "auto_scroll": true,
+        "filter_by_type": true
+      },
+      "data_sources": ["system_events_feed"]
+    },
+    {
+      "id": "capacity_planning_metrics",
+      "type": "capacity_chart",
+      "title": "Capacity Planning",
+      "position": { "x": 8, "y": 16, "width": 4, "height": 5 },
+      "config": {
+        "metrics": [
+          {
+            "label": "CPU Capacity",
+            "current_data_source": "cpu_usage_percent_total",
+            "projected_data_source": "cpu_usage_projected",
+            "capacity": 100,
+            "color": "#FF6B6B"
+          },
+          {
+            "label": "Memory Capacity",
+            "current_data_source": "memory_usage_percent",
+            "projected_data_source": "memory_usage_projected",
+            "capacity": 100,
+            "color": "#4ECDC4"
+          },
+          {
+            "label": "Storage Capacity",
+            "current_data_source": "disk_usage_percent",
+            "projected_data_source": "disk_usage_projected",
+            "capacity": 100,
+            "color": "#45B7D1"
+          },
+          {
+            "label": "Network Capacity",
+            "current_data_source": "network_utilization_percent",
+            "projected_data_source": "network_usage_projected",
+            "capacity": 100,
+            "color": "#96CEB4"
+          }
+        ],
+        "projection_period": "7_days",
+        "show_current": true,
+        "show_projected": true,
+        "show_capacity_line": true,
+        "warning_threshold": 80,
+        "critical_threshold": 95
+      },
+      "data_sources": [
+        "cpu_usage_percent_total", "cpu_usage_projected",
+        "memory_usage_percent", "memory_usage_projected",
+        "disk_usage_percent", "disk_usage_projected",
+        "network_utilization_percent", "network_usage_projected"
+      ]
+    }
+  ],
+  "alerts": {
+    "enabled": true,
+    "position": "top-right",
+    "max_visible": 5,
+    "auto_dismiss": 30000,
+    "rules": [
+      {
+        "id": "system_health_critical",
+        "condition": "system_health_score < 40",
+        "level": "critical",
+        "message": "System health is critical: {value}%"
+      },
+      {
+        "id": "system_health_warning",
+        "condition": "system_health_score < 75",
+        "level": "warning",
+        "message": "System health degraded: {value}%"
+      },
+      {
+        "id": "high_cpu_usage",
+        "condition": "cpu_usage_percent_total > 90",
+        "level": "warning",
+        "message": "High CPU usage: {value}%"
+      },
+      {
+        "id": "high_memory_usage",
+        "condition": "memory_usage_percent > 90",
+        "level": "warning",
+        "message": "High memory usage: {value}%"
+      },
+      {
+        "id": "disk_space_critical",
+        "condition": "disk_usage_percent > 95",
+        "level": "critical",
+        "message": "Disk space critical: {value}%"
+      },
+      {
+        "id": "service_offline",
+        "condition": "service_status == 'offline'",
+        "level": "critical",
+        "message": "Service {service_name} is offline"
+      },
+      {
+        "id": "high_error_rate",
+        "condition": "system_error_rate > 5",
+        "level": "warning",
+        "message": "High system error rate: {value}%"
+      }
+    ]
+  },
+  "filters": {
+    "time_range": {
+      "enabled": true,
+      "default": "last_1_hour",
+      "options": [
+        { "label": "Last 15 minutes", "value": "last_15_minutes" },
+        { "label": "Last 1 hour", "value": "last_1_hour" },
+        { "label": "Last 4 hours", "value": "last_4_hours" },
+        { "label": "Last 24 hours", "value": "last_24_hours" },
+        { "label": "Last 7 days", "value": "last_7_days" }
+      ]
+    },
+    "component_filter": {
+      "enabled": true,
+      "type": "multi_select",
+      "label": "Components",
+      "options": [
+        { "label": "All Components", "value": "all" },
+        { "label": "Core Services", "value": "core" },
+        { "label": "AI Services", "value": "ai" },
+        { "label": "MCP Servers", "value": "mcp" },
+        { "label": "Support Services", "value": "support" }
+      ]
+    }
+  },
+  "annotations": {
+    "enabled": true,
+    "types": [
+      {
+        "type": "deployment",
+        "label": "Deployment",
+        "color": "#9C27B0",
+        "data_source": "deployment_events"
+      },
+      {
+        "type": "maintenance",
+        "label": "Maintenance",
+        "color": "#2196F3",
+        "data_source": "maintenance_events"
+      },
+      {
+        "type": "incident",
+        "label": "Incident",
+        "color": "#F44336",
+        "data_source": "incident_events"
+      }
+    ]
+  },
+  "export": {
+    "enabled": true,
+    "formats": ["png", "pdf", "csv"],
+    "include_data": true,
+    "scheduled_reports": {
+      "enabled": true,
+      "daily_summary": {
+        "time": "08:00",
+        "recipients": ["ops@example.com"]
+      },
+      "weekly_report": {
+        "day": "monday",
+        "time": "09:00",
+        "recipients": ["management@example.com"]
+      }
+    }
+  },
+  "real_time": {
+    "enabled": true,
+    "websocket_endpoint": "ws://localhost:8765",
+    "reconnect_attempts": 10,
+    "heartbeat_interval": 15000,
+    "high_frequency_updates": true
+  }
+}

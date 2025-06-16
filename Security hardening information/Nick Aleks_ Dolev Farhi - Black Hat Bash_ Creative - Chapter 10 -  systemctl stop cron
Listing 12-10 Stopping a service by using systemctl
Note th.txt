@@ -1,0 +1,57 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 10 - # systemctl stop cron
+Listing 12-10: Stopping a service by using systemctl
+Note that some services are configured to run on boot, meaning they start whenever the system has been rebooted. You can try to disable this behavior by passing the disable command to systemctl (Listing 12-11).
+# systemctl disable atd
+Listing 12-11: Disabling a service with systemctl
+On some systems, such as the Red Hat–based distribution CentOS or older versions of Red Hat Enterprise Linux, you may need to use the chkconfig command to disable a service from starting on boot (Listing 12-12).
+# chkconfig atd off
+Listing 12-12: Disabling a service with chkconfig
+Messing with security tool processes will raise suspicion and likely start an incident investigation. Instead of relying on specific tools to terminate a process, you could iterate over process names of interest and run the kill command against the PIDs (Listing 12-13).
+$ for pid in $(ps -ef | grep -e "iptables" -e "cron" -e "syslog" |
+awk '{print $2}'); do kill -9 "${pid}"; done
+Security Relevance Score: 5
+Word Count: 473
+Extracted: 2025-06-13 23:40:57
+
+---
+
+# systemctl stop cron
+Listing 12-10: Stopping a service by using systemctl
+Note that some services are configured to run on boot, meaning they start whenever the system has been rebooted. You can try to disable this behavior by passing the disable command to systemctl (Listing 12-11).
+# systemctl disable atd
+Listing 12-11: Disabling a service with systemctl
+On some systems, such as the Red Hat–based distribution CentOS or older versions of Red Hat Enterprise Linux, you may need to use the chkconfig command to disable a service from starting on boot (Listing 12-12).
+# chkconfig atd off
+Listing 12-12: Disabling a service with chkconfig
+Messing with security tool processes will raise suspicion and likely start an incident investigation. Instead of relying on specific tools to terminate a process, you could iterate over process names of interest and run the kill command against the PIDs (Listing 12-13).
+$ for pid in $(ps -ef | grep -e "iptables" -e "cron" -e "syslog" |
+awk '{print $2}'); do kill -9 "${pid}"; done
+
+Listing 12-13: Killing a list of processes with a for loop
+Note that this method is not graceful and could lead to undesirable results. Use it with caution.
+
+
+Manipulating History
+In previous chapters, we discussed the .bash_history file in each user’s home directory, which contains commands executed by local users. By disabling this behavior, attackers can hide their activities on the target system. The bash shell has a handful of environment variables that control the behavior of command execution tracking in history files:
+HISTSIZE Determines the number of commands that can be cached in memory.
+HISTFILE Determines the path to the history file on the filesystem (for example, /home/user/.bash_history).
+HISTFILESIZE Determines the number of commands that the .bash _history file can store on disk.
+HISTCONTROL Controls the saving of commands in the history list by using multiple values separated by colons (:). The value ignorespace excludes lines starting with a space character from the history list, ignoredups prevents the saving of lines matching the previous entry, and ignoreboth combines both ignorespace and ignoredups. The erasedups value removes all previous occurrences of the current line from the history file before saving it.
+HISTIGNORE Defines command-matching patterns so that specific commands aren’t added to the history file.
+If you set the ignorespace value for the HISTCONTROL variable, you can prepend a space character to your commands to keep them out of the history file (Listing 12-14).
+$ export HISTCONTROL=ignorespace
+$  echo hello world  # echo is prepended with a space.
+
+hello world
+$ history | tail -5
+
+38  ps aux
+39  clear
+40  history | tail -5
+41  export HISTCONTROL=ignorespace
+42  history | tail -5
+
+Listing 12-14: Hiding a command from the history file by beginning it with a space
+To clear the command history for the current user, run the commands in Listing 12-

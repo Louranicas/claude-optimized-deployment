@@ -1,0 +1,165 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 8 - If you use the -t (thorough) flag to run a check, it should return details that could help you escalate your privileges, such as files that belong to the current user, hidden (dot) files, private keys, and Git credential files.
+But the script’s output can be verbose, because it prints every finding. The -k (keyword) option performs a system-wide search for a keyword of your choice:
+$ ./LinEnum.sh -t -k "P@ssw0rd"
+This command searches for the string P@ssw0rd in files accessible to the current user.
+Security Relevance Score: 17
+Word Count: 1444
+Extracted: 2025-06-13 23:40:57
+
+---
+
+If you use the -t (thorough) flag to run a check, it should return details that could help you escalate your privileges, such as files that belong to the current user, hidden (dot) files, private keys, and Git credential files.
+But the script’s output can be verbose, because it prints every finding. The -k (keyword) option performs a system-wide search for a keyword of your choice:
+$ ./LinEnum.sh -t -k "P@ssw0rd"
+This command searches for the string P@ssw0rd in files accessible to the current user.
+
+
+unix-privesc-check
+Albeit a little older, unix-privesc-check is another self-contained shell script that can search a system for local misconfigurations. Copy the unix-privesc -check script from your Kali machine (the file should be under /home/kali/tools/unix-privesc-check or /usr/bin/unix-privesc-check) to any of the compromised hosts, then run a scan using the standard option:
+$ unix-privesc-check standard
+The standard option is optimized for speed and will quickly enumerate misconfigurations on the system, but it provides less comprehensive enumeration coverage. The detailed option is more likely to catch misconfigurations in third-party software found on a host:
+$ unix-privesc-check detailed
+You should see output similar to that of LinEnum:
+--snip--
+###########################################
+Checking cron job programs aren't writable (/var/spool/cron/crontabs)
+############################################
+
+No user crontabs found in /var/spool/cron/crontabs.  Skipping checks.
+
+############################################
+Checking cron job programs aren't writable (/var/spool/cron/tabs)
+############################################
+
+Directory /var/spool/cron/tabs is not present.  Skipping checks.
+
+############################################
+Checking inetd programs aren't writable
+############################################
+
+File /etc/inetd.conf not present.  Skipping checks.
+--snip--
+
+There are a few other privilege escalation automation tools you should be familiar with.
+
+
+MimiPenguin
+MimiPenguin (https://github.com/huntergregal/mimipenguin) is a scanner for finding the credentials of logged-in users who are connected to Linux systems running desktop environments such as the GNOME desktop environment and display managers such as LightDM or the GNOME Display Manager. If you come from a Windows penetration-testing background, you may be familiar with Mimikatz, a popular tool to extract credentials stored in memory. MimiPenguin was created to perform equivalent tasks in the Linux world.
+
+
+Linuxprivchecker
+The Python-based utility Linuxprivchecker (https://github.com/sleventyeleven/linuxprivchecker/tree/master), developed by Mike Czumak (T_v3rn1x), performs local cleartext password searches, finds shell escape opportunities in utilities such as text editors, provides kernel exploit recommendations based on the running kernel version, searches for file and directory permission misconfigurations, and more.
+
+
+Bashark
+Bashark (https://github.com/redcode-labs/Bashark/tree/master) is a shell script developed by wintrmvte. It provides a terminal user interface with helper functions for a variety of offensive security tasks, such as the enumeration of users, port scanning, reverse shell generation, and host enumeration. Its purpose is to facilitate executing common tasks without needing to write scripts and while primarily using tools that are commonly available on Linux systems.
+
+
+
+Summary
+In this chapter, you learned the fundamentals of privilege escalation, explored the basic and advanced file permission features in Linux systems, then scoured the local system for misconfigurations in files and directories. You also sifted through system locations where credentials are often found and inspected the configurations of mechanisms that could lead to privilege escalation vulnerabilities, such as sudo, PATH, and cron jobs. Finally, you performed local brute-force attacks against other system accounts.
+
+
+
+
+
+
+
+
+
+
+
+
+10
+PERSISTENCE
+
+
+
+By gaining persistence on compromised networks and machines, we can make our access immune to environmental changes such as system reboots, a loss of network connectivity, or even credential rotation.
+There are many ways to gain persistence. For example, you could plant code on a compromised server that reestablishes your access. Or you could discover virtual private network credentials in a configuration file on GitHub that someone accidentally pushed to a public repository to connect remotely to a network.
+Bash is a useful tool for gaining persistence, and in this chapter, we’ll use it in several persistence techniques: modifying the scripts used to start system services and interact with authentication modules, harvesting credentials by hooking executed commands, packaging and distributing malicious scripts, hijacking system utilities, and more.
+
+The Enemies of Persistent Access
+Many factors could interfere with an attacker’s ability to establish persistent access, some of which may not necessarily be under their direct control. Here are a few environment types and security practices that could become a hurdle and hamper persistence of access:
+Ephemeral environments
+Short-lived environments, such as those running containers, may make persistence challenging. Container orchestration platforms and system administrators might spin containers up and down frequently. For example, a system experiencing a decreased system load on a slow weekend may automatically scale down the number of running containers. If we had access to one of those containers, we’d be at risk of losing access.
+Mature security practices
+An organization that implements mature security practices can be a harder target both to compromise and maintain one’s access to. Some organizations review their systems every day for anomalies, harden their infrastructure, scan their environment for possible intrusion attempts, and perform threat hunting. In addition, many organizations have dedicated red teams to test the effectiveness of the controls. These security measures can make it harder to maintain long-term access.
+Network and endpoint security controls
+Fine-tuned network and endpoint security controls implemented across an organization can make persisting access more difficult. A mature blue team will plan a defense-in-depth network strategy to compensate for any control failures.
+Asset life-cycle management and inventory hygiene
+While it doesn’t happen often, asset decommissioning can trigger the loss of persistent access. Similarly, solid patch management could introduce fixes to the vulnerable software used as part of an exploitation kit. Ideally, you should find grip points, additional assets to persist your access to, so you don’t rely on a single vector for your remote access.
+
+
+Modifying Service Configurations
+One way to maintain access to a system is to create or modify the script used to start a system service. To achieve this, you could exploit System V and systemd, system mechanisms that manage services and control the start sequence of processes. System V is the older of the two mechanisms, but you may encounter either tool in a penetration test. Let’s learn about both mechanisms in the context of persistence.
+
+System V
+System V’s /etc/init.d directory contains shell scripts, called init scripts, responsible for starting services, whether they’re network services such as SSH, scheduling services such as Cron, or services responsible for setting up a server’s hardware clock. But we can also write custom malicious logic by using init scripts.
+
+NOTE
+
+Introducing custom code into shell scripts under the /etc directory usually requires elevated privileges. This technique assumes you have write permissions to the target directory.
+Run the ls command to list the files in /etc/init.d on any of the machines in the lab. Here is the output on p-jumpbox-01 (172.16.10.13):
+# root@p-jumpbox-01:/# ls -l /etc/init.d/
+
+total 24
+-rwxr-xr-x 1 root root 1071 Feb  5  atd
+-rwxr-xr-x 1 root root 3062 Nov 14  cron
+-rwxr-xr-x 1 root root 3152 Jan 27  dbus
+-rwxr-xr-x 1 root root 1748 Nov 28  hwclock.sh
+-rwxr-xr-x 1 root root  959 Feb 25  procps
+-rwxr-xr-x 1 root root 4060 May 26 14:44 ssh
+
+Each file in the directory affects the configuration of a particular service. For example, take a look at the ssh script (Listing 10-1).
+# cat /etc/init.d/ssh
+
+#! /bin/sh
+--snip--
+case "$1" in
+  start)
+    check_privsep_dir
+    check_for_no_start
+    check_dev_null
+    log_daemon_msg "Starting OpenBSD Secure Shell server" "sshd" || true
+    if start-stop-daemon --start --quiet --oknodo --chuid 0:0 --pidfile /run/sshd.pid \
+                         --exec /usr/sbin/sshd -- $SSHD_OPTS; then
+      log_end_msg 0 || true
+    else
+      log_end_msg 1 || true
+    fi
+    ;;
+  stop)
+    log_daemon_msg "Stopping OpenBSD Secure Shell server" "sshd" || true
+    if start-stop-daemon --stop --quiet --oknodo --pidfile /run/sshd.pid \
+                         --exec /usr/sbin/sshd; then
+      log_end_msg 0 || true
+    else
+      log_end_msg 1 || true
+    fi
+    ;;
+
+  reload|force-reload)
+    check_for_no_start
+    check_config
+    log_daemon_msg "Reloading OpenBSD Secure Shell server's configuration" "sshd" || true
+    if start-stop-daemon --stop --signal 1 --quiet --oknodo --pidfile /run/sshd.pid \
+                         --exec /usr/sbin/sshd; then
+      log_end_msg 0 || true
+    else
+      log_end_msg 1 || true
+    fi
+    ;;
+--snip--
+
+Listing 10-1: The init script for the SSH service
+As you can see, the core of this script uses a case statement to determine which set of commands to run, given some input. For example, to start, stop, and reload the SSH service, we could call the script in each of the following ways:
+# /etc/init.d/ssh start
+# /etc/init.d/ssh stop
+# /etc/init.d/ssh reload
+# /etc/init.d/ssh force-reload
+
+The system is configured to start SSH on boot, and if we can place custom bash logic in the script, our code will run whenever the script is called. So, if we’re able to create a reverse shell from the init script, we can reconnect the server to our listener in the case of a full reboot, as long as the network is available.
+Let’s give this a try. Modify the /etc/init.d/ssh file by inserting a reverse shell payload into it, as shown in Listing 10-

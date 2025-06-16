@@ -1,0 +1,183 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 80 - Note that we could have used Netcat to send HTTP HEAD requests too, but it’s useful to know more than one method to achieve a given task.
+Security Relevance Score: 4
+Word Count: 1416
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Note that we could have used Netcat to send HTTP HEAD requests too, but it’s useful to know more than one method to achieve a given task.
+
+
+Using Nmap Scripts
+Nmap is more than just a port scanner; we can transform it into a full-fledged vulnerability assessment tool. The Nmap Scripting Engine (NSE) allows penetration testers to write scripts in the Lua language to extend Nmap’s capabilities. Nmap comes preinstalled with some Lua scripts, as you can see here:
+$ ls -l /usr/share/nmap/scripts
+
+-rw-r--r-- 1 root root  3901 Oct  6 10:43 acarsd-info.nse
+-rw-r--r-- 1 root root  8749 Oct  6 10:43 address-info.nse
+-rw-r--r-- 1 root root  3345 Oct  6 10:43 afp-brute.nse
+-rw-r--r-- 1 root root  6463 Oct  6 10:43 afp-ls.nse
+-rw-r--r-- 1 root root  3345 Oct  6 10:43 afp-brute.nse
+-rw-r--r-- 1 root root  6463 Oct  6 10:43 afp-ls.nse
+--snip--
+
+The banner.nse script in the /usr/share/nmap/scripts folder allows you to grab the banners from many hosts simultaneously. The following bash command uses this script to perform a banner grab and service discovery (-sV):
+$ nmap -sV --script=banner.nse -iL 172-16-10-hosts.txt
+
+Nmap scan report for 172.16.10.12
+--snip--
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Apache httpd 2.4.54 ((Debian))
+|_http-server-header: Apache/2.4.54 (Debian)
+--snip--
+
+When the banner-grabbing script finds a banner, the output line containing that banner will begin with a special character sequence (|_). We can filter for this sequence to extract banner information, like so:
+$ nmap -sV --script=banner.nse -iL 172-16-10-hosts.txt | grep "|_banner\||_http-server-header"
+You may have noticed that, in the case of 172.16.10.10 port 8081 (the p-web-01 machine), Nmap responds with the following:
+PORT     STATE SERVICE          VERSION
+8081/tcp open  blackice-icecap?
+| fingerprint-strings:
+--snip--
+
+The blackice-icecap? value indicates that Nmap is unable to definitively discover the identity of the service. But if you look closely at the fingerprint -strings dump, you’ll see some HTTP-related information that reveals the same response headers we found when banner grabbing manually using curl. Specifically, note the Werkzeug web server banner. With a bit of googling, you’ll find that this server runs on Flask, a Python-based web framework.
+
+
+Detecting Operating Systems
+Nmap can also guess the target server’s running operating system by using TCP/IP fingerprinting, which is part of its operating system detection scan. This technique identifies the implementation of the operating system’s TCP/IP stack by crafting packets in various ways and analyzing the returned responses. Each operating system (such as Linux, Windows, and macOS) implements the TCP/IP stack slightly differently, and Nmap analyzes these subtle differences to identify the running system. In some cases, Nmap may also be able to identify the running kernel version.
+To run an operating system detection scan, use the -O flag in Nmap. Note that this scan requires sudo privileges:
+$ sudo nmap -O -iL 172-16-10-hosts.txt
+
+--snip--
+21/tcp open  ftp
+80/tcp open  http
+MAC Address: 02:42:AC:10:0A:0B (Unknown)
+Device type: general purpose
+Running: Linux 4.X|5.X
+OS CPE: cpe:/o:linux:linux_kernel:4 cpe:/o:linux:linux_kernel:5
+OS details: Linux 4.15 - 5.6
+Network Distance: 1 hop
+
+Let’s create a bash script that can parse this output and sort it by IP address and operating system (Listing 4-13).
+
+os_detection.sh
+#!/bin/bash
+HOSTS="$*"
+
+❶ if [["${EUID}" -ne 0]]; then
+  echo "The Nmap OS detection scan type (-O) requires root privileges."
+  exit 1
+fi
+
+❷ if [["$#" -eq 0]]; then
+  echo "You must pass an IP or an IP range"
+  exit 1
+fi
+
+echo "Running an OS Detection Scan against ${HOSTS}..."
+
+❸ nmap_scan=$(sudo nmap -O ${HOSTS} -oG -)
+❹ while read -r line; do
+  ip=$(echo "${line}" | awk '{print $2}')
+  os=$(echo "${line}" | awk -F'OS: ' '{print $2}' | sed 's/Seq.*//g')
+
+❺ if [[-n "${ip}"]] && [[-n "${os}"]]; then
+    echo "IP: ${ip} OS: ${os}"
+  fi
+done <<< "${nmap_scan}"
+
+Listing 4-13: Parsing an operating system detection scan
+Because this scan requires root privileges, we check for the effective user’s ID ❶. If the user ID isn’t equal to zero, we exit because there is no point in continuing if the user isn’t using root privileges. We then check whether the user passed target hosts as arguments on the command line ❷. At ❸, we run the Nmap operating system detection scan against these targets, which we’ve assigned to the HOSTS variable.
+We use a while loop ❹ to iterate through the scan results, parsing each line and assigning the IP address in the output to the ip variable. We then parse the line a second time to extract the operating system information from Nmap. We use sed to clean the output so it shows only the operating system, removing everything after the word Seq. Next, we check whether both the ip and os variables are set ❺. If they are, this means we’ve parsed the output correctly and can finish the script by printing the IP address and the operating system type.
+To understand why we parse the output the way we do, using grep, awk and sed, run the following command in a separate terminal:
+$ sudo nmap -O 172.16.10.0/24 -oG -
+
+--snip--
+Host: 172.16.10.10 () Ports: 8081/open/tcp//blackice-icecap/// Ignored State: closed (999) OS:
+Linux 4.15 - 5.6   Seq Index: 258   IP ID Seq: All zeros
+--snip--
+
+As you can see, the output is separated by whitespaces. The IP address is found immediately after the first space, and the operating system type comes after the word OS: but before the word Seq, which is why we needed to extract the text between these two. You can do this parsing in other ways too, such as with regular expressions; this is just one way of achieving the task.
+Use the following command to save and run the script:
+$ sudo ./os_detection.sh 172.16.10.0/24
+
+Running an OS Detection Scan against 172.16.10.0/24...
+IP: 172.16.10.10 OS: Linux 4.15 - 5.6
+IP: 172.16.10.11 OS: Linux 4.15 - 5.6
+IP: 172.16.10.12 OS: Linux 4.15 - 5.6
+IP: 172.16.10.13 OS: Linux 4.15 - 5.6
+IP: 172.16.10.1 OS: Linux 2.6.32
+
+At this point, we’ve identified a couple of HTTP servers, an FTP server, and an SSH server. Let’s take a closer look at the HTTP servers.
+
+
+Analyzing Websites and JSON
+Let’s use WhatWeb to see the services running on the web applications in the 172.16.10.0/24 network. We’ll begin by looking at 172.16.10.10 (p-web-01) on port 8081:
+$ whatweb 172.16.10.10:8081
+
+http://172.16.10.10:8081 [200 OK] Country[RESERVED][ZZ], HTML5,
+HTTPServer[Werkzeug/2.3.7 Python/3.11.4], IP[172.16.10.10],
+Python[3.11.4], Title[Menu], Werkzeug[2.3.7], X-UA-Compatible[ie=edge]
+--snip--
+
+WhatWeb’s output is printed to standard output by default, separated by spaces and commas. As you can see, it found some information about the technology running on this web server.
+We could parse this output quite easily with tools such as awk and grep, but to introduce you to new techniques, we’ll instead explore how to parse JavaScript Object Notation (JSON) output. JSON is a data format composed of keys and values. To parse it, it’s helpful to use a tool like jq to traverse the JSON structure and extract the information we need.
+WhatWeb can format the output in JSON with the --log-json parameter, which expects a filename passed as its value. But what if we want to send the output to the screen without writing it to the disk? We can provide the parameter with the /dev/stdout file, forcing it to send its output to standard output:
+$ whatweb 172.16.10.10:8081 --log-json=/dev/stdout --quiet | jq
+
+[
+  {
+--snip--
+    "plugins": {
+      "Country": {
+        "string": [
+          "RESERVED"
+        ],
+        "module": [
+          "ZZ"
+        ]
+      },
+      "HTML5": {},
+      "HTTPServer": {
+        "string": [
+          "Werkzeug/2.3.7 Python/3.11.4"
+        ]
+      },
+      "IP": {
+        "string": [
+          "172.16.10.10"
+        ]
+      },
+      "Python": {
+        "version": [
+          "3.11.4"
+        ]
+      },
+      "Title": {
+        "string": [
+          "Menu"
+        ]
+      },
+      "Werkzeug": {
+        "version": [
+          "2.3.7"
+        ]
+      },
+      "X-UA-Compatible": {
+        "string": [
+          "ie=edge"
+        ]
+      }
+    }
+  }
+]
+--snip--
+
+Now the output is printed to standard output and formatted in JSON. As you can see, we get the same information as when we ran the basic whatweb command, without the special formatting.
+The output is an array of objects, and we can use a tool such as jq to extract the relevant information. For example, let’s extract the value of HTTPServer:
+$ whatweb 172.16.10.10:8081 --log-json=/dev/stdout --quiet |
+jq '.[0].plugins.HTTPServer.string[0]'
+
+"Werkzeug/2.3.7 Python/3.11.4"
+
+The jq syntax might seem a little odd at first, so let’s dissect it. We place the pattern to extract between two single quotes ('). Here, we select the first element in the array (.[0]), which contains various objects composed of keys and values. Then we select the plugins key, followed by the HTTPServer key. Within the HTTPServer key, there is another key named string, which is an array. We select the first element in that array by using string[0], which holds the value Werkzeug/2.3.7 Python/3.11.

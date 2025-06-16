@@ -1,0 +1,920 @@
+# Security Chapter Extract
+Book: Iqbal H. Sarker - AI-Driven Cybersecurity and Threat Intelligence_ Cyber Automation, Intelligent Decision-Making and Explainability (2024, Springer) - libgen.li
+Chapter: 1 - Introduction to AI-Driven Cybersecurity 
+and Threat Intelligence 
+Abstract With the convergence of artiﬁcial intelligence (AI) and cybersecurity, 
+a new paradigm has emerged in how we defend against evolving digital threats. 
+This book explores the dynamic landscape of AI-driven cybersecurity and threat 
+intelligence, emphasizing how the computing and analytical power and decision-
+making capabilities of AI technologies are revolutionizing the detection, prevention, 
+and response to cyberattacks. AI and machine learning algorithms can analyze vast 
+datasets quickly, identify patterns, and predict potential threats, enabling organi-
+zations to strengthen their digital infrastructure proactively. In this book, we have 
+bestowed a comprehensive study on this topic that explores not only the potentiality 
+of cyber threat intelligence but also how different AI methods such as machine 
+learning modeling, deep learning modeling, data science process, generative AI 
+modeling, natural language processing with large language modeling, etc. can be 
+employed to provide intelligent cybersecurity services. We have also discussed 
+various essential real-world application areas such as Internet of Things and smart 
+cities, industrial control systems and operational technology environments, critical 
+infrastructures, cyber-physical systems, digital twins, and relevant others where 
+AI-driven cybersecurity and threat intelligence could be useful for effective and 
+automated solutions. Throughout this book, we have also highlighted relevant 
+research issues and challenges as well as their potential solution directions within 
+the context of AI-based cybersecurity and threat intelligence. 
+Keywords Cybersecurity · Threat intelligence · AI · Explainable AI · Machine 
+learning · Data science · Intelligent decision-making · Next-generation cyber 
+applications 
+1.1 Introduction 
+Technology advancement in today’s interconnected and digital environment has 
+created both amazing opportunities and cybersecurity challenges. The threat land-
+scape continues to become more complicated and sophisticated as organizations, 
+governments, and individuals rely on technology more than ever before. Traditional 
+© The Author(s), under exclusive license to Springer Nature Switzerland AG 2024 
+I. H. Sarker, AI-Driven Cybersecurity and Threat Intelligence , 
+https:// doi.org/10.1007/ 978- 3-031- 54497- 2_13
+4 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+cybersecurity techniques are no longer sufﬁcient in this high-stakes game of cat and 
+mouse as criminals constantly come up with creative ways to breach defenses. Thus, 
+artiﬁcial intelligence (AI)-driven cybersecurity and threat intelligence, a cutting-
+edge solution that leverages the computing and analytical power of different AI 
+techniques, has emerged as a revolutionary force, transforming the way traditional 
+cybersecurity and threat intelligence are dealt with. 
+The foundation of AI-driven cybersecurity lies in its capability to learn from his-
+torical data, known as machine learning [ 1], and continuously reﬁne its understand-
+ing of normal and malicious behavior across networks, systems, and applications. 
+AI has shown its potential in the ﬁeld of cybersecurity because of its capability 
+to process enormous volumes of data, identify trends, and adapt its responses. 
+Traditional security methods, while still effective in some cases, often fall behind the 
+constantly evolving strategies used by cybercriminals. AI-driven cybersecurity ﬁlls 
+this gap by providing an adaptable and proactive defense approach. Additionally, 
+threat intelligence powered by AI expands cybersecurity’s capabilities beyond 
+preventative measures. AI systems can discover new threats, and vulnerabilities, 
+and even anticipate future attack vectors by analyzing data from a variety of 
+sources, including dark web forums, social media, and other online platforms. This 
+predictive capability enables organizations to proactively strengthen their defenses, 
+ﬁx vulnerabilities before they become a problem, and adopt robust strategies to 
+mitigate potential risks. 
+AI-driven cybersecurity promises a paradigm shift in how we protect digital 
+assets and information. It combines sophisticated machine learning algorithms, deep 
+learning, advanced data analytics, natural language processing, and automation to 
+build a dynamic and adaptive defense system [ 2]. AI-driven systems can learn and 
+adapt in real time, staying one step ahead of cyber threats, unlike conventional 
+cybersecurity techniques that mainly rely on predetermined rules and signatures. 
+AI systems can detect anomalies and potential threats in real time using machine 
+learning algorithms and deep neural networks, allowing security teams to react 
+quickly and efﬁciently. AI provides security professionals with the capabilities they 
+need to stay one step ahead of cyber adversaries, from detecting sophisticated 
+malware to identifying unauthorized access attempts. The power of machine 
+learning, deep learning, natural language processing, and other AI approaches [ 2] 
+are employed in AI-driven cybersecurity and threat intelligence to not only detect 
+and mitigate attacks but also anticipate and prevent them before they can cause 
+damage. 
+In this exploration of AI-driven cybersecurity and threat intelligence, we will 
+delve into the cutting-edge applications and technologies that are reshaping the 
+way we protect our digital environments. We will investigate how AI boosts 
+threat detection, automates incident response, and provides valuable insights into 
+new threats that assist organizations in gaining a strategic advantage over cyber 
+adversaries. Understanding the role of AI in protecting against cyber threats and 
+utilizing its potential to increase our digital resilience is crucial as we traverse the 
+continually changing cybersecurity landscape. We will further look at the ethical 
+issues and challenges posed by AI-driven security solutions, as well as the ongoing
+1.2 Cybersecurity and Threat Intelligence 5
+efforts to achieve a balance between innovation and responsible use. This journey 
+into the world of AI-driven cybersecurity and threat intelligence is intended to shed 
+light on the revolutionary promise of AI and its profound impact on how best to 
+secure the digital realm. 
+Overall, AI-driven solutions offer a promising path forward, enabling us to 
+defend against a wide range of constantly evolving and more advanced cyber threats. 
+This book aims to present diverse methods for AI-driven cybersecurity and threat 
+intelligence including machine learning and data science modeling along with real-
+world applications. Thus, this introduction gives readers an exclusive glimpse of 
+the revolutionary possibilities in this emerging area of study. We will also explore a 
+wide range of real-world applications of AI, the difﬁculties it poses, and the ethical 
+issues that surround its widespread adoption as we delve deeper into this ﬁeld. 
+1.2 Cybersecurity and Threat Intelligence 
+This section deﬁnes cybersecurity and threat intelligence from a variety of perspec-
+tives, including how they are related. 
+1.2.1 What Is Cybersecurity? 
+During the recent half-century, our modern and digital civilization has been 
+more interconnected with information and communication technologies (ICT). The 
+prevalence of data breaches and attacks is growing due to the majority of the 
+smart computers and systems we use daily are powered by global Internet access. 
+Therefore, ICT security, deﬁned as the detection and defense of ICT systems against 
+various types of advanced cyberattacks or threats, has been a top priority for our 
+security professionals or policymakers in recent years [ 2, 3]. Enterprises use ICT 
+security to ensure the conﬁdentiality, integrity, and availability known as the CIA 
+triad of their data and systems by implementing safeguards, policies, and processes. 
+Simply said, cybersecurity is the process of protecting things that are vulnerable due 
+to the use of ICT. Cybersecurity is a term that has a variety of different meanings 
+and is widely used nowadays; several key terms such as “information security,” 
+“data security,” “network security,” and “Internet or IoT security” [ 4] are frequently 
+interchanged, confusing readers and professionals in the ﬁeld. Among these, the 
+term “cybersecurity” has higher global popularity than others and is growing day by 
+day [ 5]. 
+Cybersecurity has been characterized in a variety of ways by various researchers. 
+For example, cybersecurity refers to the various activities or policies that are 
+implemented to protect ICT systems from threats or attacks [ 6]. Craigen et al. [ 7] 
+deﬁned “cybersecurity as a set of tools, practices, and guidelines that can be used 
+to protect computer networks, software programs, and data from attack, damage,
+6 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+Fig. 1.1 An illustration of 
+cyber threats with the loss of 
+CIA (conﬁdentiality, 
+integrity, and availability) 
+triad principles used to drive 
+information security policy 
+within an enterprise, adopted 
+from Sarker et al. [ 2] Loss of Confidentiality 
+Threat => ‘Data theft’ 
+Loss of Integrity 
+Threat => ‘Data alteration’ 
+Loss of Availability 
+Threat => ‘Denial access of data’Cyber Threats 
+(Loss of CIA Triad Principles) 
+Combined loss 
+or unauthorized access.” According to Aftergood et al. [ 8], “cybersecurity is a set 
+of technologies and processes designed to protect computers, networks, programs 
+and data from attacks and unauthorized access, alteration, or destruction.” Thus, 
+cybersecurity is concerned with identifying various cyberattacks or threats as well as 
+the related defense tactics to prevent them and, ultimately, secure the systems, which 
+is associated with conﬁdentiality, integrity, and availability. The CIA triad exploring 
+conﬁdentiality, integrity, and availability as mentioned is the core principle used 
+to drive information security policy within an enterprise, where the individual 
+losses of these principles or their combinations are considered a threat. Such cyber 
+threats are also known as “data theft,” “data alteration,” and “denial access of data,” 
+respectively, as shown in Fig. 1.1. Therefore, based on the CIA triad for the security 
+polic y stated above, we can conclude that “conﬁdentiality” protects data, objects, 
+and resources from unauthorized access and misuse; “integrity” protects data from 
+unauthorized changes; and “availability” ensures accessibility to the systems and 
+the resources to authorized users or the appropriate entity. Overall, cybersecurity 
+can be deﬁned as the practice of protecting computer systems, networks, and 
+digital information from unauthorized access, attacks, damage, or theft. It involves 
+implementing a combination of technologies, processes, and practices to safeguard 
+against cyber threats and ensure data conﬁdentiality, integrity, and availability, as 
+deﬁned above.
+1.2 Cybersecurity and Threat Intelligence 7
+Fig. 1.2 An illustration of threat intelligence life cycle model [ 9] 
+1.2.2 What Is Threat Intelligence? 
+Cyber threat intelligence (CTI) is a crucial component of cybersecurity, which aids 
+organizations in proactively defending their systems and data from intrusions. It 
+involves collecting, analyzing, and disseminating data about cybersecurity threats 
+and vulnerabilities in the digital realm. Figure 1.2 shows an illustration of the 
+threat intelligence life cycle model highlighting both the quality and operation 
+management. The main objective of CTI is to give organizations context and 
+actionable information about cyber threats, empowering them to decide intelligently 
+and better protect against cyberattacks. A combination of knowledgeable analysts, 
+cutting-edge technology, and a dedication to keeping up with the evolving threat 
+landscape are needed. CTI can be deﬁned as “Cyber threat intelligence (CTI) is 
+knowledge, skills and experience-based information concerning the occurrence and 
+assessment of both cyber and physical threats and threat actors that are intended to 
+help mitigate potential attacks and harmful events occurring in cyberspace” [ 9, 10]. 
+Open-source intelligence, social media intelligence, human intelligence, technical 
+intelligence, device log ﬁles, forensically acquired data or intelligence from Internet 
+trafﬁc, and data derived from the deep and black web are some of the sources of 
+cyber threat intelligence. 
+In recent years, threat intelligence has grown in signiﬁcance as a component 
+of businesses’ cybersecurity plans because it enables them to be more proactive 
+and identify the attacks that pose the greatest risks to their operations. Although 
+traditional risk management works well with “what we know,” cyber threat intelli-
+gence works across all three classes, particularly when traditional management is 
+not sufﬁcient, as shown in Fig. 1.3. These are deﬁned below. 
+• what we know: This typically indicates that a speciﬁc threat actor, with whom we 
+are familiar, is attacking our company.
+8 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+Fig. 1.3 An illustration of three-tiered classiﬁcation of knowledge [ 9] 
+• what we know we don’t know: It seems that we might be vulnerable to a speciﬁc 
+form of threat, but we need to use threat intelligence to discover further. 
+• what we don’t know we don’t know: We are at risk in a certain situation, but we 
+won’t know until it happens or unless threat intelligence alerts us to it. 
+Overall, threat intelligence, which enables one to understand a threat actor’s 
+goals, targets, and attack behaviors, can be considered an essential part of modern 
+cybersecurity practices. The intelligence life cycle, as shown in Fig. 1.2, is a method 
+for transforming raw data into ﬁnished intelligence for decision-making and action. 
+Thus, threat intelligence enables us to transform how we act from reactive to 
+proactive in the ﬁght against threat actors, allowing us to make security decisions 
+that are faster, more informed, and data-backed. Effective CTI programs can 
+dramatically improve an organization’s capability to protect against online threats, 
+mitigate the impact of incidents, and make smart decisions about cybersecurity 
+investments. 
+Based on our discussion above, we can conclude that cybersecurity is the 
+broader discipline that encompasses strategies, technologies, and practices used to 
+protect digital assets against cyber threats. Threat intelligence, on the other hand, 
+involves gathering and analyzing information about potential threats to improve 
+an organization’s ability to defend itself. Thus cyber threat intelligence provides 
+valuable context and awareness, enabling organizations to stay ahead of emerging 
+threats. To adapt defenses and respond to cyber threats in an evolving landscape, 
+effective cybersecurity relies on timely and relevant threat intelligence. 
+1.3 Understanding Artiﬁcial Intelligence (AI) 
+in Cybersecurity 
+Due to the exponential development in threat propagation caused by the daily 
+release of new malware, it is practically impossible to adequately deal with today’s 
+numerous cyber threats using solely human analysis. Artiﬁcial intelligence (AI) is
+1.3 Understanding Artiﬁcial Intelligence (AI) in Cybersecurity 9
+transforming the cybersecurity industry by making it simpler and more intelligent 
+to identify, prevent, and respond to online threats, in which we are interested 
+throughout this book. In the following, we discuss the key potentialities of AI as 
+well as their diverse categories, within the context of cybersecurity. 
+1.3.1 Potentiality of AI 
+The knowledge of AI is revolutionizing the cybersecurity industry around the world. 
+Due to its computational capability for intelligent decision-making and automation 
+in a speciﬁc problem domain, it is taken into account as the key to the development 
+of intelligent services [ 5]. Traditional security solutions such as antivirus, ﬁrewalls, 
+user authentication, encryption, and other well-known security solutions might not 
+be sufﬁcient to meet today’s diverse needs [ 2]. As mentioned earlier, the main issue 
+with traditional systems is that they are typically maintained by a small number of 
+knowledgeable security professionals, and the data processing is done on an ad-
+hoc basis, limiting them from responding intelligently and automatically to today’s 
+needs [ 2, 11]. Thus, the capabilities and characteristics of AI-driven cybersecurity 
+are deﬁned by its major three aspects “automation,” “intelligence,” and “robustness” 
+as below: 
+• Automation in cybersecurity: The ability of AI-driven cybersecurity systems 
+to automate tasks and processes without human intervention is referred to as 
+automation. The use of algorithms, scripts, and machine learning models simpli-
+ﬁes repetitive and time-consuming activities, including threat detection, incident 
+response, and routine security operations. Using automation, the system can 
+respond quickly to security events and carry out predeﬁned actions to enhance 
+operational efﬁciency. It streamlines security operations, speeds up response 
+times, and reduces cybersecurity staff workload. Thus this helps organizations 
+deal with large volumes of data and security alerts by reducing the response time 
+to potentially dangerous threats. 
+• Intelligence in cybersecurity: An intelligent system is one that is capable of 
+analyzing data, understanding context, and making informed decisions based on 
+complex patterns and insights. Intelligent cybersecurity solutions can identify 
+and respond to novel and sophisticated threats by observing patterns, anomalies, 
+or behaviors that aren’t explicitly programmed. Intelligent cybersecurity systems 
+often involve advanced analytics, machine learning algorithms, and threat intel-
+ligence that can adapt and learn from new data to improve their performance 
+over time. This adaptability and the capability to provide actionable insights are 
+crucial for staying ahead of evolving cyber threats. 
+• Robustness in cybersecurity: A robust AI-driven cybersecurity system maintains 
+its effectiveness under a variety of conditions and resists degradation or failure, 
+including attempts by adversaries to manipulate or exploit it. It involves design-
+ing AI models and algorithms that generalize well to different situations and
+10 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+remain effective over time. Thus, a robust cybersecurity system can handle and 
+withstand adversarial attacks, data noise or poisoning, and threats that change 
+over time. It is resilient and provides reliable and accurate security results, even when unexpected circumstances arise or deliberate attempts are made to deceive 
+the system. 
+In summary, automation focuses on executing tasks without human intervention, 
+intelligence involves understanding and adapting to complex data patterns, and robustness ensures the system’s resilience and effectiveness in the face of various challenges. AI-driven cybersecurity solutions often combine these components into 
+a powerful defense mechanism against a wide variety of cyber threats. 
+1.3.2 Categories of AI 
+AI models can be categorized into three major types such as generative, discrim-
+inative, and hybrid AI models. In the context of cybersecurity, each model serves 
+distinct roles and may have different applications as discussed below: 
+• Generative AI: Generative models are versatile and designed to generate new, previously unseen data samples, often in the form of images, text, or other types of media. Generative models can enhance the effectiveness of machine 
+learning models by adding synthetic data to datasets and supplying more diverse training data. They concentrate on simulating the data’s underlying probability distribution and are thus helpful for producing synthetic training and test datasets. 
+For example, generative AI can be used to produce mobile malware samples for creating defensive models. To assess the efﬁcacy of security measures, security researchers can use a variety of malware types through the power of generative 
+AI. 
+• Discriminative AI: Discriminative AI concentrates on distinguishing between distinct classes or categories within the data. Due to their superior classiﬁ-
+cation performance and capacity to distinguish between various data classes, discriminative models are frequently utilized in cybersecurity. For instance, discriminative models can recognize malware by identifying patterns and char-
+acteristics linked to malicious code or behaviors. These models are frequently employed in intrusion detection systems, particularly to categorize network data or user behavior as malicious or benign. Based on incoming data, they are used 
+to make decisions that are binary or multi-class. 
+• Hybrid AI: To capitalize on the advantages of each strategy, hybrid AI integrates both generating and discriminative elements, mentioned above. It aims to offer 
+an enhanced and adaptable solution. To identify adversarial attacks, hybrid AI models can make use of generative components to generate artiﬁcial attack samples that can be used to train discriminative models. Thus, by addressing 
+both generative and discriminative parts of cybersecurity, hybrid AI models can provide a more multifaceted solution. They are adaptable and able to respond to many different security concerns.
+1.3 Understanding Artiﬁcial Intelligence (AI) in Cybersecurity 11
+In summary, the particular use case and requirements determine whether to 
+utilize generative, discriminative, or hybrid AI in cybersecurity. To tackle chal-
+lenging tasks like anomaly detection and adversarial defense, hybrid AI combines 
+the optimal aspects of generative and discriminative AI. Particularly, generative AI 
+is useful for producing synthetic data and malware variants according to needs. 
+Organizations can use these techniques to provide cybersecurity solutions that are 
+efﬁcient and adaptable to the threat landscape. In addition, AI can be categorized in 
+several other ways by taking into account the nature of computing and data types 
+[2]. In the following, we discuss these with their potential use cases: 
+• Analytical AI —This is usually focused on the ability to extract insights or pat-
+terns from data to provide suggestions, assisting in data-driven decision-making. 
+Analytical AI analyses vast amounts of data, including network trafﬁc, logs, user 
+activity, and historical attack trends, to detect anomalies and potential threats. 
+It can be used in conjunction with intrusion detection systems (IDS), security 
+information and event management (SIEM) tools, and predictive analytics to 
+identify and respond to cyber threats in real time. Predicting threats, detecting 
+anomalies, ﬁnding zero-day vulnerabilities, and improving incident response 
+through data-driven insights are some potential use cases of analytical AI in the 
+context of cybersecurity. 
+• Functional AI —This is comparable to analytical AI in that it executes an action 
+based on extracted insights or knowledge instead of offering suggestions. It 
+specializes in carrying out predetermined tasks or workﬂows free of human 
+involvement. In general, functional AI can be seen doing specialized tasks like 
+navigation, object recognition, or industrial automation in a variety of automated 
+tasks. Speciﬁc security tasks, such as automated vulnerability assessment, patch 
+management, and network segmentation for isolating compromised computers, 
+can be carried out autonomously by functional AI. To speed up human inter-
+vention and response times, it can automate regular security tasks including 
+vulnerability assessment, compliance checks, and security policy enforcement. 
+• Interactive AI —Interactive AI systems are designed to interact with humans in a 
+way that seems natural to them, such as through speech, gestures, or text. They 
+promote interaction and two-way communication. Interactive AI can facilitate 
+human-computer engagement in cybersecurity. For instance, virtual assistants 
+can aid security analysts, answer inquiries about security, and provide guidance 
+during incident response. Chatbots for incident reporting, virtual assistants for 
+security policy queries, interactive dashboards for security monitoring, etc. are 
+some use cases of interactive AI in the context of cybersecurity. 
+• Textual AI —Understanding and creating text in the form of human language is 
+the focus of textual AI. It uses natural language processing (NLP) methods to 
+analyze and create text. To gain insights and identify potential threats, textual 
+AI can analyze and comprehend the textual data included in security papers, 
+reports, and communications. NLP including the popular large language model 
+(LLM) is the engine that drives textual AI. Large amounts of text data are 
+often needed for LLM training to produce text that is coherent and contextually
+12 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+appropriate. Thus textual AI can help with threat intelligence analysis, threat 
+hunting, and identifying potential vulnerabilities referenced in text sources. 
+Sentiment analysis for social media threat monitoring, automated security report 
+analysis, email content analysis for phishing detection, etc. are some use cases of 
+textual AI in the context of cybersecurity. 
+• Visual AI —The main goal of visual AI is to interpret and comprehend visual 
+content, such as images and videos. To evaluate and extract information from 
+visual input, it uses computer vision algorithms. Visual AI can analyze images, 
+videos, and other visual data to identify security vulnerabilities. It is mostly 
+based on computer vision techniques. It can be used for object detection, 
+facial recognition, and surveillance. Some use cases include detecting intrusion 
+utilizing security camera feeds, facial recognition for access management, and 
+identifying unauthorized physical access to secure areas. 
+• Hybrid AI —Hybrid AI combines elements from multiple AI approaches to 
+utilize their beneﬁts and address difﬁcult problems. It may use machine learning, 
+rule-based systems, and other AI techniques to handle various aspects of 
+cybersecurity. To provide a comprehensive cybersecurity solution, hybrid AI 
+combines elements from several AI approaches, which makes it a powerful 
+tool. Hybrid AI can be used in challenging cybersecurity scenarios including 
+enhanced threat detection, incident response, security orchestration, and so on, 
+where several AI modalities work together to improve overall security posture. 
+In practice, cybersecurity usually involves a wide variety of AI types to properly 
+address a range of threats and weaknesses. For instance, analytical AI can identify 
+network anomalies, functional AI can automatically prevent known threats, interac-
+tive AI can alert security analysts in real time, textual AI can review threat reports, 
+visual AI can monitor physical security, and hybrid AI can coordinate and optimize 
+all of these various elements for a comprehensive defense strategy. By combining 
+several AI modalities inside a hybrid AI framework, organizations can adapt to 
+evolving cyber threats and maintain a strong security posture across all of their 
+digital assets. 
+1.3.3 Relationship with Prominent T echnologies 
+In the real world, each type of AI can address different sets of challenges according 
+to their computing capabilities. In most cases, popular AI techniques such as 
+machine learning (ML), deep learning (DL), advanced analytics, natural language 
+processing, knowledge discovery, and other relevant AI techniques as well as their 
+hybridization can be used to provide solutions depending on the target applications. 
+To provide an automated and data-driven intelligent cybersecurity solution, the 
+majority of real-world scenarios involve advanced analytics, which leads to data 
+science and analytical AI, that uses ML and DL techniques [ 1]. These techniques 
+could also be considered a frontier of AI that has the potential to develop intelligent
+1.4 AI Trust, Explainability, and Key Factors 13
+Fig. 1.4 An illustration of the position of machine learning (ML) and deep learning (DL) within 
+the area of artiﬁcial intelligence (AI) as well as with data science (DS), adopted from Sarker 
+et al. [ 2] 
+systems and automate tasks. Figure 1.4 shows an illustration of the position 
+of machine learning (ML) and deep learning (DL) within the area of artiﬁcial 
+intelligence (AI) as well as with data science (DS). DL is a subset of both ML and 
+AI, and ML is a subset of AI, as demonstrated in Fig. 1.4. ML and DL automate the 
+construction of analytical models using data or experience, whereas AI incorporates 
+human behavior and intelligence into machines or systems. The power of these AI 
+techniques can also contribute in the context of data science, knowledge discovery 
+and advanced analytics [ 12] as well as security-critical applications [ 13]. 
+Overall, these technologies have the potential to transform today’s cybersecurity 
+environment, especially in terms of a strong computing engine, as well as contribute 
+to technology-driven automation and intelligent cybersecurity systems. Depending 
+on the nature of the problem and the target cyber solution, several different strategies 
+can be used to construct AI-based models to address various real-world security 
+concerns. 
+1.4 AI Trust, Explainability, and Key Factors 
+When it comes to accountability, transparency, and the capability to comprehend 
+and trust AI-driven security systems, traditional AI and explainable AI (XAI) have 
+diverse implications and applications in the ﬁeld of cybersecurity. Let’s compare 
+these two strategies in terms of cybersecurity.
+14 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+1.4.1 Traditional AI in Cybersecurity 
+The term “traditional AI” refers to the application of traditional artiﬁcial intelligence 
+methods and models to security issues. The employment of well-proven algorithms 
+and techniques that have been extensively employed in the ﬁeld for years character-
+izes traditional AI methodologies. In the following, we highlight several key features 
+associated with traditional AI: 
+• Complex Models: Deep neural networks and other sophisticated machine learn-
+ing models [ 1] are frequently used in traditional AI in cybersecurity to perform 
+tasks like intrusion detection, malware classiﬁcation, and anomaly detection. 
+These models can analyze vast amounts of data and perform well to identify 
+complex data patterns. 
+• Lack of Transparency: Lack of transparency is the main problem with tradi-
+tional AI in cybersecurity. Interpreting complex models and comprehending the 
+reasoning behind speciﬁc security decisions can be challenging. This lack of 
+transparency can undermine responsibility and trust. 
+• Effectiveness: When trained on massive datasets, traditional AI can be partic-
+ularly effective at identifying and responding to cyber threats. However, the 
+inability to explain the reasoning behind its decisions can be a signiﬁcant 
+limitation. 
+• Use Cases: Network security, endpoint security, and threat intelligence are some 
+of the cybersecurity applications that frequently use traditional AI. Based on data 
+trends, it can identify existing and emerging threats, but it can be challenging to 
+explain its results. 
+In summary, traditional AI is a useful tool for cybersecurity, especially for identi-
+fying trends, analyzing massive datasets, and detecting known threats. However, its 
+black box nature can present difﬁculties in terms of transparency and explainability. 
+To overcome these issues, explainable AI (XAI) is becoming more and more 
+important in the cybersecurity industry. 
+1.4.2 Explainable AI (XAI) in Cybersecurity 
+Explainable AI (XAI) in cybersecurity aims to make AI-made security decisions 
+and actions transparent and understandable to humans. To address the “black box” 
+issue usually associated with sophisticated artiﬁcial intelligence models, XAI aims 
+to increase the transparency and accountability of the decision-making process. In 
+the following, we highlight several key features associated with explainable AI: 
+• Interpretable Models: XAI in cybersecurity strongly emphasizes on interpretable 
+machine learning models and methods or other relevant techniques rather than 
+black box modeling. These interpretable models are created to generate outcomes 
+that are easier to explain and comprehend.
+1.4 AI Trust, Explainability, and Key Factors 15
+• Transparency: Enhancing accountability and transparency is the main objective 
+of XAI in cybersecurity. It aims to give rational justiﬁcations for security 
+decisions made by AI systems so that security experts can trust these decisions and validate them. 
+• Trust and Accountability: The trust issue with AI-driven cybersecurity is addressed by XAI. Thus, XAI helps security teams make better decisions by explaining alerts about risk so they can comprehend the reasoning behind AI-
+generated recommendations. 
+• Use Cases: In critical cybersecurity applications where understanding and supporting decisions are crucial, XAI is especially beneﬁcial. Examples include 
+describing the justiﬁcation for tagging a network behavior as suspicious, provid-ing explanations about why a speciﬁc ﬁle is regarded as malicious, or outlining the reasoning for denying a security access request. 
+In summary, explainable AI (XAI) is essential for improving accountability, 
+trust, and transparency in cybersecurity. XAI assists security teams in better 
+comprehending, validating, and acting upon the insights produced by AI systems. 
+Thus, it can enhance the overall security posture of organizations as well as maintain regulatory compliance. 
+1.4.3 Recommendation: AI vs XAI 
+As discussed earlier, both traditional AI and explainable AI (XAI) each have their place in cybersecurity. Traditional AI is proﬁcient in detecting complex 
+threats, while XAI focuses on transparency and interpretability. The choice between traditional AI and XAI depends on the speciﬁc cybersecurity needs and priorities of an organization. In the following, we highlight a few key points: 
+• Trade-Off Between Complexity and Interpretability: Traditional AI could be effective at detecting sophisticated and new threats; however, XAI emphasizes 
+interpretability over overwhelming complexity. The organization’s particular cybersecurity requirements and priorities will determine which of the two options is preferable. 
+• Regulatory Compliance: In some industries and businesses, regulations mandate the use of AI systems that can provide explanations for their decisions. Thus, XAI might be more appropriate to help relevant organizations comply with legal 
+obligations, especially in the aspect of cybersecurity. 
+• Hybrid Approaches: Some cybersecurity systems use hybrid approaches, which bring together the power of traditional AI for threat identiﬁcation and XAI for 
+decision explanation. In this way, they will beneﬁt from the advantages of each strategy. 
+Overall, the choice should be made based on the distinct security requirements, 
+legal requirements, and the signiﬁcance of comprehending and explaining AI-driven security judgments inside an organization’s cybersecurity strategy.
+16 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+1.5 An Overview of This Book 
+The book focuses mainly on AI-based cybersecurity solutions or how valuable 
+insights can be extracted from cybersecurity data through examples, as well as how 
+these insights could be utilized to design intelligent cybersecurity applications. It 
+is important to note that AI-based strategies differ from traditional ones in terms 
+of adaptation and intelligence. As such, we have provided below the basic outline of the book that covers a background analysis, multi-aspects of AI-based solutions, 
+and research challenges with potential future directions. 
+In this chapter, the intentions and purpose of this book are clariﬁed by intro-
+ducing deﬁnitions, concepts, and principles of AI-driven cybersecurity and threat 
+intelligence toward intelligent applications.
+Security Relevance Score: 21
+Word Count: 5175
+Extracted: 2025-06-13 23:40:24
+
+---
+
+Introduction to AI-Driven Cybersecurity 
+and Threat Intelligence 
+Abstract With the convergence of artiﬁcial intelligence (AI) and cybersecurity, 
+a new paradigm has emerged in how we defend against evolving digital threats. 
+This book explores the dynamic landscape of AI-driven cybersecurity and threat 
+intelligence, emphasizing how the computing and analytical power and decision-
+making capabilities of AI technologies are revolutionizing the detection, prevention, 
+and response to cyberattacks. AI and machine learning algorithms can analyze vast 
+datasets quickly, identify patterns, and predict potential threats, enabling organi-
+zations to strengthen their digital infrastructure proactively. In this book, we have 
+bestowed a comprehensive study on this topic that explores not only the potentiality 
+of cyber threat intelligence but also how different AI methods such as machine 
+learning modeling, deep learning modeling, data science process, generative AI 
+modeling, natural language processing with large language modeling, etc. can be 
+employed to provide intelligent cybersecurity services. We have also discussed 
+various essential real-world application areas such as Internet of Things and smart 
+cities, industrial control systems and operational technology environments, critical 
+infrastructures, cyber-physical systems, digital twins, and relevant others where 
+AI-driven cybersecurity and threat intelligence could be useful for effective and 
+automated solutions. Throughout this book, we have also highlighted relevant 
+research issues and challenges as well as their potential solution directions within 
+the context of AI-based cybersecurity and threat intelligence. 
+Keywords Cybersecurity · Threat intelligence · AI · Explainable AI · Machine 
+learning · Data science · Intelligent decision-making · Next-generation cyber 
+applications 
+1.1 Introduction 
+Technology advancement in today’s interconnected and digital environment has 
+created both amazing opportunities and cybersecurity challenges. The threat land-
+scape continues to become more complicated and sophisticated as organizations, 
+governments, and individuals rely on technology more than ever before. Traditional 
+© The Author(s), under exclusive license to Springer Nature Switzerland AG 2024 
+I. H. Sarker, AI-Driven Cybersecurity and Threat Intelligence , 
+https:// doi.org/10.1007/ 978- 3-031- 54497- 2_13
+4 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+cybersecurity techniques are no longer sufﬁcient in this high-stakes game of cat and 
+mouse as criminals constantly come up with creative ways to breach defenses. Thus, 
+artiﬁcial intelligence (AI)-driven cybersecurity and threat intelligence, a cutting-
+edge solution that leverages the computing and analytical power of different AI 
+techniques, has emerged as a revolutionary force, transforming the way traditional 
+cybersecurity and threat intelligence are dealt with. 
+The foundation of AI-driven cybersecurity lies in its capability to learn from his-
+torical data, known as machine learning [ 1], and continuously reﬁne its understand-
+ing of normal and malicious behavior across networks, systems, and applications. 
+AI has shown its potential in the ﬁeld of cybersecurity because of its capability 
+to process enormous volumes of data, identify trends, and adapt its responses. 
+Traditional security methods, while still effective in some cases, often fall behind the 
+constantly evolving strategies used by cybercriminals. AI-driven cybersecurity ﬁlls 
+this gap by providing an adaptable and proactive defense approach. Additionally, 
+threat intelligence powered by AI expands cybersecurity’s capabilities beyond 
+preventative measures. AI systems can discover new threats, and vulnerabilities, 
+and even anticipate future attack vectors by analyzing data from a variety of 
+sources, including dark web forums, social media, and other online platforms. This 
+predictive capability enables organizations to proactively strengthen their defenses, 
+ﬁx vulnerabilities before they become a problem, and adopt robust strategies to 
+mitigate potential risks. 
+AI-driven cybersecurity promises a paradigm shift in how we protect digital 
+assets and information. It combines sophisticated machine learning algorithms, deep 
+learning, advanced data analytics, natural language processing, and automation to 
+build a dynamic and adaptive defense system [ 2]. AI-driven systems can learn and 
+adapt in real time, staying one step ahead of cyber threats, unlike conventional 
+cybersecurity techniques that mainly rely on predetermined rules and signatures. 
+AI systems can detect anomalies and potential threats in real time using machine 
+learning algorithms and deep neural networks, allowing security teams to react 
+quickly and efﬁciently. AI provides security professionals with the capabilities they 
+need to stay one step ahead of cyber adversaries, from detecting sophisticated 
+malware to identifying unauthorized access attempts. The power of machine 
+learning, deep learning, natural language processing, and other AI approaches [ 2] 
+are employed in AI-driven cybersecurity and threat intelligence to not only detect 
+and mitigate attacks but also anticipate and prevent them before they can cause 
+damage. 
+In this exploration of AI-driven cybersecurity and threat intelligence, we will 
+delve into the cutting-edge applications and technologies that are reshaping the 
+way we protect our digital environments. We will investigate how AI boosts 
+threat detection, automates incident response, and provides valuable insights into 
+new threats that assist organizations in gaining a strategic advantage over cyber 
+adversaries. Understanding the role of AI in protecting against cyber threats and 
+utilizing its potential to increase our digital resilience is crucial as we traverse the 
+continually changing cybersecurity landscape. We will further look at the ethical 
+issues and challenges posed by AI-driven security solutions, as well as the ongoing
+1.2 Cybersecurity and Threat Intelligence 5
+efforts to achieve a balance between innovation and responsible use. This journey 
+into the world of AI-driven cybersecurity and threat intelligence is intended to shed 
+light on the revolutionary promise of AI and its profound impact on how best to 
+secure the digital realm. 
+Overall, AI-driven solutions offer a promising path forward, enabling us to 
+defend against a wide range of constantly evolving and more advanced cyber threats. 
+This book aims to present diverse methods for AI-driven cybersecurity and threat 
+intelligence including machine learning and data science modeling along with real-
+world applications. Thus, this introduction gives readers an exclusive glimpse of 
+the revolutionary possibilities in this emerging area of study. We will also explore a 
+wide range of real-world applications of AI, the difﬁculties it poses, and the ethical 
+issues that surround its widespread adoption as we delve deeper into this ﬁeld. 
+1.2 Cybersecurity and Threat Intelligence 
+This section deﬁnes cybersecurity and threat intelligence from a variety of perspec-
+tives, including how they are related. 
+1.2.1 What Is Cybersecurity? 
+During the recent half-century, our modern and digital civilization has been 
+more interconnected with information and communication technologies (ICT). The 
+prevalence of data breaches and attacks is growing due to the majority of the 
+smart computers and systems we use daily are powered by global Internet access. 
+Therefore, ICT security, deﬁned as the detection and defense of ICT systems against 
+various types of advanced cyberattacks or threats, has been a top priority for our 
+security professionals or policymakers in recent years [ 2, 3]. Enterprises use ICT 
+security to ensure the conﬁdentiality, integrity, and availability known as the CIA 
+triad of their data and systems by implementing safeguards, policies, and processes. 
+Simply said, cybersecurity is the process of protecting things that are vulnerable due 
+to the use of ICT. Cybersecurity is a term that has a variety of different meanings 
+and is widely used nowadays; several key terms such as “information security,” 
+“data security,” “network security,” and “Internet or IoT security” [ 4] are frequently 
+interchanged, confusing readers and professionals in the ﬁeld. Among these, the 
+term “cybersecurity” has higher global popularity than others and is growing day by 
+day [ 5]. 
+Cybersecurity has been characterized in a variety of ways by various researchers. 
+For example, cybersecurity refers to the various activities or policies that are 
+implemented to protect ICT systems from threats or attacks [ 6]. Craigen et al. [ 7] 
+deﬁned “cybersecurity as a set of tools, practices, and guidelines that can be used 
+to protect computer networks, software programs, and data from attack, damage,
+6 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+Fig. 1.1 An illustration of 
+cyber threats with the loss of 
+CIA (conﬁdentiality, 
+integrity, and availability) 
+triad principles used to drive 
+information security policy 
+within an enterprise, adopted 
+from Sarker et al. [ 2] Loss of Confidentiality 
+Threat => ‘Data theft’ 
+Loss of Integrity 
+Threat => ‘Data alteration’ 
+Loss of Availability 
+Threat => ‘Denial access of data’Cyber Threats 
+(Loss of CIA Triad Principles) 
+Combined loss 
+or unauthorized access.” According to Aftergood et al. [ 8], “cybersecurity is a set 
+of technologies and processes designed to protect computers, networks, programs 
+and data from attacks and unauthorized access, alteration, or destruction.” Thus, 
+cybersecurity is concerned with identifying various cyberattacks or threats as well as 
+the related defense tactics to prevent them and, ultimately, secure the systems, which 
+is associated with conﬁdentiality, integrity, and availability. The CIA triad exploring 
+conﬁdentiality, integrity, and availability as mentioned is the core principle used 
+to drive information security policy within an enterprise, where the individual 
+losses of these principles or their combinations are considered a threat. Such cyber 
+threats are also known as “data theft,” “data alteration,” and “denial access of data,” 
+respectively, as shown in Fig. 1.1. Therefore, based on the CIA triad for the security 
+polic y stated above, we can conclude that “conﬁdentiality” protects data, objects, 
+and resources from unauthorized access and misuse; “integrity” protects data from 
+unauthorized changes; and “availability” ensures accessibility to the systems and 
+the resources to authorized users or the appropriate entity. Overall, cybersecurity 
+can be deﬁned as the practice of protecting computer systems, networks, and 
+digital information from unauthorized access, attacks, damage, or theft. It involves 
+implementing a combination of technologies, processes, and practices to safeguard 
+against cyber threats and ensure data conﬁdentiality, integrity, and availability, as 
+deﬁned above.
+1.2 Cybersecurity and Threat Intelligence 7
+Fig. 1.2 An illustration of threat intelligence life cycle model [ 9] 
+1.2.2 What Is Threat Intelligence? 
+Cyber threat intelligence (CTI) is a crucial component of cybersecurity, which aids 
+organizations in proactively defending their systems and data from intrusions. It 
+involves collecting, analyzing, and disseminating data about cybersecurity threats 
+and vulnerabilities in the digital realm. Figure 1.2 shows an illustration of the 
+threat intelligence life cycle model highlighting both the quality and operation 
+management. The main objective of CTI is to give organizations context and 
+actionable information about cyber threats, empowering them to decide intelligently 
+and better protect against cyberattacks. A combination of knowledgeable analysts, 
+cutting-edge technology, and a dedication to keeping up with the evolving threat 
+landscape are needed. CTI can be deﬁned as “Cyber threat intelligence (CTI) is 
+knowledge, skills and experience-based information concerning the occurrence and 
+assessment of both cyber and physical threats and threat actors that are intended to 
+help mitigate potential attacks and harmful events occurring in cyberspace” [ 9, 10]. 
+Open-source intelligence, social media intelligence, human intelligence, technical 
+intelligence, device log ﬁles, forensically acquired data or intelligence from Internet 
+trafﬁc, and data derived from the deep and black web are some of the sources of 
+cyber threat intelligence. 
+In recent years, threat intelligence has grown in signiﬁcance as a component 
+of businesses’ cybersecurity plans because it enables them to be more proactive 
+and identify the attacks that pose the greatest risks to their operations. Although 
+traditional risk management works well with “what we know,” cyber threat intelli-
+gence works across all three classes, particularly when traditional management is 
+not sufﬁcient, as shown in Fig. 1.3. These are deﬁned below. 
+• what we know: This typically indicates that a speciﬁc threat actor, with whom we 
+are familiar, is attacking our company.
+8 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+Fig. 1.3 An illustration of three-tiered classiﬁcation of knowledge [ 9] 
+• what we know we don’t know: It seems that we might be vulnerable to a speciﬁc 
+form of threat, but we need to use threat intelligence to discover further. 
+• what we don’t know we don’t know: We are at risk in a certain situation, but we 
+won’t know until it happens or unless threat intelligence alerts us to it. 
+Overall, threat intelligence, which enables one to understand a threat actor’s 
+goals, targets, and attack behaviors, can be considered an essential part of modern 
+cybersecurity practices. The intelligence life cycle, as shown in Fig. 1.2, is a method 
+for transforming raw data into ﬁnished intelligence for decision-making and action. 
+Thus, threat intelligence enables us to transform how we act from reactive to 
+proactive in the ﬁght against threat actors, allowing us to make security decisions 
+that are faster, more informed, and data-backed. Effective CTI programs can 
+dramatically improve an organization’s capability to protect against online threats, 
+mitigate the impact of incidents, and make smart decisions about cybersecurity 
+investments. 
+Based on our discussion above, we can conclude that cybersecurity is the 
+broader discipline that encompasses strategies, technologies, and practices used to 
+protect digital assets against cyber threats. Threat intelligence, on the other hand, 
+involves gathering and analyzing information about potential threats to improve 
+an organization’s ability to defend itself. Thus cyber threat intelligence provides 
+valuable context and awareness, enabling organizations to stay ahead of emerging 
+threats. To adapt defenses and respond to cyber threats in an evolving landscape, 
+effective cybersecurity relies on timely and relevant threat intelligence. 
+1.3 Understanding Artiﬁcial Intelligence (AI) 
+in Cybersecurity 
+Due to the exponential development in threat propagation caused by the daily 
+release of new malware, it is practically impossible to adequately deal with today’s 
+numerous cyber threats using solely human analysis. Artiﬁcial intelligence (AI) is
+1.3 Understanding Artiﬁcial Intelligence (AI) in Cybersecurity 9
+transforming the cybersecurity industry by making it simpler and more intelligent 
+to identify, prevent, and respond to online threats, in which we are interested 
+throughout this book. In the following, we discuss the key potentialities of AI as 
+well as their diverse categories, within the context of cybersecurity. 
+1.3.1 Potentiality of AI 
+The knowledge of AI is revolutionizing the cybersecurity industry around the world. 
+Due to its computational capability for intelligent decision-making and automation 
+in a speciﬁc problem domain, it is taken into account as the key to the development 
+of intelligent services [ 5]. Traditional security solutions such as antivirus, ﬁrewalls, 
+user authentication, encryption, and other well-known security solutions might not 
+be sufﬁcient to meet today’s diverse needs [ 2]. As mentioned earlier, the main issue 
+with traditional systems is that they are typically maintained by a small number of 
+knowledgeable security professionals, and the data processing is done on an ad-
+hoc basis, limiting them from responding intelligently and automatically to today’s 
+needs [ 2, 11]. Thus, the capabilities and characteristics of AI-driven cybersecurity 
+are deﬁned by its major three aspects “automation,” “intelligence,” and “robustness” 
+as below: 
+• Automation in cybersecurity: The ability of AI-driven cybersecurity systems 
+to automate tasks and processes without human intervention is referred to as 
+automation. The use of algorithms, scripts, and machine learning models simpli-
+ﬁes repetitive and time-consuming activities, including threat detection, incident 
+response, and routine security operations. Using automation, the system can 
+respond quickly to security events and carry out predeﬁned actions to enhance 
+operational efﬁciency. It streamlines security operations, speeds up response 
+times, and reduces cybersecurity staff workload. Thus this helps organizations 
+deal with large volumes of data and security alerts by reducing the response time 
+to potentially dangerous threats. 
+• Intelligence in cybersecurity: An intelligent system is one that is capable of 
+analyzing data, understanding context, and making informed decisions based on 
+complex patterns and insights. Intelligent cybersecurity solutions can identify 
+and respond to novel and sophisticated threats by observing patterns, anomalies, 
+or behaviors that aren’t explicitly programmed. Intelligent cybersecurity systems 
+often involve advanced analytics, machine learning algorithms, and threat intel-
+ligence that can adapt and learn from new data to improve their performance 
+over time. This adaptability and the capability to provide actionable insights are 
+crucial for staying ahead of evolving cyber threats. 
+• Robustness in cybersecurity: A robust AI-driven cybersecurity system maintains 
+its effectiveness under a variety of conditions and resists degradation or failure, 
+including attempts by adversaries to manipulate or exploit it. It involves design-
+ing AI models and algorithms that generalize well to different situations and
+10 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+remain effective over time. Thus, a robust cybersecurity system can handle and 
+withstand adversarial attacks, data noise or poisoning, and threats that change 
+over time. It is resilient and provides reliable and accurate security results, even when unexpected circumstances arise or deliberate attempts are made to deceive 
+the system. 
+In summary, automation focuses on executing tasks without human intervention, 
+intelligence involves understanding and adapting to complex data patterns, and robustness ensures the system’s resilience and effectiveness in the face of various challenges. AI-driven cybersecurity solutions often combine these components into 
+a powerful defense mechanism against a wide variety of cyber threats. 
+1.3.2 Categories of AI 
+AI models can be categorized into three major types such as generative, discrim-
+inative, and hybrid AI models. In the context of cybersecurity, each model serves 
+distinct roles and may have different applications as discussed below: 
+• Generative AI: Generative models are versatile and designed to generate new, previously unseen data samples, often in the form of images, text, or other types of media. Generative models can enhance the effectiveness of machine 
+learning models by adding synthetic data to datasets and supplying more diverse training data. They concentrate on simulating the data’s underlying probability distribution and are thus helpful for producing synthetic training and test datasets. 
+For example, generative AI can be used to produce mobile malware samples for creating defensive models. To assess the efﬁcacy of security measures, security researchers can use a variety of malware types through the power of generative 
+AI. 
+• Discriminative AI: Discriminative AI concentrates on distinguishing between distinct classes or categories within the data. Due to their superior classiﬁ-
+cation performance and capacity to distinguish between various data classes, discriminative models are frequently utilized in cybersecurity. For instance, discriminative models can recognize malware by identifying patterns and char-
+acteristics linked to malicious code or behaviors. These models are frequently employed in intrusion detection systems, particularly to categorize network data or user behavior as malicious or benign. Based on incoming data, they are used 
+to make decisions that are binary or multi-class. 
+• Hybrid AI: To capitalize on the advantages of each strategy, hybrid AI integrates both generating and discriminative elements, mentioned above. It aims to offer 
+an enhanced and adaptable solution. To identify adversarial attacks, hybrid AI models can make use of generative components to generate artiﬁcial attack samples that can be used to train discriminative models. Thus, by addressing 
+both generative and discriminative parts of cybersecurity, hybrid AI models can provide a more multifaceted solution. They are adaptable and able to respond to many different security concerns.
+1.3 Understanding Artiﬁcial Intelligence (AI) in Cybersecurity 11
+In summary, the particular use case and requirements determine whether to 
+utilize generative, discriminative, or hybrid AI in cybersecurity. To tackle chal-
+lenging tasks like anomaly detection and adversarial defense, hybrid AI combines 
+the optimal aspects of generative and discriminative AI. Particularly, generative AI 
+is useful for producing synthetic data and malware variants according to needs. 
+Organizations can use these techniques to provide cybersecurity solutions that are 
+efﬁcient and adaptable to the threat landscape. In addition, AI can be categorized in 
+several other ways by taking into account the nature of computing and data types 
+[2]. In the following, we discuss these with their potential use cases: 
+• Analytical AI —This is usually focused on the ability to extract insights or pat-
+terns from data to provide suggestions, assisting in data-driven decision-making. 
+Analytical AI analyses vast amounts of data, including network trafﬁc, logs, user 
+activity, and historical attack trends, to detect anomalies and potential threats. 
+It can be used in conjunction with intrusion detection systems (IDS), security 
+information and event management (SIEM) tools, and predictive analytics to 
+identify and respond to cyber threats in real time. Predicting threats, detecting 
+anomalies, ﬁnding zero-day vulnerabilities, and improving incident response 
+through data-driven insights are some potential use cases of analytical AI in the 
+context of cybersecurity. 
+• Functional AI —This is comparable to analytical AI in that it executes an action 
+based on extracted insights or knowledge instead of offering suggestions. It 
+specializes in carrying out predetermined tasks or workﬂows free of human 
+involvement. In general, functional AI can be seen doing specialized tasks like 
+navigation, object recognition, or industrial automation in a variety of automated 
+tasks. Speciﬁc security tasks, such as automated vulnerability assessment, patch 
+management, and network segmentation for isolating compromised computers, 
+can be carried out autonomously by functional AI. To speed up human inter-
+vention and response times, it can automate regular security tasks including 
+vulnerability assessment, compliance checks, and security policy enforcement. 
+• Interactive AI —Interactive AI systems are designed to interact with humans in a 
+way that seems natural to them, such as through speech, gestures, or text. They 
+promote interaction and two-way communication. Interactive AI can facilitate 
+human-computer engagement in cybersecurity. For instance, virtual assistants 
+can aid security analysts, answer inquiries about security, and provide guidance 
+during incident response. Chatbots for incident reporting, virtual assistants for 
+security policy queries, interactive dashboards for security monitoring, etc. are 
+some use cases of interactive AI in the context of cybersecurity. 
+• Textual AI —Understanding and creating text in the form of human language is 
+the focus of textual AI. It uses natural language processing (NLP) methods to 
+analyze and create text. To gain insights and identify potential threats, textual 
+AI can analyze and comprehend the textual data included in security papers, 
+reports, and communications. NLP including the popular large language model 
+(LLM) is the engine that drives textual AI. Large amounts of text data are 
+often needed for LLM training to produce text that is coherent and contextually
+12 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+appropriate. Thus textual AI can help with threat intelligence analysis, threat 
+hunting, and identifying potential vulnerabilities referenced in text sources. 
+Sentiment analysis for social media threat monitoring, automated security report 
+analysis, email content analysis for phishing detection, etc. are some use cases of 
+textual AI in the context of cybersecurity. 
+• Visual AI —The main goal of visual AI is to interpret and comprehend visual 
+content, such as images and videos. To evaluate and extract information from 
+visual input, it uses computer vision algorithms. Visual AI can analyze images, 
+videos, and other visual data to identify security vulnerabilities. It is mostly 
+based on computer vision techniques. It can be used for object detection, 
+facial recognition, and surveillance. Some use cases include detecting intrusion 
+utilizing security camera feeds, facial recognition for access management, and 
+identifying unauthorized physical access to secure areas. 
+• Hybrid AI —Hybrid AI combines elements from multiple AI approaches to 
+utilize their beneﬁts and address difﬁcult problems. It may use machine learning, 
+rule-based systems, and other AI techniques to handle various aspects of 
+cybersecurity. To provide a comprehensive cybersecurity solution, hybrid AI 
+combines elements from several AI approaches, which makes it a powerful 
+tool. Hybrid AI can be used in challenging cybersecurity scenarios including 
+enhanced threat detection, incident response, security orchestration, and so on, 
+where several AI modalities work together to improve overall security posture. 
+In practice, cybersecurity usually involves a wide variety of AI types to properly 
+address a range of threats and weaknesses. For instance, analytical AI can identify 
+network anomalies, functional AI can automatically prevent known threats, interac-
+tive AI can alert security analysts in real time, textual AI can review threat reports, 
+visual AI can monitor physical security, and hybrid AI can coordinate and optimize 
+all of these various elements for a comprehensive defense strategy. By combining 
+several AI modalities inside a hybrid AI framework, organizations can adapt to 
+evolving cyber threats and maintain a strong security posture across all of their 
+digital assets. 
+1.3.3 Relationship with Prominent T echnologies 
+In the real world, each type of AI can address different sets of challenges according 
+to their computing capabilities. In most cases, popular AI techniques such as 
+machine learning (ML), deep learning (DL), advanced analytics, natural language 
+processing, knowledge discovery, and other relevant AI techniques as well as their 
+hybridization can be used to provide solutions depending on the target applications. 
+To provide an automated and data-driven intelligent cybersecurity solution, the 
+majority of real-world scenarios involve advanced analytics, which leads to data 
+science and analytical AI, that uses ML and DL techniques [ 1]. These techniques 
+could also be considered a frontier of AI that has the potential to develop intelligent
+1.4 AI Trust, Explainability, and Key Factors 13
+Fig. 1.4 An illustration of the position of machine learning (ML) and deep learning (DL) within 
+the area of artiﬁcial intelligence (AI) as well as with data science (DS), adopted from Sarker 
+et al. [ 2] 
+systems and automate tasks. Figure 1.4 shows an illustration of the position 
+of machine learning (ML) and deep learning (DL) within the area of artiﬁcial 
+intelligence (AI) as well as with data science (DS). DL is a subset of both ML and 
+AI, and ML is a subset of AI, as demonstrated in Fig. 1.4. ML and DL automate the 
+construction of analytical models using data or experience, whereas AI incorporates 
+human behavior and intelligence into machines or systems. The power of these AI 
+techniques can also contribute in the context of data science, knowledge discovery 
+and advanced analytics [ 12] as well as security-critical applications [ 13]. 
+Overall, these technologies have the potential to transform today’s cybersecurity 
+environment, especially in terms of a strong computing engine, as well as contribute 
+to technology-driven automation and intelligent cybersecurity systems. Depending 
+on the nature of the problem and the target cyber solution, several different strategies 
+can be used to construct AI-based models to address various real-world security 
+concerns. 
+1.4 AI Trust, Explainability, and Key Factors 
+When it comes to accountability, transparency, and the capability to comprehend 
+and trust AI-driven security systems, traditional AI and explainable AI (XAI) have 
+diverse implications and applications in the ﬁeld of cybersecurity. Let’s compare 
+these two strategies in terms of cybersecurity.
+14 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+1.4.1 Traditional AI in Cybersecurity 
+The term “traditional AI” refers to the application of traditional artiﬁcial intelligence 
+methods and models to security issues. The employment of well-proven algorithms 
+and techniques that have been extensively employed in the ﬁeld for years character-
+izes traditional AI methodologies. In the following, we highlight several key features 
+associated with traditional AI: 
+• Complex Models: Deep neural networks and other sophisticated machine learn-
+ing models [ 1] are frequently used in traditional AI in cybersecurity to perform 
+tasks like intrusion detection, malware classiﬁcation, and anomaly detection. 
+These models can analyze vast amounts of data and perform well to identify 
+complex data patterns. 
+• Lack of Transparency: Lack of transparency is the main problem with tradi-
+tional AI in cybersecurity. Interpreting complex models and comprehending the 
+reasoning behind speciﬁc security decisions can be challenging. This lack of 
+transparency can undermine responsibility and trust. 
+• Effectiveness: When trained on massive datasets, traditional AI can be partic-
+ularly effective at identifying and responding to cyber threats. However, the 
+inability to explain the reasoning behind its decisions can be a signiﬁcant 
+limitation. 
+• Use Cases: Network security, endpoint security, and threat intelligence are some 
+of the cybersecurity applications that frequently use traditional AI. Based on data 
+trends, it can identify existing and emerging threats, but it can be challenging to 
+explain its results. 
+In summary, traditional AI is a useful tool for cybersecurity, especially for identi-
+fying trends, analyzing massive datasets, and detecting known threats. However, its 
+black box nature can present difﬁculties in terms of transparency and explainability. 
+To overcome these issues, explainable AI (XAI) is becoming more and more 
+important in the cybersecurity industry. 
+1.4.2 Explainable AI (XAI) in Cybersecurity 
+Explainable AI (XAI) in cybersecurity aims to make AI-made security decisions 
+and actions transparent and understandable to humans. To address the “black box” 
+issue usually associated with sophisticated artiﬁcial intelligence models, XAI aims 
+to increase the transparency and accountability of the decision-making process. In 
+the following, we highlight several key features associated with explainable AI: 
+• Interpretable Models: XAI in cybersecurity strongly emphasizes on interpretable 
+machine learning models and methods or other relevant techniques rather than 
+black box modeling. These interpretable models are created to generate outcomes 
+that are easier to explain and comprehend.
+1.4 AI Trust, Explainability, and Key Factors 15
+• Transparency: Enhancing accountability and transparency is the main objective 
+of XAI in cybersecurity. It aims to give rational justiﬁcations for security 
+decisions made by AI systems so that security experts can trust these decisions and validate them. 
+• Trust and Accountability: The trust issue with AI-driven cybersecurity is addressed by XAI. Thus, XAI helps security teams make better decisions by explaining alerts about risk so they can comprehend the reasoning behind AI-
+generated recommendations. 
+• Use Cases: In critical cybersecurity applications where understanding and supporting decisions are crucial, XAI is especially beneﬁcial. Examples include 
+describing the justiﬁcation for tagging a network behavior as suspicious, provid-ing explanations about why a speciﬁc ﬁle is regarded as malicious, or outlining the reasoning for denying a security access request. 
+In summary, explainable AI (XAI) is essential for improving accountability, 
+trust, and transparency in cybersecurity. XAI assists security teams in better 
+comprehending, validating, and acting upon the insights produced by AI systems. 
+Thus, it can enhance the overall security posture of organizations as well as maintain regulatory compliance. 
+1.4.3 Recommendation: AI vs XAI 
+As discussed earlier, both traditional AI and explainable AI (XAI) each have their place in cybersecurity. Traditional AI is proﬁcient in detecting complex 
+threats, while XAI focuses on transparency and interpretability. The choice between traditional AI and XAI depends on the speciﬁc cybersecurity needs and priorities of an organization. In the following, we highlight a few key points: 
+• Trade-Off Between Complexity and Interpretability: Traditional AI could be effective at detecting sophisticated and new threats; however, XAI emphasizes 
+interpretability over overwhelming complexity. The organization’s particular cybersecurity requirements and priorities will determine which of the two options is preferable. 
+• Regulatory Compliance: In some industries and businesses, regulations mandate the use of AI systems that can provide explanations for their decisions. Thus, XAI might be more appropriate to help relevant organizations comply with legal 
+obligations, especially in the aspect of cybersecurity. 
+• Hybrid Approaches: Some cybersecurity systems use hybrid approaches, which bring together the power of traditional AI for threat identiﬁcation and XAI for 
+decision explanation. In this way, they will beneﬁt from the advantages of each strategy. 
+Overall, the choice should be made based on the distinct security requirements, 
+legal requirements, and the signiﬁcance of comprehending and explaining AI-driven security judgments inside an organization’s cybersecurity strategy.
+16 1 Introduction to AI-Driven Cybersecurity and Threat Intelligence
+1.5 An Overview of This Book 
+The book focuses mainly on AI-based cybersecurity solutions or how valuable 
+insights can be extracted from cybersecurity data through examples, as well as how 
+these insights could be utilized to design intelligent cybersecurity applications. It 
+is important to note that AI-based strategies differ from traditional ones in terms 
+of adaptation and intelligence. As such, we have provided below the basic outline of the book that covers a background analysis, multi-aspects of AI-based solutions, 
+and research challenges with potential future directions. 
+In this chapter, the intentions and purpose of this book are clariﬁed by intro-
+ducing deﬁnitions, concepts, and principles of AI-driven cybersecurity and threat 
+intelligence toward intelligent applications.

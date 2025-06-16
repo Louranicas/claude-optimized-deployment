@@ -1,0 +1,42 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 100 - Finally, we use the sigspec EXIT at ❽ to call the self_removal() function. This function ensures that we perform a self-deletion of the script after it exits with the shred -u command. The EXIT signal ensures that the file will be removed even if any errors occur in the script.
+Before running this script, make system_sleep available to the 172.16.10.0/24 network from the Kali machine. The following commands compile system_sleep:
+$ cd ~/Black-Hat-Bash/ch12
+$ gcc system_sleep.c -o system_sleep
+$ ls -ld system_sleep
+Security Relevance Score: 4
+Word Count: 317
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Finally, we use the sigspec EXIT at ❽ to call the self_removal() function. This function ensures that we perform a self-deletion of the script after it exits with the shred -u command. The EXIT signal ensures that the file will be removed even if any errors occur in the script.
+Before running this script, make system_sleep available to the 172.16.10.0/24 network from the Kali machine. The following commands compile system_sleep:
+$ cd ~/Black-Hat-Bash/ch12
+$ gcc system_sleep.c -o system_sleep
+$ ls -ld system_sleep
+
+-rwxrwxr-x 1 kali 15968 Dec  3 14:20 system_sleep
+
+Next, start an HTTP server from the same directory:
+$ python3 -m http.server 8080
+Copy the script to p-jumpbox-01 (172.16.10.13) or p-web-01 (172.16.10.10) to see it in action. When you run it, you should see output similar to the following in the process list:
+$ bash binary_name_rotation.sh
+$ ps aux
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   2752   972 ?        Ss   Nov30   0:00 /bin/sh -c service ssh re...
+root          17  0.0  0.1  14924  4716 ?        Ss   Nov30   0:00 sshd: /usr/sbin/sshd [lis...
+root          29  0.0  0.0   3760  2316 ?        Ss   Nov30   0:03 /usr/sbin/cron -P
+root          30  0.0  0.0   2684   904 ?        S    Nov30   0:23 tail -f /dev/null
+root       28050  0.0  0.0   4612  3760 pts/1    Ss   17:49   0:00 bash
+root       28772  0.0  0.0   2484  1352 pts/1    S    19:25   0:00 [kstrrp]
+root       28775  0.0  0.0   2732   860 pts/1    S    19:25   0:00 sh -c sleep 100
+
+You could expand this script by adding logic to detect the distribution on which it’s being executed, then choosing a process name commonly seen on that distribution.
+
+
+
+Dropping Files in Shared Memory
+The /dev/shm directory provides shared memory that processes can use to communicate data with one another. These shared memory objects exist until the system shuts down or processes unmap them, and they’re subject to the same security risks as the other shared mounts discussed in

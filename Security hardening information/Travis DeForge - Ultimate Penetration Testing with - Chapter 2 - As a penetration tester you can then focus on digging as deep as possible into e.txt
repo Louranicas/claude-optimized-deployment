@@ -1,0 +1,37 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 2 - As a penetration tester, you can then focus on digging as deep as possible into each one of those subnets, knowing that nothing in the scope will be missed entirely. However, every client is different, and occasionally they will want the penetration test to be conducted from a purely black box perspective, where you do not receive any (or very minimal) information about their internal network and have to figure it out on your own. In such cases, one of the very first things you will want to do is start mapping the subnets out into a table or list (similar to Table 5.2), so that you can determine which /24 subnets need to be prioritized.
+Black Box Subnet Discovery Techniques and Mass Scanning
+We have already established that trying to run a basic Nmap scan, even a relatively quick one, on an entire /16 or /8 subnet would take so long that it is highly impractical. First, you need to determine which /24s within those larger subnets have endpoints within them, and one of the easiest ways to do this is to perform a ping sweep of only the gateways. While the gateway can technically be assigned any IP address on a subnet, it is almost always either the .1 or .254 (as in 10.10.10.1 or 10.10.10.254). Instead of performing a ping scan of an entire /16 with Nmap, we can strategically scan the entire range of the third octet while specifying only the .1 or .254 of the fourth octet:
+Nmap -sn 10.10.0-255.1, 10.10.0-255.254
+This command will perform a ping scan of all the likely gateways within a /16. Instead of scanning 65 thousand IPs to get the list, only 510 are necessary. This reduces the scan time dramatically, essentially reducing the specified targets from a /16 to the equivalent of 2 × /24s. These will output to two different text files, showing which gateways responded to the ICMP ping. You would then take the IP addresses that responded to the ping sweep and treat them as individual /24s, which need to be analyzed further.
+ Many users do not realize that Nmap can scan subnets written in both CIDR notation (for example, 10.10.10.0/24) or as octet ranges, as shown earlier. Not to mention that different ranges can be specified in the same scan simply by comma separating them.
+One minor inconvenience is that the output of the -sn scan is not easily copied and pasted in a way that provides you with one clean list of IP addresses:
+Security Relevance Score: 4
+Word Count: 692
+Extracted: 2025-06-13 23:40:38
+
+---
+
+As a penetration tester, you can then focus on digging as deep as possible into each one of those subnets, knowing that nothing in the scope will be missed entirely. However, every client is different, and occasionally they will want the penetration test to be conducted from a purely black box perspective, where you do not receive any (or very minimal) information about their internal network and have to figure it out on your own. In such cases, one of the very first things you will want to do is start mapping the subnets out into a table or list (similar to Table 5.2), so that you can determine which /24 subnets need to be prioritized.
+Black Box Subnet Discovery Techniques and Mass Scanning
+We have already established that trying to run a basic Nmap scan, even a relatively quick one, on an entire /16 or /8 subnet would take so long that it is highly impractical. First, you need to determine which /24s within those larger subnets have endpoints within them, and one of the easiest ways to do this is to perform a ping sweep of only the gateways. While the gateway can technically be assigned any IP address on a subnet, it is almost always either the .1 or .254 (as in 10.10.10.1 or 10.10.10.254). Instead of performing a ping scan of an entire /16 with Nmap, we can strategically scan the entire range of the third octet while specifying only the .1 or .254 of the fourth octet:
+Nmap -sn 10.10.0-255.1, 10.10.0-255.254
+This command will perform a ping scan of all the likely gateways within a /16. Instead of scanning 65 thousand IPs to get the list, only 510 are necessary. This reduces the scan time dramatically, essentially reducing the specified targets from a /16 to the equivalent of 2 × /24s. These will output to two different text files, showing which gateways responded to the ICMP ping. You would then take the IP addresses that responded to the ping sweep and treat them as individual /24s, which need to be analyzed further.
+ Many users do not realize that Nmap can scan subnets written in both CIDR notation (for example, 10.10.10.0/24) or as octet ranges, as shown earlier. Not to mention that different ranges can be specified in the same scan simply by comma separating them.
+One minor inconvenience is that the output of the -sn scan is not easily copied and pasted in a way that provides you with one clean list of IP addresses:
+
+
+
+Figure 5.1: Demonstrating the extra characters that return from a ping scan
+Conveniently if you are using Linux, you can pipe together a series of additional commands to turn off name resolution (-n), specify a greppable output (-oG -), and then filter out the extra information:
+Nmap -n -sn 10.10.0-255.1, 10.10.0-255.254 -oG - | awk '/Up$/{print $2}' | > Ping_Sweep.txt
+
+
+
+Figure 5.2: Demonstrating the filtered response
+These examples were given for a /16, but keep in mind that the same technique can be used for a /8 as well by adding a range to the second and third octets (that is, 10.0-255.0-255.1).
+Now that you have a set of IPs corresponding to gateways that responded to an ICMP ping, you have a couple of options. You could either conduct another ping scan of all the corresponding alive subnets and print out a file of live targets, which will then become your base target list, or you can scan for a few common ports individually to determine the most interesting subnets. Your choice here may depend on the sheer amount of individuals/24s you are working with, but generally, the former is optimal.
+Using the results of your ping sweep, change the final octet on each line to “0/24”, and then simply repeat the previous processes by substituting the IP ranges for the .txt file:
+Nmap -n -sn -iL Ping_Sweep.txt -oG - | awk '/Up$/{print $2}' | > targets.txt
+Now you have a list of the endpoints that are alive and reachable. If this is a reasonably sized list (a few hundred), then you can treat it in the same way as described in

@@ -1,0 +1,52 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 2008 - Even though the command cannot be called as a cmdlet, it integrates well into PowerShell scripts. The command’s myriad options are documented at the following links:
+Security Relevance Score: 2
+Word Count: 660
+Extracted: 2025-06-13 23:41:06
+
+---
+
+Even though the command cannot be called as a cmdlet, it integrates well into PowerShell scripts. The command’s myriad options are documented at the following links:
+
+
+https://en.wikipedia.org/wiki/Robocopy
+
+
+https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/robocopy
+
+
+The following script starts with the initialization of three parameters that specify which directories should be synchronized to which destination.
+Get-Volume retrieves a list of all file systems. If the target disk is not recognized in it, the script will end. For Where-Object, note that although Get-Volume displays the file system name in the FriendlyName column, the property is actually called FileSystemLabel—which is hardly comprehensible with what the developers of Get-Volume had in mind!
+When the target file system is detected, the corresponding drive letter is determined. This letter does not always have to remain the same, depending on which data carriers are currently in use.
+The script logs all robocopy outputs to a file whose name has the following format: robocopy-2023-12-31--17-30.log. This file and a logging directory are set up automatically.
+Finally, the script loops through all the directories listed in $syncdirs and runs robocopy. The options used in this process have the following meaning:
+
+
+/e: Traverse directories recursively
+
+
+/purge: Delete locally deleted files and directories also in the backup (caution!)
+
+
+/xo: Copy only files that have changed; this last option speeds up the synchronization process enormously from the second pass onwards
+
+
+/log+:filename: Adds logging output to the specified file
+
+
+#!/usr/bin/env pwsh# Sample file sync-folders.ps1# $destvolume: name of the backup data medium (such as a USB flash drive).# $destdir:  name of the target directory on this data medium# $logdir:   name of the logging directory on the data medium# $syncdirs: list of directories to be synchronized#            (relative to the personal files)$destvolume = "mybackupdisk"$destdir    = "backup-kofler"$logdir     = "$destdir\sync-logging"$syncdirs   = "Documents", "Pictures", "myscripts"# determine drive letter of the target file system$disk = Get-Volume |        Where-Object { $_.FileSystemLabel -eq $destvolume }if (! $disk) {    Write-Output "Backup disk $destvolume not found. Exit."    Exit 1}$drive = ($disk | Select-Object -First 1).DriveLetterWrite-Output "Syncing with disk ${drive}:"# create target directory if it does not exist yet;# | out-zero prevents the directory name from being displayedNew-Item -ItemType Directory -Force "${drive}:\${destdir}" |  Out-Null# create logging directory and logging fileNew-Item -ItemType Directory -Force "${drive}:\${logdir}" |  Out-Null$logfile = `  "${drive}:\${logdir}\robocopy-{0:yyyy-MM-dd--HH-mm}.log" `  -f (Get-Date)New-Item $logfile | Out-Null# loop through the sync directoriesforeach ($dir in $syncdirs) {    $from = "${HOME}\$dir"    $to = "${drive}:\${destdir}\$dir"    Write-Output "sync from $from to $to"    robocopy /e /purge /xo /log+:$logfile "$from" "$to"} 
+In my tests, the script kept throwing the access denied error (error code 5) when writing the files to the USB drive. Countless reports exist about this error on the internet and almost as many suggested solutions. Apparently, only running the script with admin privileges works reliably. You can simply run initial tests in a terminal window with administrator rights. After that, you must set up the script in Microsoft Windows Task Scheduler to run once a day with admin rights (Run with highest privileges option in the General dialog sheet).
+15.1.2    Ideas for Improvement
+Before you entrust your data to the script, I would like to point out a few restrictions and describe how you can optimize the script:
+
+
+Warning in case of error or non-executionThe script simply aborts if the external data drive is not available at the moment. A better approach would be to display or send a warning in some form after several unsuccessful attempts.
+
+
+Exclusion rulesThe script can synchronize directories either completely or not at all. In practice, exclusion criteria would be helpful for files or directories that should not be included in the backup.
+
+
+15.1.3    Bash Script with rsync
+If you work on Linux or macOS, the best way to realize comparable synchronization tasks is to use a Bash script with rsync. The following script has the same structure as the PowerShell script described earlier. It tests whether the backup volume is available at a particular mount point and then runs the rsync command for a list of local directories.
+As described in

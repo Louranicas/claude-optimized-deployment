@@ -1,0 +1,52 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 3 - The first step in the Sequence-based Hybrid NIDS method is anomaly detection. The system uses signature-based detection to validate or deny the existence of known attacks if any suspicious activity is found, which results in a conclusion. The parallel-based hybrid NIDS, on the other hand, functions by executing both signature-based and anomaly detection concurrently. A thorough decision is then reached by combining the results of the two approaches. By simultaneously utilizing the advantages of both detection methods, this strategy improves the intrusion detection system’s overall accuracy and dependability. Machine learning is a hotbed of research for advanced hybrid NIDS in IoT. Researchers aim to automate attack detection by integrating machine learning algorithms. This empowers the system to:
+Security Relevance Score: 10
+Word Count: 914
+Extracted: 2025-06-13 23:40:52
+
+---
+
+The first step in the Sequence-based Hybrid NIDS method is anomaly detection. The system uses signature-based detection to validate or deny the existence of known attacks if any suspicious activity is found, which results in a conclusion. The parallel-based hybrid NIDS, on the other hand, functions by executing both signature-based and anomaly detection concurrently. A thorough decision is then reached by combining the results of the two approaches. By simultaneously utilizing the advantages of both detection methods, this strategy improves the intrusion detection system’s overall accuracy and dependability. Machine learning is a hotbed of research for advanced hybrid NIDS in IoT. Researchers aim to automate attack detection by integrating machine learning algorithms. This empowers the system to:
+
+
+
+Long Description for Figure 5.3
+The sequence-based NIDS follows a linear process starting with anomaly detection, moving to signature-based detection, and ending with a decision based on the analysis. In contrast, the parallel-based NIDS operates both anomaly and signature-based detection simultaneously, combining their outputs to make a decision. The sequence-based system uses a step-by-step approach, while the parallel-based system integrates results from both detection methods at the same time.
+
+FIGURE 5.3 Categories of hybrid-based NIDS.
+
+
+adapt and respond to evolving threats in real time,
+improve detection accuracy by learning and adapting to new attack patterns without manual intervention.
+
+To optimize resource use, researchers are integrating multi-access edge computing (MEC) with machine learning in hybrid NIDS. MEC processes data closer to devices, reducing the resource burden on individual IoT devices. This allows hybrid NIDS to operate more efficiently and at scale, especially crucial in resource-constrained IoT environments. Machine learning automates attack detection and adapts to new threats, while MEC alleviates resource limitations. This combined approach holds promise for robust and efficient intrusion detection in IoT systems, addressing challenges and ensuring security in a dynamic threat landscape.
+
+
+
+5.3 IDS for IoT
+In the realm of Intrusion Detection Systems (IDS) for the IoT, two main categories exist: IoT-specific [15] and IoT-agnostic IDSs. For IoT contexts, there are primarily two kinds of IDSs: IoT-specific and IoT-agnostic IDSs. Devices utilizing specialized communication protocols [16], such as 6LoWPAN, BLE, and LoRaWAN, are the target of IoT-specific IDSs. They are usually installed on the same network as the IoT devices they keep an eye on. They make predictions based on the messages these devices send, ensuring that protocol compliance and other technology-specific characteristics are met. IoT-agnostic intrusion detection systems, on the other hand, are not dependent on any particular communication medium; instead, they use data like TCP/IP traffic. They manage device traffic across many communication modalities and are especially appropriate for edge environments where heterogeneous devices coexist.
+Understanding these two categories (IoT-specific and IoT-agnostic IDSs) is essential for securing diverse IoT environments. IoT-specific IDSs are custom-designed for devices using particular communication technologies [5] (e.g., Wi-Fi, Bluetooth Low Energy). This tailored approach offers deep insights but may lack versatility across different protocols [15]. IoT-agnostic IDSs handle the broader communication variety of IoT ecosystems [15]. They are well-suited for edge computing environments where diverse protocols converge [6]. Several examples of IoT-specific IDSs exist, targeting specific protocols.
+
+Wi-Fi
+Reference [5] highlights IDSs designed specifically for Wi-Fi networks. These systems often function as expert systems, analyzing traffic between hosts and checking packet compliance with Wi-Fi network protocols.
+LoRa
+IDSs for LoRa networks have been explored [17]. These systems are adept at capturing and scrutinizing traffic in LoRa-based environments, addressing security challenges specific to this technology.
+ZigBee
+Research [5] focuses on IDSs tailored for ZigBee networks. These systems are designed to analyze and ensure compliance with ZigBee communication protocols, addressing security concerns unique to ZigBee-based IoT deployments.
+Bluetooth Low Energy (BLE)
+IDSs for Bluetooth Low Energy are discussed. These systems are expertly crafted to monitor and assess traffic in BLE-enabled IoT ecosystems, checking for adherence to BLE network protocols.
+
+IoT-specific IDSs act as expert systems, meticulously checking device communication for adherence to specific protocols. Advanced systems might even detect physical layer attacks like jamming. However, evolving IoT landscapes introduce new security challenges beyond basic communication. Issues like routing, network management, and maintenance require attention. Specific protocols, like RPL for low-power networks [18], address these security concerns.
+
+5.3.1 RPL-Based Attacks
+While RPL offers security benefits, it’s not perfect. RPL-based attacks like Clone ID and Sybil attacks pose a threat. In these attacks, malicious nodes impersonate legitimate ones. A study by Zhang et al. [19] explores Sybil attacks, even classifying them based on attacker capabilities and goals. This study also proposes defense mechanisms categorized into three main classes. This highlights the ongoing effort to secure routing protocols in IoT networks.
+
+Social Graph-based Sybil Detection (SGSD)
+These defenses rely on analyzing nodes’ social relationships or interactions to detect Sybil attacks. Anomalies caused by Sybil nodes can be identified by examining the network’s social graph.
+Behavior Classification-based Sybil Detection (BCSD)
+Defense mechanisms in this category focus on classifying nodes based on their behavior. Anomalies in the behavior of nodes, such as unusual communication patterns, are used to detect potential Sybil attacks.
+Mobile Sybil Defend (MSD)
+This class of defense mechanisms involves mobile Sybil defenses. It likely involves strategies that incorporate mobility aspects to identify and defend against Sybil attacks.
+
+A study by Zhang et al. [19] explores Sybil attacks, even classifying them based on attacker capabilities and goals. This study also proposes defense mechanisms categorized into three main classes. These defense mechanisms, and the findings from various studies on their effectiveness against Sybil attacks in RPL-based protocols, are further summarized in Table 5.

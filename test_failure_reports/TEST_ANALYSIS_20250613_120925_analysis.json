@@ -1,0 +1,67 @@
+{
+  "test_id": "TEST_ANALYSIS_20250613_120925",
+  "timestamp": "2025-06-13T12:10:12.340317",
+  "summary": {
+    "total_tests_analyzed": 1001,
+    "total_failures": 1,
+    "success_rate": 99.9000999000999,
+    "critical_failures": 1,
+    "high_failures": 0,
+    "medium_failures": 0,
+    "low_failures": 0
+  },
+  "failures_by_category": {
+    "validation": 1
+  },
+  "detailed_failures": [
+    {
+      "test_file": "/home/louranicas/projects/claude-optimized-deployment/code-base-crawler/code-base-crawler/security_validation_results.json",
+      "test_name": "security_validation_results",
+      "failure_type": "validation_failure",
+      "error_message": "Validation failed: unknown",
+      "stack_trace": "{\n  \"scan_time\": \"2025-06-08T13:50:57.109611\",\n  \"security_score\": 0,\n  \"passed\": false,\n  \"total_issues\": 71,\n  \"critical_issues\": 5,\n  \"api_keys_secure\": false,\n  \"results\": {\n    \"secrets\": {\n      \"scanned_files\": 60984,\n      \"findings\": [\n        {\n          \"type\": \"api_key\",\n          \"file\": \"security_scan.py\",\n          \"severity\": \"HIGH\"\n        },\n        {\n          \"type\": \"password\",\n          \"file\": \"security_scan.py\",\n          \"severity\": \"HIGH\"\n        },\n        {\n          \"type\": \"password\",\n          \"file\": \"run_enhanced_security_audit.py\",\n          \"severity\": \"HIGH\"\n        },\n        {\n          \"type\": \"token\",\n          \"file\": \"run_enhanced_security_audit.py\",\n          \"severity\": \"HIGH\"\n        },\n        {\n          \"type\": \"password\",\n          \"file\": \"anam_py/test_env/lib/python3.12/site-packages/pip/_internal/utils/misc.py\",\n          \"severity\": \"HIGH\"\n        },\n        {\n          \"type\": \"secret\",\n          \"file\": \"cbc_core/src/security/examp",
+      "line_number": null,
+      "category": "validation",
+      "severity": "CRITICAL"
+    }
+  ],
+  "remediation_plans": [
+    {
+      "failure_id": "SEC_security",
+      "test_file": "/home/louranicas/projects/claude-optimized-deployment/code-base-crawler/code-base-crawler/security_validation_results.json",
+      "test_name": "security_validation_results",
+      "root_cause": "General security control failure",
+      "fix_description": "Implement comprehensive security controls",
+      "code_changes": [],
+      "estimated_effort": "HIGH",
+      "priority": "P0"
+    },
+    {
+      "failure_id": "VAL_security",
+      "test_file": "/home/louranicas/projects/claude-optimized-deployment/code-base-crawler/code-base-crawler/security_validation_results.json",
+      "test_name": "security_validation_results",
+      "root_cause": "Validation framework failure",
+      "fix_description": "Fix validation logic and constraints",
+      "code_changes": [],
+      "estimated_effort": "LOW",
+      "priority": "P2"
+    }
+  ],
+  "executive_summary": "TEST FAILURE ANALYSIS - EXECUTIVE SUMMARY\n\nTotal Test Failures: 1\nCritical Failures: 1\nRemediation Plans Created: 2\n\nKEY FINDINGS:\n1. Security test failures require immediate attention (1 P0 items)\n2. Performance degradation detected in load tests\n3. Integration tests showing service communication issues\n4. Compliance validation frameworks need updates\n\nRECOMMENDED ACTIONS:\n1. Address all P0 security and compliance issues immediately\n2. Fix performance bottlenecks before production deployment\n3. Stabilize integration tests and service communications\n4. Update validation frameworks to current standards",
+  "action_items": [
+    {
+      "priority": "P0",
+      "test": "security_validation_results",
+      "action": "Implement comprehensive security controls",
+      "effort": "HIGH",
+      "id": "SEC_security"
+    },
+    {
+      "priority": "P2",
+      "test": "security_validation_results",
+      "action": "Fix validation logic and constraints",
+      "effort": "LOW",
+      "id": "VAL_security"
+    }
+  ]
+}

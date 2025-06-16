@@ -1,0 +1,1246 @@
+# Security Chapter Extract
+Book: [Automotive Cybersecurity Best Practices] Auto-ISAC - Threat detection, monitoring and analysis (2019, Auto-ISAC) - libgen.li
+Chapter: 1 - 2 for more information.  4 THREAT DETECTION, MO NITORING & ANALYSIS  
+1. This step focuses on u nderstanding  the automotive threat ecosystem  which forms the 
+basis of a threat detec tion, monitoring , and analysis program. This can involve 
+understanding  previously executed research and exploits, and threat agents across three 
+environments , namely: custo mers, enterprise, and third parties . The customer  
+environment can include  deployed vehicles,  vehicle components,  workshop tools, 
+software  applications , or other connected services. The enterprise environment could 
+include insider threats (e.g. disgruntled employees), manufacturing, IT, and other 
+operatio nal technologies  (OT) relevant to the vehicle ecosystem . Finally, the third-party 
+environment covers vendors, suppliers, delivery , and products ( e.g. devices or services ).  
+2. The second step is defining  your organization’s  threat intelligence requirement s across 
+the ecosystem. T he goal is to understand which type of information is of interest for a 
+given organization. For example, understanding requirements for i ndicators of 
+compromise, tactics, and anomalous events  can help  your organization identify threats  to 
+focus monitoring and better understand the threat landscape . 
+3. An appropriate knowledge base can help  each organization filter down what threats are  
+relevant or applicable  based on their risk profile or tolerance.  Once a company has 
+identified relevant threats to monitor,  appropriate  techniques to monitor the threats can be 
+refined .  
+4. With accurate threat information , companies can then develop relevant cyber forensic  
+analys is processes  where applicable . Results of such analysis serves as an input into the 
+development of a comprehensive response strategy.  
+5. Threat  information also enables companies to decide on the next course of action. Actions 
+can range from providing input t o engineering teams  (e.g. design  and security 
+engineering) , penetration testing teams,  vulnerability management teams, incident 
+response teams , and appropriate industry partners.  
+This Guide does not prescribe specific requirements for threat intelligence gathering, threat 
+monitoring, threat analysis, or information organization and storage . Instead, it  describe s decision 
+factors that companies  may use to determine what  is appropriate for their unique business 
+environment and risk landscape . The above framework can help organizations  at different levels 
+of cybersecurity capabilities to apply a structured approach to build or refine their threat detection 
+and an alysis processes.  
+2.2 BEST PRACTICES FOR DEFINING A THREAT DETECTION AND ANALYSIS PROCESS   
+The scope  of a threat detection and analysis pro cess may encompass any relevant vehicle 
+cybersecurity  threats , including  those  that originate from  both internal and external sources 
+throughout design, development , and post -production processes . Choosing the appropriate threat  
+scope  (which can vary  from organization to organization)  is fundament al for effective  threat 
+detection and analysis . 
+2.2.1 Threat Team Structure and Operating Model  
+The threat team may draw upon a company’s broader vehicle focused cybersecurity team or other 
+appropriate stakeholders as it creates collection requirements,  reviews intelligence, validates 
+threats, and creates  actionable intel ligence analysis. The  threat t eam can potentially benefit from 
+the following : 
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  5 THREAT DETECTION, MO NITORING & ANALYSIS  
+• An e xecutive level authority for the central team  responsible for vehicle related threat 
+detection and an alysis  
+• Access to necessary information in t he vehicle security ecosystem  
+• Pre-approved and documented acti ons that may be t aken based on security events  
+The threat team  may also be supported by a data science team  to analyze data from various 
+sources ( e.g. diagnostic trouble codes, intrusion detection systems , telematics data, transactions, 
+customer support – case analysis, text analysis , social media ). This team  can help design  and 
+maintain cross -functional design and test requirements for an in -vehicle network intrusion 
+detection system . The data science team may also suppor t anomaly detection  of any data that 
+supports the vehicle and provide the capability to  monitor performance and correctness  of vehicle 
+network communications against  design parameters.   
+Components of a successful operating model for threat detection and analysis  program s may 
+include effective  data collection and management processes , testing  the threat  detection  
+program , and other appropriate handoff  processes.  Regardless of the process or method chosen 
+by the company, there may be a need to adapt threat  detection and analysis processes based on 
+the company ’s changing risk landscape.  
+For example, an effective d ata collection  process  can be  based on risk. Typically , the data 
+collected and stored is as detailed as required for event analysis  and may include any identified 
+threat vectors  within the vehicle eco system . By collecting this data , actionable intelligence can be 
+created, reviewed, and distributed to appropriate product cybersecurity engineering teams for 
+structured analytic techniques including: anomaly analysis, trend analysis, signature analysis, 
+heuristic/behavioral analysis, and elimination of false -positive s and false -negatives . These 
+actionable f indings from the analysis of collected data  may benefit  incident response and 
+vulnerability program s by: informing incident response processes, refining  vulnerability severity 
+ratings, and refining  playbooks for possible incident types . 
+2.2.2 Stakeholder Roles and Responsibilities  
+The stakeholder  roles and responsibilities to maintain and mature an effective threat detection 
+and analysis process  represent a wide range of technical staff and partners across the business. 
+Roles and responsibil ities in this team  may include:  
+• Intelligence analysts : To execute the collection requirements plan, gather  and analyze  
+intelligence, and create  timely and actionable intelligence products for decision makers . 
+• Technical expert s: To provide guidance on colle ction requirements and feedback on the 
+value of intelligence pro ducts.  
+• Pene tration testers: To  understand the latest  attack vectors and trends of the offensive 
+cybersecurity community.  
+• Detection experts : To provide detection capabilities by gaining  specialized knowledge of 
+the vehicle security ecosystem along with the awareness of the data and tools available 
+for analyzing security events . 
+Teams with roles and responsibilities within a threat detection and analysis program could 
+potentially  include:  
+• Information  technology  team : To identify threats to IT infrastructure that may be connected 
+to the vehicle ecosystem.  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  6 THREAT DETECTION, MO NITORING & ANALYSIS  
+• Data science team : To detect  anomal ies and provide the capability to monitor performance 
+and correctness of vehicle network communication s against design parameters.  
+• Connected vehicle operations team:  To identify  threats to the connected vehicle  
+ecosystem  by analyzing vehicle telematics which  may includ e working with vendors to 
+manage threats  to cloud -connected environments.  
+• Security analys ts’ team: T o identify threats and  provide additional support such as 
+research and communication with  appropriate indivi duals or groups.  
+• Customer care and aftermarket teams : To detect fraud or abuse that affects the operation 
+of vehicles.   
+• Engineering and support  team: To bring knowledge of threat detect ion and domain specific 
+vehicle  systems. This engineering support team may provide and support tools for use by 
+the threat detection team for vehicle security event s and log monitoring.   
+• Internal legal team : To bring regulatory and compliance perspectives  that will protect the 
+organizati on. 
+• External teams : Such as law enforcement  and other public authorities that can share 
+threat intelligence  information  from their position as external thi rd parties.  
+As appropriate,  service  level and support agreements  apply  to interactions  among  stakeholders  
+and provide  documented and agreed upon timeframes for providing informatio n, feedback, data , 
+and support related to the  vehicle security ecosystem.   
+2.2.3 Automotive Threat Environment  
+The t hreat environment can generally  be described by two  concepts , threat actor s and attack 
+vector s. A person or thing (threat actor) uses different avenues (attack vectors) t o execute a 
+cybersecurity attack within the vehicle ecosystem . Threats can  exploit points of data ingress and 
+egress across the  vehicle ecosystem and  change throughout a vehicle or feature lifecycle.  A 
+common and effective way to identify, define, and categorize thr eats is by considering the impacts 
+to confidentiality, integrity, and availability (CIA) . Security  attacks that threat actors  to the vehicle 
+ecosystem could carry out include : 
+• Theft or exposure of data 
+o Theft  or exposure  of personally identifiable information  (PII) or other sensitive data  
+o Theft  or exposure  of vehicle -related data  or software  
+• Physical theft or compromise  
+o Unauthorized p hysical access to the interior or breaking door locks  
+o Theft of vehicle parts  
+o Theft of the entire vehicle  
+• Manipulating vehicle controls  
+o Breaking a vehicle’s immobilizer  
+o Illegal manipulation of components and functions  
+o Unauthorized activation  or deactivation of functionality  
+o Co-opting vehicle systems  
+o Loss of vehicle control  
+• Threats to availability  
+o Bricking veh icle systems  
+o Denial of service attack  
+o Ransomware  attack  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  7 THREAT DETECTION, MO NITORING & ANALYSIS  
+Threat Actor : A person or entity with motivation and capability to exploit a vulnerability in the 
+vehicle ecosystem . Understanding of threat actors typically includes  both capabilities and 
+motivation.  This information may be incorporated directly in to both risk assessments and incident 
+response processes.  Threat actors who may affect the vehicle ecosystem include:  
+• Terrorist organizations  
+• Malicious i nsider s 
+• Cyber -criminals  
+• Organized crime  group s 
+• Governmental organizations  
+• State sponsored attackers  and intelligence agencies  
+• Vandals /prankster s/hacktivist s 
+Attack Vectors:  The avenues or paths on an attack surface used to attack the vehicle ecosystem . 
+Attack vectors  to the  vehicle ecosystem  may includ e: 
+• Remote to vehicle  
+o Adjacent   
+▪ Bluetooth  
+▪ Wi-Fi 
+▪ Tire Pressure Monitoring System (TPMS)  
+o Distant  
+▪ Via back office channels  
+▪ Via remote capabilities  
+• Internal to vehicle  
+o Standard user interface  
+▪ Infotainment  
+▪ USB 
+o Standard programming/data interface  
+o Non-standard interface  
+▪ Accessing and modifying vehicle electrical systems  
+2.3 BEST PRACTICES FOR THREAT INTELLIGENCE  
+The purpose of threat intelligence is to know your adversary by understanding their motivation  
+and how they would manifest t hemselves in your environment. Threat intelligence can go beyond 
+the technical operational artifacts and  can sometimes include the economic or ideologic al drivers 
+that reveal the motivation and/or priority of your adversary. This can assist with the prioritization 
+of processing, communicating , or sharing of that intelligence  information both  internally and 
+externally.  Components of a threat intelligence capability include : 
+• Threat intelligence requirements  
+• Threat intelligence sources  
+• Threats and intelligence collection and  analysis   
+• Internal and external i ntelligenc e sharing standards and methods  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  8 THREAT DETECTION, MO NITORING & ANALYSIS  
+2.3.1 De fining  Threat Intelligence Requirements  
+Definition of threat intelligence requirements allows a company  to appro priately scope the threat 
+intelligence collection effort. To defin e vehicle threat  intelligence requirements , organizations may  
+identify the  types of threats , threat actors , and attack  vectors  that will be subject to intelligence 
+collection.  This process benefits from  collaboration with cross -functional teams to define and 
+validate requirements.  
+To support this collaboration , the threat team can i dentify stakeholders from cross -functional 
+teams (e.g. the domain architects and engineers, business p artners, supply chain)  and i nitiate 
+activities to foster relationships with SMEs to build trust and drive information sharing. 
+Organizations can also d evelop an understanding  through regular discussions focused on  what 
+cybersecurity threat concerns are mos t important.  
+Steps to make  threat intelligence requirements beneficial typically include :  
+• Documen ting intelligence requirements that can be used as an operating guideline  
+• Maintaining the  threat intelligence requirements in an official repository   
+• Revisin g threa t intelligence requirements and  operating guideline s at regular intervals to 
+capture changes  
+2.3.2 Defining  Threat Intelligence Sourc es 
+An important  step in building threat intelligence includes determining  the best intelligence sources. 
+These could  include internal teams , information repositories,  and public and private intelligence 
+sources. Examples of t hreat intelligence sources could include:  
+• Cybersecurity conferences  or summits ( e.g. BlackHat,  DEFCON , USENIX )  
+• Fleet and enterprise monitoring ( e.g. remote diagnostic monitoring, service monitoring, 
+and other anomaly detection initiativ es)  
+• Information sharing organizations  (e.g. Auto-ISAC , CISCP ) 
+• U.S. local, state, and federal  government resources  (e.g. NCIC C, DHS ICS CERT, US -
+CERT )  
+• International g overnment resources  (e.g. CERTs , BSI)  
+• Coordinated disclosure program  or bug bounty  program  
+• Dark Web or  Darknet  
+o Darknet marketplaces for technology, vulnerabilities, and credentials  
+o Dark Web forums  
+• Open source intelligence  
+o Enthusiast , technic al, and cybercriminal  
+o Paste -and-code  repository sites  
+o News aggregators and feeds  
+o Vendors  
+o Data and credential breach forums  
+• Industry peers, suppliers , and partners  
+• Security event and incident data   
+• Reports from  employees  and social media    
+• Data from s econdary extrapolation methods that could serve as impending threat 
+indication   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  9 THREAT DETECTION, MO NITORING & ANALYSIS  
+Teams can s hare information  to enable  a high -level understanding of those threats related to their 
+work environment (e.g. trends in types of calls or inquiries  about specific t opics around safety or 
+telematics systems). Additionally, w orking with technical staff can be beneficial in gaining intrinsic 
+knowledge of digital communities, distribution lists, and other resources that can serve as early 
+indicators of incidents, events,  research, and other intelligence.  
+An organization  may also choose  to engage external partnerships  with third -party vendors for 
+intelligence research program s. For example , programs  that have  high priority collection 
+requirements  can benefit when the capab ility is unavailable internally,  unique search capabilities  
+are required , or an organization  wants a layer  of separation from the research.  (See the Auto-
+ISAC’s  Collaboration and Engagement  with Appropriate  Third Parties Best Practice  Guide for 
+more information ) 
+2.3.3 Threat Intelligence Collection  
+Intelligence on threats is collected from se lected  and prioritized  intelligence sources  that are 
+pertinent to the organization . The volume of data might  be large.  Therefore , an agreed upon 
+method can be app lied to prioritize collection and analysis. The results are then used to 
+differentiate the highest risk  threats , as well as  highlight any gaps in the intelligence collection.  
+Steps for  analyzing  and prioritizing  intelligence typically  include:  
+• Determining  applicability of the threat to your environment ( e.g. is the impacted software 
+version in your ecosystem ?) 
+• Identify ing the date and time of the last known threat exploit within cyber landscape  
+• Determining whether  the threat has been seen in the relevant  environment  
+• Document ing potential impact of the cyber threat on vehicle ecosystem throughout the 
+product lifecycle  
+• Identifying  potential vectors for cyber attack. ( e.g. physical access, Bluetooth, cellular)  
+• Evaluating the  reliability of the data so urces from which the search criteria would generate 
+results ( e.g. CAN log, diagnostic data, IDS ) 
+• Considering t he capabilities and limitations of each intelligence source  (e.g. sources with 
+limited capability, or restrictions to consumption or funding may i nfluence prioritization ) 
+• Using n ormaliz ed nomenclature of technical systems to account for regional vernacula r, 
+colloquialisms, and acronyms;  as well as foreign scripts  
+• Considering t he input and contribution of technical SMEs and consumers to help ensure 
+the most relevant coverage  
+The results of analysis and prioritization are typically  documented in  a threat i ntelligence 
+repository . Using  a common repository or documentation process enables  ease of tool integration 
+and intelligence sharing. Areas of focus  for documenting intelligence into any repository include:  
+• Identify and enumerat e assets : To have a heightened awareness of threats by 
+characteriz ing for value and risk  
+• Tag entries:  To e nable integration and analytics across tools (examples include threat 
+type, adversary attribution, associations to incidents or other threats, CVE ). 
+• Describe r eliability : To validate  the threat information (examples include confirmed by 
+independ ent sources, pl ausible, logical ). 
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  10 THREAT DETECTION, MO NITORING & ANALYSIS  
+• Rate threat severity : To understand impact . Consider the capability of the 
+threat/adversary, focus or persistence of the threat,  and indicator relation to the attack  
+cycle ( i.e., beginning or end) . 
+Organizations can leverage threat  intelligence  to detect and address  attacks  as well as enrich 
+analysis during the incident response process. (See the Auto-ISAC’s  Incident Response  Best 
+Practice  Guide for more information ) 
+2.4 BEST PRACTICES FOR THREAT MONITORING PROCESS ES 
+Appropriate processes support monitoring of sources and data for new threat s. To effectively 
+create intelligence monitoring processes , organization s may define the threat areas with the most 
+significant risks to the business, and then focus processes and t echniques on moni toring threat 
+intelligence related to  those areas. Processes to monitor sources and gather new information  
+typically are  flexible because vehicle cybersecurity risks are constantly evolving because of  
+advancing vehicle technologies and an increas e in sophistication among t hreat actor s.   
+Since threat intelligence monitoring for vehicle cybersecurity shares many common practices with 
+enterprise cybersecurity, it can be good practice to use existing enterprise processes as an initial 
+guidelin e when developing vehicl e threat monitoring techniques.  There are , however,  some  
+differences between the skills and knowledge needed for vehicle threat  intelligence  monitoring  
+and those needed for enterprise threat intelligence monitoring . Thus,  it is also  good practice to 
+develop additional awareness and training content that is unique to each.  
+2.4.1  Defining  Priorities for Monitoring  
+Defined and prioritized threats provide the foundation for monitoring new threat intelligence  to 
+protect the vehicle ecosystem . Once  threats are prioritized , an organization  can begin monitoring  
+intelligence sources for new information on those defined and prioritized threats. This will help 
+enable  effective alignment of available, and often limit ed, resources.  
+Prioritizing  threats for intelligence monitoring can be informed  by analysis of an organization ’s 
+threat  tolerance to  known and emerging  threats within the automotive threat environment .  When  
+determining threat tolerance, organizations may use the following considerations  to evaluate and 
+prioritize  intelligence topics for monitoring : 
+• The i mminence of an attack by the threat (e.g. current attack,  private disclosure)   
+• The s everity  of an attack by the threat  (e.g. safety impact , privacy)   
+• The s cope of an attack by the threat  (e.g. single vehicle, few older vehicles,  fleet)   
+• The e ase of asset explo itation by the threat  (e.g. few skills needed,  exploit  exists)   
+• The o rganizational risk  the threat may pose due to  an attack  
+• The f inancial risk  the threat may pose due to an attack  
+• The practicability of an attack by the thre at (e.g. remote attack vector versus physical 
+attack vector)  
+Prioritizing threat intelligence areas and the r esulting impact severity of an attack has multiple 
+increasingly granular cri teria, including:  
+• If an event related to the threat intelligence could pose safety risks to customers  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  11 THREAT DETECTION, MO NITORING & ANALYSIS  
+• If an event related to the threat intelligence would have impacts  onboard or offboard the 
+vehicle  
+• If an event related to the threat  intelligence may cause  risk of PII data leaks   
+• If an event related to the threat i ntelligence would affect mobile or portal application 
+features  
+• The resulting number of vehicles that would be affected by an event related to the threat 
+intelligence  
+• The f ix time  associated with a threat  event related to the threat intelligence  
+• The i ncident response  effort  associated with an event related to the threat intelligence  
+• The potential legal , regulatory, or disclosure requirements   
+• The resulting cost that would b e associated with an event related to the threat intelligence  
+• The resulting negative p ublicity  impact  that an event related to the threat intelligence may 
+cause  
+2.4.2 Threat Monitoring Techniques and Approaches  
+Organizations may use threat monitoring tech niques and approaches based on their risk 
+tolerance and existing capabilities. If an organization does not have the capabilities to meet  their 
+needs, they may also partner with another organization to collect and aggregat e relevant threat 
+data.  
+While colle cting threat data  and developing  monitoring techniques , organizations may  gather  
+techniques and methods for how attackers are operating in the vehicle environment , as these 
+discrete data points could have value.  Knowledge of known techniques , in conjunction with data 
+points available to an organization ’s unique environment , may allow the security teams to build 
+detecti on models.  Based on defined  priorities for threat monitoring, organizations can implement 
+threat  monitoring techniques to maintain awareness of new threat  information .  
+2.5 BEST PRACTICES FOR THREAT ANALYSIS  
+Teams leverage the collected data for threat analysis. Threat analysis allows for the identification, 
+validation, and verification  of threats . From validated threats, threat event s can be detected,  and 
+response strategies to those events can be informed with threat intelligence . 
+2.5.1 Threat Event Identification  
+Organizations may implement  techniques to detect the presence of threats within the vehicle 
+ecosystem  based on defined priorities for monitoring threats and gathered intelligence  on 
+associated threats to the vehicle ecosystem . Some  techniques and approaches for threat 
+identification  in the vehicle ecosystem  include:  
+• Monitoring d iagnostic error codes   
+• Using intrusion /anomaly  detection systems  
+• Monitoring back office/SYSOPS  operations  
+• Monitoring connections to the vehicle  
+Similarly, techniques and approaches for threat identification within the vehicle fleet may include:  
+• Logging data collected by fleet monito ring systems to a centralized repository a nd 
+maintaining the data in a useable  format that is in accordance with a data retention plan   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  12 THREAT DETECTION, MO NITORING & ANALYSIS  
+• Logging interactions between  back office systems used for fleet monitoring activities and 
+vehicle systems t o a centralized system , with the logged data containing actions taken 
+and timestamps  
+• Employing data analysis  to monitor performance and compliance of in -vehicle network 
+communicat ions to design parameters  
+• Develop ing use cases that describe  how collected data can be used to alert on identified 
+threats  
+The u se of these techniques may be  facilitated by  a cross functional team approach  with 
+monitoring techniques used by multiple teams and stakeholders . The overall efforts may be 
+coordinated through a vehicle security operations center (VSOC). The VSOC is  typically  a 
+centralized unit that deals with  vehicle  security issues on an organizational  and technical level. 
+The VSOC may  monitor fo r high priority incident tickets  raised automatically by the system or by 
+an individual group  using threat identific ation techniques, then escalate  the incident tickets as 
+necessary. The VSOC could  assist in the escalation process (and event closures)  for identified 
+threats and security events within the vehicle ecosystem by:  
+• Triaging  incident tickets for technical and business impact   
+• Assess ing business impact to determine priority of an incident   
+• Driving  incident process escalations and comm unications for high priority incidents   
+• Review ing and accept ing incident tickets and transfer ring wherever appropriate  
+A common challenge faced when defining an approach and appropriate techniques for threat 
+identification  is accounting  for false p ositive threat identification  and the overall effectiveness of 
+the techniques against real world threats. Organizations can integrate  considerations for false 
+positi ve threat identification  when designing threat monitoring tech niques. The design 
+considerations may include:  
+• Erring on the side of safety  and privacy  
+• Being able to  perform a controlled test to verify the system s and processes are  working 
+properly   
+One additional consideration when implementing threat identification  technique s is how to classify 
+and manage access to threat identification  solutions and products within the organization. There 
+are at least t wo options for managing access to  threat identification  information . One option is to 
+create one access level  for the enginee ring team , and a second  access level  for everyone else. 
+Another option is to manage access  based on user level s, and then use  a “need to share” model, 
+meaning the most information possible is shared . This  “need to share”  model may be  used in 
+contrast to a “need to know” sharing model, which involves withholding the most information 
+possible.  
+2.5.2 Validation and Verification of Identified Threats  
+Organizations may validate and verify threats  in different ways. Some companies may define a 
+structured process to collect  data points and analyze them to validate any threats  in the vehicle 
+ecosystem. Others may develop  criteria for triaging security events with the relevant IT or 
+engineering teams. Some c ompanies may also consider providing escalation paths for the VSOC 
+team to gather additional data if needed.   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  13 THREAT DETECTION, MO NITORING & ANALYSIS  
+Some o rganizations may  benefit from  develop ing methods for  generating security events with 
+appropriate details for testing the full secu rity event detection lifecycle.  For example, organizations 
+may want to have  a way to trigger a system to cause the detection systems to believe a true 
+security event has occurred .  It is recommended that t esting be continuous to help ensure that 
+detection systems are operating as designed.  
+After security events are detected  and escalated , it is generally a good practice to track the 
+lifecycle of these events.  This process  may allow for the tracking of documentation, information  
+of interest , and any communications that occur as part of the security event lifecycle.  
+2.5.3 Taking  Necessary Action  
+Threat identification, validation , and verification allow s an organization to appropriat ely target  and 
+prioritize threats that may warrant  development of response strategies. Threat response 
+strategies typically leverage  internal product inventories , third-party support, and  internal teams  
+responsible for  coordination  and strategy .  
+Cross referencing threat intelligence with  internal  inventories of internal assets, such as hardware  
+bill of materials,  software bill of materials, and V INs allow organizations to quickly identify vehicles 
+affected by validated threats. A best practice is for organizations to have a thorough  asset 
+inventory list that can be used to speed up process es to  identify  the root cause of potential cyber 
+events and contact  appropriate  supply chain partners as  necessary. Additionally, thorough  lists 
+provide organization s confidence that the potential impacts of identified and validated threats are 
+reasonably understood . 
+In addition to development of a thorough  inventory list, maintaining the list  is also important . Over 
+time, inventory lists often beco me fragmented when project managers leave companies, resulting 
+in legacy hardware and software inventories existing only on isolated spreadsheets.  
+Organization s that do not have a method ology to track this information  may leverage partnerships 
+to obtain strategies that have worked well for other firms. 
+2.6 BEST PRACTICES FOR INFORMATION ORGANIZATION , STORAGE , AND SHARING  
+Much of the information generated as a byproduct of program requirements such as definition s, 
+intelligence gather ing, threat monitoring, and threat analysis is valuable to the organization, as 
+well as  its threat detection and response program s. Information can be organized, stored, and 
+shared appropriately to inform future decisions in the threat detection and respon se program by 
+using historical trends and results.  Types  of information to organize  and store  include:  
+• Threat actors  
+o Name  or identifier  
+o Threat actor description  
+o Source of primary threat actor intelligence ( i.e., point of contact  to he lp refresh data 
+periodically)  
+o Observed tactics, techniques, and procedures (TTPs)  
+o Associated internet protocol (IP) address es and assets  
+o Threat events each actor is associated with  
+• Threat events  
+o Affected systems  
+o Affected system suppliers and product owner s  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  14 THREAT DETECTION, MO NITORING & ANALYSIS  
+o Threat event r isk assessments  
+o Associated references to v ulnerability management systems  
+• Threat intelligence requirements  
+o Source of collection requirements  
+o Reference to risk  or threat that each requirement is intended  to address  
+• Threat monitoring  
+o Data associated with m onitoring requirements  
+o Data associated with monitoring performa nce ( false positives/negatives)  
+o Data associated with performance  of threat intelligence sources  
+• Any associated timestamps , coordinated in a way that events from disparate systems can 
+be correlated to each other  (e.g. universal time code ) 
+2.6.1 Key Considerations for Information Storage  and Organization  
+When defining  steps to store threat detection a nd analysis information , organizations might want 
+to consider several factors such as types of data, storage  methodology , and length of period for 
+storage . 
+The first decision organizations could  make is how to securely store and manage access control 
+to threat detection and analysi s information. Steps  for securely storing sensitive data and 
+managing access control include:  
+• Develop ing a process for vetting and authorizing new access requests to the data  
+• Periodically audit ing the authorized individuals to help ensure their access is s till required  
+• Limit ing access to the data to only those individuals that are providing updated data or 
+need to query the data  
+• Limit ing data modification capabilities to only those that requ ire the need to modify the 
+data 
+• Maintaining logs of data queries an d modifications  
+• Ensuring h igh availability and disaster recovery   
+• Implementing e ncryption  protocols  
+• Using an i nformation classification  system  
+• Giving  more recent  events priority over ol der events prior to overwriting or rollover   
+• Summarizing events ( e.g. counts) prior to overwriting  or rollover   
+• Implementing  controls  (e.g. digital signatures ) to protect the integrity of event data 
+while  stored  onboard and offboard  
+• Using  a store -and-forward approach to cope with network availability issues  
+• Defining retention and backup requirements   
+Following storage, information  can be organized to allow organizations and teams to effective ly 
+use it. A best practice for information  organ ization is to define key process indicators  using 
+available  information, and then create  dashboards and reports to enable future analysis of stored 
+information . Organizations may consider integrating this information into their vulnerability 
+management and incident response processes. This will enable more rapid and accurate data 
+access during an incident. It also makes the collating of information more efficient if all systems 
+are using the same terminolog y and object models.  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  15 THREAT DETECTION, MO NITORING & ANALYSIS  
+2.6.2 Approaches for Internal and External Sharing  
+Threat detection and analys is information  may be shared and used across the organization t o 
+help ensure thorough  analysis.  Intelligence adds value when shared to assist with operation al or 
+strategic decisions.  Actionable intelligence is especially useful if a threat is active. (See the Auto-
+ISAC’s  Risk Assessment and  Management Best Practice Guide  for more information) . Some 
+considerations for organizations when defining how and what information to s hare are : 
+• How to determine if i nformation can  or should be shared  
+• Approval process (if applicable) to share informatio n internally and/or  externally  that could 
+include : legal, safety, communications, and in-vehicle Subject Matter Experts (SME)  
+• Audiences for the typ e of information to be shared  
+• Mechanisms for distribution of informati on to approved parties  
+• Negotiating a  common format for sharing information in advance of sharing (e.g. tagging 
+or prioritization) ( See Section 2.3.3)  
+Possible  mechanisms  for internal and external sharing of information include:  
+• Newsletter summari es with appropriate  email distribution published daily  or weekly  with 
+special alerts as needed  
+• Reoccurring staff meetings for cybersecurity stakeholders  or cross  functional staff to 
+update  and exchange information  
+• Dedicated  internal website or portal   
+• Auto-ISAC portal   
+• Chat room alerts  
+• Providing  feedback to intelligence source s related to quality of intelligence received  
+• Utilizing  existing corporate/organizationa l communication platforms for sharing updates  
+• Incorporat ing information into training and awareness materials  
+• Send ing information out to appropriate organization members on a regular cadence ( e.g. 
+monthly, q uarterly) providing awareness information, indu stry updates around threats, 
+information location, and communication contact points.  
+Some internal stakeholders that may find intelligence valuable when shared include:  
+• Customer care and aftermarket teams : Data may allow analysis of  user behavior , 
+consistent with privacy policies, to prevent fraud , abuse , or exploit . 
+• Joint ventures and subsidiaries : May benefit from  appropriate collection requirements and 
+compartmentalization in each environment or region.  
+• Legal and public relations: May benefit from compliance requirements in each 
+environment or region.  
+• Other internal teams:  Share awareness and knowledge (e.g. threats, suspicious chatter, 
+inquiries from researchers, reverse engineering that might result  
+In addition to  defin ing how an organization is going to share information, they may define how to 
+properly handle such information . An organization may define  the specific data handling 
+procedures that accompany certain types of data labels. Distributors of the sensitive info rmation 
+should take steps to help  ensure  that those receiving any information are aware of their duty to 
+protect the sensitive information.   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  16 THREAT DETECTION, MO NITORING & ANALYSIS  
+Appendix A: Glossary of Terms  
+Relevant  terms used in this Guide are defined below.   
+TERM  DEFINITION  
+Attacker  Individual, group, organization, or government that conducts / has the  intent to 
+conduct an attack.  
+Attack Vector  A path or means by which a threat actor can gain access to the networks or assets  
+to deliver a malicious outcome.  
+Attack Path  A possible way in which a threat could reach the asset  
+Bill of Materials 
+(BOM)  A list of the raw materials, sub -assemblies, intermediate assemblies, sub -
+components, and the quantities of each needed to manufacture an end -product.  
+Future Vehicle 
+Designs  Future vehicle models that are in the design phase and have not started 
+development. These may be on the roads in the next 3 -5 years, or longer.   
+Impact  Estimate of magnitude of harm to stakeholders  originating from a threat and/or 
+attack   
+Penetration 
+Testing  The practice of testing a system, network or application to find vulnerabilities that a 
+threat actor  could exploit.  
+Post -Production  
+Vehicle  Vehicles that have been produced and sold to a dealer or end customer and  are 
+outside the OEM’s ownership.  
+Risk Profile  An evaluation of a  company’s risks, including  the number of risks, type of risk , and 
+potential effects of risks .  
+Risk Tolerance  The threshold of risk that an organization or individual  is willing to accept without 
+some form of response.  
+Threat  Any circumstance or event with the potential to adversely impact the vehicle 
+ecosystem through an information system via unauthorized access, destruction, 
+disclosure, or modification of information, and/or denial of service.  
+Threat Actor  A person or entity posing a threat to  the vehicle ecosystem . 
+Threat Event  An event or circumstance, perpetrated by a threat actor, that has the potential to 
+cause a negative impact to the vehicle ecosystem.  
+Threat Event 
+and Actor 
+Analysis  A method used in the risk assessment process in which a company identifies , 
+analyze s, assess es, and prioritize s potential threat events to a system, including an 
+analysis of the threat actors and attack vectors.  
+Vehicle 
+Cybersecurity 
+Risk  The likelihood o f and potential impact from the exploitation of a vehicle ecosystem 
+cybersecurity vulnerability in a threat  event . 
+Vehicle 
+Ecosystem  The components and infrastructure on or connected to the vehicle ( e.g. hardware 
+and software, intellectual property, mobile applications, customer data, vehicle data, 
+supplier/manufacturing networks, applications , processes and organizations that 
+directly  or indirectly touch the vehicle  and may play a role in vehicle cyberse curity ). 
+Vehicle in 
+Development  Vehicles currently being developed or in production that may be on the roads within 
+the next 3 years.  
+Vulnerability  Weakness of an asset or control that can be exploited by one or more threats .  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  17 THREAT DETECTION, MO NITORING & ANALYSIS  
+Appendix B: Additional References and Resources  
+The following References and Resources provide additional content and expertise for companies  
+to consider in conjunction with the Best Practices discussed in this Guide.  
+REFERENCES  – DOCUMENTS THAT MA Y OF FER ADDITIONAL IMPLEMENTATION GUIDANCE  
+ISO/SAE 21434 - Road Veh icle Cybersecurity Engineering S tandard  (under development ) <link> 
+NIST SP 800 -30 - Guide for Conducting Risk Assessments  <link> 
+SAE J3061 - Cybersecurity Guidebook for Cyber -Physical Vehicle Systems  <link> 
+NIST Cybersecurity Framewo rk <link> 
+ISO/IEC 15408 – Information Technology - Security Techniques < link> 
+ISO/IEC 17799 – Code of Practice for Information Security Management  <link> 
+ISO/IEC 27001 – Information Security Management Systems - Requirements < link> 
+ETSI Cyber Security Technical Committee (TC CYBER) ETSI TR 103 456 – Implementation of the 
+Network and Information Security (NIS) Directive < link> 
+ISO 31000:2009 – Principles and Guidelines on Implem entation  <link> 
+DOT HS 812 073 – NIST Cybersecurity Risk Framework Applied to Modern Vehicles  <link>
+Security Relevance Score: 23
+Word Count: 6611
+Extracted: 2025-06-13 23:40:19
+
+---
+
+2 for more information.  4 THREAT DETECTION, MO NITORING & ANALYSIS  
+1. This step focuses on u nderstanding  the automotive threat ecosystem  which forms the 
+basis of a threat detec tion, monitoring , and analysis program. This can involve 
+understanding  previously executed research and exploits, and threat agents across three 
+environments , namely: custo mers, enterprise, and third parties . The customer  
+environment can include  deployed vehicles,  vehicle components,  workshop tools, 
+software  applications , or other connected services. The enterprise environment could 
+include insider threats (e.g. disgruntled employees), manufacturing, IT, and other 
+operatio nal technologies  (OT) relevant to the vehicle ecosystem . Finally, the third-party 
+environment covers vendors, suppliers, delivery , and products ( e.g. devices or services ).  
+2. The second step is defining  your organization’s  threat intelligence requirement s across 
+the ecosystem. T he goal is to understand which type of information is of interest for a 
+given organization. For example, understanding requirements for i ndicators of 
+compromise, tactics, and anomalous events  can help  your organization identify threats  to 
+focus monitoring and better understand the threat landscape . 
+3. An appropriate knowledge base can help  each organization filter down what threats are  
+relevant or applicable  based on their risk profile or tolerance.  Once a company has 
+identified relevant threats to monitor,  appropriate  techniques to monitor the threats can be 
+refined .  
+4. With accurate threat information , companies can then develop relevant cyber forensic  
+analys is processes  where applicable . Results of such analysis serves as an input into the 
+development of a comprehensive response strategy.  
+5. Threat  information also enables companies to decide on the next course of action. Actions 
+can range from providing input t o engineering teams  (e.g. design  and security 
+engineering) , penetration testing teams,  vulnerability management teams, incident 
+response teams , and appropriate industry partners.  
+This Guide does not prescribe specific requirements for threat intelligence gathering, threat 
+monitoring, threat analysis, or information organization and storage . Instead, it  describe s decision 
+factors that companies  may use to determine what  is appropriate for their unique business 
+environment and risk landscape . The above framework can help organizations  at different levels 
+of cybersecurity capabilities to apply a structured approach to build or refine their threat detection 
+and an alysis processes.  
+2.2 BEST PRACTICES FOR DEFINING A THREAT DETECTION AND ANALYSIS PROCESS   
+The scope  of a threat detection and analysis pro cess may encompass any relevant vehicle 
+cybersecurity  threats , including  those  that originate from  both internal and external sources 
+throughout design, development , and post -production processes . Choosing the appropriate threat  
+scope  (which can vary  from organization to organization)  is fundament al for effective  threat 
+detection and analysis . 
+2.2.1 Threat Team Structure and Operating Model  
+The threat team may draw upon a company’s broader vehicle focused cybersecurity team or other 
+appropriate stakeholders as it creates collection requirements,  reviews intelligence, validates 
+threats, and creates  actionable intel ligence analysis. The  threat t eam can potentially benefit from 
+the following : 
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  5 THREAT DETECTION, MO NITORING & ANALYSIS  
+• An e xecutive level authority for the central team  responsible for vehicle related threat 
+detection and an alysis  
+• Access to necessary information in t he vehicle security ecosystem  
+• Pre-approved and documented acti ons that may be t aken based on security events  
+The threat team  may also be supported by a data science team  to analyze data from various 
+sources ( e.g. diagnostic trouble codes, intrusion detection systems , telematics data, transactions, 
+customer support – case analysis, text analysis , social media ). This team  can help design  and 
+maintain cross -functional design and test requirements for an in -vehicle network intrusion 
+detection system . The data science team may also suppor t anomaly detection  of any data that 
+supports the vehicle and provide the capability to  monitor performance and correctness  of vehicle 
+network communications against  design parameters.   
+Components of a successful operating model for threat detection and analysis  program s may 
+include effective  data collection and management processes , testing  the threat  detection  
+program , and other appropriate handoff  processes.  Regardless of the process or method chosen 
+by the company, there may be a need to adapt threat  detection and analysis processes based on 
+the company ’s changing risk landscape.  
+For example, an effective d ata collection  process  can be  based on risk. Typically , the data 
+collected and stored is as detailed as required for event analysis  and may include any identified 
+threat vectors  within the vehicle eco system . By collecting this data , actionable intelligence can be 
+created, reviewed, and distributed to appropriate product cybersecurity engineering teams for 
+structured analytic techniques including: anomaly analysis, trend analysis, signature analysis, 
+heuristic/behavioral analysis, and elimination of false -positive s and false -negatives . These 
+actionable f indings from the analysis of collected data  may benefit  incident response and 
+vulnerability program s by: informing incident response processes, refining  vulnerability severity 
+ratings, and refining  playbooks for possible incident types . 
+2.2.2 Stakeholder Roles and Responsibilities  
+The stakeholder  roles and responsibilities to maintain and mature an effective threat detection 
+and analysis process  represent a wide range of technical staff and partners across the business. 
+Roles and responsibil ities in this team  may include:  
+• Intelligence analysts : To execute the collection requirements plan, gather  and analyze  
+intelligence, and create  timely and actionable intelligence products for decision makers . 
+• Technical expert s: To provide guidance on colle ction requirements and feedback on the 
+value of intelligence pro ducts.  
+• Pene tration testers: To  understand the latest  attack vectors and trends of the offensive 
+cybersecurity community.  
+• Detection experts : To provide detection capabilities by gaining  specialized knowledge of 
+the vehicle security ecosystem along with the awareness of the data and tools available 
+for analyzing security events . 
+Teams with roles and responsibilities within a threat detection and analysis program could 
+potentially  include:  
+• Information  technology  team : To identify threats to IT infrastructure that may be connected 
+to the vehicle ecosystem.  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  6 THREAT DETECTION, MO NITORING & ANALYSIS  
+• Data science team : To detect  anomal ies and provide the capability to monitor performance 
+and correctness of vehicle network communication s against design parameters.  
+• Connected vehicle operations team:  To identify  threats to the connected vehicle  
+ecosystem  by analyzing vehicle telematics which  may includ e working with vendors to 
+manage threats  to cloud -connected environments.  
+• Security analys ts’ team: T o identify threats and  provide additional support such as 
+research and communication with  appropriate indivi duals or groups.  
+• Customer care and aftermarket teams : To detect fraud or abuse that affects the operation 
+of vehicles.   
+• Engineering and support  team: To bring knowledge of threat detect ion and domain specific 
+vehicle  systems. This engineering support team may provide and support tools for use by 
+the threat detection team for vehicle security event s and log monitoring.   
+• Internal legal team : To bring regulatory and compliance perspectives  that will protect the 
+organizati on. 
+• External teams : Such as law enforcement  and other public authorities that can share 
+threat intelligence  information  from their position as external thi rd parties.  
+As appropriate,  service  level and support agreements  apply  to interactions  among  stakeholders  
+and provide  documented and agreed upon timeframes for providing informatio n, feedback, data , 
+and support related to the  vehicle security ecosystem.   
+2.2.3 Automotive Threat Environment  
+The t hreat environment can generally  be described by two  concepts , threat actor s and attack 
+vector s. A person or thing (threat actor) uses different avenues (attack vectors) t o execute a 
+cybersecurity attack within the vehicle ecosystem . Threats can  exploit points of data ingress and 
+egress across the  vehicle ecosystem and  change throughout a vehicle or feature lifecycle.  A 
+common and effective way to identify, define, and categorize thr eats is by considering the impacts 
+to confidentiality, integrity, and availability (CIA) . Security  attacks that threat actors  to the vehicle 
+ecosystem could carry out include : 
+• Theft or exposure of data 
+o Theft  or exposure  of personally identifiable information  (PII) or other sensitive data  
+o Theft  or exposure  of vehicle -related data  or software  
+• Physical theft or compromise  
+o Unauthorized p hysical access to the interior or breaking door locks  
+o Theft of vehicle parts  
+o Theft of the entire vehicle  
+• Manipulating vehicle controls  
+o Breaking a vehicle’s immobilizer  
+o Illegal manipulation of components and functions  
+o Unauthorized activation  or deactivation of functionality  
+o Co-opting vehicle systems  
+o Loss of vehicle control  
+• Threats to availability  
+o Bricking veh icle systems  
+o Denial of service attack  
+o Ransomware  attack  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  7 THREAT DETECTION, MO NITORING & ANALYSIS  
+Threat Actor : A person or entity with motivation and capability to exploit a vulnerability in the 
+vehicle ecosystem . Understanding of threat actors typically includes  both capabilities and 
+motivation.  This information may be incorporated directly in to both risk assessments and incident 
+response processes.  Threat actors who may affect the vehicle ecosystem include:  
+• Terrorist organizations  
+• Malicious i nsider s 
+• Cyber -criminals  
+• Organized crime  group s 
+• Governmental organizations  
+• State sponsored attackers  and intelligence agencies  
+• Vandals /prankster s/hacktivist s 
+Attack Vectors:  The avenues or paths on an attack surface used to attack the vehicle ecosystem . 
+Attack vectors  to the  vehicle ecosystem  may includ e: 
+• Remote to vehicle  
+o Adjacent   
+▪ Bluetooth  
+▪ Wi-Fi 
+▪ Tire Pressure Monitoring System (TPMS)  
+o Distant  
+▪ Via back office channels  
+▪ Via remote capabilities  
+• Internal to vehicle  
+o Standard user interface  
+▪ Infotainment  
+▪ USB 
+o Standard programming/data interface  
+o Non-standard interface  
+▪ Accessing and modifying vehicle electrical systems  
+2.3 BEST PRACTICES FOR THREAT INTELLIGENCE  
+The purpose of threat intelligence is to know your adversary by understanding their motivation  
+and how they would manifest t hemselves in your environment. Threat intelligence can go beyond 
+the technical operational artifacts and  can sometimes include the economic or ideologic al drivers 
+that reveal the motivation and/or priority of your adversary. This can assist with the prioritization 
+of processing, communicating , or sharing of that intelligence  information both  internally and 
+externally.  Components of a threat intelligence capability include : 
+• Threat intelligence requirements  
+• Threat intelligence sources  
+• Threats and intelligence collection and  analysis   
+• Internal and external i ntelligenc e sharing standards and methods  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  8 THREAT DETECTION, MO NITORING & ANALYSIS  
+2.3.1 De fining  Threat Intelligence Requirements  
+Definition of threat intelligence requirements allows a company  to appro priately scope the threat 
+intelligence collection effort. To defin e vehicle threat  intelligence requirements , organizations may  
+identify the  types of threats , threat actors , and attack  vectors  that will be subject to intelligence 
+collection.  This process benefits from  collaboration with cross -functional teams to define and 
+validate requirements.  
+To support this collaboration , the threat team can i dentify stakeholders from cross -functional 
+teams (e.g. the domain architects and engineers, business p artners, supply chain)  and i nitiate 
+activities to foster relationships with SMEs to build trust and drive information sharing. 
+Organizations can also d evelop an understanding  through regular discussions focused on  what 
+cybersecurity threat concerns are mos t important.  
+Steps to make  threat intelligence requirements beneficial typically include :  
+• Documen ting intelligence requirements that can be used as an operating guideline  
+• Maintaining the  threat intelligence requirements in an official repository   
+• Revisin g threa t intelligence requirements and  operating guideline s at regular intervals to 
+capture changes  
+2.3.2 Defining  Threat Intelligence Sourc es 
+An important  step in building threat intelligence includes determining  the best intelligence sources. 
+These could  include internal teams , information repositories,  and public and private intelligence 
+sources. Examples of t hreat intelligence sources could include:  
+• Cybersecurity conferences  or summits ( e.g. BlackHat,  DEFCON , USENIX )  
+• Fleet and enterprise monitoring ( e.g. remote diagnostic monitoring, service monitoring, 
+and other anomaly detection initiativ es)  
+• Information sharing organizations  (e.g. Auto-ISAC , CISCP ) 
+• U.S. local, state, and federal  government resources  (e.g. NCIC C, DHS ICS CERT, US -
+CERT )  
+• International g overnment resources  (e.g. CERTs , BSI)  
+• Coordinated disclosure program  or bug bounty  program  
+• Dark Web or  Darknet  
+o Darknet marketplaces for technology, vulnerabilities, and credentials  
+o Dark Web forums  
+• Open source intelligence  
+o Enthusiast , technic al, and cybercriminal  
+o Paste -and-code  repository sites  
+o News aggregators and feeds  
+o Vendors  
+o Data and credential breach forums  
+• Industry peers, suppliers , and partners  
+• Security event and incident data   
+• Reports from  employees  and social media    
+• Data from s econdary extrapolation methods that could serve as impending threat 
+indication   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  9 THREAT DETECTION, MO NITORING & ANALYSIS  
+Teams can s hare information  to enable  a high -level understanding of those threats related to their 
+work environment (e.g. trends in types of calls or inquiries  about specific t opics around safety or 
+telematics systems). Additionally, w orking with technical staff can be beneficial in gaining intrinsic 
+knowledge of digital communities, distribution lists, and other resources that can serve as early 
+indicators of incidents, events,  research, and other intelligence.  
+An organization  may also choose  to engage external partnerships  with third -party vendors for 
+intelligence research program s. For example , programs  that have  high priority collection 
+requirements  can benefit when the capab ility is unavailable internally,  unique search capabilities  
+are required , or an organization  wants a layer  of separation from the research.  (See the Auto-
+ISAC’s  Collaboration and Engagement  with Appropriate  Third Parties Best Practice  Guide for 
+more information ) 
+2.3.3 Threat Intelligence Collection  
+Intelligence on threats is collected from se lected  and prioritized  intelligence sources  that are 
+pertinent to the organization . The volume of data might  be large.  Therefore , an agreed upon 
+method can be app lied to prioritize collection and analysis. The results are then used to 
+differentiate the highest risk  threats , as well as  highlight any gaps in the intelligence collection.  
+Steps for  analyzing  and prioritizing  intelligence typically  include:  
+• Determining  applicability of the threat to your environment ( e.g. is the impacted software 
+version in your ecosystem ?) 
+• Identify ing the date and time of the last known threat exploit within cyber landscape  
+• Determining whether  the threat has been seen in the relevant  environment  
+• Document ing potential impact of the cyber threat on vehicle ecosystem throughout the 
+product lifecycle  
+• Identifying  potential vectors for cyber attack. ( e.g. physical access, Bluetooth, cellular)  
+• Evaluating the  reliability of the data so urces from which the search criteria would generate 
+results ( e.g. CAN log, diagnostic data, IDS ) 
+• Considering t he capabilities and limitations of each intelligence source  (e.g. sources with 
+limited capability, or restrictions to consumption or funding may i nfluence prioritization ) 
+• Using n ormaliz ed nomenclature of technical systems to account for regional vernacula r, 
+colloquialisms, and acronyms;  as well as foreign scripts  
+• Considering t he input and contribution of technical SMEs and consumers to help ensure 
+the most relevant coverage  
+The results of analysis and prioritization are typically  documented in  a threat i ntelligence 
+repository . Using  a common repository or documentation process enables  ease of tool integration 
+and intelligence sharing. Areas of focus  for documenting intelligence into any repository include:  
+• Identify and enumerat e assets : To have a heightened awareness of threats by 
+characteriz ing for value and risk  
+• Tag entries:  To e nable integration and analytics across tools (examples include threat 
+type, adversary attribution, associations to incidents or other threats, CVE ). 
+• Describe r eliability : To validate  the threat information (examples include confirmed by 
+independ ent sources, pl ausible, logical ). 
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  10 THREAT DETECTION, MO NITORING & ANALYSIS  
+• Rate threat severity : To understand impact . Consider the capability of the 
+threat/adversary, focus or persistence of the threat,  and indicator relation to the attack  
+cycle ( i.e., beginning or end) . 
+Organizations can leverage threat  intelligence  to detect and address  attacks  as well as enrich 
+analysis during the incident response process. (See the Auto-ISAC’s  Incident Response  Best 
+Practice  Guide for more information ) 
+2.4 BEST PRACTICES FOR THREAT MONITORING PROCESS ES 
+Appropriate processes support monitoring of sources and data for new threat s. To effectively 
+create intelligence monitoring processes , organization s may define the threat areas with the most 
+significant risks to the business, and then focus processes and t echniques on moni toring threat 
+intelligence related to  those areas. Processes to monitor sources and gather new information  
+typically are  flexible because vehicle cybersecurity risks are constantly evolving because of  
+advancing vehicle technologies and an increas e in sophistication among t hreat actor s.   
+Since threat intelligence monitoring for vehicle cybersecurity shares many common practices with 
+enterprise cybersecurity, it can be good practice to use existing enterprise processes as an initial 
+guidelin e when developing vehicl e threat monitoring techniques.  There are , however,  some  
+differences between the skills and knowledge needed for vehicle threat  intelligence  monitoring  
+and those needed for enterprise threat intelligence monitoring . Thus,  it is also  good practice to 
+develop additional awareness and training content that is unique to each.  
+2.4.1  Defining  Priorities for Monitoring  
+Defined and prioritized threats provide the foundation for monitoring new threat intelligence  to 
+protect the vehicle ecosystem . Once  threats are prioritized , an organization  can begin monitoring  
+intelligence sources for new information on those defined and prioritized threats. This will help 
+enable  effective alignment of available, and often limit ed, resources.  
+Prioritizing  threats for intelligence monitoring can be informed  by analysis of an organization ’s 
+threat  tolerance to  known and emerging  threats within the automotive threat environment .  When  
+determining threat tolerance, organizations may use the following considerations  to evaluate and 
+prioritize  intelligence topics for monitoring : 
+• The i mminence of an attack by the threat (e.g. current attack,  private disclosure)   
+• The s everity  of an attack by the threat  (e.g. safety impact , privacy)   
+• The s cope of an attack by the threat  (e.g. single vehicle, few older vehicles,  fleet)   
+• The e ase of asset explo itation by the threat  (e.g. few skills needed,  exploit  exists)   
+• The o rganizational risk  the threat may pose due to  an attack  
+• The f inancial risk  the threat may pose due to an attack  
+• The practicability of an attack by the thre at (e.g. remote attack vector versus physical 
+attack vector)  
+Prioritizing threat intelligence areas and the r esulting impact severity of an attack has multiple 
+increasingly granular cri teria, including:  
+• If an event related to the threat intelligence could pose safety risks to customers  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  11 THREAT DETECTION, MO NITORING & ANALYSIS  
+• If an event related to the threat intelligence would have impacts  onboard or offboard the 
+vehicle  
+• If an event related to the threat  intelligence may cause  risk of PII data leaks   
+• If an event related to the threat i ntelligence would affect mobile or portal application 
+features  
+• The resulting number of vehicles that would be affected by an event related to the threat 
+intelligence  
+• The f ix time  associated with a threat  event related to the threat intelligence  
+• The i ncident response  effort  associated with an event related to the threat intelligence  
+• The potential legal , regulatory, or disclosure requirements   
+• The resulting cost that would b e associated with an event related to the threat intelligence  
+• The resulting negative p ublicity  impact  that an event related to the threat intelligence may 
+cause  
+2.4.2 Threat Monitoring Techniques and Approaches  
+Organizations may use threat monitoring tech niques and approaches based on their risk 
+tolerance and existing capabilities. If an organization does not have the capabilities to meet  their 
+needs, they may also partner with another organization to collect and aggregat e relevant threat 
+data.  
+While colle cting threat data  and developing  monitoring techniques , organizations may  gather  
+techniques and methods for how attackers are operating in the vehicle environment , as these 
+discrete data points could have value.  Knowledge of known techniques , in conjunction with data 
+points available to an organization ’s unique environment , may allow the security teams to build 
+detecti on models.  Based on defined  priorities for threat monitoring, organizations can implement 
+threat  monitoring techniques to maintain awareness of new threat  information .  
+2.5 BEST PRACTICES FOR THREAT ANALYSIS  
+Teams leverage the collected data for threat analysis. Threat analysis allows for the identification, 
+validation, and verification  of threats . From validated threats, threat event s can be detected,  and 
+response strategies to those events can be informed with threat intelligence . 
+2.5.1 Threat Event Identification  
+Organizations may implement  techniques to detect the presence of threats within the vehicle 
+ecosystem  based on defined priorities for monitoring threats and gathered intelligence  on 
+associated threats to the vehicle ecosystem . Some  techniques and approaches for threat 
+identification  in the vehicle ecosystem  include:  
+• Monitoring d iagnostic error codes   
+• Using intrusion /anomaly  detection systems  
+• Monitoring back office/SYSOPS  operations  
+• Monitoring connections to the vehicle  
+Similarly, techniques and approaches for threat identification within the vehicle fleet may include:  
+• Logging data collected by fleet monito ring systems to a centralized repository a nd 
+maintaining the data in a useable  format that is in accordance with a data retention plan   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  12 THREAT DETECTION, MO NITORING & ANALYSIS  
+• Logging interactions between  back office systems used for fleet monitoring activities and 
+vehicle systems t o a centralized system , with the logged data containing actions taken 
+and timestamps  
+• Employing data analysis  to monitor performance and compliance of in -vehicle network 
+communicat ions to design parameters  
+• Develop ing use cases that describe  how collected data can be used to alert on identified 
+threats  
+The u se of these techniques may be  facilitated by  a cross functional team approach  with 
+monitoring techniques used by multiple teams and stakeholders . The overall efforts may be 
+coordinated through a vehicle security operations center (VSOC). The VSOC is  typically  a 
+centralized unit that deals with  vehicle  security issues on an organizational  and technical level. 
+The VSOC may  monitor fo r high priority incident tickets  raised automatically by the system or by 
+an individual group  using threat identific ation techniques, then escalate  the incident tickets as 
+necessary. The VSOC could  assist in the escalation process (and event closures)  for identified 
+threats and security events within the vehicle ecosystem by:  
+• Triaging  incident tickets for technical and business impact   
+• Assess ing business impact to determine priority of an incident   
+• Driving  incident process escalations and comm unications for high priority incidents   
+• Review ing and accept ing incident tickets and transfer ring wherever appropriate  
+A common challenge faced when defining an approach and appropriate techniques for threat 
+identification  is accounting  for false p ositive threat identification  and the overall effectiveness of 
+the techniques against real world threats. Organizations can integrate  considerations for false 
+positi ve threat identification  when designing threat monitoring tech niques. The design 
+considerations may include:  
+• Erring on the side of safety  and privacy  
+• Being able to  perform a controlled test to verify the system s and processes are  working 
+properly   
+One additional consideration when implementing threat identification  technique s is how to classify 
+and manage access to threat identification  solutions and products within the organization. There 
+are at least t wo options for managing access to  threat identification  information . One option is to 
+create one access level  for the enginee ring team , and a second  access level  for everyone else. 
+Another option is to manage access  based on user level s, and then use  a “need to share” model, 
+meaning the most information possible is shared . This  “need to share”  model may be  used in 
+contrast to a “need to know” sharing model, which involves withholding the most information 
+possible.  
+2.5.2 Validation and Verification of Identified Threats  
+Organizations may validate and verify threats  in different ways. Some companies may define a 
+structured process to collect  data points and analyze them to validate any threats  in the vehicle 
+ecosystem. Others may develop  criteria for triaging security events with the relevant IT or 
+engineering teams. Some c ompanies may also consider providing escalation paths for the VSOC 
+team to gather additional data if needed.   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  13 THREAT DETECTION, MO NITORING & ANALYSIS  
+Some o rganizations may  benefit from  develop ing methods for  generating security events with 
+appropriate details for testing the full secu rity event detection lifecycle.  For example, organizations 
+may want to have  a way to trigger a system to cause the detection systems to believe a true 
+security event has occurred .  It is recommended that t esting be continuous to help ensure that 
+detection systems are operating as designed.  
+After security events are detected  and escalated , it is generally a good practice to track the 
+lifecycle of these events.  This process  may allow for the tracking of documentation, information  
+of interest , and any communications that occur as part of the security event lifecycle.  
+2.5.3 Taking  Necessary Action  
+Threat identification, validation , and verification allow s an organization to appropriat ely target  and 
+prioritize threats that may warrant  development of response strategies. Threat response 
+strategies typically leverage  internal product inventories , third-party support, and  internal teams  
+responsible for  coordination  and strategy .  
+Cross referencing threat intelligence with  internal  inventories of internal assets, such as hardware  
+bill of materials,  software bill of materials, and V INs allow organizations to quickly identify vehicles 
+affected by validated threats. A best practice is for organizations to have a thorough  asset 
+inventory list that can be used to speed up process es to  identify  the root cause of potential cyber 
+events and contact  appropriate  supply chain partners as  necessary. Additionally, thorough  lists 
+provide organization s confidence that the potential impacts of identified and validated threats are 
+reasonably understood . 
+In addition to development of a thorough  inventory list, maintaining the list  is also important . Over 
+time, inventory lists often beco me fragmented when project managers leave companies, resulting 
+in legacy hardware and software inventories existing only on isolated spreadsheets.  
+Organization s that do not have a method ology to track this information  may leverage partnerships 
+to obtain strategies that have worked well for other firms. 
+2.6 BEST PRACTICES FOR INFORMATION ORGANIZATION , STORAGE , AND SHARING  
+Much of the information generated as a byproduct of program requirements such as definition s, 
+intelligence gather ing, threat monitoring, and threat analysis is valuable to the organization, as 
+well as  its threat detection and response program s. Information can be organized, stored, and 
+shared appropriately to inform future decisions in the threat detection and respon se program by 
+using historical trends and results.  Types  of information to organize  and store  include:  
+• Threat actors  
+o Name  or identifier  
+o Threat actor description  
+o Source of primary threat actor intelligence ( i.e., point of contact  to he lp refresh data 
+periodically)  
+o Observed tactics, techniques, and procedures (TTPs)  
+o Associated internet protocol (IP) address es and assets  
+o Threat events each actor is associated with  
+• Threat events  
+o Affected systems  
+o Affected system suppliers and product owner s  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  14 THREAT DETECTION, MO NITORING & ANALYSIS  
+o Threat event r isk assessments  
+o Associated references to v ulnerability management systems  
+• Threat intelligence requirements  
+o Source of collection requirements  
+o Reference to risk  or threat that each requirement is intended  to address  
+• Threat monitoring  
+o Data associated with m onitoring requirements  
+o Data associated with monitoring performa nce ( false positives/negatives)  
+o Data associated with performance  of threat intelligence sources  
+• Any associated timestamps , coordinated in a way that events from disparate systems can 
+be correlated to each other  (e.g. universal time code ) 
+2.6.1 Key Considerations for Information Storage  and Organization  
+When defining  steps to store threat detection a nd analysis information , organizations might want 
+to consider several factors such as types of data, storage  methodology , and length of period for 
+storage . 
+The first decision organizations could  make is how to securely store and manage access control 
+to threat detection and analysi s information. Steps  for securely storing sensitive data and 
+managing access control include:  
+• Develop ing a process for vetting and authorizing new access requests to the data  
+• Periodically audit ing the authorized individuals to help ensure their access is s till required  
+• Limit ing access to the data to only those individuals that are providing updated data or 
+need to query the data  
+• Limit ing data modification capabilities to only those that requ ire the need to modify the 
+data 
+• Maintaining logs of data queries an d modifications  
+• Ensuring h igh availability and disaster recovery   
+• Implementing e ncryption  protocols  
+• Using an i nformation classification  system  
+• Giving  more recent  events priority over ol der events prior to overwriting or rollover   
+• Summarizing events ( e.g. counts) prior to overwriting  or rollover   
+• Implementing  controls  (e.g. digital signatures ) to protect the integrity of event data 
+while  stored  onboard and offboard  
+• Using  a store -and-forward approach to cope with network availability issues  
+• Defining retention and backup requirements   
+Following storage, information  can be organized to allow organizations and teams to effective ly 
+use it. A best practice for information  organ ization is to define key process indicators  using 
+available  information, and then create  dashboards and reports to enable future analysis of stored 
+information . Organizations may consider integrating this information into their vulnerability 
+management and incident response processes. This will enable more rapid and accurate data 
+access during an incident. It also makes the collating of information more efficient if all systems 
+are using the same terminolog y and object models.  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  15 THREAT DETECTION, MO NITORING & ANALYSIS  
+2.6.2 Approaches for Internal and External Sharing  
+Threat detection and analys is information  may be shared and used across the organization t o 
+help ensure thorough  analysis.  Intelligence adds value when shared to assist with operation al or 
+strategic decisions.  Actionable intelligence is especially useful if a threat is active. (See the Auto-
+ISAC’s  Risk Assessment and  Management Best Practice Guide  for more information) . Some 
+considerations for organizations when defining how and what information to s hare are : 
+• How to determine if i nformation can  or should be shared  
+• Approval process (if applicable) to share informatio n internally and/or  externally  that could 
+include : legal, safety, communications, and in-vehicle Subject Matter Experts (SME)  
+• Audiences for the typ e of information to be shared  
+• Mechanisms for distribution of informati on to approved parties  
+• Negotiating a  common format for sharing information in advance of sharing (e.g. tagging 
+or prioritization) ( See Section 2.3.3)  
+Possible  mechanisms  for internal and external sharing of information include:  
+• Newsletter summari es with appropriate  email distribution published daily  or weekly  with 
+special alerts as needed  
+• Reoccurring staff meetings for cybersecurity stakeholders  or cross  functional staff to 
+update  and exchange information  
+• Dedicated  internal website or portal   
+• Auto-ISAC portal   
+• Chat room alerts  
+• Providing  feedback to intelligence source s related to quality of intelligence received  
+• Utilizing  existing corporate/organizationa l communication platforms for sharing updates  
+• Incorporat ing information into training and awareness materials  
+• Send ing information out to appropriate organization members on a regular cadence ( e.g. 
+monthly, q uarterly) providing awareness information, indu stry updates around threats, 
+information location, and communication contact points.  
+Some internal stakeholders that may find intelligence valuable when shared include:  
+• Customer care and aftermarket teams : Data may allow analysis of  user behavior , 
+consistent with privacy policies, to prevent fraud , abuse , or exploit . 
+• Joint ventures and subsidiaries : May benefit from  appropriate collection requirements and 
+compartmentalization in each environment or region.  
+• Legal and public relations: May benefit from compliance requirements in each 
+environment or region.  
+• Other internal teams:  Share awareness and knowledge (e.g. threats, suspicious chatter, 
+inquiries from researchers, reverse engineering that might result  
+In addition to  defin ing how an organization is going to share information, they may define how to 
+properly handle such information . An organization may define  the specific data handling 
+procedures that accompany certain types of data labels. Distributors of the sensitive info rmation 
+should take steps to help  ensure  that those receiving any information are aware of their duty to 
+protect the sensitive information.   
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  16 THREAT DETECTION, MO NITORING & ANALYSIS  
+Appendix A: Glossary of Terms  
+Relevant  terms used in this Guide are defined below.   
+TERM  DEFINITION  
+Attacker  Individual, group, organization, or government that conducts / has the  intent to 
+conduct an attack.  
+Attack Vector  A path or means by which a threat actor can gain access to the networks or assets  
+to deliver a malicious outcome.  
+Attack Path  A possible way in which a threat could reach the asset  
+Bill of Materials 
+(BOM)  A list of the raw materials, sub -assemblies, intermediate assemblies, sub -
+components, and the quantities of each needed to manufacture an end -product.  
+Future Vehicle 
+Designs  Future vehicle models that are in the design phase and have not started 
+development. These may be on the roads in the next 3 -5 years, or longer.   
+Impact  Estimate of magnitude of harm to stakeholders  originating from a threat and/or 
+attack   
+Penetration 
+Testing  The practice of testing a system, network or application to find vulnerabilities that a 
+threat actor  could exploit.  
+Post -Production  
+Vehicle  Vehicles that have been produced and sold to a dealer or end customer and  are 
+outside the OEM’s ownership.  
+Risk Profile  An evaluation of a  company’s risks, including  the number of risks, type of risk , and 
+potential effects of risks .  
+Risk Tolerance  The threshold of risk that an organization or individual  is willing to accept without 
+some form of response.  
+Threat  Any circumstance or event with the potential to adversely impact the vehicle 
+ecosystem through an information system via unauthorized access, destruction, 
+disclosure, or modification of information, and/or denial of service.  
+Threat Actor  A person or entity posing a threat to  the vehicle ecosystem . 
+Threat Event  An event or circumstance, perpetrated by a threat actor, that has the potential to 
+cause a negative impact to the vehicle ecosystem.  
+Threat Event 
+and Actor 
+Analysis  A method used in the risk assessment process in which a company identifies , 
+analyze s, assess es, and prioritize s potential threat events to a system, including an 
+analysis of the threat actors and attack vectors.  
+Vehicle 
+Cybersecurity 
+Risk  The likelihood o f and potential impact from the exploitation of a vehicle ecosystem 
+cybersecurity vulnerability in a threat  event . 
+Vehicle 
+Ecosystem  The components and infrastructure on or connected to the vehicle ( e.g. hardware 
+and software, intellectual property, mobile applications, customer data, vehicle data, 
+supplier/manufacturing networks, applications , processes and organizations that 
+directly  or indirectly touch the vehicle  and may play a role in vehicle cyberse curity ). 
+Vehicle in 
+Development  Vehicles currently being developed or in production that may be on the roads within 
+the next 3 years.  
+Vulnerability  Weakness of an asset or control that can be exploited by one or more threats .  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see Section 1.2 for more information.  17 THREAT DETECTION, MO NITORING & ANALYSIS  
+Appendix B: Additional References and Resources  
+The following References and Resources provide additional content and expertise for companies  
+to consider in conjunction with the Best Practices discussed in this Guide.  
+REFERENCES  – DOCUMENTS THAT MA Y OF FER ADDITIONAL IMPLEMENTATION GUIDANCE  
+ISO/SAE 21434 - Road Veh icle Cybersecurity Engineering S tandard  (under development ) <link> 
+NIST SP 800 -30 - Guide for Conducting Risk Assessments  <link> 
+SAE J3061 - Cybersecurity Guidebook for Cyber -Physical Vehicle Systems  <link> 
+NIST Cybersecurity Framewo rk <link> 
+ISO/IEC 15408 – Information Technology - Security Techniques < link> 
+ISO/IEC 17799 – Code of Practice for Information Security Management  <link> 
+ISO/IEC 27001 – Information Security Management Systems - Requirements < link> 
+ETSI Cyber Security Technical Committee (TC CYBER) ETSI TR 103 456 – Implementation of the 
+Network and Information Security (NIS) Directive < link> 
+ISO 31000:2009 – Principles and Guidelines on Implem entation  <link> 
+DOT HS 812 073 – NIST Cybersecurity Risk Framework Applied to Modern Vehicles  <link> 
+ 
+RESOURCES  – ORGANIZATIONS THA T MAY OFFER ADDITION AL INSIGHTS  
+International Organization for Standardization (ISO) < link> 
+National Institute of Standards and Technology (NIST) < link> 
+National Highway Traffic Safety Administration (NHTSA) < link> 
+PMI PMBOK Guide  <link> 
+SAE International < link> 
+Institute of Risk Management (IRM) < link> 
+ISA/IEC 62443 Cybersecurity Certificate Programs  <link> 
+  
+ Traffic Light Protocol: White  (May be shared in public forums)  
+This Guide does not prescribe or require specific technical or organizational practices.  
+These are voluntary and aspirational practices, which may evolve over time.  
+Please see

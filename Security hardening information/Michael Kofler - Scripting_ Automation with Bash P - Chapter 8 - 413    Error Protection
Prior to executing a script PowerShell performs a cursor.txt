@@ -1,0 +1,80 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 8 - 4.13    Error Protection
+Prior to executing a script, PowerShell performs a cursory syntax check. Only in the case of serious syntax errors, such as unclosed parentheses or quotation marks, will a script not be executed at all.
+Also, as a consequence, PowerShell, like many other scripting languages, is quite tolerant of errors. If a command does not exist, a file to be accessed does not exist, or some other error is thrown, PowerShell displays an error message but then continues the script with the next statement. In this section, I’ll describe how you can make your PowerShell scripts as error proof as possible.
+Security Relevance Score: 2
+Word Count: 430
+Extracted: 2025-06-13 23:41:06
+
+---
+
+4.13    Error Protection
+Prior to executing a script, PowerShell performs a cursory syntax check. Only in the case of serious syntax errors, such as unclosed parentheses or quotation marks, will a script not be executed at all.
+Also, as a consequence, PowerShell, like many other scripting languages, is quite tolerant of errors. If a command does not exist, a file to be accessed does not exist, or some other error is thrown, PowerShell displays an error message but then continues the script with the next statement. In this section, I’ll describe how you can make your PowerShell scripts as error proof as possible.
+4.13.1    Set-StrictMode
+The Set-StrictMode command, mentioned several times earlier in this chapter, sets how picky PowerShell should be about detecting errors. Set-StrictMode currently supports three versions:
+
+
+Set-StrictMode -Version 1.0 causes an error message when using an uninitialized variable. Variables in strings (i.e., "text $UnknownVariable") are excluded.
+
+
+Set-StrictMode -Version 2.0 triggers an error for each uninitialized variable as well as when using non-existent properties.
+
+
+Set-StrictMode -Version 3.0 also throws an error when accessing non-existent array elements.
+
+
+The inaccuracies detected by Set-StrictMode will result in an error message, but the script will still continue! You can also specify Latest instead of a version number. However, the results of these tests should be taken with a grain of salt: If more validity tests are added in a future PowerShell version, your script may report an error even though nothing has changed in the code.
+4.13.2    Aborting Scripts on Errors
+The way PowerShell behaves when it detects an error depends on the contents of the $ErrorActionPreference variable. You can change the desired behavior simply by assigning a string to the variable. This change is allowed everywhere in a script. You can cause a different response to errors in different parts of the program.
+
+
+
+
+Setting
+
+
+Effect
+
+
+
+
+
+
+"Continue"
+
+
+Display error message, continue script (applies by default)
+
+
+
+
+"Inquire"
+
+
+Display error message and ask if script should be continued
+
+
+
+
+"SilentlyContinue"
+
+
+Continue script without error message
+
+
+
+
+"Stop"
+
+
+Display error message, end script
+
+
+
+
+Table 4.9    
+            The Most Important Settings for the $ErrorActionPreference Variable
+4.13.3    Separating Error Messages from Other Output
+When you run a script interactively in PowerShell, ordinary outputs and errors alike appear in the terminal. However, if you redirect the output of a script to a file using > outfile.txt, then that file will contain only the regular output. The error messages are still visible on the screen. This behavior has to do with the fact that PowerShell differentiates between multiple “streams” that are intended for different purposes. For background information on this topic, see

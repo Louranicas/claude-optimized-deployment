@@ -1,0 +1,75 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - Create a port-scanning script that iterates through the frequency-ordered ports and returns the result in some format.
+You can go about this in various ways, and we encourage you to write the script by using your own logic. If you get stuck, try modifying the script in Listing 11-1. Listing 11-4 shows how you might sort the ports in the nmap-services file by frequency.
+$ grep "/tcp" /usr/share/nmap/nmap-services | sort -r -k 3 | awk '{print $1, $2, $3}'
+Security Relevance Score: 3
+Word Count: 577
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Create a port-scanning script that iterates through the frequency-ordered ports and returns the result in some format.
+You can go about this in various ways, and we encourage you to write the script by using your own logic. If you get stuck, try modifying the script in Listing 11-1. Listing 11-4 shows how you might sort the ports in the nmap-services file by frequency.
+$ grep "/tcp" /usr/share/nmap/nmap-services | sort -r -k 3 | awk '{print $1, $2, $3}'
+
+http 80/tcp 0.484143
+telnet 23/tcp 0.221265
+https 443/tcp 0.208669
+ftp 21/tcp 0.197667
+ssh 22/tcp 0.182286
+smtp 25/tcp 0.131314
+ms-wbt-server 3389/tcp 0.083904
+pop3 110/tcp 0.077142
+microsoft-ds 445/tcp 0.056944
+netbios-ssn 139/tcp 0.050809
+--snip--
+
+Listing 11-4: Ordering the nmap-services file by frequency
+We use grep "/tcp" to filter for TCP-based ports only. We then pipe the result to the sort command and pass it -r (reverse) -k (key) followed by 3, which represents the frequency column (third). We print only the first, second, and third fields, using awk for a cleaner output. This gives us an ordered list of ports, which will give you an idea of which ports are more common.
+Now that you have a list, the next step is to either hardcode this list into your script and iterate over it or write the content to a file and have the bash script iterate over the lines in the file. The direction you choose is ultimately up to you. However, hardcoding a large list will make the script hard to read unless you shortlist only a handful of ports, so we recommend writing it to a dedicated file.
+To test your script, copy it to p-jumpbox-01 (172.16.10.13) and run it against the list of targets to identify any services running on the 10.1.0.0/24 corporate network. You should see output similar to this:
+$ ./port_scan_with_frequency.sh 10.1.0.13 10.1.0.14 10.1.0.15 10.1.0.16
+
+IP: 10.1.0.13
+Port: 8080
+Service: http-alt
+IP: 10.1.0.14
+Port: 6379
+Service: redis
+IP: 10.1.0.15
+Port: 80
+Service: http
+IP: 10.1.0.16
+Port: 3306
+Service: mysql
+
+Keep in mind that the scan can take a couple of minutes to complete.
+
+
+
+Exploiting Cron Scripts on Shared Volumes
+Now that we’ve gathered information about the corporate network, we’ll exploit various vulnerable services to gain access to it. Cron jobs may sometimes execute scripts that live on volumes shared by multiple machines. If system administrators misconfigure their permissions, unauthorized users may be able to modify them, which could potentially impact systems that rely on those scripts.
+Notice that on p-web-01 (172.16.10.10) a volume is mounted on /mnt/scripts. You can see it by running the commands mount or df -hTP on the server:
+$ df -hTP | grep "/mnt/scripts"
+/dev/sda1      ext4      79G   26G   50G  34% /mnt/scripts
+
+$ mount | grep "/mnt/scripts"
+/dev/sda1 on /mnt/scripts type ext4 (rw,relatime,errors=remount-ro)
+
+Inside this directory is a script called execute.sh that the root user owns and can write to. Listing 11-5 shows its contents.
+#!/bin/bash
+
+# This script is executed every minute on c-backup-01 to do maintenance work.
+
+❶ LOG="/tmp/job.log"
+
+echo "$(date) - Starting cleanup script..." >> "$LOG"
+❷ if find /tmp -type f ! -name 'job.log' -exec rm -rf {} +; then
+❸ echo "cleaned up files from the /tmp folder."  >> "$LOG"
+fi
+
+echo "$(date) - Cleanup script is finished." >> "$LOG"
+
+Listing 11-5: The /mnt/scripts/execute.sh file
+The comment in the script indicates that it is executed on the machine c-backup-01 (10.1.0.13) every minute. We can infer that the network share and this script are both available on c-backup-

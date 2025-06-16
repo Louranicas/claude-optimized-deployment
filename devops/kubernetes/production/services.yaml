@@ -1,0 +1,375 @@
+---
+# Main API Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-api
+  namespace: code-production
+  labels:
+    app: code-api
+    component: api
+    tier: backend
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:region:account:certificate/cert-id
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-timeout: "60"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: code-api
+    component: api
+
+---
+# API Service for External Access (Blue-Green)
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-api-external
+  namespace: code-production
+  labels:
+    app: code-api
+    component: api
+    tier: backend
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: api.code.example.com
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0  # Restrict in production
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+  - name: https
+    port: 443
+    targetPort: http
+    protocol: TCP
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: code-api
+    component: api
+    version: stable  # Changed during blue-green deployment
+
+---
+# Canary Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-api-canary
+  namespace: code-production
+  labels:
+    app: code-api
+    component: api
+    tier: backend
+    version: canary
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: code-api
+    component: api
+    version: canary
+
+---
+# Worker Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-worker
+  namespace: code-production
+  labels:
+    app: code-worker
+    component: worker
+    tier: backend
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: code-worker
+    component: worker
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-redis
+  namespace: code-production
+  labels:
+    app: code-redis
+    component: cache
+    tier: data
+spec:
+  type: ClusterIP
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: redis
+    protocol: TCP
+  selector:
+    app: code-redis
+    component: cache
+
+---
+# Redis Sentinel Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-redis-sentinel
+  namespace: code-production
+  labels:
+    app: code-redis
+    component: sentinel
+    tier: data
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: sentinel
+    port: 26379
+    targetPort: sentinel
+    protocol: TCP
+  selector:
+    app: code-redis
+    component: sentinel
+
+---
+# PostgreSQL Primary Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-postgres
+  namespace: code-production
+  labels:
+    app: code-postgres
+    component: database
+    tier: data
+    role: primary
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
+    protocol: TCP
+  selector:
+    app: code-postgres
+    component: database
+    role: primary
+
+---
+# PostgreSQL Read Replicas Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-postgres-read
+  namespace: code-production
+  labels:
+    app: code-postgres
+    component: database
+    tier: data
+    role: replica
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
+    protocol: TCP
+  selector:
+    app: code-postgres
+    component: database
+    role: replica
+
+---
+# Monitoring Service (Prometheus)
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-prometheus
+  namespace: code-production
+  labels:
+    app: code-prometheus
+    component: monitoring
+spec:
+  type: ClusterIP
+  ports:
+  - name: prometheus
+    port: 9090
+    targetPort: prometheus
+    protocol: TCP
+  selector:
+    app: code-prometheus
+    component: monitoring
+
+---
+# Monitoring Service (Grafana)
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-grafana
+  namespace: code-production
+  labels:
+    app: code-grafana
+    component: monitoring
+spec:
+  type: ClusterIP
+  ports:
+  - name: grafana
+    port: 3000
+    targetPort: grafana
+    protocol: TCP
+  selector:
+    app: code-grafana
+    component: monitoring
+
+---
+# Jaeger Service for Distributed Tracing
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-jaeger-query
+  namespace: code-production
+  labels:
+    app: code-jaeger
+    component: tracing
+spec:
+  type: ClusterIP
+  ports:
+  - name: query
+    port: 16686
+    targetPort: 16686
+    protocol: TCP
+  - name: grpc-query
+    port: 16685
+    targetPort: 16685
+    protocol: TCP
+  selector:
+    app: code-jaeger
+    component: query
+
+---
+# Jaeger Collector Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-jaeger-collector
+  namespace: code-production
+  labels:
+    app: code-jaeger
+    component: tracing
+spec:
+  type: ClusterIP
+  ports:
+  - name: jaeger-thrift-http
+    port: 14268
+    targetPort: 14268
+    protocol: TCP
+  - name: jaeger-grpc
+    port: 14250
+    targetPort: 14250
+    protocol: TCP
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+  selector:
+    app: code-jaeger
+    component: collector
+
+---
+# OpenTelemetry Collector Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: code-production
+  labels:
+    app: otel-collector
+    component: observability
+spec:
+  type: ClusterIP
+  ports:
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+  - name: prometheus
+    port: 8888
+    targetPort: 8888
+    protocol: TCP
+  - name: metrics
+    port: 8889
+    targetPort: 8889
+    protocol: TCP
+  selector:
+    app: otel-collector
+    component: observability
+
+---
+# Service Monitor for Prometheus Operator
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: code-api-monitor
+  namespace: code-production
+  labels:
+    app: code-api
+    component: api
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: code-api
+      component: api
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+    scheme: http
+    scrapeTimeout: 10s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: node
+    metricRelabelings:
+    - regex: ^go_.*
+      action: drop
+      sourceLabels: [__name__]

@@ -1,0 +1,91 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - Add another command line option to LinEnum to compress (-c) the report into a tar.gz file by using the tar command.
+Reading foreign code is just as important as writing code. Everyone has their own style of writing and way of implementing logic, and you can learn a lot about the internal plumbing of tools as well as ways to tailor them to your needs.
+Security Relevance Score: 7
+Word Count: 893
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Add another command line option to LinEnum to compress (-c) the report into a tar.gz file by using the tar command.
+Reading foreign code is just as important as writing code. Everyone has their own style of writing and way of implementing logic, and you can learn a lot about the internal plumbing of tools as well as ways to tailor them to your needs.
+
+
+Summary
+In this chapter, we highlighted the major categories of data collection you can conduct on a compromised host, such as the operating system and kernel, adjacent networks and connections, running processes and user activity sessions, environment data, user and group identities, system and third-party logfiles, and configuration files. In addition, we used Cron and At to schedule the execution of shell scripts.
+As you progress through the book, you’ll continue collecting data to aid with privilege escalation, credential access, and other nefarious hacking activities.
+
+
+
+
+
+
+
+
+
+
+
+
+9
+PRIVILEGE ESCALATION
+
+
+
+In this chapter, you’ll learn about the various ways that unintentional system misconfigurations and a lack of hardening could help you elevate your privileges on a compromised host. We’ll explore how the Linux operating system grants permissions, examine a system’s sudo and PATH configurations, automate the search for sensitive files, manipulate vulnerable cron jobs, attack system accounts, discover kernel exploits, and more.
+
+What Is Privilege Escalation?
+Privilege escalation occurs when a low-privileged user is able to perform privileged operations that are outside the scope of the current user’s identity permissions by abusing misconfigurations, taking over other accounts, or exploiting other vulnerabilities. It’s an important stage in the compromise chain, because low-privileged accounts limit the actions you can take on a system. The following are examples of actions that an attacker might take but that are usually forbidden for nonroot users:
+
+Reading system files that may contain sensitive information
+Creating files and folders in privileged system locations
+Creating additional system users or modifying existing ones
+Modifying or deleting sensitive files, such as logs
+Installing system-wide software packages
+Modifying the configuration of services
+Enabling, disabling, or restarting services
+
+Of course, if misconfigurations exist on a system, we might be able to perform these actions from low-privileged accounts. For example, we might be able to write to a directory if it has the wrong permissions set, or read a sensitive file if it were copied to a path that is accessible by all system users and happened to inherit the permissions of its new location.
+Numerous conditions can enable privilege escalation: configuration mistakes, a lack of system hardening, poor software design, assumptions about the environment, and so on. Here are technical and theoretical examples that could lead to privilege escalation conditions:
+
+Using vulnerable software packages or kernel versions
+Granting overly lax permissions on dangerous utilities or processes
+Running applications by using privileged context, such as root
+Assuming that all users are to be trusted
+Storing reused credentials in files accessible to all users
+
+
+
+Linux File and Directory Permissions
+Every file and directory has a configuration made up of read (r), write (w), and execute (x) permissions. In addition, every file and directory is owned by a user and a group. As you learned in the previous chapter, Linux defines users in /etc/passwd and groups in /etc/group. Administrators grant permissions to a particular user, a particular group, and anyone else (also called others).
+File and directory permissions and ownership can be changed accidentally or made loose because of a misconfiguration, meaning these resources have the potential to be exposed to unauthorized users. It is important to spot these misconfigurations when performing penetration tests.
+
+Viewing Permissions
+Let’s examine the permission and ownership assignments of the /etc/passwd file as an example. We’ll walk through the bolded part of the output, from left to right:
+$ ls -l /etc/passwd
+
+-rw-r--r-- 1 root root 1341 Jun 28 01:11 /etc/passwd
+
+The first character represents the type of resource. A hyphen (-) indicates a file, while the d character would represent a directory.
+Next, rw- represents the file’s owner permissions. In this case, the permissions are set to read (r) and write (w). The last hyphen is a placeholder for the execute (x) permission, which isn’t set here.
+The next set of permissions (r--) belongs to the group and indicates read access only. Other users also have only read access. The two instances of root represent the identity of the file’s owner and group: the root user and the root group. Figure 9-1 illustrates this permission breakdown in a digestible way.
+
+Figure 9-1: Basic file permissions
+
+In practice, these permissions mean that all local accounts can read the file but that only the root user can modify it.
+
+
+Setting Permissions
+We set Linux file and directory permissions by using the chmod command, and set file and directory ownership by using the chown command. To see these commands in action, create an empty file named my_new_file.txt on your Kali machine:
+$ cd ~
+$ touch my_new_file.txt
+
+Next, set this file’s user and group to kali:
+$ chown kali:kali my_new_file.txt
+Now set read, write, and execute permissions for the user (u+rwx), read permissions for the group (g+r), and read permissions for everyone else (o+r):
+$ chmod u+rwx,g+r,o+r my_new_file.txt
+$ ls -l my_new_file.txt
+
+-rwxr--r-- 1 kali kali 0 Jun 27 22:28 my_new_file.txt
+
+We can also represent file and directory permissions (but not ownership) by using octal representation, which uses the digits 0 through

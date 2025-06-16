@@ -8,11 +8,9 @@ that integrate with the existing MCP framework.
 from __future__ import annotations
 import os
 import asyncio
-import subprocess
 import json
 import tempfile
 import logging
-import shlex
 import re
 from typing import Dict, Any, List, Optional, Union, Set
 from pathlib import Path
@@ -28,88 +26,38 @@ from src.core.exceptions import (
     ValidationError,
     handle_error
 )
+from src.core.secure_command_executor import SecureCommandExecutor, CommandCategory
+from src.core.command_sanitizer import CommandSanitizer, sanitize_command_input
+
+__all__ = [
+    "DesktopCommanderMCPServer",
+    "DockerMCPServer",
+    "KubernetesMCPServer"
+]
 from src.core.path_validation import validate_file_path
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError,
+    ValidationError,
+    ConfigurationError,
+    CircuitBreakerError,
+    RateLimitError
+)
 
 logger = logging.getLogger(__name__)
 
-# Command whitelist for security
-ALLOWED_COMMANDS: Set[str] = {
-    # Version control
-    "git", "gh",
-    # Python tools
-    "python", "python3", "pip", "pip3", "pytest", "mypy", "black", "flake8", "ruff",
-    # Node.js tools
-    "node", "npm", "yarn", "npx",
-    # Build tools
-    "make", "cmake", "cargo",
-    # Container tools
-    "docker", "docker-compose", "kubectl", "helm",
-    # System info (read-only)
-    "ls", "pwd", "echo", "date", "whoami", "hostname", "uname",
-    # File operations (restricted)
-    "cat", "head", "tail", "grep", "find", "wc",
-    # Process management (restricted)
-    "ps", "top", "htop",
-    # Network tools (restricted)
-    "curl", "wget", "ping", "netstat",
-    # Archive tools
-    "tar", "zip", "unzip", "gzip", "gunzip",
-    # Environment
-    "env", "export",
-}
-
-# Dangerous patterns to detect command injection attempts
-INJECTION_PATTERNS = [
-    # Command chaining
-    re.compile(r'[;&|]{2,}'),  # Multiple command separators
-    re.compile(r'(?<!\\)[;&|](?!&)'),  # Unescaped command separators
-    # Command substitution
-    re.compile(r'\$\([^)]+\)'),  # $()
-    re.compile(r'`[^`]+`'),  # Backticks
-    re.compile(r'\$\{[^}]+\}'),  # ${} 
-    # Redirection abuse
-    re.compile(r'>\s*/dev/(tcp|udp)'),  # Network redirection
-    re.compile(r'<\s*/dev/(tcp|udp)'),  # Network input
-    # Path traversal
-    re.compile(r'\.\.(/|\\){2,}'),  # Multiple parent directory references
-    # Shell functions
-    re.compile(r'function\s+\w+'),
-    re.compile(r'\w+\s*\(\s*\)\s*\{'),
-    # Dangerous commands even if in whitelist
-    re.compile(r'(rm|rmdir|mv|cp)\s+(-rf?|-fr?)\s'),  # Destructive operations
-    re.compile(r':(bomb|fork)'),  # Fork bombs
-    # Script execution
-    re.compile(r'(sh|bash|zsh|csh|ksh|fish)\s+-c'),  # Shell execution
-    re.compile(r'(python|perl|ruby|php)\s+-e'),  # Script execution
-    # System modification
-    re.compile(r'(chmod|chown)\s+(-R\s+)?[0-7]{3,4}'),  # Permission changes
-    re.compile(r'/etc/(passwd|shadow|sudoers)'),  # System files
-    # Environment manipulation
-    re.compile(r'LD_PRELOAD='),
-    re.compile(r'PATH='),
-]
-
-# Maximum output size (10MB)
-MAX_OUTPUT_SIZE = 10 * 1024 * 1024
-
-# Maximum command length
-MAX_COMMAND_LENGTH = 4096
-
-# Docker image name validation
-DOCKER_IMAGE_PATTERN = re.compile(r'^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?)*(:([a-zA-Z0-9._-]+))?$')
-
-# Kubernetes resource name validation
-K8S_NAME_PATTERN = re.compile(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?$')
-K8S_NAMESPACE_PATTERN = re.compile(r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?$')
-
-# Docker command validation
+# Docker command validation constants (still needed for Docker-specific validation)
 DOCKER_SAFE_ARGS = {
     'docker_run': ['--rm', '--name', '-v', '-e', '-p', '--network', '--memory', '--cpus', '--user'],
     'docker_build': ['-f', '-t', '--build-arg', '--target', '--cache-from'],
     'docker_compose': ['-f', '--project-name', '--profile']
 }
 
-# Kubernetes safe resource types
+# Kubernetes safe resource types (still needed for K8s-specific validation)
 K8S_SAFE_RESOURCES = {
     'pods', 'services', 'deployments', 'configmaps', 'secrets', 'ingress',
     'replicasets', 'daemonsets', 'statefulsets', 'jobs', 'cronjobs',
@@ -131,6 +79,17 @@ class DesktopCommanderMCPServer(MCPServer):
         self.working_directory = Path.cwd()
         self.command_history: List[Dict[str, Any]] = []
         self._circuit_breaker_manager = None
+        
+        # Initialize secure command executor
+        self.command_executor = SecureCommandExecutor(
+            working_directory=self.working_directory,
+            max_output_size=10 * 1024 * 1024,  # 10MB
+            enable_sandbox=True,
+            audit_log_path=Path(tempfile.gettempdir()) / 'desktop_commander_audit.log'
+        )
+        
+        # Add additional commands to whitelist for desktop operations
+        self._setup_desktop_commands()
         
         # Update capabilities
         self.capabilities = MCPCapabilities(
@@ -158,6 +117,60 @@ class DesktopCommanderMCPServer(MCPServer):
         # Register resource permissions if permission checker available
         if self.permission_checker:
             self.register_resource_permissions()
+    
+    def _setup_desktop_commands(self):
+        """Add desktop-specific commands to the executor whitelist."""
+        # Add file operations
+        self.command_executor.add_to_whitelist(
+            'find',
+            CommandCategory.FILE_OPS,
+            allowed_args=['-name', '-type', '-size', '-mtime', '-exec'],
+            dangerous_args=['-delete', '-exec rm'],
+            max_args=20
+        )
+        
+        # Add process tools
+        self.command_executor.add_to_whitelist(
+            'ps',
+            CommandCategory.SYSTEM_INFO,
+            allowed_args=['aux', '-ef', '-p'],
+            dangerous_args=[],
+            max_args=5
+        )
+        
+        # Add network tools
+        self.command_executor.add_to_whitelist(
+            'netstat',
+            CommandCategory.NETWORK_OPS,
+            allowed_args=['-an', '-tulpn', '-s'],
+            dangerous_args=[],
+            max_args=5
+        )
+        
+        # Add mypy and other Python tools
+        self.command_executor.add_to_whitelist(
+            'mypy',
+            CommandCategory.PYTHON_TOOLS,
+            allowed_args=['--strict', '--ignore-missing-imports'],
+            dangerous_args=[],
+            max_args=10
+        )
+        
+        self.command_executor.add_to_whitelist(
+            'black',
+            CommandCategory.PYTHON_TOOLS,
+            allowed_args=['--check', '--diff', '--line-length'],
+            dangerous_args=[],
+            max_args=10
+        )
+        
+        self.command_executor.add_to_whitelist(
+            'ruff',
+            CommandCategory.PYTHON_TOOLS,
+            allowed_args=['check', '--fix', '--select', '--ignore'],
+            dangerous_args=[],
+            max_args=10
+        )
     
     def _get_all_tools(self) -> List[MCPTool]:
         """Get available Desktop Commander tools."""
@@ -336,169 +349,47 @@ class DesktopCommanderMCPServer(MCPServer):
         user: Optional[Any] = None,
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Execute a terminal command with security validation."""
-        # Validate command length
-        if len(command) > MAX_COMMAND_LENGTH:
-            raise ValidationError(
-                f"Command exceeds maximum length of {MAX_COMMAND_LENGTH} characters",
-                field="command",
-                value=f"{command[:50]}... (truncated)"
-            )
-        
-        # Validate timeout
-        if timeout <= 0 or timeout > 600:  # Max 10 minutes
-            raise ValidationError(
-                "Timeout must be between 1 and 600 seconds",
-                field="timeout",
-                value=timeout
-            )
-        
-        # Check for injection patterns
-        for pattern in INJECTION_PATTERNS:
-            if pattern.search(command):
-                raise CommandExecutionError(
-                    "Command contains potentially dangerous patterns",
-                    command=command,
-                    exit_code=-1,
-                    stderr="Security validation failed: suspicious command pattern detected"
-                )
-        
-        # Parse command to extract the base command
+        """Execute a terminal command using secure command executor."""
         try:
-            # Use shlex to safely parse the command
-            parts = shlex.split(command)
-            if not parts:
-                raise ValidationError("Empty command", field="command", value=command)
-            
-            base_command = parts[0]
-            
-            # Check if command is in whitelist
-            if base_command not in ALLOWED_COMMANDS:
-                # Check if it's a path to an allowed command
-                base_name = os.path.basename(base_command)
-                if base_name not in ALLOWED_COMMANDS:
-                    raise CommandExecutionError(
-                        f"Command '{base_command}' is not in the allowed command list",
-                        command=command,
-                        exit_code=-1,
-                        stderr=f"Security validation failed: '{base_command}' is not an allowed command"
-                    )
-        except ValueError as e:
-            raise ValidationError(
-                f"Invalid command syntax: {str(e)}",
-                field="command",
-                value=command
-            )
-        
-        # Validate working directory
-        work_dir = Path(working_directory) if working_directory else self.working_directory
-        try:
-            work_dir = work_dir.resolve()
-            if not work_dir.exists():
-                raise ValidationError(
-                    f"Working directory does not exist: {work_dir}",
-                    field="working_directory",
-                    value=str(working_directory)
-                )
-            if not work_dir.is_dir():
-                raise ValidationError(
-                    f"Working directory is not a directory: {work_dir}",
-                    field="working_directory", 
-                    value=str(working_directory)
-                )
-        except Exception as e:
-            raise ValidationError(
-                f"Invalid working directory: {str(e)}",
-                field="working_directory",
-                value=str(working_directory)
-            )
-        
-        logger.info(f"Executing validated command: {base_command} in {work_dir}")
-        
-        try:
-            # Use subprocess.run with explicit arguments (no shell=True)
-            process = await asyncio.create_subprocess_exec(
-                *parts,  # Unpack the safely parsed command parts
-                cwd=work_dir,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                # Limit subprocess resources
-                env={**os.environ, "PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin")},
-                stdin=asyncio.subprocess.DEVNULL  # No stdin access
+            # Sanitize inputs
+            sanitized = sanitize_command_input(
+                command=command,
+                working_directory=working_directory
             )
             
-            # Read output with size limits
-            stdout_data = b""
-            stderr_data = b""
+            # Add user context
+            exec_context = context or {}
+            exec_context.update({
+                "mcp_server": "desktop_commander",
+                "tool": "execute_command"
+            })
             
-            try:
-                # Use wait_for with timeout
-                async def read_with_limit(stream, limit):
-                    data = b""
-                    while True:
-                        chunk = await stream.read(8192)  # Read in chunks
-                        if not chunk:
-                            break
-                        if len(data) + len(chunk) > limit:
-                            data += chunk[:limit - len(data)]
-                            raise CommandExecutionError(
-                                f"Output exceeded maximum size of {limit} bytes",
-                                command=command,
-                                exit_code=-1,
-                                stderr="Output size limit exceeded"
-                            )
-                        data += chunk
-                    return data
-                
-                # Read both streams concurrently with timeout
-                stdout_task = asyncio.create_task(read_with_limit(process.stdout, MAX_OUTPUT_SIZE))
-                stderr_task = asyncio.create_task(read_with_limit(process.stderr, MAX_OUTPUT_SIZE))
-                
-                # Wait for process to complete with timeout
-                await asyncio.wait_for(process.wait(), timeout=timeout)
-                
-                # Get the output
-                stdout_data = await stdout_task
-                stderr_data = await stderr_task
-                
-            except asyncio.TimeoutError:
-                # Kill the process if it times out
-                try:
-                    process.kill()
-                    await process.wait()
-                except:
-                    pass
-                raise DeploymentTimeoutError(
-                    f"Command timed out after {timeout} seconds",
-                    timeout_seconds=timeout,
-                    operation="execute_command",
-                    context={"command": command, "working_directory": str(work_dir)}
-                )
+            # Execute command using secure executor
+            result = await self.command_executor.execute_async(
+                command=command,
+                working_directory=sanitized.get('working_directory', working_directory),
+                timeout=float(timeout),
+                user=user.username if user else "anonymous",
+                context=exec_context
+            )
             
-            # Decode output safely
-            try:
-                stdout = stdout_data.decode('utf-8', errors='replace')
-                stderr = stderr_data.decode('utf-8', errors='replace')
-            except Exception as e:
-                logger.warning(f"Failed to decode command output: {e}")
-                stdout = repr(stdout_data)
-                stderr = repr(stderr_data)
-            
-            result = {
-                "command": command,
-                "working_directory": str(work_dir),
-                "exit_code": process.returncode,
-                "stdout": stdout,
-                "stderr": stderr,
-                "success": process.returncode == 0
+            # Convert result to expected format
+            execution_result = {
+                "command": result.command,
+                "working_directory": result.working_directory,
+                "exit_code": result.exit_code,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "success": result.success,
+                "truncated": result.truncated
             }
             
             # Record in history (limit history size)
-            self.command_history.append(result)
+            self.command_history.append(execution_result)
             if len(self.command_history) > 100:  # Keep last 100 commands
                 self.command_history.pop(0)
             
-            return result
+            return execution_result
             
         except (DeploymentTimeoutError, CommandExecutionError, ValidationError):
             raise
@@ -511,36 +402,19 @@ class DesktopCommanderMCPServer(MCPServer):
                 cause=e
             )
     
-    async def _read_file(self, file_path: str, encoding: str = "utf-8") -> Dict[str, Any]:
-        """Read file contents with path validation."""
+    async def _read_file(self, file_path: str, encoding: str = "utf-8", user: Optional[Any] = None) -> Dict[str, Any]:
+        """Read file contents with secure path validation."""
         try:
-            path = Path(file_path)
+            # Sanitize file path
+            sanitized_path = CommandSanitizer.sanitize_path(
+                file_path,
+                base_dir=None,  # Allow reading from various locations
+                allow_relative=True,
+                must_exist=True,
+                allow_symlinks=True  # Allow symlinks for reading
+            )
             
-            # Resolve to absolute path and check for directory traversal
-            try:
-                abs_path = path.resolve()
-                # Ensure the file is within the current working directory or its subdirectories
-                cwd = self.working_directory.resolve()
-                if not (abs_path == cwd or cwd in abs_path.parents):
-                    # Allow reading from common system directories
-                    allowed_dirs = [
-                        Path("/etc").resolve(),
-                        Path("/usr").resolve(),
-                        Path("/opt").resolve(),
-                        Path.home().resolve()
-                    ]
-                    if not any(abs_path == allowed or allowed in abs_path.parents for allowed in allowed_dirs):
-                        raise ValidationError(
-                            "Access denied: file is outside allowed directories",
-                            field="file_path",
-                            value=file_path
-                        )
-            except Exception as e:
-                if isinstance(e, ValidationError):
-                    raise
-                raise ValidationError(
-                    f"Invalid file path: {str(e)}",
-                    field="file_path", 
+            path = Path(sanitized_path) 
                     value=file_path
                 )
             
@@ -587,34 +461,31 @@ class DesktopCommanderMCPServer(MCPServer):
         self,
         file_path: str,
         content: str,
-        create_dirs: bool = True
+        create_dirs: bool = True,
+        user: Optional[Any] = None
     ) -> Dict[str, Any]:
-        """Write content to file with path validation."""
+        """Write content to file with secure path validation."""
         try:
-            path = Path(file_path)
-            
             # Validate content size
-            if len(content) > MAX_OUTPUT_SIZE:
+            max_size = 10 * 1024 * 1024  # 10MB
+            if len(content) > max_size:
                 raise ValidationError(
-                    f"Content too large: {len(content)} bytes (max {MAX_OUTPUT_SIZE} bytes)",
+                    f"Content too large: {len(content)} bytes (max {max_size} bytes)",
                     field="content",
                     value=f"<{len(content)} bytes>"
                 )
             
-            # Resolve to absolute path and check for directory traversal
+            # Sanitize file path - restrict to working directory
             try:
-                abs_path = path.resolve()
-                # Ensure the file is within the current working directory
-                cwd = self.working_directory.resolve()
-                if not (abs_path == cwd or cwd in abs_path.parents):
-                    raise ValidationError(
-                        "Access denied: file is outside working directory",
-                        field="file_path",
-                        value=file_path
-                    )
+                sanitized_path = CommandSanitizer.sanitize_path(
+                    file_path,
+                    base_dir=self.working_directory,
+                    allow_relative=True,
+                    must_exist=False,
+                    allow_symlinks=False  # Don't allow symlinks for writing
+                )
+                abs_path = Path(sanitized_path)
             except Exception as e:
-                if isinstance(e, ValidationError):
-                    raise
                 raise ValidationError(
                     f"Invalid file path: {str(e)}",
                     field="file_path",
@@ -750,34 +621,37 @@ class DesktopCommanderMCPServer(MCPServer):
                 cause=e
             )
     
-    async def _make_command(self, target: str, args: Optional[str] = None) -> Dict[str, Any]:
-        """Execute Make commands for CODE project."""
-        # Validate target name
-        if not re.match(r'^[\w\-\.]+$', target):
+    async def _make_command(self, target: str, args: Optional[str] = None, user: Optional[Any] = None) -> Dict[str, Any]:
+        """Execute Make commands for CODE project with secure validation."""
+        # Sanitize target name
+        try:
+            sanitized_target = CommandSanitizer.sanitize_identifier(target, allow_dash=True)
+        except Exception as e:
             raise ValidationError(
-                "Invalid make target name",
+                f"Invalid make target name: {str(e)}",
                 field="target",
                 value=target
             )
         
-        # Build command safely
-        command = f"make {shlex.quote(target)}"
+        # Build command parts
+        command_parts = ["make", sanitized_target]
+        
         if args:
-            # Validate and quote additional arguments
+            # Sanitize additional arguments
             try:
-                # Parse args to ensure they're valid
-                arg_parts = shlex.split(args)
-                # Quote each argument part
-                quoted_args = ' '.join(shlex.quote(arg) for arg in arg_parts)
-                command += f" {quoted_args}"
-            except ValueError as e:
+                sanitized_args = CommandSanitizer.sanitize_command_args(args.split())
+                command_parts.extend(sanitized_args)
+            except Exception as e:
                 raise ValidationError(
                     f"Invalid make arguments: {str(e)}",
                     field="args",
                     value=args
                 )
         
-        return await self._execute_command(command, str(self.working_directory))
+        # Join command parts
+        command = " ".join(command_parts)
+        
+        return await self._execute_command(command, str(self.working_directory), user=user)
 
 
 class DockerMCPServer(MCPServer):
@@ -1379,7 +1253,8 @@ class DockerMCPServer(MCPServer):
             
             # Parse JSON output
             containers = []
-            for line in stdout.decode('utf-8').strip().split('\n'):
+            for line in stdout.decode('utf-8').strip().split('
+'):
                 if line:
                     containers.append(json.loads(line))
             

@@ -1,0 +1,36 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 29 - The script first tests whether two parameters have been passed. Before it starts cloning, the script makes sure that the original virtual machine (the clone base system, orig variable) is shut down. It analyzes the list of all running virtual machines generated via virsh list.
+virt-clone automatically creates the required virtual disks using the filenames specified with --file and the Media Access Control (MAC) addresses specified with --mac (for identifying network devices). However, these disks always use the RAW image format. The qemu-img commands that follow convert the image files into the more efficient QCOW2 format.
+# Sample file make-vms.shif [ $# -ne 2 ]; then    echo "usage: make-vms.sh <start> <end>"    exit 1fivmstart=$1vmend=$2orig='vm-base'    # base VM to clone# shut down clone base systemresult=$(virsh list | grep $orig)if [ ! -z "$result" ]; then  echo "shutting down $orig"  virsh shutdown $orig  sleep 10fi# create VMsfor (( nr=$vmstart; nr<=$vmend; nr++ )); do  echo "create vm-$nr"  disk1=/var/lib/libvirt/images/vm-$nr-disk1.qcow2  disk2=/var/lib/libvirt/images/vm-$nr-disk2.qcow2  disk3=/var/lib/libvirt/images/vm-$nr-disk3.qcow2  disk4=/var/lib/libvirt/images/vm-$nr-disk4.qcow2  tmpdisk=/var/lib/libvirt/images/tmpdisk.qcow2  virt-clone --name "vm-$nr" --original $orig \     --mac 52:54:00:01:00:$nr --mac 52:54:00:02:00:$nr \     --mac 52:54:00:03:00:$nr \     --file $disk1 --file $disk2 --file $disk3 --file $disk4  # convert RAW disks to QCOW2 disks  qemu-img convert $disk1 -O qcow2 $tmpdisk  mv $tmpdisk $disk1  qemu-img convert $disk2 -O qcow2 $tmpdisk  mv $tmpdisk $disk2  qemu-img convert $disk3 -O qcow2 $tmpdisk  mv $tmpdisk $disk3  qemu-img convert $disk4 -O qcow2 $tmpdisk  mv $tmpdisk $disk4done
+Security Relevance Score: 2
+Word Count: 706
+Extracted: 2025-06-13 23:41:06
+
+---
+
+The script first tests whether two parameters have been passed. Before it starts cloning, the script makes sure that the original virtual machine (the clone base system, orig variable) is shut down. It analyzes the list of all running virtual machines generated via virsh list.
+virt-clone automatically creates the required virtual disks using the filenames specified with --file and the Media Access Control (MAC) addresses specified with --mac (for identifying network devices). However, these disks always use the RAW image format. The qemu-img commands that follow convert the image files into the more efficient QCOW2 format.
+# Sample file make-vms.shif [ $# -ne 2 ]; then    echo "usage: make-vms.sh <start> <end>"    exit 1fivmstart=$1vmend=$2orig='vm-base'    # base VM to clone# shut down clone base systemresult=$(virsh list | grep $orig)if [ ! -z "$result" ]; then  echo "shutting down $orig"  virsh shutdown $orig  sleep 10fi# create VMsfor (( nr=$vmstart; nr<=$vmend; nr++ )); do  echo "create vm-$nr"  disk1=/var/lib/libvirt/images/vm-$nr-disk1.qcow2  disk2=/var/lib/libvirt/images/vm-$nr-disk2.qcow2  disk3=/var/lib/libvirt/images/vm-$nr-disk3.qcow2  disk4=/var/lib/libvirt/images/vm-$nr-disk4.qcow2  tmpdisk=/var/lib/libvirt/images/tmpdisk.qcow2  virt-clone --name "vm-$nr" --original $orig \     --mac 52:54:00:01:00:$nr --mac 52:54:00:02:00:$nr \     --mac 52:54:00:03:00:$nr \     --file $disk1 --file $disk2 --file $disk3 --file $disk4  # convert RAW disks to QCOW2 disks  qemu-img convert $disk1 -O qcow2 $tmpdisk  mv $tmpdisk $disk1  qemu-img convert $disk2 -O qcow2 $tmpdisk  mv $tmpdisk $disk2  qemu-img convert $disk3 -O qcow2 $tmpdisk  mv $tmpdisk $disk3  qemu-img convert $disk4 -O qcow2 $tmpdisk  mv $tmpdisk $disk4done 
+21.1.2    Starting and Shutting Down Virtual Machines
+make-vms.sh only creates the vm-<nn> virtual machines; it does not start them. This task is carried out by another script (start-vms.sh), which again expects two numbers as parameters. It runs virsh start <name> to start the virtual machine in question.
+# Sample file start-vms.shvmstart=$1vmend=$2for (( nr=$vmstart; nr<=$vmend; nr++ )); do  echo "start vm-$nr"  virsh start "vm-$nr"done 
+In addition, there are two analogous scripts to shut down the virtual machines (virsh shutdown) and to delete them, deleting all virtual disks, respectively (virsh undefine --remove-all-storage).
+21.1.3    Running Scripts on Multiple Virtual Machines
+Once you have gotten 20 virtual machines up and running, you notice that you forgot a configuration detail. You could now log in to each of the virtual machines using SSH and complete the configuration. But of course, a more elegant solution exists: You can use run-script-on-vms.sh to run the commands stored in myscript.sh via SSH on all desired virtual machines.
+run-script-on-vms.sh assumes that there is an SSH key pair on your local server and that the public key is known in the root account of the virtual machines. For this purpose, you must allow SSH logins for root on vm-base and copy the local key there with ssh-copy-id root@basevm. Needless to say, this step must be done before cloning! Instead of basevm, you specify the hostname or IP address of the virtual machine.
+run-script-on-vms.sh is amazingly short. Basically, for each virtual machine in a loop, the ssh root@host < myscripts.sh > result.txt command is executed. Instead of host, the host name (here vm-<nn>.example.com) or the IP address of the virtual machine in question must be specified in the script. The -o StrictHostKeyChecking=no option causes SSH to forego asking whether to trust a host to which a connection is being made for the first time.
+# Sample file run-script-on-vms.shvmstart=$1vmend=$2for (( nr=$vmstart; nr<=$vmend; nr++ )); do    ssh -o StrictHostKeyChecking=no \      root@vm-$nr.example.com 'bash -s' \      < myscript.sh > results-$nr.txtdone 
+
+
+
+
+
+
+
+
+
+21.2    Automating the Network Configuration (KVMs)
+“Cloning” a virtual machine means that all the properties of the source system are preserved. For this reason, all configuration files are also cloned. In most cases, that is exactly what you want, but there are exceptions. One of these exceptions is related to the static network configuration. As far as the network adapters do not obtain their addresses automatically via DHCP, the network configuration files of each virtual machine must be adjusted, as otherwise network conflicts will occur.
+This task is performed by another script, which, however, is not located on the virtualization host, but inside the virtual machine. So, there must be a script in the clone base system (according to the names of the previous example in vm-base) that is executed when the virtual machine or its clones are booted.
+In my setup for the Linux courses I teach, the virtual machines are compatible with Red Hat Enterprise Linux (RHEL)

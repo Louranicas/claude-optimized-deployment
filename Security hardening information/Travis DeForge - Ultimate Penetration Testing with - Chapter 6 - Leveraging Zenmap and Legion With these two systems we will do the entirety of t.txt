@@ -1,0 +1,158 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 6 - Leveraging Zenmap and Legion. With these two systems, we will do the entirety of the scanning within each challenge.
+However, the targets of the scans are also important to set up. Continuing to use Virtual Box, we will download several different images that can be turned on and off to provide more diversity in the results of our scans. We will include at least one Windows server and a couple of pre-built virtual machine images commonly used for penetration testing practice.
+To take things to the next level, we will also install some open-source security products, such as Wazuh and Snort, which will help us visualize the difference between levels of obfuscation discussed in Chapter 7: Advanced Obfuscation and Firewall Evasion Techniques.
+NOTE: If you already have a penetration testing lab set up that you are comfortable utilizing, feel free to skip this section and utilize your environment for the subsequent challenges.
+Structure
+In this chapter, we will explore and answer the following questions:
+Security Relevance Score: 11
+Word Count: 1709
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Leveraging Zenmap and Legion. With these two systems, we will do the entirety of the scanning within each challenge.
+However, the targets of the scans are also important to set up. Continuing to use Virtual Box, we will download several different images that can be turned on and off to provide more diversity in the results of our scans. We will include at least one Windows server and a couple of pre-built virtual machine images commonly used for penetration testing practice.
+To take things to the next level, we will also install some open-source security products, such as Wazuh and Snort, which will help us visualize the difference between levels of obfuscation discussed in Chapter 7: Advanced Obfuscation and Firewall Evasion Techniques.
+NOTE: If you already have a penetration testing lab set up that you are comfortable utilizing, feel free to skip this section and utilize your environment for the subsequent challenges.
+Structure
+In this chapter, we will explore and answer the following questions:
+
+What are the Components of a Good Lab Environment?
+How do you Install Nmap, Virtual Box, and Kali Linux?
+How do you Configure Windows and Linux Servers in a Lab Environment?
+How do you Configure an IDS for the Lab?
+How do you Make the Most Out of The Lab?
+
+Components of a Good Lab Environment
+Any good lab environment has a couple of things in common. First, it should be versatile, meaning that you can spin up or spin down different devices to simulate different environments and test different techniques. To this end, it is important to have an environment that has both Windows and Linux server infrastructure, along with one or two workstation examples. By far, the most common enterprise environments seen in penetration tests are primarily Windows workstations in an active directory environment, with some Linux servers sprinkled about.
+NOTE: You want the lab you set up to be as much as possible a simulacrum of the environments you will target during penetration tests.
+In order to accomplish this, we are going to set up a modular environment of virtual machines (VM) using Virtual Box. Virtual Box was selected for this walk-through partially because it is free, but mostly because it seems to be the easiest virtualization platform, especially for those new to the technology to set up. That being said, if you are more comfortable using Hyper-V, VMware, or any other form of virtualization, feel free to replicate in the way you find suitable. However, all referenced hyperlinks within this chapter will direct you to a VM download for Virtual Box specifically.
+We will also set up two separate hosts for conducting the Nmap scans: the first being a Windows native environment, and the second being a Kali Linux virtual machine, also hosted within Virtual Box. During penetration testing, most engineers utilize Kali Linux as the go-to operating system for all red-team activities. However, it may come as a surprise for many that a Windows 10 device is typically used, with Kali available as a virtual machine. It has been found that for the vast majority of reconnaissance and enumeration, it is easier to use a Windows device than pivot to Kali for the niche times you need it exclusively.
+Recognizing that habit as an exception rather than the rule, the vast majority of scans demonstrated in this book will be conducted from the Kali Linux VM.
+To begin setting up your environment, please take note of the following resources, which we will download, install, and configure over the next several pages:
+
+
+
+
+
+
+
+Nmap (Windows)
+
+
+https://nmap.org/download.html#windows
+
+
+
+
+Virtual Box
+
+
+https://www.virtualbox.org/wiki/Downloads
+
+
+
+
+Kali Linux
+
+
+https://www.kali.org/get-kali/#kali-virtual-machines
+
+
+
+
+Wazuh
+
+
+https://documentation.wazuh.com/current/deployment-options/virtual-machine/virtual-machine.html
+
+
+
+
+Windows Server 2022
+
+
+https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022
+
+
+
+Table 2.1: Summary of Lab Components
+Installing Nmap, Virtual Box, Kali, and Additional Tools
+The foundations of this lab environment are Nmap installed on both Windows and Kali Linux, Virtual Box to facilitate the importing of virtual machines, and the setup up of Kali itself for additional functionality. We will break this down into a series of steps to ensure that there is no confusion in establishing the environment.
+
+Navigate to the following link and download the current version of Nmap for Windows under Microsoft Windows Binaries: https://nmap.org/download.html#windows.
+Navigate to your downloads folder and run the Nmap setup executable, follow the installation instructions, and confirm success by opening a command prompt and printing the installed version with nmap -v:
+
+
+
+Figure 2.1: Nmap Versioning
+Typically, this download on Windows will also come with Zenmap, which you can confirm by searching “zenmap” in the Windows Explorer search bar. Zenmap is a very handy Graphical User Interface (GUI) that works in tandem with Nmap, which we will explore in later chapters. For now, confirming that it is installed is sufficient:
+
+
+
+Figure 2.2: Zenmap Download
+
+Next, we will import the latest version of Kali into Virtual Box. The team at Offensive Security frequently updates Kali Linux, so if your version is slightly different from the one provided in these examples, there’s no need to worry. The steps are as follows:
+
+Navigate to https://www.kali.org/get-kali/#kali-virtual-machines and download the VirtualBox option. It should be around 2.7 GB in size and will download as a .7z file.
+Download and install 7zip at the following: https://www.7-zip.org/download.html.
+Next, download and install Virtual Box for free at https://www.virtualbox.org/wiki/Downloads.
+Extract the Kali Linux download using 7zip and double-click the Virtual Box Machine Definition file to import it into Virtual Box:
+
+
+
+Figure 2.3: Demonstrating Kali Linux VM Configuration (1 of 4)
+Right-click on the Kali machine in Virtual Box and select Settings. Go to System and adjust the Base Memory from the default of 2048 to at least 4096MB. If you have additional resources available, it is beneficial to allocate additional memory, but as a minimum, we recommend 4Gb:
+
+
+
+Figure 2.4: Demonstrating Kali Linux VM Configuration (2 of 4)
+Now, we need to create the virtual network where we will put all of our lab machines. To do this, navigate within the Virtual Box console to File > Tools > Network Manager. From here, select the NAT Networks tab, create a new network, name it Nmap Lab, and enable DHCP:
+
+
+
+Figure 2.5: Demonstrating Kali Linux VM Configuration (3 of 4)
+Return to the Kali VM’s settings in Virtual Box, select Network, and under Adapter 1, select NAT Network (Not the option that just says NAT); then select the drop-down for Advanced options and allow Promiscuous Mode:
+
+
+
+Figure 2.6: Demonstrating Kali Linux VM Configuration (4 of 4)
+Boot the Kali machine by selecting start (the default credentials are kali : kali) and confirm connectivity with your local network with the ifconfig command. You are looking to confirm that the Kali VM has gotten an IP address on the same local subnet as your host computer:
+Verify that you can access the host machine by running Ipconfig on the Windows Host and taking note of the IP address. Next, in the command line on the Kali machine enter:
+> ping [host IP]
+You should receive a response similar to as follows:
+
+
+
+Figure 2.7: Confirming Network Connectivity via ICMP
+You may further confirm connectivity to the host with a very simple Nmap command:
+ > nmap -Pn [host IP]
+
+
+
+Figure 2.8: Confirming Network Connectivity via Nmap
+Finally, confirm that Legion is installed on the Kali instance by simply opening a command prompt and entering sudo legion. This should open a graphical user interface automatically, as it is a default installation within Kali. However, if for any reason Legion doesn’t open, it can be manually installed from GitHub at https://github.com/GoVanguard/legion.
+Similar to Zenmap, Legion is a GUI that will be used to organize Nmap data in later chapters. However, it is distinct from Zenmap in the sense that Legion provides extensive flexibility in adapting it to fit your specific needs during a penetration testing engagement. It is a highly versatile tool that when combined with advanced Nmap skills can be a powerful asset to any pentester.
+
+At this point, we have successfully set up our scanning hosts. One is a Windows machine with Nmap and Zenmap installed, while the other is a Kali Linux VM with both Nmap and Legion confirmed as installed. From these two endpoints all scanning, examples, and challenges will be possible throughout the entirety of the book.
+Setting Up the Target Servers
+With the scanners set up, we next have to configure a series of targets for those scans. In the interest of making the lab environment simple yet practical, we will be importing several different VMs to replicate server infrastructure that you may see on real-world penetration tests. Servers of both the Windows and Linux variety will pose not only a diverse target pool for scans but will also be configured with some specific software that will be used in follow-on lab exercises.
+Linux
+
+Navigate to https://www.vulnhub.com. This is a great site for finding and downloading intentionally vulnerable virtual machines to practice your pentesting or capture-the-flag skills. For now, download the zip file for the boxes called The Planets: Earth and Mercury at https://www.vulnhub.com/series/the-planets,362/
+Once unzipped, you will find an Open Virtualization Format files, which when double-clicked should import the VM directly into Virtual Box.
+Open the settings of the new Linux VMs and set the Network Adapter 1 to NAT Network: Nmap Lab.
+Since these capture the flag (CTF) challenge boxes, you will not have login credentials to sign in. Instead, we need to be creative to determine the IP address. Since we know that they are on the same virtual network as our Kali VM, we have a couple of options. But considering that this is a book all about Nmap, we will simply scan the virtual network for hosts with Nmap: 
+>nmap T5 10.0.2.0/24
+
+
+
+
+
+Figure 2.9: Nmap Scanning of the Subnet
+Here, we can see that there are four identified endpoints on this virtual network. The default gateway, 10.0.2.1, can be ignored. We can confirm through the ifconfig command that 10.0.2.4 is the Kali VM we are scanning from (thus, no ports are being reported). Therefore, 10.0.2.6 and 10.0.2.7 must be the Earth and Mercury virtual machines.
+Windows
+
+With a Linux server successfully configured, we will now install a Windows server. The easiest way to do this is to utilize Microsoft’s official evaluation center and select a trial of Windows Server 2022 at: https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-

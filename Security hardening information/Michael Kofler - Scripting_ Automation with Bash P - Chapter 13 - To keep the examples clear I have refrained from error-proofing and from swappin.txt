@@ -1,0 +1,93 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 13 - To keep the examples clear, I have refrained from error-proofing and from swapping out the login data and other settings. For "real" database scripts, both points should be a matter of course. For tips on error-proofing, see the chapters on the basic principles of Bash, PowerShell, and Python. I have described how to handle settings and passwords securely in Chapter 14, Section 14.2.
+The sample scripts from that chapter cannot be tried out easily. You must first install the appropriate database server, set up a suitable database with tables, take care of authentication with the database server, and so on.
+Security Relevance Score: 5
+Word Count: 1265
+Extracted: 2025-06-13 23:41:06
+
+---
+
+To keep the examples clear, I have refrained from error-proofing and from swapping out the login data and other settings. For "real" database scripts, both points should be a matter of course. For tips on error-proofing, see the chapters on the basic principles of Bash, PowerShell, and Python. I have described how to handle settings and passwords securely in Chapter 14, Section 14.2.
+The sample scripts from that chapter cannot be tried out easily. You must first install the appropriate database server, set up a suitable database with tables, take care of authentication with the database server, and so on.
+19.1    Updating and Maintaining Databases
+In my professional work, I maintain a MySQL server that hosts many similar databases. Each customer has a separate database. Although the content of these databases varies depending on the customer, the structure is always the same.
+Now and then, it happens that—for example for troubleshooting—I want to apply the same SELECT commands to all databases. The required script is, according to the motto of this book, not even 10 lines long:
+# Sample file apply-select.sh# this file contains the names of all databasesDBLIST=dbs.txt# this file contains the commands to be executed;# the commands must be separated by ;.SQLFILE=select.sqlfor db in $(cat $DBLIST | sort) ; do  echo "Database: $db"  mysql $db < $SQLFILE  echo "---"done 
+The mysql command plays a central role in the script. It connects to the database specified by the db variable and executes all commands contained in the file read by input redirection. Establishing a connection to the database server requires that the active user has sufficient MySQL access rights and that authentication is performed either at the operating system level (auth_socket method for MySQL or unix_socket for MariaDB) or that the .my.cnf file contains the required password.
+The results of the SELECT commands are displayed directly on the screen. Most of the time, I run the script in the ./apply-select.sh | less format, so I can conveniently scroll or search through the output.
+Basically, select.sql could also contain commands to modify all databases, for example to add a column to a table in each database. But because such changes are much more dangerous than pure queries, I store such commands in a separate updates.sql file, which is processed by a second apply-updates.sh script. The script is identical to apply-select.sh except for the initialization of the SQLFILE variable.
+19.1.1    PowerShell and sqlcmd
+Of course, the same concept can be implemented via a PowerShell script. The script calls the sqlcmd command, which is the SQL Server counterpart to mysql. The code then looks as follows:
+# Sample file apply-select.ps1$dblist = "dbs.txt"        # list with database names$sqlfile = "select.sql"    # SQL commands$server = ".\sqlexpress01" # SQL Server instance# loop through all databasesforeach($db in Get-Content $dblist) {    Write-Output "Database: $db"    sqlcmd -S $server -d $db -i $sqlfile} 
+If SQL Server is not running on the local machine, you need to replace . with the host name. Again, I’m assuming here that the script is running in an account that has access to all the databases in question. Note that the SQL commands contained in select.sql must be separated by semicolons. The script requires that sqlcmd.exe be located in a directory listed in the PATH variable.
+
+
+
+
+
+
+
+
+
+19.2    Creating a New Customer Account
+The starting point for this example is a web server for customer accounts. When placing an order, customers receive their own database and can access the web application via their own address:
+https://example.com/name
+The following Bash script takes care of the initialization work required when a new account gets set up:
+
+
+Creating and initializing a new MySQL database
+
+
+Creating a new MySQL user and enabling it to access the database
+
+
+Setting up the /var/www/html/name directory
+
+
+Creating a configuration file in that directory
+
+
+Sending an email to the customer with the login data
+
+
+On a server I maintain, I actually use a script that works in this way. For didactic reasons, I have greatly simplified the code for this book. So, let me explain the basic procedure first.
+
+No Testing Option
+The code for the script can of course be found in the sample files for the book. However, you can’t try out the script without further ado. For this purpose, you would need a Linux server (including web, database, and mail servers) as well as the code for a web application, a sample database, etc.
+
+19.2.1    Account Data
+accountdata contains the data of the new customer. The URL variable specifies the custom part of the web address (i.e., https://example.com/sd-architects). DB is used as the name for the new MySQL database and for the associated MySQL user. DB is maximum 16 characters long and may contain only letters, digits, and underscores.
+# Sample file accountdataFIRSTNAME='Maria'LASTNAME='Smith'COMPANY='Smith & Davis Architects'EMAIL='maria.smith@example.com'URL='sd-architects'DB='sdarchitects' 
+19.2.2    Structure of the Script
+The make-new-account.sh script must be run with root privileges. The mysql and mysqldump commands included in the script are based on the assumption that root has unrestricted access rights to the MySQL server or that the password for the MySQL root user is contained in the /root/.my.cnf file.
+The code starts by reading the account data of the new customer. The script first tests whether a database of that name already exists. In this case, the execution will be terminated:
+# Sample file make-new-account.sh# import account data. accountdata# abort if the database already existssql="SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA     WHERE SCHEMA_NAME='$DB'"result=$(mysql -s -N -e "$sql")echo "result = $result"if [ "$result" ]; then  echo "Database $DB already exists."  exitfi 
+The script uses the mkpasswd password generator to generate two random passwords:
+
+
+The dbpw variable contains the password for accessing the customer database. This password is only used internally and is stored in a configuration file on the server.
+
+
+loginpw contains the customer password for the web login. A hash code of this password is stored in the database. The password is sent to the customer by mail.
+
+
+In the following lines, a new database is created and initialized using a sample database. Also, a MySQL account is created that has access to this database.
+# database password (internal)dbpw=$(makepasswd)# customer password for web loginloginpw=$(makepasswd)# create a database and compare it with a copy of the 'template' database# initializemysqladmin create $DBmysql $DB | mysqldump template# set up an account for database accesssql="CREATE USER $DB@localhost IDENTIFIED BY '$dbpw';     GRANT ALL ON $DB.* TO $DB@localhost"mysql -e "$sql" 
+A hash code  of the login password is stored in the customer database. The hash code is generated via htpasswd. Subsequently, the customer data is stored in the customer database created earlier:
+# generate hash code of login passwordhash=$(htpasswd -bnBC 10 "" $loginpw | tr -d ':\n')# save customer data in the customer databasesql="INSERT INTO accounts (firstname, lastname, company,                           email, hashcode)     VALUES ('$FIRSTNAME', '$LASTNAME', '$COMPANY',             '$EMAIL', '$hash')"mysql $DB -e "$sql" 
+In the next step, the script sets up a new customer directory in /var/www/html and stores the login data for database access in dbconfig.php. The chown and chmod commands ensure that the access rights to the files are correct:
+# set up a web directory for the customercd /var/www/html/myapplicationmkdir $URLcat > $URL/dbconfig.php << EOF<?phpLocalConfig::set('dbname', '$DB');LocalConfig::set('dbhost', 'localhost');LocalConfig::set('dbuser', '$DB');LocalConfig::set('dbpass', '$dbpw');EOFchown -R www-data:www-data $URLchmod -R o-rwx $URLchown root:www-data $URL/dbconfig.phpchmod 640 $URL/dbconfig.php 
+Finally, the script sends an email to the new customer. The mail command requires a working mail server.
+# send email to the new customerBODY="Dear customer,\n\nthis is your login data:\n\nLogin:        https://example.com/$URL\nAccount:      $EMAIL\nPasswort:     $loginpw\n\nPlease change your password after the first login!"echo -e $BODY | mail -s "your new account"  \    -a "From: support@example.com" \    -a "Content-Type: text/plain; charset=UTF-8" \    $EMAIL 
+
+
+
+
+
+
+
+
+
+19.3    Storing Exif Metadata in a Database
+In

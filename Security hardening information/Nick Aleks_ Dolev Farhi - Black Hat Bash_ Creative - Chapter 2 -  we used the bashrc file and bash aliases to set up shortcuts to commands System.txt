@@ -1,0 +1,66 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 2 - , we used the ~/.bashrc file and bash aliases to set up shortcuts to commands. System administrators could easily include credentials in shell scripts such as ~/.bashrc to avoid having to manually supply credentials on the command line, so always poke around to see if any customizations were made; you may find credentials or commands used for administration purposes. Here are some common profile files to look for: /etc/profile, /etc/bashrc, ~/.bashrc, ~/.profile, ~/.bash_profile, ~/.env, ~/.bash_login, and ~/.bash_logout.
+Shells other than bash, such as the Z Shell, can also exist on a system. In these cases, you might want to look at files such as /etc/zprofile, /etc/zshrc, ~/.zprofile, and ~/.zshrc.
+Use the man command to learn more about the environment and profile files of the various shells. For example, run man bash for the bash shell, man zsh for the Z Shell, and man csh for the C Shell.
+Security Relevance Score: 5
+Word Count: 627
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we used the ~/.bashrc file and bash aliases to set up shortcuts to commands. System administrators could easily include credentials in shell scripts such as ~/.bashrc to avoid having to manually supply credentials on the command line, so always poke around to see if any customizations were made; you may find credentials or commands used for administration purposes. Here are some common profile files to look for: /etc/profile, /etc/bashrc, ~/.bashrc, ~/.profile, ~/.bash_profile, ~/.env, ~/.bash_login, and ~/.bash_logout.
+Shells other than bash, such as the Z Shell, can also exist on a system. In these cases, you might want to look at files such as /etc/zprofile, /etc/zshrc, ~/.zprofile, and ~/.zshrc.
+Use the man command to learn more about the environment and profile files of the various shells. For example, run man bash for the bash shell, man zsh for the Z Shell, and man csh for the C Shell.
+
+
+
+Users and Groups
+You should gather information about the various users and groups found on the system. Systems can be provisioned with user accounts for human operators, but you may also run into systems that have no accounts other than the default ones of a Linux machine. This is especially true in environments where hosts are spun up and down many times per day, such as in containerized environments. Short-lived servers aren’t generally managed using local system accounts; rather, orchestration and provisioning tools automate the entire process of rollouts, upgrades, downgrades, scaling in and out, scaling up and down, and so on.
+
+Local Accounts
+Linux systems come with several default users and groups. You can find user accounts in /etc/passwd and groups in /etc/group, which even low-privileged users should be able to read. These files don’t contain sensitive data but can help you figure out other directories and files to look for, as everything on a Linux system is owned by a user and group.
+
+NOTE
+
+Hackers frequently go after both /etc/passwd and /etc/group, so security defenders with proper monitoring in place will watch for any read or write attempts made to these files.
+Let’s view the /etc/passwd files on the compromised hosts. Run the command in Listing 8-1 on p-web-01 (172.16.10.10), p-web-02 (172.16.10.12), and p-jumpbox-01 (172.16.10.13) to see the list of users and their properties.
+$ cat /etc/passwd
+
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+--snip--
+messagebus:x:100:101::/nonexistent:/usr/sbin/nologin
+systemd-resolve:x:996:996:systemd Resolver:/:/usr/sbin/nologin
+jmartinez:x:1001:1001::/home/jmartinez:/bin/bash
+--snip--
+
+Listing 8-1: Viewing users on a system
+As you can see, we get a list of values separated by colons (:). Each line is a unique user account, and each field represents specific information about it. Of particular interest to us is the first line in the output, which indicates that there is a root user account. Table 8-2 breaks this line into its constituent fields.
+Table 8-2: Fields of the /etc/passwd File
+
+
+
+Account
+Password
+User ID
+Group ID
+Comment
+Home directory
+Default shell
+
+
+
+
+root
+x
+0
+0
+root
+/root
+/bin/bash
+
+
+
+The first field is the account’s username, and the x in the second field represents the password. You can find corresponding password hashes in a separate file named /etc/shadow, which we’ll cover in later chapters when we discuss credential access. The third and fourth fields represent the user’s user ID (UID) and group ID (GID), respectively. The fifth field is a comment field that can contain details about the user (such as their full name, location, and employee ID). The sixth field represents the user’s home directory (in this case, /root), and the seventh field represents their default shell environment (in this case, /bin/bash).
+Using bash, we can parse the /etc/passwd output to extract certain desired fields. For example, to extract the username (in the first field), the home directory (in the sixth field), and the default shell (in the seventh field) of each user, run the command in Listing 8-

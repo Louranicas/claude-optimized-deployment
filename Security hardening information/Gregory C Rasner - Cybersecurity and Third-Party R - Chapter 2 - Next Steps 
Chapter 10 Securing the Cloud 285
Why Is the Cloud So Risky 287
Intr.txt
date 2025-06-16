@@ -1,0 +1,498 @@
+# Security Chapter Extract
+Book: Gregory C. Rasner - Cybersecurity and Third-Party Risk_ Third Party Threat Hunting (2021, Wiley) - libgen.li
+Chapter: 2 - Next Steps 
+Chapter 10 Securing the Cloud 285
+Why Is the Cloud So Risky? 287
+Introduction to NIST Service Models 288
+Vendor Cloud Security Reviews 289
+The Shared Responsibility Model 290
+Inside Look: Cloud Controls Matrix by  
+the Cloud Security Alliance 295
+Contents xiii
+Security Advisor Reports as Patterns 298
+Inside Look: The Capital One Breach 312
+Conclusion 313
+Chapter 11 Cybersecurity and Legal Protections 315
+Legal T erms and Protections 317
+Cybersecurity T erms and Conditions 321
+Offshore T erms and Conditions 324
+Hosted/Cloud T erms and Conditions 327
+Privacy T erms and Conditions 331
+Inside Look: Heritage Valley Health vs.  
+Nuance 334
+Conclusion 335
+Chapter 12 Software Due Diligence 337
+The Secure Software Development Lifecycle 340
+Lessons from SolarWinds and Critical  
+Software 342
+Inside Look: Juniper 344
+On- Premises Software 346
+Cloud Software 348
+Open Web Application Security Project  
+Explained 350
+OWASP T op 10 350
+OWASP Web Security T esting Guide 352
+Open Source Software 353
+Software Composition Analysis 355
+Inside Look: Heartbleed 355
+Mobile Software 357
+T esting Mobile Applications 358
+Code Storage 360
+Conclusion 362
+Chapter 13 Network Due Diligence 365
+Third- Party Connections 368
+Personnel Physical Security 368
+xiv Contents
+Hardware Security 370
+Software Security 371
+Out- of- Band Security 372
+Cloud Connections 374
+Vendor Connectivity Lifecycle Management 375
+Zero T rust for Third Parties 379
+Internet of Things and Third Parties 385
+T rusted Platform Module and Secure Boot 388
+Inside Look: The T arget Breach (2013) 390
+Conclusion 391
+Chapter 14 Offshore Third- Party Cybersecurity Risk 393
+Onboarding Offshore Vendors 397
+Ongoing Due Diligence for Offshore  
+Vendors 399
+Physical Security 399
+Offboarding Due Diligence for Offshore  
+Vendors 402
+Inside Look: A Reminder on Country Risk 404
+Country Risk 405
+KC’s Country Risk 406
+Conclusion 409
+Chapter 15 T ransform to Predictive 411
+The Data 414
+Vendor Records 415
+Due Diligence Records 416
+Contract Language 416
+Risk Acceptances 417
+Continuous Monitoring 417
+Enhanced Continuous Monitoring 417
+How Data Is Stored 418
+Level Set 418
+A Mature to Predictive Approach 420
+Contents xv
+The Predictive Approach at KC Enterprises 420
+Use Case #1: Early Intervention 423
+Use Case #2: Red Vendors 425
+Use Case #3: Reporting 426
+Conclusion 427
+Chapter 16 Conclusion 429
+Advanced Persistent Threats Are the  
+New Danger 431
+Cybersecurity Third- Party Risk 435
+Index 445
+xvi
+After a recent cybersecurity breach shook both U.S. govern-
+ment agencies and corporations and was proclaimed the 
+worst ever, many colleagues asked me if this was my “I told you 
+so” moment. While I could have gloated a bit, I instead reminded 
+them and anyone else who would listen that the next one is right 
+around the corner if third-party risk is not front and center in the 
+security discussion.
+As an executive at Cisco and Microsoft, I have built new 
+organizations delivering trust, transparency, cybersecurity, 
+compliance, risk management, sustainability and value-chain 
+transformation. I have been invited to provide testimony to 
+U.S. Presidential Commissions on cybersecurity and currently 
+serve on the executive committee of the Department of Home-
+land Security’s Information and Communications T echnol-
+ogy Supply Chain Risk Management T ask Force. In addition,  
+I have authored NATO directives and contributed my input to 
+numerous government and industry bodies. In all cases, third-
+party risk is my primary concern and focus.
+There are no easy answers when it comes to third-party 
+security and risk. We all operate in a hyper- connected world and 
+third-party ecosystems continue to expand. When one considers Foreword
+Foreword xvii
+IT/OT convergence, the proliferation of IoT/IIoT, expanding 
+global supply chains, and the accelerated move to a platform 
+economy, it is obvious that the threat surface for both private 
+and public sector organizations continues to grow. So how do we 
+as security and risk professionals tackle this mounting challenge?
+Greg’s book, Cybersecurity and Third-Party Risk, is both 
+timely and necessary. As colleagues at Cisco, Greg and I pondered 
+and identified solutions to the very issues he raises throughout 
+this book. Readers can leverage his clear risk identification and  
+practical guidance to build sustainable and effective third-party 
+risk programs. As the book points out, third-party risk is noth-
+ing new and is not going away. But let’s be clear: The message is 
+not one of fear, and the book clearly establishes what we can and 
+must continue to do to meaningfully address this critical risk.
+Cybersecurity and Third-Party Risk should be added to the 
+bookshelves of all security and risk professionals, regardless 
+of the industry in which they operate. It will serve as a guide 
+to developing a foundational third-party security program as 
+you address the growing third-party risk at your organization.  
+Consider yourself fortunate to have access to both Greg’s exper -
+tise and his thoughtful and comprehensive approach to a chal-
+lenge we must all consider a priority.
+Edna Conway
+Vice President, Chief Security &  
+Risk Officer, Azure
+Microsoft
+xviii
+Third-party risk (or supply-chain security) are not new 
+ disciplines, and there have been frameworks, regulatory 
+directives, professional certifications, and organizations that all 
+attest to its maturity. Cybersecurity could be considered more 
+mature, since it has been around in some form since computing 
+came of age in the 1970s. Nowadays, it’s even more complex in 
+terms of frameworks, disciplines, certifications, regulatory guid-
+ance and directives, and avenues of study. Why do the surveys, 
+time after time, indicate that well over 50 percent of organiza-
+tions do not perform any type of Third-Party Risk Management 
+(TPRM), and even fewer have anything other than an ad hoc 
+cybersecurity due diligence program for vendors? Reasons for 
+this lack of attention and collaboration can be found in hun-
+dreds, if not thousands, of breaches and security incidents that 
+were the result of poor third-party oversight and a lack of any 
+due diligence and due care for the vendors’ cybersecurity.
+This book is designed to provide a detailed look into the 
+problems and risks, then give specific examples of how to create a 
+robust and active Cybersecurity Third-Party Risk Management 
+program. It begins by covering the basics of the due diligence 
+processes and the vendor lifecycle, with models and illustrations 
+on how to create these basic but necessary steps. Then it goes 
+more in depth about the next parts in the creation of a mature Introduction
+Introduction xix
+program: cyber legal language, offshore vendors, connectiv-
+ity security, software security, and use of a predictive reporting 
+dashboard.
+The book is designed to not only help you build a program, 
+but to take an existing program from one of compliance checkbox 
+work to an active threat-hunting practice. Many programs that do 
+currently exist are designed and run as an obligation to “check a 
+box” for a regulator or an internal auditor. Yet, no one has ever 
+secured their network or data by doing only what the regulators 
+told them to do. Security is an ongoing activity that requires its 
+application in third-party risk to be equally active and ongoing. Its 
+activities and results should emulate a cyber operations or threat 
+operations team that focuses its efforts on reducing cybersecu-
+rity threats externally at the suppliers. Get away from checking 
+boxes and filling out remote questionnaires and take a risk-based 
+approach that engages your highest risk and/or most critical third 
+parties in conversations to build trust and collaboration to lower 
+risk for both your organization and the vendor.
+Who Will Benefit Most from This Book
+A superset of cybersecurity, third-party risk, and executive lead-
+ership will benefit the most from reading this book. On the 
+cybersecurity side, analysts to senior leadership will be able to 
+take their information security knowledge and experience to 
+perform the hands-on work and management of third-party 
+risk, while third-party risk professionals will better understand 
+and appreciate the need to include a more robust cybersecurity 
+risk domain. Executive and senior leadership in business who 
+are not focused on cybersecurity or third-party risk will gain an 
+understanding of the risk, practice, and frameworks, and how to 
+lower their risk for a cybersecurity event at their vendors.
+xx IntroductIon
+Looking Ahead in This Book
+This book is divided into two sections. Section  1, titled “The 
+Basics,” lays the case for the need of a robust and active Cyber -
+security Third-Party Risk Management program as well as the 
+ necessary and basic due diligence activities and processes needed. 
+These are not basic as in “simple,” but in terms that they are 
+the foundation necessary to building a mature program, which 
+is covered in Section 2, titled “Next Steps.” This section details 
+what comes next, after you have built the basic foundation. This 
+“Next Steps” section describes cyber legal language, cloud secu-
+rity, software security, connectivity security, offshore vendors, 
+and how to build predictive reporting that focuses on the highest 
+risk vendors.
+Chapter 1 opens with a detailed description of risk by using 
+examples of the SolarWinds and other supply-chain attacks, 
+which happened in late 2020, as prime examples of how the threat 
+actors have evolved both in their identity and tactics. Examples 
+are also provided in a long list of companies who have lost their 
+data due to a vendor that did not take due care with their data. 
+Chapter  2 provides some basics on cybersecurity. This book 
+does not require the reader to be a cybersecurity or third-party 
+risk expert, but it does require that a few concepts are defined 
+and frameworks are covered for both topics to ensure all read-
+ers are at a set level. Chapter 3 delves into how the COVID-19 
+pandemic affected the security landscape and how quickly the 
+attackers adapted to new opportunities. What happens when the 
+pandemic is over and how it will change behaviors and business 
+in ways that will become the new normal will mean a continued 
+increase in cybercriminal activity.
+Chapter  4 is an in-depth look at Third-Party Risk Man-
+agement (TPRM) and is included to provide a set level for the 
+readers as well as to tie the cybersecurity and TPRM concepts 
+Introduction xxi
+together, as both domains are aimed at identifying and man-
+aging risk. Chapters 5 through 9 cover the vendor lifecycle of 
+intake, ongoing security, and offboarding due diligence activities 
+ Chapter 5 reviews the activities and requirements for vetting and 
+performing security assessments of new vendors or services from 
+existing suppliers. Chapter  6 describes ongoing cybersecurity 
+due diligence activities such as remote assessments.  Chapter 7 is 
+then devoted to the important complex topic of on-site assess-
+ments, which are essential due diligence processes for the physi-
+cal validation of security controls at a vendor site and the gold 
+standard for assurance.
+Chapter  8 covers the Continuous Monitoring (CM) pro-
+gram and how it is a crucial security control for vendors for 
+the times in between the point-in-time assessments. Building 
+a robust CM program means taking a set of tools and internal 
+data to engage vendors on potential real threats that they may 
+be unaware of and reducing risk collaboratively. Chapter 9, the 
+last chapter on the vendor lifecycle, discusses offboarding. Many 
+firms overlook this part of the lifecycle, so this chapter covers 
+the critical steps and due diligence that must be done to ensure 
+there’s no risk to the data or connectivity from a vendor.
+Security Relevance Score: 12
+Word Count: 1861
+Extracted: 2025-06-13 23:40:22
+
+---
+
+Next Steps 
+Chapter 10 Securing the Cloud 285
+Why Is the Cloud So Risky? 287
+Introduction to NIST Service Models 288
+Vendor Cloud Security Reviews 289
+The Shared Responsibility Model 290
+Inside Look: Cloud Controls Matrix by  
+the Cloud Security Alliance 295
+Contents xiii
+Security Advisor Reports as Patterns 298
+Inside Look: The Capital One Breach 312
+Conclusion 313
+Chapter 11 Cybersecurity and Legal Protections 315
+Legal T erms and Protections 317
+Cybersecurity T erms and Conditions 321
+Offshore T erms and Conditions 324
+Hosted/Cloud T erms and Conditions 327
+Privacy T erms and Conditions 331
+Inside Look: Heritage Valley Health vs.  
+Nuance 334
+Conclusion 335
+Chapter 12 Software Due Diligence 337
+The Secure Software Development Lifecycle 340
+Lessons from SolarWinds and Critical  
+Software 342
+Inside Look: Juniper 344
+On- Premises Software 346
+Cloud Software 348
+Open Web Application Security Project  
+Explained 350
+OWASP T op 10 350
+OWASP Web Security T esting Guide 352
+Open Source Software 353
+Software Composition Analysis 355
+Inside Look: Heartbleed 355
+Mobile Software 357
+T esting Mobile Applications 358
+Code Storage 360
+Conclusion 362
+Chapter 13 Network Due Diligence 365
+Third- Party Connections 368
+Personnel Physical Security 368
+xiv Contents
+Hardware Security 370
+Software Security 371
+Out- of- Band Security 372
+Cloud Connections 374
+Vendor Connectivity Lifecycle Management 375
+Zero T rust for Third Parties 379
+Internet of Things and Third Parties 385
+T rusted Platform Module and Secure Boot 388
+Inside Look: The T arget Breach (2013) 390
+Conclusion 391
+Chapter 14 Offshore Third- Party Cybersecurity Risk 393
+Onboarding Offshore Vendors 397
+Ongoing Due Diligence for Offshore  
+Vendors 399
+Physical Security 399
+Offboarding Due Diligence for Offshore  
+Vendors 402
+Inside Look: A Reminder on Country Risk 404
+Country Risk 405
+KC’s Country Risk 406
+Conclusion 409
+Chapter 15 T ransform to Predictive 411
+The Data 414
+Vendor Records 415
+Due Diligence Records 416
+Contract Language 416
+Risk Acceptances 417
+Continuous Monitoring 417
+Enhanced Continuous Monitoring 417
+How Data Is Stored 418
+Level Set 418
+A Mature to Predictive Approach 420
+Contents xv
+The Predictive Approach at KC Enterprises 420
+Use Case #1: Early Intervention 423
+Use Case #2: Red Vendors 425
+Use Case #3: Reporting 426
+Conclusion 427
+Chapter 16 Conclusion 429
+Advanced Persistent Threats Are the  
+New Danger 431
+Cybersecurity Third- Party Risk 435
+Index 445
+xvi
+After a recent cybersecurity breach shook both U.S. govern-
+ment agencies and corporations and was proclaimed the 
+worst ever, many colleagues asked me if this was my “I told you 
+so” moment. While I could have gloated a bit, I instead reminded 
+them and anyone else who would listen that the next one is right 
+around the corner if third-party risk is not front and center in the 
+security discussion.
+As an executive at Cisco and Microsoft, I have built new 
+organizations delivering trust, transparency, cybersecurity, 
+compliance, risk management, sustainability and value-chain 
+transformation. I have been invited to provide testimony to 
+U.S. Presidential Commissions on cybersecurity and currently 
+serve on the executive committee of the Department of Home-
+land Security’s Information and Communications T echnol-
+ogy Supply Chain Risk Management T ask Force. In addition,  
+I have authored NATO directives and contributed my input to 
+numerous government and industry bodies. In all cases, third-
+party risk is my primary concern and focus.
+There are no easy answers when it comes to third-party 
+security and risk. We all operate in a hyper- connected world and 
+third-party ecosystems continue to expand. When one considers Foreword
+Foreword xvii
+IT/OT convergence, the proliferation of IoT/IIoT, expanding 
+global supply chains, and the accelerated move to a platform 
+economy, it is obvious that the threat surface for both private 
+and public sector organizations continues to grow. So how do we 
+as security and risk professionals tackle this mounting challenge?
+Greg’s book, Cybersecurity and Third-Party Risk, is both 
+timely and necessary. As colleagues at Cisco, Greg and I pondered 
+and identified solutions to the very issues he raises throughout 
+this book. Readers can leverage his clear risk identification and  
+practical guidance to build sustainable and effective third-party 
+risk programs. As the book points out, third-party risk is noth-
+ing new and is not going away. But let’s be clear: The message is 
+not one of fear, and the book clearly establishes what we can and 
+must continue to do to meaningfully address this critical risk.
+Cybersecurity and Third-Party Risk should be added to the 
+bookshelves of all security and risk professionals, regardless 
+of the industry in which they operate. It will serve as a guide 
+to developing a foundational third-party security program as 
+you address the growing third-party risk at your organization.  
+Consider yourself fortunate to have access to both Greg’s exper -
+tise and his thoughtful and comprehensive approach to a chal-
+lenge we must all consider a priority.
+Edna Conway
+Vice President, Chief Security &  
+Risk Officer, Azure
+Microsoft
+xviii
+Third-party risk (or supply-chain security) are not new 
+ disciplines, and there have been frameworks, regulatory 
+directives, professional certifications, and organizations that all 
+attest to its maturity. Cybersecurity could be considered more 
+mature, since it has been around in some form since computing 
+came of age in the 1970s. Nowadays, it’s even more complex in 
+terms of frameworks, disciplines, certifications, regulatory guid-
+ance and directives, and avenues of study. Why do the surveys, 
+time after time, indicate that well over 50 percent of organiza-
+tions do not perform any type of Third-Party Risk Management 
+(TPRM), and even fewer have anything other than an ad hoc 
+cybersecurity due diligence program for vendors? Reasons for 
+this lack of attention and collaboration can be found in hun-
+dreds, if not thousands, of breaches and security incidents that 
+were the result of poor third-party oversight and a lack of any 
+due diligence and due care for the vendors’ cybersecurity.
+This book is designed to provide a detailed look into the 
+problems and risks, then give specific examples of how to create a 
+robust and active Cybersecurity Third-Party Risk Management 
+program. It begins by covering the basics of the due diligence 
+processes and the vendor lifecycle, with models and illustrations 
+on how to create these basic but necessary steps. Then it goes 
+more in depth about the next parts in the creation of a mature Introduction
+Introduction xix
+program: cyber legal language, offshore vendors, connectiv-
+ity security, software security, and use of a predictive reporting 
+dashboard.
+The book is designed to not only help you build a program, 
+but to take an existing program from one of compliance checkbox 
+work to an active threat-hunting practice. Many programs that do 
+currently exist are designed and run as an obligation to “check a 
+box” for a regulator or an internal auditor. Yet, no one has ever 
+secured their network or data by doing only what the regulators 
+told them to do. Security is an ongoing activity that requires its 
+application in third-party risk to be equally active and ongoing. Its 
+activities and results should emulate a cyber operations or threat 
+operations team that focuses its efforts on reducing cybersecu-
+rity threats externally at the suppliers. Get away from checking 
+boxes and filling out remote questionnaires and take a risk-based 
+approach that engages your highest risk and/or most critical third 
+parties in conversations to build trust and collaboration to lower 
+risk for both your organization and the vendor.
+Who Will Benefit Most from This Book
+A superset of cybersecurity, third-party risk, and executive lead-
+ership will benefit the most from reading this book. On the 
+cybersecurity side, analysts to senior leadership will be able to 
+take their information security knowledge and experience to 
+perform the hands-on work and management of third-party 
+risk, while third-party risk professionals will better understand 
+and appreciate the need to include a more robust cybersecurity 
+risk domain. Executive and senior leadership in business who 
+are not focused on cybersecurity or third-party risk will gain an 
+understanding of the risk, practice, and frameworks, and how to 
+lower their risk for a cybersecurity event at their vendors.
+xx IntroductIon
+Looking Ahead in This Book
+This book is divided into two sections. Section  1, titled “The 
+Basics,” lays the case for the need of a robust and active Cyber -
+security Third-Party Risk Management program as well as the 
+ necessary and basic due diligence activities and processes needed. 
+These are not basic as in “simple,” but in terms that they are 
+the foundation necessary to building a mature program, which 
+is covered in Section 2, titled “Next Steps.” This section details 
+what comes next, after you have built the basic foundation. This 
+“Next Steps” section describes cyber legal language, cloud secu-
+rity, software security, connectivity security, offshore vendors, 
+and how to build predictive reporting that focuses on the highest 
+risk vendors.
+Chapter 1 opens with a detailed description of risk by using 
+examples of the SolarWinds and other supply-chain attacks, 
+which happened in late 2020, as prime examples of how the threat 
+actors have evolved both in their identity and tactics. Examples 
+are also provided in a long list of companies who have lost their 
+data due to a vendor that did not take due care with their data. 
+Chapter  2 provides some basics on cybersecurity. This book 
+does not require the reader to be a cybersecurity or third-party 
+risk expert, but it does require that a few concepts are defined 
+and frameworks are covered for both topics to ensure all read-
+ers are at a set level. Chapter 3 delves into how the COVID-19 
+pandemic affected the security landscape and how quickly the 
+attackers adapted to new opportunities. What happens when the 
+pandemic is over and how it will change behaviors and business 
+in ways that will become the new normal will mean a continued 
+increase in cybercriminal activity.
+Chapter  4 is an in-depth look at Third-Party Risk Man-
+agement (TPRM) and is included to provide a set level for the 
+readers as well as to tie the cybersecurity and TPRM concepts 
+Introduction xxi
+together, as both domains are aimed at identifying and man-
+aging risk. Chapters 5 through 9 cover the vendor lifecycle of 
+intake, ongoing security, and offboarding due diligence activities 
+ Chapter 5 reviews the activities and requirements for vetting and 
+performing security assessments of new vendors or services from 
+existing suppliers. Chapter  6 describes ongoing cybersecurity 
+due diligence activities such as remote assessments.  Chapter 7 is 
+then devoted to the important complex topic of on-site assess-
+ments, which are essential due diligence processes for the physi-
+cal validation of security controls at a vendor site and the gold 
+standard for assurance.
+Chapter  8 covers the Continuous Monitoring (CM) pro-
+gram and how it is a crucial security control for vendors for 
+the times in between the point-in-time assessments. Building 
+a robust CM program means taking a set of tools and internal 
+data to engage vendors on potential real threats that they may 
+be unaware of and reducing risk collaboratively. Chapter 9, the 
+last chapter on the vendor lifecycle, discusses offboarding. Many 
+firms overlook this part of the lifecycle, so this chapter covers 
+the critical steps and due diligence that must be done to ensure 
+there’s no risk to the data or connectivity from a vendor.

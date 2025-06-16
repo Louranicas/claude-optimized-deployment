@@ -9,6 +9,21 @@ from dataclasses import dataclass, field
 from enum import Enum
 import re
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    ValidationError,
+    log_error
+)
+
+__all__ = [
+    "PermissionType",
+    "Permission",
+    "Role",
+    "RBACManager"
+]
+
+
 
 class PermissionType(Enum):
     """Types of permissions."""

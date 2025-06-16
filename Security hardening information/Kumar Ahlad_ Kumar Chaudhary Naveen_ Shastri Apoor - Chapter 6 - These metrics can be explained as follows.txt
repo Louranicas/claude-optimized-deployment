@@ -1,0 +1,70 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 6 - These metrics can be explained as follows.
+Security Relevance Score: 8
+Word Count: 726
+Extracted: 2025-06-13 23:40:52
+
+---
+
+These metrics can be explained as follows.
+
+
+TABLE 5.6 Confusion Matrix
+
+
+
+Predicting the Anomaly Class
+
+Predicting the Normal Class
+
+
+
+
+Attack
+Normal
+
+
+Attack
+Normal
+
+
+
+
+Actual Class
+Attack
+αA
+βA
+Actual Class
+Attack
+αN
+βN
+
+
+Normal
+γA
+δA
+Normal
+γN
+xN
+
+
+
+
+The performance of IDS is evaluated using metrics based on true positives (correctly identified attacks), true negatives (correctly identified normal traffic), false positives (incorrect alarms), and false negatives (missed attacks). These metrics are then used to calculate key statistics like True Positive Rate (TPR), False Positive Rate (FPR), and Recall (R).
+TPR=αAαA+βAFPR=γAγA+δAP=αAαA+γAF=2×P×RP+RSuccess Rate=αA+δAαA+δA+βA+γAError Rate=1−Success Rate(5.1)
+These metrics apply identically when evaluating normal traffic classification (using parameters αN, βN, γN, and δN).
+It is clear from reviewing several studies on IDS in the context of MEC and IoT that there are notable improvements and drawbacks to the various approaches. The dynamic and resource-constrained nature of IoT environments poses a challenge for traditional IDS, such as signature-based and anomaly-based detection, which have been proven effective [13]. The comparison of research emphasizes the need for more effective and adaptable IDS that can function well in the resource-constrained and dispersed environments of managed energy centers (MEC).
+This study shows that although signature-based intrusion detection systems (IDSs) are effective at detecting known threats by matching patterns, they are vulnerable to zero-day assaults and need to be updated often to stay effective [16]. On the other hand, by creating baselines of typical activity and spotting deviations, anomaly-based intrusion detection systems (IDSs) provide superior protection against new threats. However, their high false positive rate might cause problems in real-world scenarios [14]. Hybrid intrusion detection systems (IDSs) aim to integrate the advantages of both methods, improving detection efficiency and decreasing false positives. However, they pose challenges in IoT environments due to their added complexity and resource requirements [5].
+IDS systems are becoming more and more equipped with ML approaches to enhance detection precision and flexibility. Massive data sets can be analyzed by ML-based IDSs to find trends and abnormalities that point to malicious activity. However, IoT device heterogeneity and resource limits present serious problems for machine learning models, requiring compact and effective algorithms that can work within these constraints.
+
+
+
+5.5 Conclusion
+This study makes a significant contribution to the understanding of IDS within the realms of IoT and IIoT, highlighting the essential functions of MEC and machine learning. By delivering an extensive review and proposing a MEC-based NIDS framework, we tackle the intricate security issues arising from the swift expansion of IoT devices. Our research underscores the urgent need for tailored IDS in dynamic smart environments and provides valuable insights into the incorporation of machine learning to improve the efficiency and precision of IDS. Additionally, we conduct a thorough evaluation of the security mechanisms currently employed in IIoT, pinpointing deficiencies and suggesting directions for future research. This work not only consolidates the existing knowledge of IDS but also propels the field forward by delineating both practical and theoretical advancements necessary for securing the forthcoming generation of IoT networks. The in-depth analysis of IDS methodologies, challenges associated with edge computing, and the role of machine learning emphasizes the critical need for developing flexible, scalable, and resilient security solutions. Our results serve as a vital reference for researchers and practitioners dedicated to strengthening IoT and IIoT systems against emerging cyber threats.
+The continuous advancement of IoT and MEC technologies offers numerous opportunities for additional research to tackle existing challenges in IDS development. Subsequent studies should concentrate on designing lightweight machine learning algorithms specifically for resource-limited IoT environments to improve detection accuracy without overburdening the devices’ limited computational capabilities. Improving real-time detection is essential for enhancing the responsiveness and precision of IDS in real-time scenarios, particularly in light of zero-day attacks and rapidly changing threats. Enhancing interoperability guarantees that IDS solutions are adaptable to a wide array of IoT devices and communication protocols, which is critical given the diverse nature of IoT ecosystems. Privacy-preserving methods must be devised to safeguard the privacy of processed data, considering the sensitive nature of IoT data. Furthermore, the creation of energy-efficient solutions reduces energy consumption, prolonging the operational lifespan of battery-powered IoT devices. By addressing these areas, future research can further boost the effectiveness and efficiency of IDS in safeguarding IoT ecosystems, ensuring strong protection against evolving cyber threats.
+
+
+References
+
+Munirathinam, Sathyan. “Industry 4.0: Industrial internet of things (IIOT).” Advances in Computers

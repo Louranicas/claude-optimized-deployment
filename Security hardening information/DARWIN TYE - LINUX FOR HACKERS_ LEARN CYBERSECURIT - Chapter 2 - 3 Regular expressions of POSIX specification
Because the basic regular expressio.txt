@@ -1,0 +1,118 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 2 - 3) Regular expressions of POSIX specification
+Because the basic regular expressions have language problems, we need to know the regular expression rules of POSIX specification here.
+For example, a - z can be used to match all letters in the basic regular expression, but what if the object to be matched is symbols?Or what about foreign languages like Japanese? Therefore, you should remember the fact that using a-z matching is only for all letters in English language family.
+POSIX is actually composed of a series of specifications, and only POSIX regular expression specifications are introduced here.POSIX regular expression specification helps us solve language problems, and the regular expression of POSIX specification is also close to natural language.
+For example, [[:alnu:]] will match any single alphanumeric character. Here are some simple examples to illustrate the usage.As there are many filtered outputs, the following is only a partial output.
+Here are the examples:
+Security Relevance Score: 2
+Word Count: 1252
+Extracted: 2025-06-13 23:40:27
+
+---
+
+3) Regular expressions of POSIX specification
+Because the basic regular expressions have language problems, we need to know the regular expression rules of POSIX specification here.
+For example, a - z can be used to match all letters in the basic regular expression, but what if the object to be matched is symbols?Or what about foreign languages like Japanese? Therefore, you should remember the fact that using a-z matching is only for all letters in English language family.
+POSIX is actually composed of a series of specifications, and only POSIX regular expression specifications are introduced here.POSIX regular expression specification helps us solve language problems, and the regular expression of POSIX specification is also close to natural language.
+For example, [[:alnu:]] will match any single alphanumeric character. Here are some simple examples to illustrate the usage.As there are many filtered outputs, the following is only a partial output.
+Here are the examples:
+
+root@server : grep [[:space] /tmp/usr
+
+
+// This will filter the results using POSIX specification
+
+4) GNU specification
+GNU software in Linux generally supports escape meta characters.
+These escape meta characters are: \b (boundary character, matching the beginning or end of a word), \B (opposite to \b, the\B will not match the word "the", but will only match the middle word, such as atheist), \w (equivalent to [[:alnum:)
+In addition, some software supports using \d to represent any number, and \D to represent any non-number.\s represents any white space character (space, tab, etc.), \S represents any non-white space character. All these are advanced specifications that can improve the effectiveness of the shell code and the interpreter.
+In this next section, we need to talk about various arithmetic operations in detail. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Seven
+
+
+
+Operators in Shell programming
+
+
+
+
+
+In the previous chapter,
+ we talked about filtering and given examples to understand how filtering works with the help of grep command in Linux. Now we need to use operations in these commands for further improving the quality of the shell code.
+What are operators?
+We all know about mathematical operations such as addition, subtraction, multiplication and division that are extensively used in programming languages for arithmetic calculations and other programming use cases such as for writing search algorithms. Even in shell programming we can use operations to improve the quality of the code.
+Various arithmetic operations
+Shell support various arithmetic operations.
+You can use $ ((expression)) and let expression to perform integer arithmetic operations. Note that these commands cannot perform decimal operations. Use bc command to perform decimal operation.
+Below, according to the above operation symbols and when combined with specific commands, the effect of actual operation is demonstrated by means of $ (()) and $ [], both of which support the calculation of variables.
+Here are the commands :
+
+root@server : echo $ ( ( 2 +4) )
+
+
+// The solution is 6
+
+Next, we will learn this case of arithmetic operations with built-in command known as let.Note that when using the let command to calculate, the result of the operation will not be given as output by default. Generally, it is necessary to assign the result of the operation to a variable and view the result through the variable.
+In addition, when using the let command to calculate variables, there is no need to add the $ symbol before the variable name.
+Finally, note that when using \++ or - operators, the results of x++ and ++x are different, and the results of x- and -x are also different. X\++ refers to calling x and then adding 1 to x, and \++x refers to adding 1 to x and then calling x. X- is to call x first and then subtract 1 from x while -x is to subtract 1 from x first and then call x.
+Bash only supports four operations on integers, not decimal operations. If we need to operate on decimals with arbitrary precision or even write calculation functions in the script, we can use bc calculator to realize it.
+What is bc in shell programming?
+Bc calculator supports interactive and non-interactive execution modes.First, look at the calculation mode in interactive mode. One line of code is a command, and multiple calculations can be performed.The bold part below is the manual input, and the italicized output is the calculation result.
+In addition to using bc calculator in interactive mode, it can also be calculated in a non-interactive way.In addition, the other two built-in variables ibase(in) and obase(out) of bc calculator can be used for binary conversion.
+ibase is used to specify the binary of input numbers, obase is used to set the binary of output numbers, and both input and output numbers are decimal by default. Through calculation, we can solve many problems in reality. Each part of the following script case that needs calculation results can be run independently, or can be merged into a file for unified execution.
+Note:
+The variable names of user-defined variables cannot use special symbols, but some variable names in system preset variables contain special symbols. env command can view all preset environment variables in the system and Set command can view all variables in the system, including custom variables.
+
+root@server :env
+
+
+root@server : set
+
+What Next?
+With this, we have completed a brief introduction to operators in Shell programming. To further improve your skills as a shell programmer we recommend you to try different operations available in a linux system. In the last two sections of this book , we will discuss about various advanced concepts of Shell programming with examples. Head on to the next chapter to learn about it.
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Eight
+
+
+
+Shell extensions
+
+
+
+
+
+In the previous
+ chapters we learned about the fundamentals of Shell scripting. In these next couple of chapters we will discuss about different advanced concepts of shell language. We recommend you to understand them in detail before trying to write your own scripts as these tips can help you create effective shell scripts.
+Through the study in the previous chapter, you have mastered the core syntax of Shell scripting.However, if you are wondering whether there is any more advanced content that can let us show off our skills in front of people then you are in the right place.Please continue to look down, you will master more and better Shell usage skills. Let us go!
+What are we going to learn?
+We are going to learn about different shell extensions that can help increase the accuracy and predictability of shell programming. Using these extensions you can easily go through directories and can do various complex operation such as substituting and splitting. We will explain each of these extensions in detail with examples. Let us go!
+Shell curly brace
+First, we will talk about curly braces and their importance in shell programming.
+Shell script supports seven types of extensions that are famously defined as curly brace expansion, tilde expansion, parameter and variable expansion,Command substitution, arithmetic expansion, word splitting and pathname expansion.
+These extension techniques are very useful when writing scripts.You can use curly braces to extend strings in Shell scripts.We can include a set of strings or string sequences separated by semicolons in a pair of curly braces to form a string extension.
+Note that the final output results are separated by spaces.When using this extension, curly braces cannot be quoted (single or double quotation marks), and the number of brackets must be even.A string sequence can be followed by an optional step size integer, and the default value of this step size is 1 or -

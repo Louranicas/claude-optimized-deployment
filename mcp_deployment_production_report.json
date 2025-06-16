@@ -1,0 +1,226 @@
+{
+  "deployment_summary": {
+    "timestamp": "2025-06-07T11:06:30.779957",
+    "success_rate": "53.3%",
+    "production_readiness_score": "68.3%",
+    "servers_deployed": 8,
+    "servers_failed": 7,
+    "critical_errors": 0,
+    "security_issues": 6,
+    "duration_seconds": 0.452979
+  },
+  "deployed_servers": {
+    "security-scanner": {
+      "tier": "security",
+      "status": "operational",
+      "class_name": "SecurityScannerMCPServer",
+      "deployed_at": "2025-06-07T11:06:30.681704"
+    },
+    "sast-scanner": {
+      "tier": "security",
+      "status": "operational",
+      "class_name": "SASTMCPServer",
+      "deployed_at": "2025-06-07T11:06:30.682069"
+    },
+    "supply-chain-security": {
+      "tier": "security",
+      "status": "operational",
+      "class_name": "SupplyChainSecurityMCPServer",
+      "deployed_at": "2025-06-07T11:06:30.682527"
+    },
+    "s3-storage": {
+      "tier": "storage",
+      "status": "operational",
+      "class_name": "S3StorageMCPServer",
+      "deployed_at": "2025-06-07T11:06:30.771589"
+    },
+    "cloud-storage": {
+      "tier": "storage",
+      "status": "operational",
+      "class_name": "CloudStorageMCP",
+      "deployed_at": "2025-06-07T11:06:30.771886"
+    },
+    "slack-notifications": {
+      "tier": "communication",
+      "status": "operational",
+      "class_name": "SlackNotificationMCPServer",
+      "deployed_at": "2025-06-07T11:06:30.773436"
+    },
+    "hub-server": {
+      "tier": "communication",
+      "status": "operational",
+      "class_name": "CommunicationHubMCP",
+      "deployed_at": "2025-06-07T11:06:30.778193"
+    },
+    "infrastructure-commander": {
+      "tier": "additional",
+      "status": "operational",
+      "class_name": "InfrastructureCommanderMCP",
+      "deployed_at": "2025-06-07T11:06:30.779023"
+    }
+  },
+  "failed_servers": {
+    "desktop-commander": {
+      "error": "instantiation_failed",
+      "details": "EnhancedMockPermissionChecker.register_resource_permission() got an unexpected keyword argument 'resource_type'",
+      "tier": "infrastructure"
+    },
+    "docker": {
+      "error": "instantiation_failed",
+      "details": "EnhancedMockPermissionChecker.register_resource_permission() got an unexpected keyword argument 'resource_type'",
+      "tier": "infrastructure"
+    },
+    "kubernetes": {
+      "error": "instantiation_failed",
+      "details": "EnhancedMockPermissionChecker.register_resource_permission() got an unexpected keyword argument 'resource_type'",
+      "tier": "infrastructure"
+    },
+    "azure-devops": {
+      "error": "instantiation_failed",
+      "details": "EnhancedMockPermissionChecker.register_resource_permission() got an unexpected keyword argument 'resource_type'",
+      "tier": "devops"
+    },
+    "windows-system": {
+      "error": "instantiation_failed",
+      "details": "EnhancedMockPermissionChecker.register_resource_permission() got an unexpected keyword argument 'resource_type'",
+      "tier": "devops"
+    },
+    "prometheus-monitoring": {
+      "error": "instantiation_failed",
+      "details": "Unsafe Prometheus URL: DNS resolution failed: DNS resolution failed for prometheus-service: [Errno -2] Name or service not known",
+      "tier": "monitoring"
+    },
+    "brave": {
+      "error": "instantiation_failed",
+      "details": "EnhancedMockPermissionChecker.register_resource_permission() got an unexpected keyword argument 'resource_type'",
+      "tier": "search"
+    }
+  },
+  "security_assessment": {
+    "total_issues": 6,
+    "issues_by_severity": {
+      "CRITICAL": 0,
+      "HIGH": 1,
+      "MEDIUM": 5,
+      "LOW": 0
+    },
+    "detailed_issues": [
+      {
+        "server": "supply-chain-security",
+        "issue": "missing_security_tools",
+        "missing_tools": [
+          "analyze_dependencies",
+          "check_vulnerabilities"
+        ],
+        "coverage": "33.3%",
+        "severity": "HIGH"
+      },
+      {
+        "server": "s3-storage",
+        "issue": "no_permission_checker",
+        "severity": "MEDIUM",
+        "tier": "storage"
+      },
+      {
+        "server": "cloud-storage",
+        "issue": "no_permission_checker",
+        "severity": "MEDIUM",
+        "tier": "storage"
+      },
+      {
+        "server": "slack-notifications",
+        "issue": "no_permission_checker",
+        "severity": "MEDIUM",
+        "tier": "communication"
+      },
+      {
+        "server": "hub-server",
+        "issue": "no_permission_checker",
+        "severity": "MEDIUM",
+        "tier": "communication"
+      },
+      {
+        "server": "infrastructure-commander",
+        "issue": "no_permission_checker",
+        "severity": "MEDIUM",
+        "tier": "additional"
+      }
+    ]
+  },
+  "tier_summary": {
+    "security": {
+      "deployed": 3,
+      "servers": [
+        "security-scanner",
+        "sast-scanner",
+        "supply-chain-security"
+      ]
+    },
+    "storage": {
+      "deployed": 2,
+      "servers": [
+        "s3-storage",
+        "cloud-storage"
+      ]
+    },
+    "communication": {
+      "deployed": 2,
+      "servers": [
+        "slack-notifications",
+        "hub-server"
+      ]
+    },
+    "additional": {
+      "deployed": 1,
+      "servers": [
+        "infrastructure-commander"
+      ]
+    },
+    "infrastructure": {
+      "deployed": 0,
+      "servers": [],
+      "failed": 3,
+      "failed_servers": [
+        "desktop-commander",
+        "docker",
+        "kubernetes"
+      ]
+    },
+    "devops": {
+      "deployed": 0,
+      "servers": [],
+      "failed": 2,
+      "failed_servers": [
+        "azure-devops",
+        "windows-system"
+      ]
+    },
+    "monitoring": {
+      "deployed": 0,
+      "servers": [],
+      "failed": 1,
+      "failed_servers": [
+        "prometheus-monitoring"
+      ]
+    },
+    "search": {
+      "deployed": 0,
+      "servers": [],
+      "failed": 1,
+      "failed_servers": [
+        "brave"
+      ]
+    }
+  },
+  "recommendations": [
+    "\ud83d\udd27 Fix 7 failed server deployments for complete coverage",
+    "\ud83c\udfd7\ufe0f Deploy infrastructure servers for container and orchestration support"
+  ],
+  "production_certification": {
+    "certification_level": "DEVELOPMENT_READY",
+    "status": "\ud83d\udd27 READY FOR DEVELOPMENT - Significant fixes needed",
+    "readiness_score": 68.33333333333334,
+    "requirements_met": false,
+    "certification_date": "2025-06-07T11:06:30.779979"
+  }
+}

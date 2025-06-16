@@ -1,0 +1,387 @@
+# Security Chapter Extract
+Book: Ilya Shpigor [Илья Шпигорь] - Bash programming from scratch (2021, leanpub.com) - libgen.li
+Chapter: 1 - Numbers conversion from binary to hexadecimal
+Convert the following numbers from binary to hexadecimal:
+* 10100110100110
+* 1011000111010100010011
+* 1111101110001001010100110000000110101101
+Exercise 1-2. Numbers conversion from hexadecimal to binary
+Convert the following numbers from hexadecimal to binary:
+* FF00AB02
+* 7854AC1
+* 1E5340ACB38
+There are the answers for all exercises in the last section of the book. Check yourself there if you
+areunsureaboutyourresults.
+Let’scomebacktoexecutingtheprogram.TheOSloadsitsexecutablefilefromthediskdriveinto
+RAM. Then the OS loads all libraries that the program requires. The special OS component does
+GeneralInformation 38
+both these tasks. It is called loader¹⁴⁰. Thanks to preloading libraries, the CPU does not idle too
+muchwhentheprogramaccessesthem.TheinstructionsoftherequiredlibraryarealreadyinRAM.
+Therefore, the CPU waits for a few hundred clock cycles to access them. When the loader finishes
+hisjob,theprogrambecomesaprocess.TheCPUexecutesit,startingfromthefirstinstruction.
+Eachmachinecodeinstructioniscalled opcode¹⁴¹.TheopcodedictatestheCPUwhichlogicgatesit
+shouldapplyfordatainthespecificregisters.Whentheoperationisdone,theopcodespecifiesthe
+registerforstoringtheresult.OpcodeshaveabinaryformatthatisanaturallanguageoftheCPU.
+While the program is running, its instructions, resources and required libraries occupy the RAM
+area. The OS clears this memory area when the program finishes. Then other applications can use
+it.
+Source Code
+Machinecodeisalow-levelrepresentationofaprogram.Thisformatisconvenientfortheprocessor.
+However,itishardforahumantowriteaprograminmachinecode.Softwareengineersdeveloped
+thefirstprogramsthisway.Itwaspossibleforearlycomputersbecauseoftheirsimplicity.Modern
+computers are much more powerful and complex devices. Their programs are huge and have a lot
+offunctions.
+Computer engineers invented two types of special applications. They solve the problem of the
+machine code complexity. These applications are compilers ¹⁴²and interpreters ¹⁴³. They translate
+theprogramfromahuman-readablelanguageintomachinecode.Compilersandinterpreterssolve
+thistaskdifferently.
+Software developers use programming languages ¹⁴⁴in their work nowadays. Compilers and
+interpreterstakeprogramswritteninsuchlanguagesandproducethecorrespondingmachinecode.
+Humansuseoneof natural language ¹⁴⁵tocommunicatewitheachother.Programminglanguages
+aredifferentfromthem.Theyareformalandverylimited.Usingaprogramminglanguage,youcan
+express only actions that a computer can perform. There are strict rules on how you should write
+these actions. For example, you can use a small set of words and combine them in specific orders.
+Source code ¹⁴⁶isatextoftheprogramyouwriteinaprogramminglanguage.
+Thecompilerandinterpreterprocesssourcecodedifferently.Thecompilerreadstheentireprogram
+text, generates machine code instructions and saves them on a disk drive. The compiler does not
+executetheresultingprogramonitsown.Theinterpreterreadsthesourcecodeinparts,generates
+machinecodeinstructionsandexecutesthemimmediately.TheinterpreterstoresitsresultsinRAM
+temporarily.Whentheprogramfinishes,youlosetheseresults.
+¹⁴⁰https://en.wikipedia.org/wiki/Loader_(computing)
+¹⁴¹https://en.wikipedia.org/wiki/Opcode
+¹⁴²https://en.wikipedia.org/wiki/Compiler
+¹⁴³https://en.wikipedia.org/wiki/Interpreter_(computing)
+¹⁴⁴https://en.wikipedia.org/wiki/Programming_language
+¹⁴⁵https://en.wikipedia.org/wiki/Natural_language
+¹⁴⁶https://en.wikipedia.org/wiki/Source_code
+GeneralInformation 39
+Let’sconsiderhowthecompilerworksstepbystep.Supposethatyouhavewrittentheprogram.You
+saveditssourcecodetoafileontheharddisk.Thenyourunacompilerthatfitsthelanguageyou
+haveused.Eachprogramminglanguagehasthecorrespondingcompilerorinterpreter.Thecompiler
+reads your file, processes it and writes the resulting machine code in the executable file on a disk.
+Nowyouhavetwofiles:onewithsourcecodeandonewithmachinecode.Everytimeyouchange
+thesourcecodefile,youshouldgeneratethenewexecutablefile.Youcanruntheexecutablefileto
+launchyourprogram.
+Figure1-15showshowthecompilerprocessesaprogramwritteninCandC++languages.
+Figure 1-15. The compilation process
+The compilation process consists of two steps. The compiler does the first step. The second step is
+called linking.Thespecialprogramcalled linker¹⁴⁷performsit.
+The compiler produces intermediate object files . The linker takes them and converts them to one
+executablefile.
+Whydoyouneedtwostepsforcompilingthesourcecode?Intheory,youcancombinethecompiler
+andlinkerintoasingleapplication.However,suchasolutionhasseveralproblems.
+The limited RAM size causes the first problem. There is a common practice to split source code
+intoseveralfiles.Eachfilematchesaseparatepartoftheprogramthatsolvesthespecifictask.This
+way,yousimplifyyourworkwiththesourcecode.Thecompilerprocessesthesefilesseparately.It
+producesanobjectfileforeachsourcecodefile.Theystoretheintermediateresultsofcompilation.If
+youcombinethecompilerandlinkerintooneapplication,thereisnochancetosavetheintermediate
+results to the disk. It means you should compile the whole program at once. If you deal with a big
+program,thecompilationprocessconsumesallyourRAMandcrashes.
+Thesecondproblemofthecompiler-linkerapplicationisresolving dependencies .Thereareblocks
+of commands that call each other in the source code. Such references are called dependencies.
+Trackingthemisthelinkertask.However,ifyoucombinecompilerandlinker,youneedextrapasses
+throughthewholeprogramsourcecodeforresolvingdependencies.Thecompilerneedsmuchmore
+¹⁴⁷https://en.wikipedia.org/wiki/Linker_(computing)
+GeneralInformation 40
+timeforasinglepassoverthesourcecodethanthelinkerneedsitforobjectfiles.Therefore,when
+youhavethecompilerandlinkerseparated,youspeeduptheoverallcompilationprocess.
+Theprogramcancallblocksofcommandsfromthelibrary.Thelinkerprocessthelibraryfiletogether
+with the object files of your program in this case. The compiler cannot process the library. Its file
+contains machine code but not the source code. Therefore, the compiler does not understand it.
+Splittingthecompilationintotwostepsresolvesthetaskofusinglibrariestoo.
+We have considered the basics of how the compiler works. Now suppose that you choose an
+interpreter instead to execute your program. You have the file with its source code on the disk
+drive. The file is ready for execution. When you run it, the OS loads the interpreter first. Then
+the interpreter reads your source code file into RAM and executes it line by line. The translation
+of source code commands to machine code instructions happens in RAM. Some interpreters save
+fileswithanintermediaterepresentationoftheprogramtothediskdrive.Itspeedsuptheprogram
+executionifyourestartit.However,youalwaysneedtorunaninterpreterfirstforexecutingyour
+program.
+Figure1-16showstheprocessofinterpretingtheprogram.
+Figure 1-16. Interpreting the program
+Figure 1-16 can give an idea that the interpreter works the same way as the compiler and linker
+combinedintooneapplication.TheinterpreterloadssourcecodefilesintoRAMandtranslatesthem
+intomachinecode.WhyaretherenoproblemswiththeRAMoverflowanddependencyresolution?
+The interpreter avoids problems because it processes the source code differently than the compiler
+does. The interpreter processes and executes the program code line by line. Therefore, it does not
+storethemachinecodeofthewholeprograminmemory.Theinterpreterprocessesthepartsofthe
+sourcecodefilethatitrequiresatthemoment.Whentheinterpreterexecutesthem,itunloadsthese
+partsandfreesthecorrespondingRAMarea.
+GeneralInformation 41
+Interpretingtheprogramlooksmoreconvenientforsoftwaredevelopmentthancompiling.However,
+ithassomedrawbacks.
+First,allinterpretersworkslowly.Ithappensbecauseeverytimeyouruntheprogram,theinterpreter
+shouldtranslateitssourcecodetomachinecode.Thisprocesstakessometime.Youshouldwaitfor
+it.Anotherreasonforthelowperformanceofinterpretersisdiskoperations.Loadingtheprogram’s
+sourcecodefromthediskdriveintoRAMcausestheCPUtoidle.Ittakesupto10000000clockcycles,
+accordingtoTable1-3.
+Second, the interpreter itself is a complex program. It requires some portion of the computer’s
+hardware resources to launch and work. Therefore, the computer executes both interpreter and
+yourprograminparallelandsharesresourcesamongthem.Itisanextraoverheadthatreducesthe
+performanceofyourprogram.
+Interpretingtheprogramisslow.Doesitmeanthatcompilationisbetter?Thecompilergeneratesan
+executable file with machine code. Therefore, you reach almost the program’s performance when
+you compile it or write machine code on your own. However, you pay for using the programming
+language at the compilation stage. A couple of seconds and a few megabytes of RAM are enough
+to compile a small program. When you compile a large project (for example, the Linux kernel), it
+takesseveralhours.Ifyouchangethesourcecode,youshouldrecompiletheprojectandwaithours
+again.
+Keep in mind the overhead of interpreters and compilers when choosing a programming language
+foryourproject.Theinterpreterisagoodchoiceinthefollowingcases:
+•Youwanttodevelopaprogramquickly.
+•Youdonotcareabouttheprogram’sperformance.
+•Youworkonasmallandrelativelysimpleproject.
+Thecompilerwouldbebetterinthefollowingcases:
+•Youworkonacomplexandlargeproject.
+•Yourprogramshouldworkasfastaspossible.
+•Youwanttospeedupdebuggingofyourprogram.
+Both compilers and interpreters have an overhead. Does it make sense to discard a programming
+languageandwriteaprograminmachinecode?Youdonotwasteyourtimewaitingforcompilation
+inthiscase.Yourprogramworksasfastaspossible.Thesebenefitssoundreasonable.Pleasedonot
+hurrywithyourconclusions.
+One simple example helps you to realize all advantages of using a programming language. Listing
+1-1showsthesourcecodewritteninC.Thisprogramprintsthe“Helloworld!”textonthescreen.
+GeneralInformation 42
+Listing 1-1. Source code of the C program
+1#include <stdio.h>
+2
+3int main (void )
+4{
+5 printf( "Hello world! \n");
+6}
+Listing1-2showsthemachinecodeofthisprograminthehexadecimalformat.
+Listing 1-2. Machine code of the program
+1BB 11 01 B9 0D 00 B4 0E 8A 07 43 CD 10 E2 F9
+2CD 20 48 65 6C 6C 6F 2C 20 57 6F 72 6C 64 21
+Evenifyoudon’tknowtheClanguage,youwouldprefertodealwiththecodeinListing1-1.You
+canreadandedititeasily.Atthesametime,youneedsignificanteffortstodecodethenumbersin
+Listing1-2.
+Perhaps a professional programmer with huge experience can write a small program in machine
+codes.However,anotherprogrammerwillspendalotoftimeandefforttofigureitout.Developing
+alargeprojectinmachinecodesisachallengingandtime-consumingtaskforanydeveloper.
+Using programming language saves your effort and time significantly when developing programs.
+Also, it reduces the cost of maintaining the existing project. There is no way to develop modern
+complexsoftwareusingthemachinecodeonly.
+Bash Shell
+Programmingisanappliedskill.Ifyouwanttolearnit,youshouldchooseaprogramminglanguage
+andsolvetasks.Thisistheonlywaytogetpracticalskills.
+We use the Bash language in this book. This language is convenient for automating computer
+administrationtasks.HerearefewexamplesofwhatyoucandowithBash:
+•Createdatabackups.
+•Manipulate directories ¹⁴⁸andfiles.
+•Runprogramsandtransferdatabetweenthem.
+Bash was developed in the Unix environment. Therefore, it bears the imprint of the Unix philoso-
+phy¹⁴⁹.Despiteitsroots,youcanalsouseBashonWindowsandmacOS.
+Development Tools
+You need a Bash interpreter and a terminal emulator to run the examples of this chapter. You can
+installthemonallmodernoperatingsystems.Let’stakealookathowtodothis.
+Bash Interpreter
+Bashisa script programming language ¹⁵⁰.Ithasthefollowingfeatures:
+Security Relevance Score: 3
+Word Count: 1086
+Extracted: 2025-06-13 23:40:26
+
+---
+
+Numbers conversion from binary to hexadecimal
+Convert the following numbers from binary to hexadecimal:
+* 10100110100110
+* 1011000111010100010011
+* 1111101110001001010100110000000110101101
+Exercise 1-2. Numbers conversion from hexadecimal to binary
+Convert the following numbers from hexadecimal to binary:
+* FF00AB02
+* 7854AC1
+* 1E5340ACB38
+There are the answers for all exercises in the last section of the book. Check yourself there if you
+areunsureaboutyourresults.
+Let’scomebacktoexecutingtheprogram.TheOSloadsitsexecutablefilefromthediskdriveinto
+RAM. Then the OS loads all libraries that the program requires. The special OS component does
+GeneralInformation 38
+both these tasks. It is called loader¹⁴⁰. Thanks to preloading libraries, the CPU does not idle too
+muchwhentheprogramaccessesthem.TheinstructionsoftherequiredlibraryarealreadyinRAM.
+Therefore, the CPU waits for a few hundred clock cycles to access them. When the loader finishes
+hisjob,theprogrambecomesaprocess.TheCPUexecutesit,startingfromthefirstinstruction.
+Eachmachinecodeinstructioniscalled opcode¹⁴¹.TheopcodedictatestheCPUwhichlogicgatesit
+shouldapplyfordatainthespecificregisters.Whentheoperationisdone,theopcodespecifiesthe
+registerforstoringtheresult.OpcodeshaveabinaryformatthatisanaturallanguageoftheCPU.
+While the program is running, its instructions, resources and required libraries occupy the RAM
+area. The OS clears this memory area when the program finishes. Then other applications can use
+it.
+Source Code
+Machinecodeisalow-levelrepresentationofaprogram.Thisformatisconvenientfortheprocessor.
+However,itishardforahumantowriteaprograminmachinecode.Softwareengineersdeveloped
+thefirstprogramsthisway.Itwaspossibleforearlycomputersbecauseoftheirsimplicity.Modern
+computers are much more powerful and complex devices. Their programs are huge and have a lot
+offunctions.
+Computer engineers invented two types of special applications. They solve the problem of the
+machine code complexity. These applications are compilers ¹⁴²and interpreters ¹⁴³. They translate
+theprogramfromahuman-readablelanguageintomachinecode.Compilersandinterpreterssolve
+thistaskdifferently.
+Software developers use programming languages ¹⁴⁴in their work nowadays. Compilers and
+interpreterstakeprogramswritteninsuchlanguagesandproducethecorrespondingmachinecode.
+Humansuseoneof natural language ¹⁴⁵tocommunicatewitheachother.Programminglanguages
+aredifferentfromthem.Theyareformalandverylimited.Usingaprogramminglanguage,youcan
+express only actions that a computer can perform. There are strict rules on how you should write
+these actions. For example, you can use a small set of words and combine them in specific orders.
+Source code ¹⁴⁶isatextoftheprogramyouwriteinaprogramminglanguage.
+Thecompilerandinterpreterprocesssourcecodedifferently.Thecompilerreadstheentireprogram
+text, generates machine code instructions and saves them on a disk drive. The compiler does not
+executetheresultingprogramonitsown.Theinterpreterreadsthesourcecodeinparts,generates
+machinecodeinstructionsandexecutesthemimmediately.TheinterpreterstoresitsresultsinRAM
+temporarily.Whentheprogramfinishes,youlosetheseresults.
+¹⁴⁰https://en.wikipedia.org/wiki/Loader_(computing)
+¹⁴¹https://en.wikipedia.org/wiki/Opcode
+¹⁴²https://en.wikipedia.org/wiki/Compiler
+¹⁴³https://en.wikipedia.org/wiki/Interpreter_(computing)
+¹⁴⁴https://en.wikipedia.org/wiki/Programming_language
+¹⁴⁵https://en.wikipedia.org/wiki/Natural_language
+¹⁴⁶https://en.wikipedia.org/wiki/Source_code
+GeneralInformation 39
+Let’sconsiderhowthecompilerworksstepbystep.Supposethatyouhavewrittentheprogram.You
+saveditssourcecodetoafileontheharddisk.Thenyourunacompilerthatfitsthelanguageyou
+haveused.Eachprogramminglanguagehasthecorrespondingcompilerorinterpreter.Thecompiler
+reads your file, processes it and writes the resulting machine code in the executable file on a disk.
+Nowyouhavetwofiles:onewithsourcecodeandonewithmachinecode.Everytimeyouchange
+thesourcecodefile,youshouldgeneratethenewexecutablefile.Youcanruntheexecutablefileto
+launchyourprogram.
+Figure1-15showshowthecompilerprocessesaprogramwritteninCandC++languages.
+Figure 1-15. The compilation process
+The compilation process consists of two steps. The compiler does the first step. The second step is
+called linking.Thespecialprogramcalled linker¹⁴⁷performsit.
+The compiler produces intermediate object files . The linker takes them and converts them to one
+executablefile.
+Whydoyouneedtwostepsforcompilingthesourcecode?Intheory,youcancombinethecompiler
+andlinkerintoasingleapplication.However,suchasolutionhasseveralproblems.
+The limited RAM size causes the first problem. There is a common practice to split source code
+intoseveralfiles.Eachfilematchesaseparatepartoftheprogramthatsolvesthespecifictask.This
+way,yousimplifyyourworkwiththesourcecode.Thecompilerprocessesthesefilesseparately.It
+producesanobjectfileforeachsourcecodefile.Theystoretheintermediateresultsofcompilation.If
+youcombinethecompilerandlinkerintooneapplication,thereisnochancetosavetheintermediate
+results to the disk. It means you should compile the whole program at once. If you deal with a big
+program,thecompilationprocessconsumesallyourRAMandcrashes.
+Thesecondproblemofthecompiler-linkerapplicationisresolving dependencies .Thereareblocks
+of commands that call each other in the source code. Such references are called dependencies.
+Trackingthemisthelinkertask.However,ifyoucombinecompilerandlinker,youneedextrapasses
+throughthewholeprogramsourcecodeforresolvingdependencies.Thecompilerneedsmuchmore
+¹⁴⁷https://en.wikipedia.org/wiki/Linker_(computing)
+GeneralInformation 40
+timeforasinglepassoverthesourcecodethanthelinkerneedsitforobjectfiles.Therefore,when
+youhavethecompilerandlinkerseparated,youspeeduptheoverallcompilationprocess.
+Theprogramcancallblocksofcommandsfromthelibrary.Thelinkerprocessthelibraryfiletogether
+with the object files of your program in this case. The compiler cannot process the library. Its file
+contains machine code but not the source code. Therefore, the compiler does not understand it.
+Splittingthecompilationintotwostepsresolvesthetaskofusinglibrariestoo.
+We have considered the basics of how the compiler works. Now suppose that you choose an
+interpreter instead to execute your program. You have the file with its source code on the disk
+drive. The file is ready for execution. When you run it, the OS loads the interpreter first. Then
+the interpreter reads your source code file into RAM and executes it line by line. The translation
+of source code commands to machine code instructions happens in RAM. Some interpreters save
+fileswithanintermediaterepresentationoftheprogramtothediskdrive.Itspeedsuptheprogram
+executionifyourestartit.However,youalwaysneedtorunaninterpreterfirstforexecutingyour
+program.
+Figure1-16showstheprocessofinterpretingtheprogram.
+Figure 1-16. Interpreting the program
+Figure 1-16 can give an idea that the interpreter works the same way as the compiler and linker
+combinedintooneapplication.TheinterpreterloadssourcecodefilesintoRAMandtranslatesthem
+intomachinecode.WhyaretherenoproblemswiththeRAMoverflowanddependencyresolution?
+The interpreter avoids problems because it processes the source code differently than the compiler
+does. The interpreter processes and executes the program code line by line. Therefore, it does not
+storethemachinecodeofthewholeprograminmemory.Theinterpreterprocessesthepartsofthe
+sourcecodefilethatitrequiresatthemoment.Whentheinterpreterexecutesthem,itunloadsthese
+partsandfreesthecorrespondingRAMarea.
+GeneralInformation 41
+Interpretingtheprogramlooksmoreconvenientforsoftwaredevelopmentthancompiling.However,
+ithassomedrawbacks.
+First,allinterpretersworkslowly.Ithappensbecauseeverytimeyouruntheprogram,theinterpreter
+shouldtranslateitssourcecodetomachinecode.Thisprocesstakessometime.Youshouldwaitfor
+it.Anotherreasonforthelowperformanceofinterpretersisdiskoperations.Loadingtheprogram’s
+sourcecodefromthediskdriveintoRAMcausestheCPUtoidle.Ittakesupto10000000clockcycles,
+accordingtoTable1-3.
+Second, the interpreter itself is a complex program. It requires some portion of the computer’s
+hardware resources to launch and work. Therefore, the computer executes both interpreter and
+yourprograminparallelandsharesresourcesamongthem.Itisanextraoverheadthatreducesthe
+performanceofyourprogram.
+Interpretingtheprogramisslow.Doesitmeanthatcompilationisbetter?Thecompilergeneratesan
+executable file with machine code. Therefore, you reach almost the program’s performance when
+you compile it or write machine code on your own. However, you pay for using the programming
+language at the compilation stage. A couple of seconds and a few megabytes of RAM are enough
+to compile a small program. When you compile a large project (for example, the Linux kernel), it
+takesseveralhours.Ifyouchangethesourcecode,youshouldrecompiletheprojectandwaithours
+again.
+Keep in mind the overhead of interpreters and compilers when choosing a programming language
+foryourproject.Theinterpreterisagoodchoiceinthefollowingcases:
+•Youwanttodevelopaprogramquickly.
+•Youdonotcareabouttheprogram’sperformance.
+•Youworkonasmallandrelativelysimpleproject.
+Thecompilerwouldbebetterinthefollowingcases:
+•Youworkonacomplexandlargeproject.
+•Yourprogramshouldworkasfastaspossible.
+•Youwanttospeedupdebuggingofyourprogram.
+Both compilers and interpreters have an overhead. Does it make sense to discard a programming
+languageandwriteaprograminmachinecode?Youdonotwasteyourtimewaitingforcompilation
+inthiscase.Yourprogramworksasfastaspossible.Thesebenefitssoundreasonable.Pleasedonot
+hurrywithyourconclusions.
+One simple example helps you to realize all advantages of using a programming language. Listing
+1-1showsthesourcecodewritteninC.Thisprogramprintsthe“Helloworld!”textonthescreen.
+GeneralInformation 42
+Listing 1-1. Source code of the C program
+1#include <stdio.h>
+2
+3int main (void )
+4{
+5 printf( "Hello world! \n");
+6}
+Listing1-2showsthemachinecodeofthisprograminthehexadecimalformat.
+Listing 1-2. Machine code of the program
+1BB 11 01 B9 0D 00 B4 0E 8A 07 43 CD 10 E2 F9
+2CD 20 48 65 6C 6C 6F 2C 20 57 6F 72 6C 64 21
+Evenifyoudon’tknowtheClanguage,youwouldprefertodealwiththecodeinListing1-1.You
+canreadandedititeasily.Atthesametime,youneedsignificanteffortstodecodethenumbersin
+Listing1-2.
+Perhaps a professional programmer with huge experience can write a small program in machine
+codes.However,anotherprogrammerwillspendalotoftimeandefforttofigureitout.Developing
+alargeprojectinmachinecodesisachallengingandtime-consumingtaskforanydeveloper.
+Using programming language saves your effort and time significantly when developing programs.
+Also, it reduces the cost of maintaining the existing project. There is no way to develop modern
+complexsoftwareusingthemachinecodeonly.
+Bash Shell
+Programmingisanappliedskill.Ifyouwanttolearnit,youshouldchooseaprogramminglanguage
+andsolvetasks.Thisistheonlywaytogetpracticalskills.
+We use the Bash language in this book. This language is convenient for automating computer
+administrationtasks.HerearefewexamplesofwhatyoucandowithBash:
+•Createdatabackups.
+•Manipulate directories ¹⁴⁸andfiles.
+•Runprogramsandtransferdatabetweenthem.
+Bash was developed in the Unix environment. Therefore, it bears the imprint of the Unix philoso-
+phy¹⁴⁹.Despiteitsroots,youcanalsouseBashonWindowsandmacOS.
+Development Tools
+You need a Bash interpreter and a terminal emulator to run the examples of this chapter. You can
+installthemonallmodernoperatingsystems.Let’stakealookathowtodothis.
+Bash Interpreter
+Bashisa script programming language ¹⁵⁰.Ithasthefollowingfeatures:
+1.Itisinterpretedlanguage.
+2.Itoperatesexistingprogramsorhigh-levelcommands.
+3.YoucanuseitasashelltoaccesstheOSfunctions.
+IfyouuseLinuxormacOS,youhavethepreinstalledBashinterpreter.IfyourOSisWindows,you
+need both Bash interpreter and POSIX-compatible environment. Bash needs this environment to
+workcorrectly.Therearetwowaystoinstallit.
+You can meet the “Unix environment” and “Linux environment” terms. They both mean a
+softwareenvironmentthatiscompatiblewithPOSIXstandards.
+¹⁴⁸https://en.wikipedia.org/wiki/Directory_(computing)
+¹⁴⁹https://en.wikipedia.org/wiki/Unix_philosophy
+¹⁵⁰https://en.wikipedia.org/wiki/Scripting_language
+BashShell 44
+The first option is to install the MinGW¹⁵¹toolkit. It contains the GNU compiler collection ¹⁵²
+in addition to Bash. If you do not need all MinGW features, you can install Minimal SYStem
+(MSYS)instead.MSYSistheMinGWcomponentthatincludesBash,aterminalemulatorand GNU
+utilities¹⁵³.ThesethreethingsmakeupaminimalUnixenvironment.
+It is always good to clarify the bitness of your Windows before installing any software. Here are
+stepstoreadit:
+1.If you have a “Computer” icon on your desktop, right-click on it and select the “Properties”
+item.
+2.If there is no “Computer” icon on your desktop, click the “Start” button. Find the “Computer”
+iteminthemenu.Right-clickonitandselect“Properties”.
+3.You have opened the “System” window. Locate the “System Type” item there as Figure 2-1
+demonstrates.ThisitemshowsyouthebitnessofWindows.
+Figure 2-

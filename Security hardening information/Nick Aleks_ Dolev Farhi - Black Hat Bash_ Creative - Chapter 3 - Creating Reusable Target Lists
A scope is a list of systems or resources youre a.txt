@@ -1,0 +1,23 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - Creating Reusable Target Lists
+A scope is a list of systems or resources you’re allowed to target. In penetration testing or bug-hunting engagements, the target company might provide you with various types of scopes:
+Security Relevance Score: 2
+Word Count: 192
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Creating Reusable Target Lists
+A scope is a list of systems or resources you’re allowed to target. In penetration testing or bug-hunting engagements, the target company might provide you with various types of scopes:
+
+Individual IP addresses, such as 172.16.10.1 and 172.16.10.2
+Networks, such as 172.16.10.0/24 and 172.16.10.1–172.16.10.254
+Individual domain names, such as lab.example.com
+A parent domain name and all its subdomains, such as *.example.com
+
+When working with tools such as port and vulnerability scanners, you’ll often need to run the same type of scan against all hosts in your scope. This can be hard to do efficiently, however, as each tool uses its own syntax. For instance, one tool might allow you to specify an input file containing a list of targets, while other tools may require individual addresses.
+When working with tools that don’t let you provide a wide range of targets, you can use bash to automate this process. In this section, we’ll use bash to create IP- and DNS-based target lists that you could feed to scanners.
+
+Consecutive IP Addresses
+Imagine that you need to create a file containing a list of IP addresses from 172.16.10.1 to 172.16.10.

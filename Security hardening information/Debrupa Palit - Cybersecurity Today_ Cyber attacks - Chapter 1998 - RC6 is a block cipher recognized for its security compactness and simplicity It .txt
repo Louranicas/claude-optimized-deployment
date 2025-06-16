@@ -1,0 +1,20 @@
+# Security Chapter Extract
+Book: Debrupa Palit - Cybersecurity Today_ Cyber attacks, network security, and threat prevention (2024) - libgen.li
+Chapter: 1998 - RC6 is a block cipher recognized for its security, compactness, and simplicity. It delivers a good performance and provides substantial flexibility in its usage. RC6 is constructed using four basic operations and their equivalents: addition and its inverse, multiplication and its inverse, bitwise XOR, and circular shifts. The workings of RC6 can be summarized in the following way:
+Security Relevance Score: 4
+Word Count: 310
+Extracted: 2025-06-13 23:40:49
+
+---
+
+RC6 is a block cipher recognized for its security, compactness, and simplicity. It delivers a good performance and provides substantial flexibility in its usage. RC6 is constructed using four basic operations and their equivalents: addition and its inverse, multiplication and its inverse, bitwise XOR, and circular shifts. The workings of RC6 can be summarized in the following way:
+
+Key expansion: RC6 begins with a key expansion process, where the provided key is transformed into an expanded set of round keys using a key schedule algorithm.
+Each round of RC6 round consists of several iterations of a round function. This function typically involves a series of arithmetic operations, bitwise XOR operations, circular shifts applied to the encrypted block, and the round key derived from the key expansion.
+
+Multiple rounds: RC6 typically employs multiple rounds of the round function to ensure thorough mixing and diffusion of the input data. The number of rounds is determined by the specific instance of RC6 being used and is often chosen based on the desired security level and performance considerations.
+Block encryption: During encryption, the plain text block is divided into smaller parts, which undergo successive rounds of encryption using the round function. Each round introduces additional confusion and diffusion to the data, making it increasingly difficult for attackers to decipher.
+Finalization: After completing the specified rounds, the resulting ciphertext is generated. This ciphertext is then ready for transmission or storage, providing confidentiality to the original plain text data.
+
+Asymmetric key encryption
+Asymmetric encryption, also called public key cryptography, employs a pair of keys for encrypting and decrypting data. This key pair comprises a public key, shareable with anyone, and a private key, safeguarded by its owner. In asymmetric encryption, the sender utilizes the recipient's public key to encrypt the data, while the recipient employs their private key to decrypt it as shown in Figure 5.

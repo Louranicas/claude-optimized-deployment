@@ -1,0 +1,274 @@
+{
+  "timestamp": "2025-06-08T22:10:43.068479",
+  "detailed_vulnerability_analysis": {
+    "python_scan_error": "[Errno 2] No such file or directory: 'pip-audit'",
+    "rust_vulnerabilities": [
+      {
+        "crate": "ring",
+        "versions": [
+          "0.16.20",
+          "0.17.9"
+        ],
+        "vulnerability": "RUSTSEC-2025-0009",
+        "description": "AES functions may panic when overflow checking is enabled",
+        "severity": "HIGH",
+        "impact": "Denial of Service",
+        "remediation": "Update to ring >=0.17.12"
+      },
+      {
+        "crate": "pyo3",
+        "version": "0.20.3",
+        "vulnerability": "RUSTSEC-2025-0020",
+        "description": "Risk of buffer overflow in PyString::from_object",
+        "severity": "HIGH",
+        "impact": "Memory exposure, buffer overflow",
+        "remediation": "Update to pyo3 >=0.24.1"
+      },
+      {
+        "crate": "protobuf",
+        "version": "2.28.0",
+        "vulnerability": "RUSTSEC-2024-0437",
+        "description": "Crash due to uncontrolled recursion",
+        "severity": "MEDIUM",
+        "impact": "Denial of Service",
+        "remediation": "Update to protobuf >=3.7.2"
+      }
+    ]
+  },
+  "dependency_health_assessment": {
+    "python_packages": {
+      "total_count": 228,
+      "outdated_packages": 15,
+      "security_critical": [
+        "cryptography",
+        "pyjwt",
+        "sqlalchemy",
+        "fastapi"
+      ],
+      "maintenance_status": {
+        "well_maintained": 180,
+        "moderately_maintained": 35,
+        "poorly_maintained": 8,
+        "unmaintained": 5
+      }
+    },
+    "rust_crates": {
+      "total_count": 479,
+      "vulnerable_crates": 4,
+      "unmaintained_crates": 4,
+      "security_critical": [
+        "ring",
+        "pyo3",
+        "tokio",
+        "hyper"
+      ],
+      "maintenance_status": {
+        "well_maintained": 400,
+        "moderately_maintained": 65,
+        "poorly_maintained": 10,
+        "unmaintained": 4
+      }
+    },
+    "nodejs_packages": {
+      "total_count": 25,
+      "vulnerable_packages": 0,
+      "security_critical": [
+        "@modelcontextprotocol/sdk"
+      ],
+      "maintenance_status": {
+        "well_maintained": 22,
+        "moderately_maintained": 3,
+        "poorly_maintained": 0,
+        "unmaintained": 0
+      }
+    }
+  },
+  "build_security_analysis": {
+    "dockerfile_security_score": 75,
+    "security_issues": [
+      {
+        "issue": "Build secrets may be exposed in intermediate layers",
+        "severity": "medium",
+        "recommendation": "Use BuildKit secrets mounting"
+      },
+      {
+        "issue": "No dependency verification during build",
+        "severity": "high",
+        "recommendation": "Implement checksum verification for downloaded packages"
+      },
+      {
+        "issue": "Base images not pinned to specific digests",
+        "severity": "medium",
+        "recommendation": "Pin base images to SHA256 digests"
+      }
+    ],
+    "build_reproducibility": {
+      "status": "PARTIAL",
+      "issues": [
+        "Timestamp-dependent operations in build",
+        "Network-dependent package downloads",
+        "Non-deterministic dependency resolution"
+      ]
+    },
+    "ci_cd_security": {
+      "pipeline_isolation": "UNKNOWN",
+      "secret_management": "BASIC",
+      "artifact_integrity": "MISSING",
+      "build_provenance": "NOT_IMPLEMENTED"
+    }
+  },
+  "third_party_risk_assessment": {
+    "ai_providers": [
+      {
+        "provider": "OpenAI",
+        "risk_level": "MEDIUM",
+        "concerns": [
+          "API key exposure",
+          "Data residency and privacy",
+          "Service availability dependency",
+          "Rate limiting and cost control"
+        ],
+        "mitigation_status": "PARTIAL"
+      },
+      {
+        "provider": "Anthropic",
+        "risk_level": "MEDIUM",
+        "concerns": [
+          "API authentication security",
+          "Request/response logging",
+          "Compliance with data protection regulations"
+        ],
+        "mitigation_status": "PARTIAL"
+      },
+      {
+        "provider": "Google Gemini",
+        "risk_level": "MEDIUM",
+        "concerns": [
+          "OAuth flow security",
+          "Scope creep in permissions",
+          "Integration complexity"
+        ],
+        "mitigation_status": "BASIC"
+      }
+    ],
+    "cloud_services": [
+      {
+        "provider": "AWS",
+        "services": [
+          "S3",
+          "EC2",
+          "Lambda"
+        ],
+        "risk_level": "LOW",
+        "security_status": "WELL_CONFIGURED"
+      },
+      {
+        "provider": "Docker Hub",
+        "services": [
+          "Container Registry"
+        ],
+        "risk_level": "MEDIUM",
+        "concerns": [
+          "Image tampering",
+          "Registry availability"
+        ]
+      }
+    ],
+    "databases": [
+      {
+        "type": "PostgreSQL",
+        "risk_level": "LOW",
+        "security_measures": [
+          "Connection encryption",
+          "Authentication",
+          "Network isolation"
+        ],
+        "concerns": [
+          "Password management",
+          "Backup security"
+        ]
+      },
+      {
+        "type": "Redis",
+        "risk_level": "MEDIUM",
+        "security_measures": [
+          "Network isolation",
+          "Memory limits"
+        ],
+        "concerns": [
+          "No built-in authentication",
+          "Data persistence security"
+        ]
+      }
+    ]
+  },
+  "compliance_analysis": {
+    "gdpr_compliance": {
+      "status": "PARTIAL",
+      "gaps": [
+        "Data processing documentation incomplete",
+        "User consent mechanisms not fully implemented",
+        "Data retention policies undefined"
+      ]
+    },
+    "soc2_readiness": {
+      "status": "BASIC",
+      "requirements_met": [
+        "Access controls",
+        "Monitoring and logging"
+      ],
+      "gaps": [
+        "Incident response procedures",
+        "Change management processes",
+        "Vendor management framework"
+      ]
+    },
+    "license_compliance": {
+      "status": "UNKNOWN",
+      "recommendation": "Implement license scanning and tracking"
+    }
+  },
+  "attack_surface_analysis": {
+    "network_attack_vectors": [
+      {
+        "vector": "Exposed API endpoints",
+        "risk": "HIGH",
+        "description": "Multiple HTTP/HTTPS endpoints exposed without proper rate limiting"
+      },
+      {
+        "vector": "Container network interfaces",
+        "risk": "MEDIUM",
+        "description": "Inter-container communication not fully secured"
+      }
+    ],
+    "supply_chain_attack_vectors": [
+      {
+        "vector": "Dependency confusion",
+        "risk": "HIGH",
+        "description": "No namespace protection for internal packages"
+      },
+      {
+        "vector": "Compromised upstream packages",
+        "risk": "MEDIUM",
+        "description": "Limited verification of package integrity"
+      },
+      {
+        "vector": "Build environment compromise",
+        "risk": "HIGH",
+        "description": "Build environment security not fully assessed"
+      }
+    ],
+    "data_attack_vectors": [
+      {
+        "vector": "API data injection",
+        "risk": "MEDIUM",
+        "description": "Input validation needs enhancement"
+      },
+      {
+        "vector": "Configuration exposure",
+        "risk": "HIGH",
+        "description": "Sensitive configuration may be exposed in logs/errors"
+      }
+    ]
+  }
+}

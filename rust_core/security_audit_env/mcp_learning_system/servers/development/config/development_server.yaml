@@ -1,0 +1,116 @@
+name: development-mcp-server
+version: 1.0.0
+description: Development MCP Server with 4GB memory and learning capabilities
+
+# Memory configuration
+memory:
+  total_allocation: 4294967296  # 4GB in bytes
+  breakdown:
+    project_graph: 2147483648     # 2GB
+    pattern_cache: 1073741824     # 1GB
+    learning_models: 536870912    # 512MB
+    active_requests: 536870912    # 512MB
+
+# Learning configuration
+learning:
+  enabled: true
+  embedding_dimension: 512
+  pattern_cache_size: 10000
+  pattern_ttl_seconds: 3600
+  batch_learning_threshold: 10
+  model_persistence_enabled: true
+  model_directory: "./models"
+
+# Performance targets
+performance:
+  pattern_match_ms: 10
+  code_analysis_ms: 100
+  learning_update_ms: 50
+  memory_lookup_ms: 1
+
+# Code analysis settings
+code_analysis:
+  supported_languages:
+    - python
+    - javascript
+    - typescript
+    - rust
+  max_file_size_mb: 10
+  ast_parsing_enabled: true
+  style_learning_enabled: true
+  dependency_prediction_enabled: true
+
+# Pattern learning
+pattern_learning:
+  min_frequency_threshold: 2
+  confidence_threshold: 0.7
+  max_patterns_per_context: 100
+  pattern_types:
+    - import_style
+    - function_signature
+    - error_handling
+    - naming_convention
+    - code_structure
+    - test_pattern
+
+# Server settings
+server:
+  host: "127.0.0.1"
+  port: 8084
+  max_connections: 100
+  connection_timeout_seconds: 300
+  request_timeout_ms: 5000
+
+# Logging
+logging:
+  level: INFO
+  format: json
+  file: "./logs/development_server.log"
+  rotation:
+    max_size_mb: 100
+    max_files: 5
+
+# Metrics
+metrics:
+  enabled: true
+  export_interval_seconds: 60
+  prometheus_port: 9094
+
+# Integration
+integration:
+  mcp_protocol_version: "1.0"
+  code_editor_support:
+    - vscode
+    - intellij
+    - sublime
+    - vim
+  language_servers:
+    python: "pylsp"
+    javascript: "typescript-language-server"
+    rust: "rust-analyzer"
+
+# Feature flags
+features:
+  adaptive_learning: true
+  cross_project_learning: false
+  cloud_sync: false
+  telemetry: false
+  experimental_features: false
+
+# Security
+security:
+  sanitize_file_paths: true
+  max_request_size_mb: 50
+  allowed_file_extensions:
+    - .py
+    - .js
+    - .ts
+    - .tsx
+    - .jsx
+    - .rs
+    - .go
+    - .java
+    - .cpp
+    - .c
+    - .h
+    - .hpp

@@ -1,0 +1,941 @@
+{
+  "runtime_test_summary": {
+    "timestamp": "2025-06-08T15:38:43.980127",
+    "total_runtime_seconds": 100.66,
+    "servers_tested": 4,
+    "servers_successful": 0,
+    "success_rate": 0.0
+  },
+  "detailed_results": {
+    "filesystem": {
+      "server_name": "filesystem",
+      "timestamp": "2025-06-08T15:37:03.323036",
+      "status": "WARNING",
+      "tests": {
+        "process_startup": {
+          "status": "PASS",
+          "message": "Process started successfully",
+          "pid": 338537
+        },
+        "initialize_handshake": {
+          "status": "PASS",
+          "response": {
+            "result": {
+              "protocolVersion": "2024-11-05",
+              "capabilities": {
+                "tools": {}
+              },
+              "serverInfo": {
+                "name": "secure-filesystem-server",
+                "version": "0.2.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          },
+          "server_info": {
+            "name": "secure-filesystem-server",
+            "version": "0.2.0"
+          },
+          "capabilities": {
+            "tools": {}
+          }
+        },
+        "tools_list": {
+          "status": "PASS",
+          "tools_count": 11,
+          "tools": [
+            "read_file",
+            "read_multiple_files",
+            "write_file",
+            "edit_file",
+            "create_directory",
+            "list_directory",
+            "directory_tree",
+            "move_file",
+            "search_files",
+            "get_file_info",
+            "list_allowed_directories"
+          ],
+          "response": {
+            "result": {
+              "tools": [
+                {
+                  "name": "read_file",
+                  "description": "Read the complete contents of a file from the file system. Handles various text encodings and provides detailed error messages if the file cannot be read. Use this tool when you need to examine the contents of a single file. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "read_multiple_files",
+                  "description": "Read the contents of multiple files simultaneously. This is more efficient than reading files one by one when you need to analyze or compare multiple files. Each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "paths": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "paths"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "write_file",
+                  "description": "Create a new file or completely overwrite an existing file with new content. Use with caution as it will overwrite existing files without warning. Handles text content with proper encoding. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "content"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "edit_file",
+                  "description": "Make line-based edits to a text file. Each edit replaces exact line sequences with new content. Returns a git-style diff showing the changes made. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "edits": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "oldText": {
+                              "type": "string",
+                              "description": "Text to search for - must match exactly"
+                            },
+                            "newText": {
+                              "type": "string",
+                              "description": "Text to replace with"
+                            }
+                          },
+                          "required": [
+                            "oldText",
+                            "newText"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "dryRun": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Preview changes using git-style diff format"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "edits"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "create_directory",
+                  "description": "Create a new directory or ensure a directory exists. Can create multiple nested directories in one operation. If the directory already exists, this operation will succeed silently. Perfect for setting up directory structures for projects or ensuring required paths exist. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "list_directory",
+                  "description": "Get a detailed listing of all files and directories in a specified path. Results clearly distinguish between files and directories with [FILE] and [DIR] prefixes. This tool is essential for understanding directory structure and finding specific files within a directory. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "directory_tree",
+                  "description": "Get a recursive tree view of files and directories as a JSON structure. Each entry includes 'name', 'type' (file/directory), and 'children' for directories. Files have no children array, while directories always have a children array (which may be empty). The output is formatted with 2-space indentation for readability. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "move_file",
+                  "description": "Move or rename files and directories. Can move files between directories and rename them in a single operation. If the destination exists, the operation will fail. Works across different directories and can be used for simple renaming within the same directory. Both source and destination must be within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "source": {
+                        "type": "string"
+                      },
+                      "destination": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "source",
+                      "destination"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "search_files",
+                  "description": "Recursively search for files and directories matching a pattern. Searches through all subdirectories from the starting path. The search is case-insensitive and matches partial names. Returns full paths to all matching items. Great for finding files when you don't know their exact location. Only searches within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "pattern": {
+                        "type": "string"
+                      },
+                      "excludePatterns": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "default": []
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "pattern"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "get_file_info",
+                  "description": "Retrieve detailed metadata about a file or directory. Returns comprehensive information including size, creation time, last modified time, permissions, and type. This tool is perfect for understanding file characteristics without reading the actual content. Only works within allowed directories.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "additionalProperties": false,
+                    "$schema": "http://json-schema.org/draft-07/schema#"
+                  }
+                },
+                {
+                  "name": "list_allowed_directories",
+                  "description": "Returns the list of directories that this server is allowed to access. Use this to understand which directories are available before trying to access files.",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                }
+              ]
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        "tool_execution": {
+          "status": "PASS",
+          "tool_tested": "list_directory",
+          "execution_time_ms": 3.3960342407226562,
+          "result_content_blocks": 1,
+          "performance": {
+            "execution_time_ms": 3.3960342407226562
+          }
+        },
+        "error_handling": {
+          "status": "WARN",
+          "error_tests_run": 2,
+          "error_tests_passed": 1,
+          "error_handling_results": [
+            {
+              "test": "invalid_method",
+              "status": "PASS",
+              "received_error_code": -32601,
+              "expected_error_code": -32601,
+              "error_message": "Method not found"
+            },
+            {
+              "test": "invalid_jsonrpc_version",
+              "status": "WARN",
+              "issue": "Timeout - server may have ignored invalid request"
+            }
+          ]
+        },
+        "performance": {
+          "status": "PASS",
+          "performance_score": 70,
+          "avg_response_time_ms": 5000.0,
+          "min_response_time_ms": 5000.0,
+          "max_response_time_ms": 5000.0,
+          "successful_requests": 5,
+          "total_requests": 5,
+          "performance": {
+            "avg_response_time_ms": 5000.0,
+            "requests_per_second": 0.2
+          }
+        },
+        "protocol_compliance": {
+          "status": "PASS",
+          "message": "Protocol messaging compliance verified"
+        }
+      },
+      "performance": {
+        "tool_execution": {
+          "execution_time_ms": 3.3960342407226562
+        },
+        "performance": {
+          "avg_response_time_ms": 5000.0,
+          "requests_per_second": 0.2
+        }
+      },
+      "protocol_compliance": {},
+      "compliance_score": 85.71428571428571
+    },
+    "memory": {
+      "server_name": "memory",
+      "timestamp": "2025-06-08T15:37:36.881369",
+      "status": "WARNING",
+      "tests": {
+        "process_startup": {
+          "status": "PASS",
+          "message": "Process started successfully",
+          "pid": 338647
+        },
+        "initialize_handshake": {
+          "status": "PASS",
+          "response": {
+            "result": {
+              "protocolVersion": "2024-11-05",
+              "capabilities": {
+                "tools": {}
+              },
+              "serverInfo": {
+                "name": "memory-server",
+                "version": "0.6.3"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          },
+          "server_info": {
+            "name": "memory-server",
+            "version": "0.6.3"
+          },
+          "capabilities": {
+            "tools": {}
+          }
+        },
+        "tools_list": {
+          "status": "PASS",
+          "tools_count": 9,
+          "tools": [
+            "create_entities",
+            "create_relations",
+            "add_observations",
+            "delete_entities",
+            "delete_observations",
+            "delete_relations",
+            "read_graph",
+            "search_nodes",
+            "open_nodes"
+          ],
+          "response": {
+            "result": {
+              "tools": [
+                {
+                  "name": "create_entities",
+                  "description": "Create multiple new entities in the knowledge graph",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "entities": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the entity"
+                            },
+                            "entityType": {
+                              "type": "string",
+                              "description": "The type of the entity"
+                            },
+                            "observations": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "An array of observation contents associated with the entity"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "entityType",
+                            "observations"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "entities"
+                    ]
+                  }
+                },
+                {
+                  "name": "create_relations",
+                  "description": "Create multiple new relations between entities in the knowledge graph. Relations should be in active voice",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "relations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "from": {
+                              "type": "string",
+                              "description": "The name of the entity where the relation starts"
+                            },
+                            "to": {
+                              "type": "string",
+                              "description": "The name of the entity where the relation ends"
+                            },
+                            "relationType": {
+                              "type": "string",
+                              "description": "The type of the relation"
+                            }
+                          },
+                          "required": [
+                            "from",
+                            "to",
+                            "relationType"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "relations"
+                    ]
+                  }
+                },
+                {
+                  "name": "add_observations",
+                  "description": "Add new observations to existing entities in the knowledge graph",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "observations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "entityName": {
+                              "type": "string",
+                              "description": "The name of the entity to add the observations to"
+                            },
+                            "contents": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "An array of observation contents to add"
+                            }
+                          },
+                          "required": [
+                            "entityName",
+                            "contents"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "observations"
+                    ]
+                  }
+                },
+                {
+                  "name": "delete_entities",
+                  "description": "Delete multiple entities and their associated relations from the knowledge graph",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "entityNames": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "An array of entity names to delete"
+                      }
+                    },
+                    "required": [
+                      "entityNames"
+                    ]
+                  }
+                },
+                {
+                  "name": "delete_observations",
+                  "description": "Delete specific observations from entities in the knowledge graph",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "deletions": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "entityName": {
+                              "type": "string",
+                              "description": "The name of the entity containing the observations"
+                            },
+                            "observations": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "An array of observations to delete"
+                            }
+                          },
+                          "required": [
+                            "entityName",
+                            "observations"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "deletions"
+                    ]
+                  }
+                },
+                {
+                  "name": "delete_relations",
+                  "description": "Delete multiple relations from the knowledge graph",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "relations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "from": {
+                              "type": "string",
+                              "description": "The name of the entity where the relation starts"
+                            },
+                            "to": {
+                              "type": "string",
+                              "description": "The name of the entity where the relation ends"
+                            },
+                            "relationType": {
+                              "type": "string",
+                              "description": "The type of the relation"
+                            }
+                          },
+                          "required": [
+                            "from",
+                            "to",
+                            "relationType"
+                          ]
+                        },
+                        "description": "An array of relations to delete"
+                      }
+                    },
+                    "required": [
+                      "relations"
+                    ]
+                  }
+                },
+                {
+                  "name": "read_graph",
+                  "description": "Read the entire knowledge graph",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                {
+                  "name": "search_nodes",
+                  "description": "Search for nodes in the knowledge graph based on a query",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "query": {
+                        "type": "string",
+                        "description": "The search query to match against entity names, types, and observation content"
+                      }
+                    },
+                    "required": [
+                      "query"
+                    ]
+                  }
+                },
+                {
+                  "name": "open_nodes",
+                  "description": "Open specific nodes in the knowledge graph by their names",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "names": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "An array of entity names to retrieve"
+                      }
+                    },
+                    "required": [
+                      "names"
+                    ]
+                  }
+                }
+              ]
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        "tool_execution": {
+          "status": "WARN",
+          "tool_tested": "create_entities",
+          "tool_error": {
+            "code": -32603,
+            "message": "Cannot read properties of undefined (reading 'filter')"
+          },
+          "message": "Tool returned error (may be expected behavior)"
+        },
+        "error_handling": {
+          "status": "WARN",
+          "error_tests_run": 2,
+          "error_tests_passed": 1,
+          "error_handling_results": [
+            {
+              "test": "invalid_method",
+              "status": "PASS",
+              "received_error_code": -32601,
+              "expected_error_code": -32601,
+              "error_message": "Method not found"
+            },
+            {
+              "test": "invalid_jsonrpc_version",
+              "status": "WARN",
+              "issue": "Timeout - server may have ignored invalid request"
+            }
+          ]
+        },
+        "performance": {
+          "status": "PASS",
+          "performance_score": 70,
+          "avg_response_time_ms": 5000.0,
+          "min_response_time_ms": 5000.0,
+          "max_response_time_ms": 5000.0,
+          "successful_requests": 5,
+          "total_requests": 5,
+          "performance": {
+            "avg_response_time_ms": 5000.0,
+            "requests_per_second": 0.2
+          }
+        },
+        "protocol_compliance": {
+          "status": "PASS",
+          "message": "Protocol messaging compliance verified"
+        }
+      },
+      "performance": {
+        "performance": {
+          "avg_response_time_ms": 5000.0,
+          "requests_per_second": 0.2
+        }
+      },
+      "protocol_compliance": {},
+      "compliance_score": 71.42857142857143
+    },
+    "sequential-thinking": {
+      "server_name": "sequential-thinking",
+      "timestamp": "2025-06-08T15:38:10.430491",
+      "status": "WARNING",
+      "tests": {
+        "process_startup": {
+          "status": "PASS",
+          "message": "Process started successfully",
+          "pid": 338915
+        },
+        "initialize_handshake": {
+          "status": "PASS",
+          "response": {
+            "result": {
+              "protocolVersion": "2024-11-05",
+              "capabilities": {
+                "tools": {}
+              },
+              "serverInfo": {
+                "name": "sequential-thinking-server",
+                "version": "0.2.0"
+              }
+            },
+            "jsonrpc": "2.0",
+            "id": 1
+          },
+          "server_info": {
+            "name": "sequential-thinking-server",
+            "version": "0.2.0"
+          },
+          "capabilities": {
+            "tools": {}
+          }
+        },
+        "tools_list": {
+          "status": "PASS",
+          "tools_count": 1,
+          "tools": [
+            "sequentialthinking"
+          ],
+          "response": {
+            "result": {
+              "tools": [
+                {
+                  "name": "sequentialthinking",
+                  "description": "A detailed tool for dynamic and reflective problem-solving through thoughts.\nThis tool helps analyze problems through a flexible thinking process that can adapt and evolve.\nEach thought can build on, question, or revise previous insights as understanding deepens.\n\nWhen to use this tool:\n- Breaking down complex problems into steps\n- Planning and design with room for revision\n- Analysis that might need course correction\n- Problems where the full scope might not be clear initially\n- Problems that require a multi-step solution\n- Tasks that need to maintain context over multiple steps\n- Situations where irrelevant information needs to be filtered out\n\nKey features:\n- You can adjust total_thoughts up or down as you progress\n- You can question or revise previous thoughts\n- You can add more thoughts even after reaching what seemed like the end\n- You can express uncertainty and explore alternative approaches\n- Not every thought needs to build linearly - you can branch or backtrack\n- Generates a solution hypothesis\n- Verifies the hypothesis based on the Chain of Thought steps\n- Repeats the process until satisfied\n- Provides a correct answer\n\nParameters explained:\n- thought: Your current thinking step, which can include:\n* Regular analytical steps\n* Revisions of previous thoughts\n* Questions about previous decisions\n* Realizations about needing more analysis\n* Changes in approach\n* Hypothesis generation\n* Hypothesis verification\n- next_thought_needed: True if you need more thinking, even if at what seemed like the end\n- thought_number: Current number in sequence (can go beyond initial total if needed)\n- total_thoughts: Current estimate of thoughts needed (can be adjusted up/down)\n- is_revision: A boolean indicating if this thought revises previous thinking\n- revises_thought: If is_revision is true, which thought number is being reconsidered\n- branch_from_thought: If branching, which thought number is the branching point\n- branch_id: Identifier for the current branch (if any)\n- needs_more_thoughts: If reaching end but realizing more thoughts needed\n\nYou should:\n1. Start with an initial estimate of needed thoughts, but be ready to adjust\n2. Feel free to question or revise previous thoughts\n3. Don't hesitate to add more thoughts if needed, even at the \"end\"\n4. Express uncertainty when present\n5. Mark thoughts that revise previous thinking or branch into new paths\n6. Ignore information that is irrelevant to the current step\n7. Generate a solution hypothesis when appropriate\n8. Verify the hypothesis based on the Chain of Thought steps\n9. Repeat the process until satisfied with the solution\n10. Provide a single, ideally correct answer as the final output\n11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached",
+                  "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                      "thought": {
+                        "type": "string",
+                        "description": "Your current thinking step"
+                      },
+                      "nextThoughtNeeded": {
+                        "type": "boolean",
+                        "description": "Whether another thought step is needed"
+                      },
+                      "thoughtNumber": {
+                        "type": "integer",
+                        "description": "Current thought number",
+                        "minimum": 1
+                      },
+                      "totalThoughts": {
+                        "type": "integer",
+                        "description": "Estimated total thoughts needed",
+                        "minimum": 1
+                      },
+                      "isRevision": {
+                        "type": "boolean",
+                        "description": "Whether this revises previous thinking"
+                      },
+                      "revisesThought": {
+                        "type": "integer",
+                        "description": "Which thought is being reconsidered",
+                        "minimum": 1
+                      },
+                      "branchFromThought": {
+                        "type": "integer",
+                        "description": "Branching point thought number",
+                        "minimum": 1
+                      },
+                      "branchId": {
+                        "type": "string",
+                        "description": "Branch identifier"
+                      },
+                      "needsMoreThoughts": {
+                        "type": "boolean",
+                        "description": "If more thoughts are needed"
+                      }
+                    },
+                    "required": [
+                      "thought",
+                      "nextThoughtNeeded",
+                      "thoughtNumber",
+                      "totalThoughts"
+                    ]
+                  }
+                }
+              ]
+            },
+            "jsonrpc": "2.0",
+            "id": 2
+          }
+        },
+        "tool_execution": {
+          "status": "PASS",
+          "tool_tested": "sequentialthinking",
+          "execution_time_ms": 0.5209445953369141,
+          "result_content_blocks": 1,
+          "performance": {
+            "execution_time_ms": 0.5209445953369141
+          }
+        },
+        "error_handling": {
+          "status": "WARN",
+          "error_tests_run": 2,
+          "error_tests_passed": 1,
+          "error_handling_results": [
+            {
+              "test": "invalid_method",
+              "status": "PASS",
+              "received_error_code": -32601,
+              "expected_error_code": -32601,
+              "error_message": "Method not found"
+            },
+            {
+              "test": "invalid_jsonrpc_version",
+              "status": "WARN",
+              "issue": "Timeout - server may have ignored invalid request"
+            }
+          ]
+        },
+        "performance": {
+          "status": "PASS",
+          "performance_score": 70,
+          "avg_response_time_ms": 5000.0,
+          "min_response_time_ms": 5000.0,
+          "max_response_time_ms": 5000.0,
+          "successful_requests": 5,
+          "total_requests": 5,
+          "performance": {
+            "avg_response_time_ms": 5000.0,
+            "requests_per_second": 0.2
+          }
+        },
+        "protocol_compliance": {
+          "status": "PASS",
+          "message": "Protocol messaging compliance verified"
+        }
+      },
+      "performance": {
+        "tool_execution": {
+          "execution_time_ms": 0.5209445953369141
+        },
+        "performance": {
+          "avg_response_time_ms": 5000.0,
+          "requests_per_second": 0.2
+        }
+      },
+      "protocol_compliance": {},
+      "compliance_score": 85.71428571428571
+    },
+    "bash-god": {
+      "status": "SKIPPED",
+      "reason": "Unsafe for automated testing",
+      "tests": {}
+    }
+  },
+  "compliance_summary": {
+    "filesystem": {
+      "status": "WARNING",
+      "compliance_score": 85.71428571428571,
+      "tests_run": 7,
+      "tests_passed": 6
+    },
+    "memory": {
+      "status": "WARNING",
+      "compliance_score": 71.42857142857143,
+      "tests_run": 7,
+      "tests_passed": 5
+    },
+    "sequential-thinking": {
+      "status": "WARNING",
+      "compliance_score": 85.71428571428571,
+      "tests_run": 7,
+      "tests_passed": 6
+    },
+    "bash-god": {
+      "status": "SKIPPED",
+      "compliance_score": 0,
+      "tests_run": 0,
+      "tests_passed": 0
+    }
+  },
+  "performance_summary": {
+    "filesystem": {
+      "tool_execution": {
+        "execution_time_ms": 3.3960342407226562
+      },
+      "performance": {
+        "avg_response_time_ms": 5000.0,
+        "requests_per_second": 0.2
+      }
+    },
+    "memory": {
+      "performance": {
+        "avg_response_time_ms": 5000.0,
+        "requests_per_second": 0.2
+      }
+    },
+    "sequential-thinking": {
+      "tool_execution": {
+        "execution_time_ms": 0.5209445953369141
+      },
+      "performance": {
+        "avg_response_time_ms": 5000.0,
+        "requests_per_second": 0.2
+      }
+    }
+  },
+  "recommendations": [
+    "Optimize performance for slow servers: filesystem, sequential-thinking, memory",
+    "Set up automated runtime testing in CI/CD pipeline",
+    "Implement health checks for all MCP servers",
+    "Add monitoring and alerting for server failures",
+    "Document deployment and configuration requirements"
+  ]
+}

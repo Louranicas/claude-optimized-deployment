@@ -1,0 +1,221 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 4 - Domain Resolvers
+Hosts are usually configured to use DNS to translate domain names, such as example.com, to IP addresses. DNS servers can be hosted locally on the network or in other places, such as public cloud instances. No matter where they’re running, they can be vulnerable.
+You could find DNS server configurations in a few places on a Linux operating system, including in the /etc/resolv.conf file using a nameserver entry, like so:
+$ cat /etc/resolv.conf
+Security Relevance Score: 11
+Word Count: 2009
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Domain Resolvers
+Hosts are usually configured to use DNS to translate domain names, such as example.com, to IP addresses. DNS servers can be hosted locally on the network or in other places, such as public cloud instances. No matter where they’re running, they can be vulnerable.
+You could find DNS server configurations in a few places on a Linux operating system, including in the /etc/resolv.conf file using a nameserver entry, like so:
+$ cat /etc/resolv.conf
+
+nameserver 127.0.0.11
+
+DNS servers can also be configured within the /etc/hosts configuration file, as shown here for p-web-01 (172.16.10.10). This /etc/hosts file may include a list of alternative networks and hosts you could target:
+$ cat /etc/hosts
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+172.16.10.10    p-web-01.acme-hyper-branding.com p-web-01
+
+DNS servers can also be configured in the individual network interface files, as discussed in the preceding section.
+DNS servers can also be configured automatically by using a Dynamic Host Configuration Protocol server, a network service responsible for handing out network configurations dynamically, in which case the DNS server won’t be explicitly set in any configuration file.
+
+
+
+Software Installations
+Unmaintained operating system images tend to suffer from a wide variety of vulnerabilities, especially if they include many packages installed by default. We should investigate the software bundled with an operating system because it can lead us to interesting vulnerabilities that can help us escalate our privileges or obtain access to unauthorized information.
+One way to investigate installed software is with a package manager. You’ll find a few types of package managers commonly available on Linux operating systems: Advanced Package Tool (APT) on systems such as Debian and Ubuntu, Yellowdog Updater Modified on systems such as Red Hat, CentOS, and Fedora, and Alpine Package Keeper on container-based operating systems such as Alpine Linux.
+Try running the following apt command to list installed packages on any of the compromised hosts:
+$ apt list --installed
+
+Listing... Done
+adduser/lunar,now 3.129ubuntu1 all [installed,automatic]
+apt/lunar,now 2.6.0 amd64 [installed]
+base-files/lunar,now 12.3ubuntu2 amd64 [installed]
+base-passwd/lunar,now 3.6.1 amd64 [installed]
+--snip--
+
+You can get a slightly nicer output by using dpkg instead. Note that this command is mostly found on Ubuntu- or Debian-based Linux systems:
+$ dpkg -l
+
+--snip--
+ii  adduser            3.129ubuntu1           all        add and remove users and groups
+ii  apt                2.6.0                  amd64      commandline package manager
+ii  base-files         12.3ubuntu2            amd64      Debian base system miscellaneous files
+--snip--
+
+To get a list of packages using other software managers, you could try any of the following commands:
+
+yum list installed
+apk list --installed
+rpm -qa
+
+We can use bash to parse these package lists and obtain the software’s name and version, as well as do some clever searches. To list only the package names, run this command:
+$ apt list --installed | awk -F'/' '{print $1}'
+Use the following to list only the package versions:
+$ apt list --installed | awk '{print $2}'
+What if we want to search for a specific package and then print its version by using an exact match search? We can do so with awk:
+$ apt list --installed | awk -F'[/]' '$1 == "openssl" {print $3}'
+We use an awk delimiter (-F) consisting of a forward slash and a space and surround it with square brackets [/] to define more than one delimiter. We then check whether the first field equals openssl; if it does, we print the third field, which is the version field.
+We can even use awk to partially match package names:
+$ apt list --installed | awk -F'[/]' '$1 ~ /openssl/ {print $3}'
+To see the total number of installed packages, run apt list and pipe it to the wc (word count) command:
+$ apt list --installed | wc -l
+
+341
+
+You could use these package names and versions as lookup queries on websites that source vulnerability data, such as the National Vulnerability Database (https://nvd.nist.gov) or the MITRE Common Vulnerabilities and Exposures (CVE) database (https://cve.mitre.org).
+Note that the package manager might not list all software installed on a server. For example, a server could install Java directly from the source without using package management tools, in which case it won’t be shown in the package list.
+
+
+Storage
+From a security perspective, server storage is interesting for several reasons. Multiple servers could share the same storage system or use it to share files with end users. And if you can write into storage systems, you might be able to achieve code execution on adjacent servers if they source files, such as shell scripts, from the compromised storage system.
+Server storage can be virtual or physical, and servers can run on a single local disk or multiple local disks. Servers can also use multiple disks to form a redundant array of inexpensive disks system, which provides improved redundancy and performance and can back up critical data.
+Linux systems can mount remote storage systems as local directories (usually under the /mnt directory). These can act as an integral part of the operating system. You’ll see remote storage implemented using network-attached storage or storage area network devices and protocols like Network File System or Common Internet File System.
+Remote storage is useful to investigate because systems can use it for a variety of purposes: as a data backup location, for centralized security logging, as a remote file share, or even to store remote user home folders. Application logs are often written to remote storage devices in a folder like /mnt/log_storage/, which might be physically connected to a completely different server.
+Let’s explore ways to identify disks, partitions, and mount points on a compromised host.
+
+Block Devices
+First, let’s look at which block devices exist by using the command lsblk. Block devices are data storage devices such as CDs, floppy disks, and hard disks. The following output is from p-web-01 (172.16.10.10):
+$ lsblk
+
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sr0     11:0    1 1024M  0 rom
+vda    254:0    0   40G  0 disk
+|-vda1 254:1    0   39G  0 part /etc/hosts
+|                               /etc/hostname
+|                               /etc/resolv.conf
+|                               /mnt/scripts
+|-vda2 254:2    0    1K  0 part
+`-vda5 254:5    0  975M  0 part [SWAP]
+
+As you can see, we have two primary devices: sr0 and vda. The sr0 device is of type rom, and vda is of type disk. The other names you see on the list, such as vda1, vda2, and vda5, are all partitions of the vda disk. Run the same command against the remaining compromised machines you have access to and take note of the findings.
+Another way to view the list of partitions is by reading /proc/partitions:
+$ cat /proc/partitions
+
+major minor  #blocks  name
+
+ 254        0   41943040 vda
+ 254        1   40941568 vda1
+ 254        2          1 vda2
+ 254        5     998400 vda5
+--snip--
+
+The /proc filesystem also exposes a file named /proc/mounts, which provides a list of all mounts, their mount options, and additional attributes about the mount points:
+$ cat /proc/mounts
+
+--snip--
+shm /dev/shm tmpfs rw,nosuid,nodev,noexec,relatime,size=65536k,inode64 0 0
+/dev/vda1 /mnt/scripts ext4 rw,relatime,errors=remount-ro 0 0
+/dev/vda1 /etc/resolv.conf ext4 rw,relatime,errors=remount-ro 0 0
+/dev/vda1 /etc/hostname ext4 rw,relatime,errors=remount-ro 0 0
+/dev/vda1 /etc/hosts ext4 rw,relatime,errors=remount-ro 0 0
+
+Alternatively, you could just call the mount command to get this information:
+$ mount
+
+--snip--
+proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+tmpfs on /dev type tmpfs (rw,nosuid,size=65536k,mode=755,inode64)
+/dev/vda1 on /mnt/scripts type ext4 (rw,relatime,errors=remount-ro)
+--snip--
+
+A quick way to get a view of the various mounted filesystems is by using the df command, which will also indicate the available and total disk sizes of each filesystem:
+$ df -h -T
+
+Filesystem     Type     Size  Used Avail Use% Mounted on
+overlay        overlay   39G   20G   18G  53% /
+tmpfs          tmpfs     64M     0   64M   0% /dev
+shm            tmpfs     64M     0   64M   0% /dev/shm
+/dev/vda1      ext4      39G   20G   18G  53% /mnt/scripts
+
+The -h and -T flags will print out a human-readable version of the output and the filesystem type, respectively.
+You may have noticed a mount point at /mnt/scripts on p-web-01 (172.16.10.10). Take note of this, as it will come in handy in later chapters.
+
+
+The Filesystem Tab File
+The /etc/fstab file is a static configuration file that controls the mounting of devices and partitions. Mounting devices and partitions without the necessary security measures can lead to filesystem-level vulnerabilities.
+You can mount a device or partition at specific filesystem locations by using special options that control what can and cannot be done using the mount point. For example, you could configure a volume from a remote storage system to be mounted on /mnt/external_storage upon system boot. You could also configure it to be a read-only filesystem, which wouldn’t allow writes, or remove execution options, so users won’t be able to run binaries from it.
+Here are a few mount options that can be beneficial to know about as penetration testers:
+dev Interprets special block devices, such as device files.
+nodev The opposite of dev; will not interpret special block devices.
+noexec Forbids the execution of binaries. Scripts such as bash will still be allowed.
+suid Allows the use of programs set with the setuid flag, which lets users execute a program by using the permissions of the file’s user or group owner.
+nosuid The opposite of the suid option; won’t allow the use of programs set with the setuid flag.
+exec Allows the execution of binaries and other types of files.
+ro Forbids writing into the filesystem; in other words, creates a read-only filesystem.
+rw Allows writing into the filesystem as well as reading.
+nosymfollow Restricts the following of symbolic links created on the filesystem. This option would still allow creating symbolic links.
+defaults Uses the following mount options: rw, suid, dev, exec, and a few others.
+If you return to the mount command output shown previously, you’ll see what mount options are set on each mount point, if defined.
+
+
+
+Logs
+Applications usually generate some sort of runtime output, and this output is sometimes written into logfiles. The content of these logfiles will vary depending on the application but generally indicates whether everything is working correctly or if an error has occurred.
+Certain logfiles are part of the Linux operating system, while others are related to third-party applications such as web servers and databases. Additionally, you might find custom application logs written by the company against which you’re performing a penetration test.
+On Linux systems, both system and application logfiles are usually written to the /var/log directory. Custom applications can write their logs anywhere but generally write them to files under the /var directory too. Here is an example find command that can search for logfiles:
+$ find / -name "*.log" -o -name "*.txt" -o -name "*.out" -type f 2> /dev/null
+This command finds files with the extensions .log and .out.
+
+System Logs
+Here is a list of common system logs on Linux systems:
+
+/var/log/auth.log                     /var/log/faillog
+/var/log/secure                       /var/log/lastlog
+/var/log/audit/audit.log         /var/log/dpkg
+/var/log/dmesg                      /var/log/boot.log
+/var/log/messages                 /var/log/cron
+/var/log/syslog
+
+Of particular interest are files such as /var/log/auth.log, /var/log/secure, and /var/log/lastlog, which are related to authentication and can contain juicy information regarding clients connecting to servers. The /var/log/audit/audit.log file is used by auditing systems such as Auditd to log events such as command line activity, authentication attempts, and general system calls.
+
+
+Application Logs
+Application logs can also contain interesting information for penetration testers. For example, if a server is running a website, the web engine may generate logs about clients connecting to it and the web paths they are requesting. This could reveal other clients and servers that are on the network.
+Web servers like Apache and nginx usually write their logs to directories such as /var/log/apache2/, /var/log/httpd/, or /var/log/nginx/. Other types of applications, such as proxies, email servers, printer servers, file transfer servers, relational databases, message queues, and cache databases, also produce logs you’ll want to look out for. Table 8-3 lists the locations of common application logs you may run into.
+Table 8-3: Log Locations
+
+
+
+
+Log type
+Logfiles
+
+
+
+
+Web servers
+/var/log/apache2/access.log/var/log/httpd/access.log/var/log/nginx/access.log/var/log/lighttpd/access.log
+
+
+Databases
+/var/log/mysql/mysql.log/var/log/postgresql/var/log/redis/var/log/mongodb/mongod.log/var/log/elasticsearch/elasticsearch.log
+
+
+Printer servers
+/var/log/cups
+
+
+File transfer servers
+/var/log/vsftpd/var/log/proftpd
+
+
+Monitoring systems
+/var/log/icinga2/var/log/zabbix/var/log/logstash/var/log/nagios/nagios.log/var/log/cacti
+
+
+
+Note that some logs will require elevated privileges because of their sensitivity.
+Exercise 13: Recursively Searching for Readable Logfiles
+In this exercise, you’ll write a script that looks for logfiles. It should do the following:

@@ -1,0 +1,168 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 777777 - The expression does not apply to #aabbcc, #abc, #0000 (the wrong number of digits), or 000 (the introductory # character is missing).
+The expression unfortunately fails with #aAa. This value is a correct gray value, but a (recognized group) and A (first repetition) do not match in terms of uppercase and lowercase.
+Security Relevance Score: 2
+Word Count: 699
+Extracted: 2025-06-13 23:41:06
+
+---
+
+The expression does not apply to #aabbcc, #abc, #0000 (the wrong number of digits), or 000 (the introductory # character is missing).
+The expression unfortunately fails with #aAa. This value is a correct gray value, but a (recognized group) and A (first repetition) do not match in terms of uppercase and lowercase.
+
+
+
+
+
+
+Expression
+
+
+Meaning
+
+
+
+
+
+
+(...)
+
+
+Everything between ( and ) forms a group
+
+
+
+
+(abc)
+
+
+The abc expression as a group
+
+
+
+
+(abc|efg)
+
+
+Alternatives are the abc or efg expressions
+
+
+
+
+\1, \2
+
+
+Reference to the contents of the 1st or 2nd group (POSIX, PCRE)
+
+
+
+
+$1, $2
+
+
+Reference to the contents of the 1st or 2nd group (PCRE 2)
+
+
+
+
+Table 9.4    
+            Regular Expression Groups
+9.2.1    Quantifiers
+Quantifiers allow you to express how often an expression may or must occur. You can apply quantifiers to character ranges or groups. Caution: abc+ first means ab, then any number of times c (but at least once). If, on the other hand, abc may occur any number of times, you must express this using (abc)+.
+
+
+
+
+Expression
+
+
+Meaning
+
+
+
+
+
+
+x?
+
+
+Zero or one time the characters described by x 
+
+
+
+
+x*
+
+
+Zero times or more (any number of times)
+
+
+
+
+x+
+
+
+Once or more (but not zero times!)
+
+
+
+
+x{3}
+
+
+Exactly three times
+
+
+
+
+x{3,5}
+
+
+Three to five times
+
+
+
+
+x{3,}
+
+
+At least three times
+
+
+
+
+Table 9.5    
+            Regular Expression Pattern Quantifiers
+The following examples show quantifiers are easy to use:
+
+
+[a-f]Without a quantifier, this expression requires exactly one character a through f.
+
+
+[a-f]?With ?, one of the characters or none at all is expected.
+
+
+[a-f]+With +, any number of characters between a and f are allowed, but at least one character must be specified. Thus, a, aaa, and abcdef are fine. abcx also applies, but the expression includes only the first three letters, not the letter x.
+
+
+.*This open pattern allows any number of (even zero) arbitrary characters.
+
+
+(abc|efg){4}In this pattern, abc or efg must be specified exactly four times. abcabcefgabc would be appropriate, but abcefg would not.
+
+
+9.2.2    On Greed (Greedy versus Lazy)
+No, this section does not describe human morality or the characteristics of economic systems. Rather, greed in this context is a matter of how large the string captured by an expression should be. By default, the evaluation of regular expressions is greedy; that is, the regex function returns the largest possible matching strings.
+Let’s assume that the expression is <.+>. This expression means an HTML tag that starts with < and ends with > is to be recognized. There may be any number of characters in between (at least one).
+If you apply this expression to the string <html><body><p>lorem ipsum<p>dolores est, the result is <html><body><p>lorem ipsum<p>. In most cases, this match will not meet your expectations.
+You’re lucky if the regex functions of your tools are PCRE-compliant. Then, you can simply enter a question mark after the quantifier. The expression is then analyzed as lazy or non-greedy, that is, as minimalistic as possible. The following listing illustrates this:
+Expression:          <.+?>Text:            <html><body><p>lorem ipsum<p>dolores estFirst hit:  <html>Second hit:       <body>Third hit:             <p>Fourth hit:                           <p> 
+Unfortunately, in the Bash environment, the PCRE syntax is rarely an option. Many Unix tools are only POSIX compliant. In such cases, you must formulate the expression more precisely. In our example, you describe the inside of the HTML tag using [^>]+ instead of .+?. Thus, all characters except > are allowed inside. The entire expression then reads <[^>]+>.
+
+Lazy Is Efficient
+You may have always suspected it, but overeagerness rarely pays off. This cannot be said in such a general way for regular expressions, but in practice lazy expressions are often more efficient. This is especially true when a complex pattern is to be applied to a long string because then the number of possible cases and the volume of the text to be evaluated will decrease.
+
+
+Regular Expressions and HTML: A Bad Combination!
+You should resist the temptation to analyze HTML code using regular expressions. This usually goes wrong because HTML is not a “regular” language (in the scientific sense). To analyze HTML documents, you should use parsers that understand HTML code and ideally make a Document Object Model (DOM) from HTML. In Python, for example, the BeautifulSoup module performs this task. Examples are provided in

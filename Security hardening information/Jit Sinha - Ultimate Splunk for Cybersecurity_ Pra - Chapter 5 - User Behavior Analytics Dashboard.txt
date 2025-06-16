@@ -1,0 +1,112 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 5 - User Behavior Analytics Dashboard:
+Security Relevance Score: 7
+Word Count: 1343
+Extracted: 2025-06-13 23:40:44
+
+---
+
+User Behavior Analytics Dashboard:
+
+Scenario: By examining user behavior patterns, JIT Inc. aims to proactively detect possible insider threats or compromised accounts.
+How It Assists: By identifying variations from typical user behavior, this dashboard’s advanced analytics can identify possible insider threats or compromised accounts. It can spot tiny behavioral irregularities like altered data access patterns or contact with strange external IP addresses.
+
+Implementation and Analysis
+
+JIT Inc. receives focused information into different facets of user behavior and security from each dashboard.
+By keeping an eye on these dashboards continuously, the security team at JIT Inc. is able to promptly recognize and address possible security incidents.
+The information and patterns found on these dashboards also help JIT Inc. improve its general security guidelines and user access procedures.
+
+The User Intelligence dashboards offered by Splunk ES are crucial resources for JIT Inc. in order to keep its IT infrastructure safe and compliant. Through efficient utilization of these dashboards, JIT Inc. may maintain the security and integrity of their network and data by staying ahead of possible security issues resulting from user activity.
+Threat Intelligence
+By obtaining and analyzing data on current and potential threats, threat intelligence enables firms to proactively address new cyberthreats.
+Splunk Enterprise Security (ES) is a tool that can assist businesses in managing and utilizing threat intelligence data.
+
+Understanding threat intelligence feeds:
+Threat intelligence feeds are constantly updated sources of data on potential threats, weaknesses, and malicious behaviors. These feeds may contain information on IP addresses, domain names, URLs, file hashes, and additional indicators of compromise (IoCs) linked to recognized threats. Feeds can originate from a variety of places, including commercial suppliers, open-source software platforms, governmental organizations, and trade associations.
+Splunk ES’s integration of threat intelligence feeds:
+Observe these procedures to incorporate threat intelligence feeds into Splunk ES:
+
+Configure the necessary apps or add-ons to get threat intelligence data from the feeds of your choice.
+Set up data inputs to feed Splunk ES with threat intelligence data.
+Process and standardize the ingested data using Splunk ES’s Threat Intelligence architecture.
+Analyzing and correlating threat intelligence data:
+After threat intelligence data has been processed and ingested, Splunk ES may be used to analyze and correlate it with internal security data from your company. By doing this, you can see patterns, trends, and IoCs that could point to a danger. To visualize this data and give your security teams useful information, establish alerts, dashboards, and reports.
+Proactive threat hunting and response:
+Threat hunting is the proactive process of aggressively seeking out and detecting risks before they cause harm. Utilize threat intelligence data with Splunk ES to proactively search for dangers in your environment. some proactive threat-hunting methods are:
+
+Constructing correlation searches to find odd patterns, behaviors, or IoCs.
+Creating unique dashboards to prioritize investigations and visualize potential hazards.
+Creating alerts to inform security analysts when certain circumstances or IoCs are found.
+Combining Splunk ES with other security programs to automate response procedures like blocking malicious IP addresses or isolating affected computers.
+
+Threat Intelligence Dashboards
+This section will encompass vital tools such as the Threat Activity and Threat Artifacts dashboards. These dashboards aim to provide a comprehensive view of threat landscapes and deep-dive analysis of threat artifacts, contributing to effective threat detection and response.
+Threat Activity dashboard
+Through the correlation of threat intelligence source information with events occurring in your environment, the Threat Activity dashboard in Splunk Enterprise Security sheds light on threat activity. Using this dashboard, you may spot potential dangers and take appropriate action.
+
+
+
+Figure 7.10: Threat activity dashboard
+Dashboard filters:
+The results shown on the dashboard panels can be further filtered using a variety of filters. Key security indicators are not subject to these controls. The filters consist of:
+
+Threat Group: Choose a named group or entity that represents a recognized threat to narrow your search.
+Threat Category: Use this filter to narrow your results by threat kind, such as backdoor, financial threat, or advanced persistent threat.
+Search: This filter allows you to look for information in areas like Destination, Sourcetype, Source, Threat Collection, Threat Collection Key, Threat Key, Threat Match Field, and Threat Match Value.
+Time Range: Choose the time for which the data on the dashboard will be shown.
+
+Dashboard panels:
+The dashboard features several panels that provide valuable information about threat activity, including:
+
+Key Indicators: This panel provides a summary of threat activity over the previous 48 hours by displaying metrics pertinent to the dashboard sources.
+Threat Activity during Time: The number of incidents for each threat collection during the given time period is displayed in this panel. To see a search that is specific to the selected threat collection and time frame, dive down.
+Most Active Threat Collections: This panel shows the most active threat collections based on event matches throughout the given time, with a sparkline denoting the peak of event matches. To view a search using the chosen threat collection, drill down.
+Most Active Threat Sources: The top threat sources for the given period are displayed in this panel based on event count matching. To view a search with the chosen threat source, drill down.
+Threat Activity Details: The most recent threat matches are broken out in-depth in this panel. To whitelist by threat_match_value or to emphasize certain threat_match_value matches, utilize the event selection box and the Advanced Filter option.
+
+Security analysts can get insights into potential threats, prioritize investigations, and react proactively to limit risks by using the Threat Activity dashboard in Splunk Enterprise Security.
+Threat Artifacts dashboard
+You may proactively identify and respond to potential threats by using the threat intelligence dashboards in Splunk ES. This lowers the chance of security breaches and lessens the effects of cyberattacks on your company.
+The Threat Artifacts dashboard for Splunk Enterprise Security provides a consolidated location to browse and assess threat content downloaded from all listed threat download sources. It helps security analysts acquire additional context by displaying all threat artifacts associated with a user-specified threat source or artifact.
+
+
+
+
+Figure 7.11: Threat Artifacts dashboard
+The dashboard contains a number of selection filters and sections to let you study the threat content more thoroughly:
+
+To choose from the available threat artifact kinds, start by modifying the Threat Artifact filter.
+
+Use the Description filter
+Threat Artifact: Objects grouped by threat collection, such as network, file, and service, are referred to as threat artifacts.
+
+Depending on your choice, other filters that are accessible may change.
+
+Selection of a threat artifact Text Filter: (*) Wildcard by Default By Drop-Down Filter
+Threat ID: This includes Threat Category, Threat Group, Malware Alias, Intel Source ID, and Intel Source Path
+Network: This includes IP, HTTP domain. Choose from: User agent, cookie, header, data, URL, or referrer with a string added.
+Registry: This includes Hive, Path, Key Name, Value Name, Value Type, and Value Text.
+File: This includes File Name, File Extension, File Path, and File Hash.
+Service: This includes Name, Descriptive Name, Description, and Type.
+User: User information includes User, Full Name, Group Name, Description
+Process: This includes Process, Process Arguments, Handle Names, and Handle Type.
+Certificate: Certificate information includes Serial Number, Subject, Issuer, Validity Not Before, Validity Not After, and Validity Not After.
+Email: Email information includes Address, Subject, and Body.
+
+Review the threat source context using the tabs:
+Panel Tabs
+
+Overview of the threat: Endpoint, Network, Email, and Certificate Artifacts
+Email: Email Intelligence
+Certificate: Certificate Intelligence
+Network: HTTP Intelligence, IP Intelligence, Domain Intelligence
+Endpoint: File Intelligence, Registry Intelligence, Process Intelligence, Service Intelligence, User Intelligence
+
+
+Security analysts can rapidly analyze and assess threat information using the Threat Artifacts dashboard in Splunk Enterprise Security. This enables them to better understand potential threats and act pro-actively to mitigate risks.
+Hands-On Threat Intelligence with Splunk ES at JIT Inc.
+Overview
+The forward-thinking business JIT Inc. uses Splunk Enterprise Security (ES) to fortify its threat intelligence system. JIT Inc. uses Splunk ES’s Threat Intelligence features to counteract the growing threat of cyberattacks, paying particular attention to the Threat Activity and Threat Artifacts dashboards. These dashboards are essential for spotting, evaluating, and dealing with possible online dangers.
+Scenario Setup

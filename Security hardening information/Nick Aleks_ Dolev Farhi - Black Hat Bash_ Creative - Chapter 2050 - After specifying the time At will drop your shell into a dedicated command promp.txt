@@ -1,0 +1,30 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 2050 - After specifying the time, At will drop your shell into a dedicated command prompt (at>), where you can enter shell commands line by line. To save the job, use CTRL-D.
+The at command also provides a way to see the queue of jobs (by using atq) and remove them (by using atrm). To list all queued At jobs, run the following command:
+$ atq
+Security Relevance Score: 2
+Word Count: 235
+Extracted: 2025-06-13 23:40:57
+
+---
+
+After specifying the time, At will drop your shell into a dedicated command prompt (at>), where you can enter shell commands line by line. To save the job, use CTRL-D.
+The at command also provides a way to see the queue of jobs (by using atq) and remove them (by using atrm). To list all queued At jobs, run the following command:
+$ atq
+
+1 Sun May 28 22:20:00 a root
+2 Sun May 29 23:20:00 a root
+
+Each job has an ID (1 and 2 in this case), the time at which they will execute, and the user who scheduled it. After a job is submitted, you can generally find the job definition located under /var/spool/cron/atjobs:
+$ ls -l /var/spool/cron/atjobs/
+total 8
+-rwx------ 1 root daemon 2405 May 28 02:32 a0000101ac9454
+-rwx------ 1 root daemon 2405 May 28 02:32 a0000201ac9454
+
+By default, unprivileged users cannot read this directory. Other possible At job directories include /var/spool/cron/atspool, /var/spool/at, and /var/spool/ at/spool.
+You can remove queued jobs by using atrm followed by the job ID:
+$ atrm 1
+Like Cron, At uses deny (/etc/at.deny) and allow (/etc/at.allow) files to determine which users can schedule jobs.
+Exercise 14: Writing a Cron Job Script to Find Credentials
+The objective of this exercise is to write a monitoring cron job script. This script should periodically search the system for files containing credentials. Create a cron job to do the following:

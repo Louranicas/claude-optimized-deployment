@@ -1,0 +1,1808 @@
+# Security Chapter Extract
+Book: Dolev Farhi, Nick Aleks - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, No Starch Press) - libgen.li
+Chapter: 12 - Defense Evasion and Exfiltration    Covers defensive secu -
+rity controls commonly seen in corporate environments. You’ll learn 
+how to tamper with security tools and exfiltrate information from a sys -
+tem in evasive ways.
+The Scripting Exercises
+Throughout the chapters, 29 exercises prompt you to practice your new -
+found bash scripting skills. Some walk you through complete scripts, then 
+encourage you to expand or improve upon them; others challenge you to 
+write your own scripts from the ground up. Using bash, you’ll do exercises 
+such as the following:
+• Organize the results of a scan by port number (Chapter 4)
+• Parse the output of web-scanning utilities (Chapter 5)
+• Build an interface for exploiting an OS command injection vulnerabil -
+ity (Chapter 6)
+• Write an SSH brute-forcing utility that can attack user accounts 
+(Chapter 7)
+• Recursively search the filesystem for readable logfiles (Chapter 8)
+• Maliciously modify scheduled task scripts (Chapter 9)
+• Create a malicious package installer (Chapter 10)
+• Write a frequency-based port scanner (Chapter 11)
+• Scan compromised hosts for the presence of defensive tools (Chapter 12), 
+and much, much more
+xxii   IntroductionHow to Use This Book
+We encourage you to actively experiment with the techniques we intro -
+duce throughout the book. Start by cloning the book’s GitHub repository, 
+located at https://github  .com /dolevf  /Black  -Hat -Bash . This repository is a trea -
+sure trove of scripts, categorized by chapter, that can help you apply what you’ve learned.
+Note, however, that the techniques presented herein are intended 
+for educational purposes only. Perform testing solely against systems for which you have explicit authorization to do so. To safely hone your skills, 
+in Chapter  3 we’ll guide you through setting up your own lab environment, 
+where you can experiment without risk.
+Bash is a command language interpreter that 
+provides an environment in which users can 
+execute commands and run applications. As 
+penetration testers and security practitioners, we 
+frequently write bash scripts to automate a wide variety 
+of tasks, making bash an essential tool for hackers. In 
+this chapter, you’ll set up your bash development envi -
+ronment, explore useful Linux commands to include 
+in future scripts, and learn the fundamentals of the 
+language’s syntax, including variables, arrays, streams, 
+arguments, and operators.1
+BASH BASICS
+2   Chapter 1Environmental Setup
+Before you begin learning bash, you need both a bash shell running in a 
+terminal and a text editor. You can access these on any major operating sys -
+tem by following the instructions in this section.
+NOTE  Beginning in Chapter  4, you’ll use Kali Linux to run bash commands and complete 
+hacking labs. If you’d like to set up Kali now, consult the steps included in Chapter 3.
+Accessing the Bash Shell
+If you’re running Linux or macOS, bash should already be available. On Linux, open the Terminal application by pressing alt-ctrl -T. On macOS, 
+you can find the terminal by navigating to the Launchpad icon on the sys -
+tem dock.
+Kali and macOS use the Z Shell by default, so when you open a new 
+terminal window, you’ll have to enter 
+exec bash  to switch to a bash shell 
+before you run commands. If you want to change your default shell to bash so you don’t have to manually switch shells, you can use the 
+chsh -s /bin/bash  
+command.
+If you’re running Windows, you can use the Windows Subsystem for 
+Linux (WSL), which lets you run Linux distributions and access a bash envi -
+ronment. The official Microsoft WSL documentation page describes how to install it: 
+https://learn  .microsoft  .com /en -us /windows  /wsl /install .
+An alternative to WSL is Cygwin , which emulates a Linux environment 
+by providing a collection of Linux utilities and system-call functionalities. To install Cygwin, visit 
+https://www  .cygwin  .com /install  .html  to download the 
+setup file, and then follow the installation wizard.
+Cygwin installs itself by default to the C:\cygwin64\ Windows path. To 
+execute your bash scripts, save the scripts in the directory containing your username at C:\cygwin64\home . For example, if your username is david , 
+you should save your scripts under C:\cygwin64\home\david . Then, from the 
+Cygwin terminal, you’ll be able to change the directory to the home direc -
+tory to run your scripts.
+Installing a Text Editor
+To start writing bash scripts, you’ll need a text editor, preferably one with handy features such as syntax highlighting built in. You can choose between terminal-based text editors and graphical user interface–based text editors. Terminal-based text editors (such as vi or GNU nano) are 
+ useful because during a penetration test they may be the only available 
+options when you need to develop a script on the spot.
+If you prefer graphical text editors, Sublime Text ( https://www  .sublimetext  
+.com) is one option you could use. In Sublime Text, you can toggle on 
+the syntax highlighting feature for bash scripts by clicking Plain Text  in 
+the  b ottom-right corner and choosing Bash  from the drop-down list of 
+Bash Basics   3languages. If you’re using a different text editor, reference its official docu -
+mentation to learn how to turn on syntax highlighting.
+Exploring the Shell
+Now that you have a functional bash environment, it’s time to learn some 
+basics. Although you’ll develop scripts in your text editor, you’ll also prob -
+ably find yourself frequently running single commands in the terminal. 
+This is because you often need to see how a command runs and the kind of 
+output it produces before including it in a script. Let’s get started by run -
+ning some bash commands.
+First, enter the following command to verify that bash is available on 
+your system:
+$ bash --version
+The version in the output will depend on the operating system you 
+are running.
+Checking Environment Variables
+When running in a terminal, bash loads a set of environment variables  with 
+every new session that gets invoked. Programs can use these environment 
+variables for various purposes, such as discovering the identity of the 
+user running the script, the location of their home directory, and their 
+default shell.
+To see the list of environment variables set by bash, run the env com -
+mand directly from the shell (Listing 1-1).
+$ env
+SHELL=/bin/bash
+LANGUAGE=en_CA:en
+DESKTOP_SESSION=ubuntu
+PWD=/home/user
+--snip--
+Listing 1-1: Listing bash’s environment variables
+You can read individual environment variables by using the echo com -
+mand, which writes text to the terminal. For example, to print the default 
+shell set for the user, use the SHELL  environment variable preceded by a dol -
+lar sign ( $) and surrounded by curly brackets ( {}). This will cause bash to 
+expand the variable to its assigned value, as shown in Listing 1-2.
+$ echo ${SHELL}
+/bin/bash
+Listing 1-2: Printing an environment variable to the terminal
+4   Chapter 1Here are some of the default environment variables available:
+BASH_VERSION     The bash version running
+BASHPID     The process identifier (PID) of the current bash process
+GROUPS     A list of groups the running user is a member of
+HOSTNAME     The name of the host
+OSTYPE     The type of operating system
+PWD    The current working directory
+RANDOM     A random number from 0 to 32,767
+UID    The user ID (UID) of the current user
+SHELL     The full pathname to the shell
+The following examples show how to check the values of a few of these 
+environment variables:
+$ echo ${RANDOM}
+8744
+$ echo ${UID}
+1000
+$ echo ${OSTYPE}
+linux-gnu
+These commands generate a random number, output the current user’s 
+ID, and display the operating system type, respectively. You can find the full 
+list of environment variables at https://www .gnu  .org /software  /bash  /manual  /html  
+_node  /Bash  -Variables  .html .
+Running Linux Commands
+The bash scripts you’ll write in this book will run common Linux tools, so if 
+you’re not yet familiar with command line navigation and file modification 
+utilities such as cd, ls, chmod , mkdir , and touch , try exploring them by using 
+the man (manual) command. You can insert it before any Linux command 
+to open a terminal-based guide that explains that command’s use and 
+options, as shown in Listing 1-3.
+$ man ls
+NAME
+      ls - list directory contents
+SYNOPSIS
+      ls [OPTION]... [FILE]...
+DESCRIPTION
+      List information about the FILEs (the current directory by default).
+      Sort entries alphabetically if none of -cftuvSUX nor
+      --sort is specified.
+Bash Basics   5      Mandatory arguments to long options are mandatory for short options too.
+      -a, --all
+      do not ignore entries starting with .
+--snip--
+Listing 1-3: Accessing a command’s manual page
+Linux commands can accept many types of input on the command 
+line. For example, you can enter ls without any arguments to see files and 
+directories, or pass it arguments to, for instance, display the list of files all 
+on one line.
+Arguments are passed on the command line by using either short-
+form or long-form argument syntax, depending on the command in use. 
+Short-form  syntax uses a single dash ( -) followed by one or more characters. 
+The following example uses ls to list files and directories with a short-form 
+ argument syntax:
+$ ls -l
+Some commands let you supply multiple arguments by joining them 
+together or listing them separately:
+$ ls -la
+$ ls -l -a
+Note that some commands may throw errors if you attempt to join two 
+arguments with a single dash, so use the man command to learn the syntax 
+that’s permitted.
+Some command options may allow you to use long-form  argument syn -
+tax, such as the --help  command to list the available options. Long-form 
+argument syntax is prepended by the double dash ( --) symbol:
+$ ls --help
+Sometimes the same command argument supports both short- and 
+long-form argument syntax for convenience. For example, ls supports 
+the argument -a (all) to display all files, including those that are hidden. 
+(Files starting with a dot in their name are considered hidden in Linux.) 
+However, you could also pass the argument --all , and the outcome would 
+be identical:
+$ ls -a
+$ ls --all
+Let’s execute some simple Linux commands so you can see the varia -
+tion of options each offers. First, create a single directory with mkdir :
+$ mkdir directory1
+6   Chapter 1Now let’s create two directories with mkdir :
+$ mkdir directory2 directory3
+Next, list processes by using ps with short-form argument syntax, sup -
+plying the arguments separately and then together:
+$ ps -e -f
+$ ps -ef
+Finally, let’s display the available disk space by using df with long-form 
+argument syntax:
+$ df --human-readable
+Throughout this book, you’ll use Linux commands such as these in 
+your scripts.
+Elements of a Bash Script
+In this section, you’ll learn the building blocks of a bash script. You’ll use 
+comments to document what a script does, tell Linux to use a specific inter -
+preter to execute the script, and style your scripts for better readability.
+Bash doesn’t have an official style guide, but we recommend adhering 
+to Google’s Shell Style Guide ( https://google  .github  .io /styleguide  /shellguide  .html ), 
+which outlines best practices to follow when developing bash code. If you 
+work on a team of penetration testers and have an exploit code repository, 
+using good code styling practices will help your team maintain it.
+The Shebang Line
+Every script should begin with the shebang  line, a character sequence that 
+starts with the hash and exclamation marks ( #!), followed by the full path to 
+the script interpreter. Listing 1-4 shows an example of a shebang line for a 
+typical bash script.
+#!/bin/bash
+Listing 1-4: A bash shebang line
+The bash interpreter is typically located at /bin/bash . If you instead 
+wrote scripts in Python or Ruby, your shebang line would include the full 
+path to the Python or Ruby interpreter.
+You’ll sometimes encounter bash scripts that use a shebang line like 
+this one:
+#!/usr/bin/env bash
+Bash Basics   7You may want to use this shebang line because it is more portable than 
+the one in Listing 1-4. Some Linux distributions place the bash interpreter 
+in different system locations, and this shebang line will attempt to find that 
+location. This approach could be particularly useful in penetration tests, 
+where you might not know the location of the bash interpreter on the tar -
+get machine. For simplicity, however, we’ll use the shebang version from 
+Listing 1-4 throughout this book.
+The shebang line can also take optional arguments to change how the 
+script executes. For example, you could pass the special argument -x to your 
+bash shebang, like so:
+#!/bin/bash -x
+This option prints all commands and their arguments as they are 
+executed to the terminal. It is useful for debugging scripts as you’re devel -
+oping them.
+Another example of an optional argument is -r:
+#!/bin/bash -r
+This option creates a restricted bash shell , which restricts certain poten -
+tially dangerous commands that could, for example, navigate to certain 
+directories, change sensitive environment variables, or attempt to turn off 
+the restricted shell from within the script.
+Specifying an argument within the shebang line requires modifying 
+the script, but you can also pass arguments to the bash interpreter by using 
+this syntax:
+$ bash -r myscript.sh
+Whether you pass arguments to the bash interpreter on the command 
+line or on the shebang line won’t make a difference. The command line 
+option is just an easier way to trigger different modes.
+Comments
+Comments  are parts of a script that the bash interpreter won’t treat as code 
+and that can improve the readability of a program. Imagine that you write 
+a long script and, a few years later, need to modify some of its logic. If you 
+didn’t write comments to explain what you did, you might find it quite chal -
+lenging to remember the purpose of each section.
+Comments in bash start with a hash mark ( #), as shown in Listing 1-5.
+#!/bin/bash
+# This is my first script.
+Listing 1-5: A comment in a bash script
+8   Chapter 1Except for the shebang line, every line that starts with a hash mark is 
+considered a comment. If you wrote the shebang line twice, bash would con -
+sider the second one to be a comment.
+To write a multiline comment, precede each individual line with the 
+hash mark, as shown in Listing 1-6.
+#!/bin/bash
+# This is my first script!
+# Bash scripting is fun...
+Listing 1-6: A multiline comment
+In addition to documenting a script’s logic, comments can provide meta -
+data to indicate the author, the script’s version, the person to contact for 
+issues, and more. These comments usually appear at the top part of the 
+script, below the shebang line.
+Commands
+Scripts can be as short as two lines: the shebang line and a Linux command. 
+Let’s write a simple script that prints Hello World!  to the terminal. Open your 
+text editor and enter the following:
+#!/bin/bash
+echo "Hello World!"
+In this example, we use the shebang statement to specify the interpreter 
+of choice, bash. Then we use the echo command to print the string Hello 
+World!  to the screen.
+Execution
+To run the script, save the file as helloworld.sh , open the terminal, and navi -
+gate to the directory where the script resides. If you saved the file in your 
+home directory, you should run the set of commands shown in Listing 1-7.
+$ cd ~
+$ chmod u+x helloworld.sh
+$ ./helloworld.sh
+Hello World!
+Listing 1-7: Running a script from the home directory
+We use the cd command to change directories. The tilde ( ~) repre -
+sents the home directory of the current running user. Next, we use chmod  
+to set the executable ( u+x) permissions for the user who owns the file (in 
+this case, us). We run the script by using dot-slash notation ( ./) followed 
+by the script’s name. The dot ( .) represents the current directory, so 
+Bash Basics   9we’re essentially telling bash to run helloworld.sh  from the current work -
+ing directory.
+You can also run a bash script with the following syntax:
+$ bash helloworld.sh
+Because we specified the bash command, the script will run using the 
+bash interpreter and won’t require a shebang line. Also, if you use the bash 
+command, the script doesn’t have to be set with an executable permission 
+(+x). In later chapters, you’ll learn about the permission model in more 
+depth and explore its importance in the context of finding misconfigura -
+tions in penetration tests.
+Debugging
+Errors will inevitably occur when you’re developing bash scripts. Luckily, 
+debugging scripts is quite intuitive. An easy way to check for errors early is 
+by using the -n parameter when running a script:
+$ bash -n script.sh
+This parameter will read the commands in the script but won’t execute 
+them, so any syntax errors that exist will be shown onscreen. You can think 
+of -n as a dry-run method to test the validity of your syntax.
+You can also use the -x parameter to turn on verbose mode, which lets 
+you see commands being executed and will help you debug issues as the 
+script executes in real time:
+$ bash -x script.sh
+If you want to start debugging at a given point in the script, include the 
+set command in the script itself (Listing 1-8).
+#!/bin/bash
+set -x
+--snip--
+set +x
+Listing 1-8: Using set to debug a script
+You can think of set as a valve that turns a certain option on and off. In 
+this example, the first command sets the debugging mode ( set -x ), while 
+the last command ( set +x) disables it. By using set, you can avoid generating 
+a massive amount of noise in your terminal when your script is large and 
+contains a specific problem area.
+10   Chapter 1Basic Syntax
+At this point, you’ve written a two-line script that prints the message Hello 
+World!  to the screen. You’ve also learned how to run and debug a script. Now 
+you’ll learn some bash syntax so you can write more useful scripts.
+The most basic bash scripts are just lists of Linux commands collected 
+in a single file. For example, you could write a script that creates resources 
+on a system and then prints information about these resources to the screen (Listing 1-9).
+#!/bin/bash
+# All this script does is create a directory, create a file
+# within the directory, and then list the contents of the directory.
+mkdir mydirectory
+touch mydirectory/myfile
+ls -l mydirectory
+Listing 1-9: A bash script that lists directory contents
+In this example, we use mkdir  to create a directory named mydirectory . Next, 
+we use the touch  command to create a file named myfile  within the directory. 
+Finally, we run the ls -l  command to list the contents of mydirectory .
+The output of the script looks as follows:
+--snip--
+-rw-r--r-- 1 user user 0 Feb 16 13:37 myfile
+However, this line-by-line strategy could be improved in several ways. 
+First, when a command runs, bash waits until it finishes before advancing to 
+the next line. If you include a long-running command (such as a file down -
+load or large file copy), the remaining commands won’t be executed until that command has completed. We also have yet to implement any checks to validate that all commands have executed correctly. You’ll need to write more-intelligent programs to reduce errors during runtime.
+Writing sophisticated programs often requires using features like vari -
+ables, conditions, loops, and tests. For example, what if we want to change this script so that it checks for enough space on the disk before attempting to create new files and directories? Or what if we could check whether the directory and file creation actions actually succeeded? This section and Chapter 
+2 introduce you to the syntactical elements you’ll need to accom -
+plish these tasks.
+Variables
+Every scripting language has variables. Variables  are names that we assign to 
+memory locations and that hold a value; they act like placeholders or labels. We can directly assign values to variables, or we can execute bash com -
+mands and store their output as variable values to use for various purposes.
+Bash Basics   11If you’ve worked with programming languages, you may know that vari -
+ables can be of different types, such as integers, strings, and arrays. In bash, 
+variables are untyped; they’re all considered character strings. Even so, you’ll 
+see that bash allows you to create arrays, access array elements, or perform 
+arithmetic operations so long as the variable value consists of only numbers.
+The following rules govern the naming of bash variables:
+• They can include alphanumeric characters.
+• They cannot start with a number.
+• They can contain an underscore ( _).
+• They cannot contain whitespace.
+Assigning and Accessing Variables
+Let’s assign a variable. Open a terminal and enter the following directly 
+within the command prompt:
+$ book="black hat bash"
+We create a variable named book and, by using the equal sign ( =), assign 
+the value black hat bash  to it. Now we can use this variable in a command. 
+In the following example, we use the echo command to print the variable to 
+the screen:
+$ echo "This book's name is ${book}"
+This book's name is black hat bash
+Here we were able to print the variable by using the ${book}  syntax 
+within an echo command. This will expand the book variable to its value. 
+You can also expand a variable by using just the dollar sign ( $) followed by 
+the variable:
+$ echo "This book's name is $book"
+Using the ${} syntax makes the code less prone to misinterpretation 
+and helps readers understand when a variable starts and ends.
+You can also assign the output of a command to a variable by using the 
+command substitution syntax $(), placing the desired command within the 
+parentheses. You’ll use this syntax often in bash programming. Try running 
+the commands in Listing 1-10.
+$ root_directory=$(ls -ld /)
+$ echo "${root_directory}"
+drwxr-xr-x 1 user user 0 Feb 13 20:12 /
+Listing 1-10: Assigning command output to a variable
+12   Chapter 1We assign the value of the ls -ld /  command to a variable named root 
+_directory  and then use echo to print the output of the command. In this 
+output, you can see that we were able to get metadata about the root direc -
+tory (/), such as its type and permission, size, user and group owners, and 
+the timestamp of the last modification.
+Note that you shouldn’t leave whitespace around the assignment sym -
+bol (=) when creating a variable:
+book = "this is an invalid variable assignment"
+The previous variable assignment syntax is considered invalid.
+Unassigning Variables
+You can unassign assigned variables by using the unset  command, as shown 
+in Listing 1-11.
+$ book="Black Hat Bash"
+$ unset book
+$ echo "${book}"
+Listing 1-11: Unassigning variables
+If you execute these commands in the terminal, no output will be shown 
+after the echo command executes.
+Scoping Variables
+Global  variables are those available to the entire program. But variables in 
+bash can also be scoped  so that they are accessible only from within a certain 
+block of code. These local variables are declared using the local  keyword. 
+The script in Listing 1-12 shows how local and global variables work.
+local_scope  
+_variable.sh#!/bin/bash
+PUBLISHER="No Starch Press"
+print_name(){
+   local name
+   name="Black Hat Bash"
+   echo "${name} by ${PUBLISHER}"
+}
+print_name
+echo "Variable ${name} will not be printed because it is a local variable."
+Listing 1-12: Accessing global and local variables
+We assign the value No Starch Press  to the variable PUBLISHER  and then 
+create a function called print_name() . (You’ll learn more about functions 
+Bash Basics   13in the next chapter.) Within the function, we declare a local variable 
+called name and assign it the value Black Hat Bash . Then we call print_name()  
+and attempt to access the name variable as part of a sentence to be printed 
+using echo.
+The echo command at the end of the script file will result in an empty 
+variable, as the name variable is locally scoped to the print_name()  function, 
+which means that nothing outside the function can access it. So, it will 
+ simply return without a value.
+NOTE  The scripts in this chapter are available at https:/ /github .com  /dolevf  /Black  -Hat 
+-Bash  /blob  /master  / ch01 .
+Save this script, remembering to set the executable permission by using 
+chmod , and run it by using the following command:
+$ ./local_scope_variable.sh
+Black Hat Bash by No Starch Press
+Variable  will not be printed here because it is a local variable
+As you can see, the local variable never prints.
+Arithmetic Operators
+Arithmetic operators  allow you to perform mathematical operations on integers. 
+Table 1-1  shows some of the arithmetic operators available. For the full list, 
+see https://tldp  .org /LDP  /abs /html  /ops .html .
+Table 1-1:  Arithmetic Operators
+Operator Description
++ Addition
+- Subtraction
+* Multiplication
+/ Division
+% Modulo
++= Incrementing by a constant
+-= Decrementing by a constant
+You can perform these arithmetic operations in bash in a few ways: using 
+the let command, using the double parentheses syntax $((expression )), or 
+using the expr command. Let’s consider an example of each method.
+In Listing 1-13, we perform a multiplication operation by using the 
+let command.
+14   Chapter 1$ let result="4 * 5"
+$ echo ${result}
+20
+Listing 1-13: Arithmetic with let
+This command takes a variable name and performs an arithmetic cal -
+culation to resolve its value. In Listing 1-14, we perform another multiplica -
+tion operation using the double parentheses syntax.
+$ result=$((5 * 5))
+$ echo ${result}
+25
+Listing 1-14: Arithmetic with double parentheses syntax
+In this case, we perform the calculation within double parentheses. 
+Finally, in Listing 1-15, we perform an addition operation using the expr 
+command.
+$ result=$(expr 5 + 505)
+$ echo ${result}
+510
+Listing 1-15: Evaluating expressions with expr
+The expr command evaluates expressions, which don’t have to be arith -
+metic operations; for example, you might use it to calculate the length of a 
+string. Use man expr  to learn more about the capabilities of expr.
+Arrays
+Bash allows you to create single-dimension arrays. An array  is a collection of 
+elements that are indexed. You can access these elements by using their index 
+numbers, which begin at zero. In bash scripts, you might use arrays whenever 
+you need to iterate over multiple strings and run the same commands on 
+each one.
+Listing 1-16 shows how to create an array in bash. Save this code to a file 
+named array.sh  and execute it.
+#!/bin/bash
+# Sets an array
+IP_ADDRESSES=(192.168.1.1 192.168.1.2 192.168.1.3)
+# Prints all elements in the array
+echo "${IP_ADDRESSES[*]}"
+Bash Basics   15# Prints only the first element in the array
+echo "${IP_ADDRESSES[0]}"
+Listing 1-16: Creating and accessing arrays
+This script uses an array named IP_ADDRESSES  that contains three inter -
+net protocol (IP) addresses. The first echo command prints all the elements 
+in the array by passing [*] to the variable name IP_ADDRESSES , which holds 
+the array values. The asterisk ( *) is a representation of every array element. 
+Finally, another echo command prints just the first element in the array by 
+specifying index 0.
+Running this script should produce the following output:
+$ chmod u+x array.sh
+$ ./array.sh
+192.168.1.1 192.168.1.2 192.168.1.3
+192.168.1.1
+As you can see, we were able to get bash to print all elements in the 
+array, as well as just the first element.
+You can also delete elements from an array. Listing 1-17 will delete 
+192.168.1.2 from the array.
+IP_ADDRESSES=(192.168.1.1 192.168.1.2 192.168.1.3)
+unset IP_ADDRESSES[1]
+Listing 1-17: Deleting array elements
+You can even swap one of the values with another value. This code will 
+replace 192.168.1.1 with 192.168.1.10:
+IP_ADDRESSES[0]="192.168.1.10"
+You’ll find arrays particularly useful when you need to iterate over val -
+ues and perform actions against them, such as a list of IP addresses to scan 
+(or a list of email addresses to send a phishing email to).
+Streams
+Streams  are files that act as communication channels between a program 
+and its environment. When you interact with a program (whether a built-in 
+Linux utility such as ls or mkdir  or one that you wrote yourself), you’re inter -
+acting with one or more streams. Bash has three standard data streams, as 
+shown in Table 1-2 .
+16   Chapter 1Table 1-2: Streams
+Stream name DescriptionFile descriptor 
+number
+Standard input (stdin) Data coming into a program as input 0
+Standard output (stdout) Data coming out of a program 1
+Standard error (stderr) Errors coming out of a program 2
+So far, we’ve run a few commands from the terminal and written and 
+executed a simple script. The generated output was sent to the standard 
+ output stream (stdout) , or in other words, your terminal screen.
+Scripts can also receive commands as input. When a script is designed 
+to receive input, it reads it from the standard input stream (stdin) . Finally, 
+scripts may display error messages to the screen due to a bug or syntax 
+error in the commands sent to it. These messages are sent to the standard error stream (stderr) .
+To illustrate streams, we’ll use the 
+mkdir  command to create a few direc -
+tories and then use ls to list the content of the current directory. Open your 
+terminal and execute the following command:
+$ mkdir directory1 directory2 directory1
+mkdir: cannot create directory 'directory1': File exists
+$ ls -l
+total 1
+drwxr-xr-x 1 user user   0 Feb 17 09:45 directory1drwxr-xr-x 1 user user   0 Feb 17 09:45 directory2
+Notice that mkdir  generates an error. This is because we pass the direc -
+tory name directory1  twice on the command line. So, when mkdir  runs, it 
+creates directory1  and directory2 , then fails on the third argument because, at 
+that point, directory1  has already been created. These types of errors are sent 
+to the standard error stream.
+Next, we execute ls -l , which simply lists the directories. The result 
+of the ls command succeeds without any specific errors, so it is sent to the 
+standard output stream.
+You’ll practice working with the standard input stream when we intro -
+duce redirection in “Redirection Operators” on page 18.
+Control Operators
+Control operators  in bash are tokens that perform a control function. Table 1-3 
+gives an overview of control operators.
+Bash Basics   17Table 1-3: Bash Control Operators
+Operator Description
+& Sends a command to the background  .
+&& Used as a logical AND  .  The second command in the expression will 
+be evaluated only if the first command evaluates to true  .
+( and ) Used for command grouping  .
+; Used as a list terminator  .  A command following the terminator will run 
+after the preceding command has finished, regardless of whether it 
+evaluates to true or not  .
+;; Ends a case statement  .
+| Redirects the output of a command as input to another command  .
+|| Used as a logical OR  .  The second command will run if the first one 
+evaluates to false  .
+Let’s see some of these control operators in action. The & operator 
+sends a command to the background. If you have a list of commands to 
+run, as in Listing 1-18, sending the first command to the background will allow bash to continue to the next line even if the previous command hasn’t finished its work.
+#!/bin/bash
+# This script will send the sleep command to the background.
+echo "Sleeping for 10 seconds..."
+1 sleep 10 &
+# Creates a file
+echo "Creating the file test123"
+touch test123
+# Deletes a file
+echo "Deleting the file test123"
+rm test123
+Listing 1-18: Sending a command to the background so execution can move to the next line
+Commands that are long-running are often sent to the background to 
+prevent scripts from hanging 1 . You’ll learn about sending commands to 
+the background in more depth when we discuss job control in Chapter  2.
+The && operator allows us to perform an AND operation between two 
+commands. In the following example, the file test123  will be created only if 
+the first command is successful:
+touch test && touch test123
+18   Chapter 1The () operator allows us to group commands so they act a single unit 
+when we need to redirect them together:
+(ls; ps)
+This is generally useful when you need to redirect results from multiple 
+commands to a stream, as shown in “Redirection Operators,” next.
+The ; operator allows us to run multiple commands regardless of their 
+exit status:
+ls; ps; whoami
+As a result, each command is executed one after the other, as soon as 
+the previous one finishes.
+The || operator allows us to chain commands together using an OR 
+operation:
+lzl || echo "the lzl command failed"
+In this example, the echo command will be executed only if the first 
+command fails.
+Redirection Operators
+The three standard streams we highlighted earlier can be redirected from 
+one program to another. Redirection  is taking output from one command 
+or script and using it as input to another script or file for writing purposes. 
+Table 1-4  describes the available redirection operators.
+Table 1-4:  Redirection Operators
+Operator Description
+> Redirects stdout to a file
+>> Redirects stdout to a file by appending it to the existing content
+&> or >& Redirects stdout and stderr to a file
+&>> Redirects stdout and stderr to a file by appending them to the existing 
+content
+< Redirects input to a command
+<< Called a here document , or heredoc , redirects multiple input lines  
+to a command
+| Redirects output of a command as input to another command
+Let’s practice using redirection operators to see how they work with 
+standard streams. The > operator redirects the standard output stream to a 
+file. Any command that precedes this character will send its output to the 
+specified location. Run the following command directly in your terminal:
+$ echo "Hello World!" > output.txt
+Bash Basics   19We redirect the standard output stream to a file named output.txt . To 
+see the content of output.txt , simply run the following:
+$ cat output.txt
+Hello World!
+Next, we’ll use the >> operator to append some content to the end of 
+the same file (Listing 1-19).
+$ echo "Goodbye!" >> output.txt
+$ cat output.txt
+Hello World!
+Goodbye!
+Listing 1-19: Appending content to a file
+If we had used > instead of >>, the content of output.txt  would have been 
+overwritten completely with the Goodbye!  text.
+You can redirect both the standard output stream and the standard 
+error stream to a file by using &>. This is useful when you don’t want to send 
+any output to the screen and instead save everything in a logfile (perhaps 
+for later analysis):
+$ ls -l / &> stdout_and_stderr.txt
+To append both the standard output and standard error streams to a 
+file, use the ampersand followed by the double chevron ( &>>).
+What if we want to send the standard output stream to one file and the 
+standard error stream to another? This is also possible using the streams’ 
+file descriptor numbers:
+$ ls -l / 1> stdout.txt 2> stderr.txt
+You may sometimes find it useful to redirect the standard error stream 
+to a file, as we’ve done here, so you can log any errors that occur during 
+runtime. The next example runs a nonexistent command, lzl. This should 
+generate bash errors that will be written into the error.txt  file:
+$ lzl 2> error.txt
+$ cat error.txt
+bash: lzl: command not found
+Notice that you don’t see the error onscreen because bash sends the 
+error to the file instead.
+Next, let’s use the standard input stream. Run the command in 
+Listing 1-20 in the shell to supply the contents of output.txt  as input to the 
+cat command.
+20   Chapter 1$ cat < output.txt
+Hello World!
+Goodbye!
+Listing 1-20: Using a file as a command’s input
+What if we want to redirect multiple lines to a command? Here docu -
+ment redirection ( <<) can help with this (Listing 1-21).
+$ cat << EOF
+  Black Hat Bash
+  by No Starch Press
+EOF
+Black Hat Bash
+by No Starch Press
+Listing 1-21: Here document redirection
+In this example, we pass multiple lines as input to a command. The EOF 
+in this example acts as a delimiter, marking the start and end points of the 
+input. Here document redirection  treats the input as if it were a separate file, 
+preserving line breaks and whitespace.
+The pipe operator ( |) redirects the output of one command and uses it 
+as the input of another. For example, we could run the ls command on the 
+root directory and then use another command to extract data from it, as 
+shown in Listing 1-22.
+$ ls -l / | grep "bin"
+lrwxrwxrwx   1 root root          7 Mar 10 08:43 bin -> usr/bin
+lrwxrwxrwx   1 root root          8 Mar 10 08:43 sbin -> usr/sbin
+Listing 1-22: Piping command output into another command
+We use ls to print the content of the root directory into the standard 
+output stream, then use a pipe to send it as input to the grep command, 
+which filters out any lines containing the word bin.
+Positional Arguments
+Bash scripts can take positional arguments  (also called parameters ) passed on 
+the command line. Arguments are especially useful, for example, when you 
+want to develop a program that modifies its behavior based on input passed 
+to it by another program or user. Arguments can also change features of the 
+script such as the output format and how verbose it will be during runtime.
+For example, imagine you develop an exploit and send it to a few col -
+leagues, each of whom will use it against a different IP address. Instead of 
+writing a script and asking the user to modify it with their network informa -
+tion, you can write it to take an IP address argument and then act against 
+this input to avoid having to modify the source code in each case.
+Bash Basics   21A bash script can access arguments passed to it on the command line 
+by using the variables $1, $2, and so on. The number represents the order in 
+which the argument was entered. To illustrate this, the script in Listing 1-23 
+takes in an argument (an IP address or domain name) and performs a ping 
+test against it by using the ping utility. Save this file as ping_with_arguments.sh .
+ping_with  
+_arguments.sh#!/bin/bash
+# This script will ping any address provided as an argument.
+SCRIPT_NAME="${0}"
+TARGET="${1}"
+echo "Running the script ${SCRIPT_NAME}..."
+echo "Pinging the target: ${TARGET}..."
+ping "${TARGET}"
+Listing 1-23: A script that accepts command line input
+This script assigns the first positional argument to the variable TARGET . 
+Notice, also, that the argument ${0} is assigned to the SCRIPT_NAME  variable. This 
+argument contains the script’s name (in this case, ping_with_arguments.sh ).
+To run this script, use the commands in Listing 1-24.
+$ chmod u+x ping_with_arguments.sh
+$ ./ping_with_arguments.sh nostarch .com
+Running the script ping_with_arguments.sh...
+Pinging the target nostarch .com . ..
+PING nostarch .com (104.20.120.46) 56(84) bytes of data.
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=1 ttl=57 time=6.89 ms
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=2 ttl=57 time=4.16 ms
+--snip--
+Listing 1-24: Passing arguments to a script
+This script will perform a ping command against the domain nostarch  
+.com passed to it on the command line. The value is assigned to the $1 vari-
+able; if we passed another argument, it would get assigned to the second 
+variable, $2. Use ctrl -C to exit this script, as ping may run indefinitely on 
+some operating systems.
+What if you want to access all arguments? You can do so using the vari -
+able $@. Also, using $#, you can get the total number of arguments passed. 
+Listing 1-25 demonstrates how this works.
+#!/bin/bash
+echo "The arguments are: $@"
+echo "The total number of arguments is: $#"
+Listing 1-25: Retrieving all arguments and the total number of arguments
+22   Chapter 1Save this script to a file named show_args.sh  and run it as follows:
+$ chmod u+x show_args.sh
+$ ./show_args.sh "hello" "world"
+The arguments are: hello world
+The total number of arguments is: 2
+Table 1-5  summarizes the variables related to positional arguments.
+Table 1-5:  Special Variables Related to Positional Arguments
+Variable Description
+$0 The name of the script file
+$1, $2, $3,  .  .  . Positional arguments
+$# The number of passed positional arguments
+$* All positional arguments
+$@ All positional arguments, where each argument is individually quoted
+When a script uses "$*" with the quotes included, bash will expand 
+arguments into a single word. For instance, the following example groups 
+the arguments into one word:
+$ ./script.sh "1" "2" "3"
+1 2 3
+When a script uses "$@" (again including the quotes), it will expand 
+arguments into separate words:
+$ ./script.sh "1" "2" "3"
+1
+2
+3
+In most cases, you will want to use "$@" so that every argument is treated 
+as an individual word.
+The following script demonstrates how to use these special variables in 
+a for loop:
+#!/bin/bash
+# Change "$@" to "$*" to observe behavior.
+for args in "$@"; do
+    echo "${args}"
+done
+Input Prompting
+Some bash scripts don’t take any arguments during execution. However, 
+they may need to ask the user for information in an interactive way and have 
+Bash Basics   23the response feed into their runtime. In these cases, we can use the read 
+command. You often see applications use input prompting  when attempting 
+to install software, asking the user to enter yes to proceed or no to cancel 
+the operation.
+In the bash script in Listing 1-26, we ask the user for their first and last 
+names and then print these to the standard output stream.
+input 
+_prompting.sh#!/bin/bash
+# Takes input from the user and assigns it to variables
+echo "What is your first name?"
+read -r firstname
+echo "What is your last name?"
+read -r lastname
+echo "Your first name is ${firstname} and your last name is ${lastname}"
+Listing 1-26: Prompting a user for input
+Save and run this script as input_prompting.sh :
+$ chmod u+x input_prompting.sh
+$ ./input_prompting.sh
+What is your first name?
+John
+What is your last name?
+Doe
+Your first name is John and your last name is Doe
+Notice that you are prompted to enter information that then gets 
+printed.
+Exit Codes
+Bash commands return exit codes , which indicate whether the execution of 
+the command succeeded. Exit codes fall in the 0 to 255 range, where 0 means 
+success, 1 means failure, 126 means that the command was found but is not 
+executable, and 127 means the command was not found. The meaning of any 
+other number depends on the specific command being used and its logic.
+Checking Exit Codes
+To see exit codes in action, save the script in Listing 1-27 to a file named 
+exit_codes.sh  and run it.
+#!/bin/bash
+# Experimenting with exit codes
+24   Chapter 1ls -l > /dev/null
+echo "The exit code of the ls command was: $?"
+lzl 2> /dev/null
+echo "The exit code of the non-existing lzl command was: $?"
+Listing 1-27: Using exit codes to determine a command’s success
+We use the special variable $? with the echo command to return the exit 
+codes of the executed commands ls and lzl. We also redirect their standard 
+output and standard error streams to the file /dev/null , a special device file 
+that discards any data sent to it. When you want to silence commands, you 
+can redirect their output to it.
+You should see output like the following:
+$ ./exit_codes.sh
+The exit code of the ls command was: 0
+The exit code of the non-existing lzl command was: 127
+We receive two distinct exit codes, one for each command. The first 
+command returns 0 (success), and the second returns 127 (command 
+not found).
+WARNING  Use /dev/null  with caution. You may miss out on important errors if you choose to 
+redirect output to it. When in doubt, redirect standard streams such as standard out -
+put and standard error to a dedicated logfile instead.
+To understand why you might want to use exit codes, imagine you’re 
+trying to download a 1GB file from the internet by using bash. It might be 
+wise to first check whether the file already exists on the filesystem in case 
+someone ran the script and retrieved it. Also, you might want to check that 
+you have enough free space on the disk before attempting the download. 
+By running commands and looking at their returned exit codes, you can 
+decide whether to proceed with the file download.
+Setting a Script’s Exit Code
+You can set the exit code of a script by using the exit command followed by 
+the code number, as shown in Listing 1-28.
+#!/bin/bash
+# Sets the exit code of the script to be 223
+echo "Exiting with exit code: 223"
+exit 223
+Listing 1-28: Setting a script’s exit code
+Save this script as set_exit_code.sh  and run it on the command line. Then 
+use the special variable $? to see the exit code it returns:
+Bash Basics   25$ chmod u+x set_exit_code.sh
+$ ./set_exit_code.sh
+Exiting with exit code: 223
+echo $?
+223
+You can use the $? variable to check the returned exit code not only of 
+a script but also of individual commands:
+$ ps -ef
+$ echo $?
+0
+Exit codes are important; they can be used in a series of scripts that 
+call one another or within the same script, to control the logical flow of the 
+code execution.
+Exercise 1: Recording Your Name and the Date
+Write a script that does the following:
+ 1. Accepts two arguments on the command line and assigns them to vari -
+ables. The first argument should be your first name, and the second 
+should be your last name.
+ 2. Creates a new file named output.txt .
+ 3. Writes the current date to output.txt  by using the date command. (Bonus 
+points if you can make the date command print the date in the DD-MM-YYYY  
+format; use man date  to learn how this works.)
+ 4. Writes your full name to output.txt .
+ 5. Makes a backup copy of output.txt , named backup.txt , using the cp com -
+mand. (Use man cp  if you aren’t sure of the command’s syntax.)
+ 6. Prints the content of the output.txt  file to the standard output stream.
+You can find an example solution, exercise_solution.sh , in the book’s 
+GitHub repository.
+Summary
+In this chapter, you ran simple Linux commands in the terminal and used 
+man to learn about command options. You also learned how to pass argu -
+ments to scripts and execute a sequence of commands from within scripts. 
+We covered the fundamentals of bash, such as how to write basic programs 
+that use variables, arrays, redirects, exit codes, and arguments. You also 
+learned how to prompt the user to enter arbitrary information and use it as 
+part of a script’s flow.
+Security Relevance Score: 12
+Word Count: 7812
+Extracted: 2025-06-13 23:40:24
+
+---
+
+Defense Evasion and Exfiltration    Covers defensive secu -
+rity controls commonly seen in corporate environments. You’ll learn 
+how to tamper with security tools and exfiltrate information from a sys -
+tem in evasive ways.
+The Scripting Exercises
+Throughout the chapters, 29 exercises prompt you to practice your new -
+found bash scripting skills. Some walk you through complete scripts, then 
+encourage you to expand or improve upon them; others challenge you to 
+write your own scripts from the ground up. Using bash, you’ll do exercises 
+such as the following:
+• Organize the results of a scan by port number (Chapter 4)
+• Parse the output of web-scanning utilities (Chapter 5)
+• Build an interface for exploiting an OS command injection vulnerabil -
+ity (Chapter 6)
+• Write an SSH brute-forcing utility that can attack user accounts 
+(Chapter 7)
+• Recursively search the filesystem for readable logfiles (Chapter 8)
+• Maliciously modify scheduled task scripts (Chapter 9)
+• Create a malicious package installer (Chapter 10)
+• Write a frequency-based port scanner (Chapter 11)
+• Scan compromised hosts for the presence of defensive tools (Chapter 12), 
+and much, much more
+xxii   IntroductionHow to Use This Book
+We encourage you to actively experiment with the techniques we intro -
+duce throughout the book. Start by cloning the book’s GitHub repository, 
+located at https://github  .com /dolevf  /Black  -Hat -Bash . This repository is a trea -
+sure trove of scripts, categorized by chapter, that can help you apply what you’ve learned.
+Note, however, that the techniques presented herein are intended 
+for educational purposes only. Perform testing solely against systems for which you have explicit authorization to do so. To safely hone your skills, 
+in Chapter  3 we’ll guide you through setting up your own lab environment, 
+where you can experiment without risk.
+Bash is a command language interpreter that 
+provides an environment in which users can 
+execute commands and run applications. As 
+penetration testers and security practitioners, we 
+frequently write bash scripts to automate a wide variety 
+of tasks, making bash an essential tool for hackers. In 
+this chapter, you’ll set up your bash development envi -
+ronment, explore useful Linux commands to include 
+in future scripts, and learn the fundamentals of the 
+language’s syntax, including variables, arrays, streams, 
+arguments, and operators.1
+BASH BASICS
+2   Chapter 1Environmental Setup
+Before you begin learning bash, you need both a bash shell running in a 
+terminal and a text editor. You can access these on any major operating sys -
+tem by following the instructions in this section.
+NOTE  Beginning in Chapter  4, you’ll use Kali Linux to run bash commands and complete 
+hacking labs. If you’d like to set up Kali now, consult the steps included in Chapter 3.
+Accessing the Bash Shell
+If you’re running Linux or macOS, bash should already be available. On Linux, open the Terminal application by pressing alt-ctrl -T. On macOS, 
+you can find the terminal by navigating to the Launchpad icon on the sys -
+tem dock.
+Kali and macOS use the Z Shell by default, so when you open a new 
+terminal window, you’ll have to enter 
+exec bash  to switch to a bash shell 
+before you run commands. If you want to change your default shell to bash so you don’t have to manually switch shells, you can use the 
+chsh -s /bin/bash  
+command.
+If you’re running Windows, you can use the Windows Subsystem for 
+Linux (WSL), which lets you run Linux distributions and access a bash envi -
+ronment. The official Microsoft WSL documentation page describes how to install it: 
+https://learn  .microsoft  .com /en -us /windows  /wsl /install .
+An alternative to WSL is Cygwin , which emulates a Linux environment 
+by providing a collection of Linux utilities and system-call functionalities. To install Cygwin, visit 
+https://www  .cygwin  .com /install  .html  to download the 
+setup file, and then follow the installation wizard.
+Cygwin installs itself by default to the C:\cygwin64\ Windows path. To 
+execute your bash scripts, save the scripts in the directory containing your username at C:\cygwin64\home . For example, if your username is david , 
+you should save your scripts under C:\cygwin64\home\david . Then, from the 
+Cygwin terminal, you’ll be able to change the directory to the home direc -
+tory to run your scripts.
+Installing a Text Editor
+To start writing bash scripts, you’ll need a text editor, preferably one with handy features such as syntax highlighting built in. You can choose between terminal-based text editors and graphical user interface–based text editors. Terminal-based text editors (such as vi or GNU nano) are 
+ useful because during a penetration test they may be the only available 
+options when you need to develop a script on the spot.
+If you prefer graphical text editors, Sublime Text ( https://www  .sublimetext  
+.com) is one option you could use. In Sublime Text, you can toggle on 
+the syntax highlighting feature for bash scripts by clicking Plain Text  in 
+the  b ottom-right corner and choosing Bash  from the drop-down list of 
+Bash Basics   3languages. If you’re using a different text editor, reference its official docu -
+mentation to learn how to turn on syntax highlighting.
+Exploring the Shell
+Now that you have a functional bash environment, it’s time to learn some 
+basics. Although you’ll develop scripts in your text editor, you’ll also prob -
+ably find yourself frequently running single commands in the terminal. 
+This is because you often need to see how a command runs and the kind of 
+output it produces before including it in a script. Let’s get started by run -
+ning some bash commands.
+First, enter the following command to verify that bash is available on 
+your system:
+$ bash --version
+The version in the output will depend on the operating system you 
+are running.
+Checking Environment Variables
+When running in a terminal, bash loads a set of environment variables  with 
+every new session that gets invoked. Programs can use these environment 
+variables for various purposes, such as discovering the identity of the 
+user running the script, the location of their home directory, and their 
+default shell.
+To see the list of environment variables set by bash, run the env com -
+mand directly from the shell (Listing 1-1).
+$ env
+SHELL=/bin/bash
+LANGUAGE=en_CA:en
+DESKTOP_SESSION=ubuntu
+PWD=/home/user
+--snip--
+Listing 1-1: Listing bash’s environment variables
+You can read individual environment variables by using the echo com -
+mand, which writes text to the terminal. For example, to print the default 
+shell set for the user, use the SHELL  environment variable preceded by a dol -
+lar sign ( $) and surrounded by curly brackets ( {}). This will cause bash to 
+expand the variable to its assigned value, as shown in Listing 1-2.
+$ echo ${SHELL}
+/bin/bash
+Listing 1-2: Printing an environment variable to the terminal
+4   Chapter 1Here are some of the default environment variables available:
+BASH_VERSION     The bash version running
+BASHPID     The process identifier (PID) of the current bash process
+GROUPS     A list of groups the running user is a member of
+HOSTNAME     The name of the host
+OSTYPE     The type of operating system
+PWD    The current working directory
+RANDOM     A random number from 0 to 32,767
+UID    The user ID (UID) of the current user
+SHELL     The full pathname to the shell
+The following examples show how to check the values of a few of these 
+environment variables:
+$ echo ${RANDOM}
+8744
+$ echo ${UID}
+1000
+$ echo ${OSTYPE}
+linux-gnu
+These commands generate a random number, output the current user’s 
+ID, and display the operating system type, respectively. You can find the full 
+list of environment variables at https://www .gnu  .org /software  /bash  /manual  /html  
+_node  /Bash  -Variables  .html .
+Running Linux Commands
+The bash scripts you’ll write in this book will run common Linux tools, so if 
+you’re not yet familiar with command line navigation and file modification 
+utilities such as cd, ls, chmod , mkdir , and touch , try exploring them by using 
+the man (manual) command. You can insert it before any Linux command 
+to open a terminal-based guide that explains that command’s use and 
+options, as shown in Listing 1-3.
+$ man ls
+NAME
+      ls - list directory contents
+SYNOPSIS
+      ls [OPTION]... [FILE]...
+DESCRIPTION
+      List information about the FILEs (the current directory by default).
+      Sort entries alphabetically if none of -cftuvSUX nor
+      --sort is specified.
+Bash Basics   5      Mandatory arguments to long options are mandatory for short options too.
+      -a, --all
+      do not ignore entries starting with .
+--snip--
+Listing 1-3: Accessing a command’s manual page
+Linux commands can accept many types of input on the command 
+line. For example, you can enter ls without any arguments to see files and 
+directories, or pass it arguments to, for instance, display the list of files all 
+on one line.
+Arguments are passed on the command line by using either short-
+form or long-form argument syntax, depending on the command in use. 
+Short-form  syntax uses a single dash ( -) followed by one or more characters. 
+The following example uses ls to list files and directories with a short-form 
+ argument syntax:
+$ ls -l
+Some commands let you supply multiple arguments by joining them 
+together or listing them separately:
+$ ls -la
+$ ls -l -a
+Note that some commands may throw errors if you attempt to join two 
+arguments with a single dash, so use the man command to learn the syntax 
+that’s permitted.
+Some command options may allow you to use long-form  argument syn -
+tax, such as the --help  command to list the available options. Long-form 
+argument syntax is prepended by the double dash ( --) symbol:
+$ ls --help
+Sometimes the same command argument supports both short- and 
+long-form argument syntax for convenience. For example, ls supports 
+the argument -a (all) to display all files, including those that are hidden. 
+(Files starting with a dot in their name are considered hidden in Linux.) 
+However, you could also pass the argument --all , and the outcome would 
+be identical:
+$ ls -a
+$ ls --all
+Let’s execute some simple Linux commands so you can see the varia -
+tion of options each offers. First, create a single directory with mkdir :
+$ mkdir directory1
+6   Chapter 1Now let’s create two directories with mkdir :
+$ mkdir directory2 directory3
+Next, list processes by using ps with short-form argument syntax, sup -
+plying the arguments separately and then together:
+$ ps -e -f
+$ ps -ef
+Finally, let’s display the available disk space by using df with long-form 
+argument syntax:
+$ df --human-readable
+Throughout this book, you’ll use Linux commands such as these in 
+your scripts.
+Elements of a Bash Script
+In this section, you’ll learn the building blocks of a bash script. You’ll use 
+comments to document what a script does, tell Linux to use a specific inter -
+preter to execute the script, and style your scripts for better readability.
+Bash doesn’t have an official style guide, but we recommend adhering 
+to Google’s Shell Style Guide ( https://google  .github  .io /styleguide  /shellguide  .html ), 
+which outlines best practices to follow when developing bash code. If you 
+work on a team of penetration testers and have an exploit code repository, 
+using good code styling practices will help your team maintain it.
+The Shebang Line
+Every script should begin with the shebang  line, a character sequence that 
+starts with the hash and exclamation marks ( #!), followed by the full path to 
+the script interpreter. Listing 1-4 shows an example of a shebang line for a 
+typical bash script.
+#!/bin/bash
+Listing 1-4: A bash shebang line
+The bash interpreter is typically located at /bin/bash . If you instead 
+wrote scripts in Python or Ruby, your shebang line would include the full 
+path to the Python or Ruby interpreter.
+You’ll sometimes encounter bash scripts that use a shebang line like 
+this one:
+#!/usr/bin/env bash
+Bash Basics   7You may want to use this shebang line because it is more portable than 
+the one in Listing 1-4. Some Linux distributions place the bash interpreter 
+in different system locations, and this shebang line will attempt to find that 
+location. This approach could be particularly useful in penetration tests, 
+where you might not know the location of the bash interpreter on the tar -
+get machine. For simplicity, however, we’ll use the shebang version from 
+Listing 1-4 throughout this book.
+The shebang line can also take optional arguments to change how the 
+script executes. For example, you could pass the special argument -x to your 
+bash shebang, like so:
+#!/bin/bash -x
+This option prints all commands and their arguments as they are 
+executed to the terminal. It is useful for debugging scripts as you’re devel -
+oping them.
+Another example of an optional argument is -r:
+#!/bin/bash -r
+This option creates a restricted bash shell , which restricts certain poten -
+tially dangerous commands that could, for example, navigate to certain 
+directories, change sensitive environment variables, or attempt to turn off 
+the restricted shell from within the script.
+Specifying an argument within the shebang line requires modifying 
+the script, but you can also pass arguments to the bash interpreter by using 
+this syntax:
+$ bash -r myscript.sh
+Whether you pass arguments to the bash interpreter on the command 
+line or on the shebang line won’t make a difference. The command line 
+option is just an easier way to trigger different modes.
+Comments
+Comments  are parts of a script that the bash interpreter won’t treat as code 
+and that can improve the readability of a program. Imagine that you write 
+a long script and, a few years later, need to modify some of its logic. If you 
+didn’t write comments to explain what you did, you might find it quite chal -
+lenging to remember the purpose of each section.
+Comments in bash start with a hash mark ( #), as shown in Listing 1-5.
+#!/bin/bash
+# This is my first script.
+Listing 1-5: A comment in a bash script
+8   Chapter 1Except for the shebang line, every line that starts with a hash mark is 
+considered a comment. If you wrote the shebang line twice, bash would con -
+sider the second one to be a comment.
+To write a multiline comment, precede each individual line with the 
+hash mark, as shown in Listing 1-6.
+#!/bin/bash
+# This is my first script!
+# Bash scripting is fun...
+Listing 1-6: A multiline comment
+In addition to documenting a script’s logic, comments can provide meta -
+data to indicate the author, the script’s version, the person to contact for 
+issues, and more. These comments usually appear at the top part of the 
+script, below the shebang line.
+Commands
+Scripts can be as short as two lines: the shebang line and a Linux command. 
+Let’s write a simple script that prints Hello World!  to the terminal. Open your 
+text editor and enter the following:
+#!/bin/bash
+echo "Hello World!"
+In this example, we use the shebang statement to specify the interpreter 
+of choice, bash. Then we use the echo command to print the string Hello 
+World!  to the screen.
+Execution
+To run the script, save the file as helloworld.sh , open the terminal, and navi -
+gate to the directory where the script resides. If you saved the file in your 
+home directory, you should run the set of commands shown in Listing 1-7.
+$ cd ~
+$ chmod u+x helloworld.sh
+$ ./helloworld.sh
+Hello World!
+Listing 1-7: Running a script from the home directory
+We use the cd command to change directories. The tilde ( ~) repre -
+sents the home directory of the current running user. Next, we use chmod  
+to set the executable ( u+x) permissions for the user who owns the file (in 
+this case, us). We run the script by using dot-slash notation ( ./) followed 
+by the script’s name. The dot ( .) represents the current directory, so 
+Bash Basics   9we’re essentially telling bash to run helloworld.sh  from the current work -
+ing directory.
+You can also run a bash script with the following syntax:
+$ bash helloworld.sh
+Because we specified the bash command, the script will run using the 
+bash interpreter and won’t require a shebang line. Also, if you use the bash 
+command, the script doesn’t have to be set with an executable permission 
+(+x). In later chapters, you’ll learn about the permission model in more 
+depth and explore its importance in the context of finding misconfigura -
+tions in penetration tests.
+Debugging
+Errors will inevitably occur when you’re developing bash scripts. Luckily, 
+debugging scripts is quite intuitive. An easy way to check for errors early is 
+by using the -n parameter when running a script:
+$ bash -n script.sh
+This parameter will read the commands in the script but won’t execute 
+them, so any syntax errors that exist will be shown onscreen. You can think 
+of -n as a dry-run method to test the validity of your syntax.
+You can also use the -x parameter to turn on verbose mode, which lets 
+you see commands being executed and will help you debug issues as the 
+script executes in real time:
+$ bash -x script.sh
+If you want to start debugging at a given point in the script, include the 
+set command in the script itself (Listing 1-8).
+#!/bin/bash
+set -x
+--snip--
+set +x
+Listing 1-8: Using set to debug a script
+You can think of set as a valve that turns a certain option on and off. In 
+this example, the first command sets the debugging mode ( set -x ), while 
+the last command ( set +x) disables it. By using set, you can avoid generating 
+a massive amount of noise in your terminal when your script is large and 
+contains a specific problem area.
+10   Chapter 1Basic Syntax
+At this point, you’ve written a two-line script that prints the message Hello 
+World!  to the screen. You’ve also learned how to run and debug a script. Now 
+you’ll learn some bash syntax so you can write more useful scripts.
+The most basic bash scripts are just lists of Linux commands collected 
+in a single file. For example, you could write a script that creates resources 
+on a system and then prints information about these resources to the screen (Listing 1-9).
+#!/bin/bash
+# All this script does is create a directory, create a file
+# within the directory, and then list the contents of the directory.
+mkdir mydirectory
+touch mydirectory/myfile
+ls -l mydirectory
+Listing 1-9: A bash script that lists directory contents
+In this example, we use mkdir  to create a directory named mydirectory . Next, 
+we use the touch  command to create a file named myfile  within the directory. 
+Finally, we run the ls -l  command to list the contents of mydirectory .
+The output of the script looks as follows:
+--snip--
+-rw-r--r-- 1 user user 0 Feb 16 13:37 myfile
+However, this line-by-line strategy could be improved in several ways. 
+First, when a command runs, bash waits until it finishes before advancing to 
+the next line. If you include a long-running command (such as a file down -
+load or large file copy), the remaining commands won’t be executed until that command has completed. We also have yet to implement any checks to validate that all commands have executed correctly. You’ll need to write more-intelligent programs to reduce errors during runtime.
+Writing sophisticated programs often requires using features like vari -
+ables, conditions, loops, and tests. For example, what if we want to change this script so that it checks for enough space on the disk before attempting to create new files and directories? Or what if we could check whether the directory and file creation actions actually succeeded? This section and Chapter 
+2 introduce you to the syntactical elements you’ll need to accom -
+plish these tasks.
+Variables
+Every scripting language has variables. Variables  are names that we assign to 
+memory locations and that hold a value; they act like placeholders or labels. We can directly assign values to variables, or we can execute bash com -
+mands and store their output as variable values to use for various purposes.
+Bash Basics   11If you’ve worked with programming languages, you may know that vari -
+ables can be of different types, such as integers, strings, and arrays. In bash, 
+variables are untyped; they’re all considered character strings. Even so, you’ll 
+see that bash allows you to create arrays, access array elements, or perform 
+arithmetic operations so long as the variable value consists of only numbers.
+The following rules govern the naming of bash variables:
+• They can include alphanumeric characters.
+• They cannot start with a number.
+• They can contain an underscore ( _).
+• They cannot contain whitespace.
+Assigning and Accessing Variables
+Let’s assign a variable. Open a terminal and enter the following directly 
+within the command prompt:
+$ book="black hat bash"
+We create a variable named book and, by using the equal sign ( =), assign 
+the value black hat bash  to it. Now we can use this variable in a command. 
+In the following example, we use the echo command to print the variable to 
+the screen:
+$ echo "This book's name is ${book}"
+This book's name is black hat bash
+Here we were able to print the variable by using the ${book}  syntax 
+within an echo command. This will expand the book variable to its value. 
+You can also expand a variable by using just the dollar sign ( $) followed by 
+the variable:
+$ echo "This book's name is $book"
+Using the ${} syntax makes the code less prone to misinterpretation 
+and helps readers understand when a variable starts and ends.
+You can also assign the output of a command to a variable by using the 
+command substitution syntax $(), placing the desired command within the 
+parentheses. You’ll use this syntax often in bash programming. Try running 
+the commands in Listing 1-10.
+$ root_directory=$(ls -ld /)
+$ echo "${root_directory}"
+drwxr-xr-x 1 user user 0 Feb 13 20:12 /
+Listing 1-10: Assigning command output to a variable
+12   Chapter 1We assign the value of the ls -ld /  command to a variable named root 
+_directory  and then use echo to print the output of the command. In this 
+output, you can see that we were able to get metadata about the root direc -
+tory (/), such as its type and permission, size, user and group owners, and 
+the timestamp of the last modification.
+Note that you shouldn’t leave whitespace around the assignment sym -
+bol (=) when creating a variable:
+book = "this is an invalid variable assignment"
+The previous variable assignment syntax is considered invalid.
+Unassigning Variables
+You can unassign assigned variables by using the unset  command, as shown 
+in Listing 1-11.
+$ book="Black Hat Bash"
+$ unset book
+$ echo "${book}"
+Listing 1-11: Unassigning variables
+If you execute these commands in the terminal, no output will be shown 
+after the echo command executes.
+Scoping Variables
+Global  variables are those available to the entire program. But variables in 
+bash can also be scoped  so that they are accessible only from within a certain 
+block of code. These local variables are declared using the local  keyword. 
+The script in Listing 1-12 shows how local and global variables work.
+local_scope  
+_variable.sh#!/bin/bash
+PUBLISHER="No Starch Press"
+print_name(){
+   local name
+   name="Black Hat Bash"
+   echo "${name} by ${PUBLISHER}"
+}
+print_name
+echo "Variable ${name} will not be printed because it is a local variable."
+Listing 1-12: Accessing global and local variables
+We assign the value No Starch Press  to the variable PUBLISHER  and then 
+create a function called print_name() . (You’ll learn more about functions 
+Bash Basics   13in the next chapter.) Within the function, we declare a local variable 
+called name and assign it the value Black Hat Bash . Then we call print_name()  
+and attempt to access the name variable as part of a sentence to be printed 
+using echo.
+The echo command at the end of the script file will result in an empty 
+variable, as the name variable is locally scoped to the print_name()  function, 
+which means that nothing outside the function can access it. So, it will 
+ simply return without a value.
+NOTE  The scripts in this chapter are available at https:/ /github .com  /dolevf  /Black  -Hat 
+-Bash  /blob  /master  / ch01 .
+Save this script, remembering to set the executable permission by using 
+chmod , and run it by using the following command:
+$ ./local_scope_variable.sh
+Black Hat Bash by No Starch Press
+Variable  will not be printed here because it is a local variable
+As you can see, the local variable never prints.
+Arithmetic Operators
+Arithmetic operators  allow you to perform mathematical operations on integers. 
+Table 1-1  shows some of the arithmetic operators available. For the full list, 
+see https://tldp  .org /LDP  /abs /html  /ops .html .
+Table 1-1:  Arithmetic Operators
+Operator Description
++ Addition
+- Subtraction
+* Multiplication
+/ Division
+% Modulo
++= Incrementing by a constant
+-= Decrementing by a constant
+You can perform these arithmetic operations in bash in a few ways: using 
+the let command, using the double parentheses syntax $((expression )), or 
+using the expr command. Let’s consider an example of each method.
+In Listing 1-13, we perform a multiplication operation by using the 
+let command.
+14   Chapter 1$ let result="4 * 5"
+$ echo ${result}
+20
+Listing 1-13: Arithmetic with let
+This command takes a variable name and performs an arithmetic cal -
+culation to resolve its value. In Listing 1-14, we perform another multiplica -
+tion operation using the double parentheses syntax.
+$ result=$((5 * 5))
+$ echo ${result}
+25
+Listing 1-14: Arithmetic with double parentheses syntax
+In this case, we perform the calculation within double parentheses. 
+Finally, in Listing 1-15, we perform an addition operation using the expr 
+command.
+$ result=$(expr 5 + 505)
+$ echo ${result}
+510
+Listing 1-15: Evaluating expressions with expr
+The expr command evaluates expressions, which don’t have to be arith -
+metic operations; for example, you might use it to calculate the length of a 
+string. Use man expr  to learn more about the capabilities of expr.
+Arrays
+Bash allows you to create single-dimension arrays. An array  is a collection of 
+elements that are indexed. You can access these elements by using their index 
+numbers, which begin at zero. In bash scripts, you might use arrays whenever 
+you need to iterate over multiple strings and run the same commands on 
+each one.
+Listing 1-16 shows how to create an array in bash. Save this code to a file 
+named array.sh  and execute it.
+#!/bin/bash
+# Sets an array
+IP_ADDRESSES=(192.168.1.1 192.168.1.2 192.168.1.3)
+# Prints all elements in the array
+echo "${IP_ADDRESSES[*]}"
+Bash Basics   15# Prints only the first element in the array
+echo "${IP_ADDRESSES[0]}"
+Listing 1-16: Creating and accessing arrays
+This script uses an array named IP_ADDRESSES  that contains three inter -
+net protocol (IP) addresses. The first echo command prints all the elements 
+in the array by passing [*] to the variable name IP_ADDRESSES , which holds 
+the array values. The asterisk ( *) is a representation of every array element. 
+Finally, another echo command prints just the first element in the array by 
+specifying index 0.
+Running this script should produce the following output:
+$ chmod u+x array.sh
+$ ./array.sh
+192.168.1.1 192.168.1.2 192.168.1.3
+192.168.1.1
+As you can see, we were able to get bash to print all elements in the 
+array, as well as just the first element.
+You can also delete elements from an array. Listing 1-17 will delete 
+192.168.1.2 from the array.
+IP_ADDRESSES=(192.168.1.1 192.168.1.2 192.168.1.3)
+unset IP_ADDRESSES[1]
+Listing 1-17: Deleting array elements
+You can even swap one of the values with another value. This code will 
+replace 192.168.1.1 with 192.168.1.10:
+IP_ADDRESSES[0]="192.168.1.10"
+You’ll find arrays particularly useful when you need to iterate over val -
+ues and perform actions against them, such as a list of IP addresses to scan 
+(or a list of email addresses to send a phishing email to).
+Streams
+Streams  are files that act as communication channels between a program 
+and its environment. When you interact with a program (whether a built-in 
+Linux utility such as ls or mkdir  or one that you wrote yourself), you’re inter -
+acting with one or more streams. Bash has three standard data streams, as 
+shown in Table 1-2 .
+16   Chapter 1Table 1-2: Streams
+Stream name DescriptionFile descriptor 
+number
+Standard input (stdin) Data coming into a program as input 0
+Standard output (stdout) Data coming out of a program 1
+Standard error (stderr) Errors coming out of a program 2
+So far, we’ve run a few commands from the terminal and written and 
+executed a simple script. The generated output was sent to the standard 
+ output stream (stdout) , or in other words, your terminal screen.
+Scripts can also receive commands as input. When a script is designed 
+to receive input, it reads it from the standard input stream (stdin) . Finally, 
+scripts may display error messages to the screen due to a bug or syntax 
+error in the commands sent to it. These messages are sent to the standard error stream (stderr) .
+To illustrate streams, we’ll use the 
+mkdir  command to create a few direc -
+tories and then use ls to list the content of the current directory. Open your 
+terminal and execute the following command:
+$ mkdir directory1 directory2 directory1
+mkdir: cannot create directory 'directory1': File exists
+$ ls -l
+total 1
+drwxr-xr-x 1 user user   0 Feb 17 09:45 directory1drwxr-xr-x 1 user user   0 Feb 17 09:45 directory2
+Notice that mkdir  generates an error. This is because we pass the direc -
+tory name directory1  twice on the command line. So, when mkdir  runs, it 
+creates directory1  and directory2 , then fails on the third argument because, at 
+that point, directory1  has already been created. These types of errors are sent 
+to the standard error stream.
+Next, we execute ls -l , which simply lists the directories. The result 
+of the ls command succeeds without any specific errors, so it is sent to the 
+standard output stream.
+You’ll practice working with the standard input stream when we intro -
+duce redirection in “Redirection Operators” on page 18.
+Control Operators
+Control operators  in bash are tokens that perform a control function. Table 1-3 
+gives an overview of control operators.
+Bash Basics   17Table 1-3: Bash Control Operators
+Operator Description
+& Sends a command to the background  .
+&& Used as a logical AND  .  The second command in the expression will 
+be evaluated only if the first command evaluates to true  .
+( and ) Used for command grouping  .
+; Used as a list terminator  .  A command following the terminator will run 
+after the preceding command has finished, regardless of whether it 
+evaluates to true or not  .
+;; Ends a case statement  .
+| Redirects the output of a command as input to another command  .
+|| Used as a logical OR  .  The second command will run if the first one 
+evaluates to false  .
+Let’s see some of these control operators in action. The & operator 
+sends a command to the background. If you have a list of commands to 
+run, as in Listing 1-18, sending the first command to the background will allow bash to continue to the next line even if the previous command hasn’t finished its work.
+#!/bin/bash
+# This script will send the sleep command to the background.
+echo "Sleeping for 10 seconds..."
+1 sleep 10 &
+# Creates a file
+echo "Creating the file test123"
+touch test123
+# Deletes a file
+echo "Deleting the file test123"
+rm test123
+Listing 1-18: Sending a command to the background so execution can move to the next line
+Commands that are long-running are often sent to the background to 
+prevent scripts from hanging 1 . You’ll learn about sending commands to 
+the background in more depth when we discuss job control in Chapter  2.
+The && operator allows us to perform an AND operation between two 
+commands. In the following example, the file test123  will be created only if 
+the first command is successful:
+touch test && touch test123
+18   Chapter 1The () operator allows us to group commands so they act a single unit 
+when we need to redirect them together:
+(ls; ps)
+This is generally useful when you need to redirect results from multiple 
+commands to a stream, as shown in “Redirection Operators,” next.
+The ; operator allows us to run multiple commands regardless of their 
+exit status:
+ls; ps; whoami
+As a result, each command is executed one after the other, as soon as 
+the previous one finishes.
+The || operator allows us to chain commands together using an OR 
+operation:
+lzl || echo "the lzl command failed"
+In this example, the echo command will be executed only if the first 
+command fails.
+Redirection Operators
+The three standard streams we highlighted earlier can be redirected from 
+one program to another. Redirection  is taking output from one command 
+or script and using it as input to another script or file for writing purposes. 
+Table 1-4  describes the available redirection operators.
+Table 1-4:  Redirection Operators
+Operator Description
+> Redirects stdout to a file
+>> Redirects stdout to a file by appending it to the existing content
+&> or >& Redirects stdout and stderr to a file
+&>> Redirects stdout and stderr to a file by appending them to the existing 
+content
+< Redirects input to a command
+<< Called a here document , or heredoc , redirects multiple input lines  
+to a command
+| Redirects output of a command as input to another command
+Let’s practice using redirection operators to see how they work with 
+standard streams. The > operator redirects the standard output stream to a 
+file. Any command that precedes this character will send its output to the 
+specified location. Run the following command directly in your terminal:
+$ echo "Hello World!" > output.txt
+Bash Basics   19We redirect the standard output stream to a file named output.txt . To 
+see the content of output.txt , simply run the following:
+$ cat output.txt
+Hello World!
+Next, we’ll use the >> operator to append some content to the end of 
+the same file (Listing 1-19).
+$ echo "Goodbye!" >> output.txt
+$ cat output.txt
+Hello World!
+Goodbye!
+Listing 1-19: Appending content to a file
+If we had used > instead of >>, the content of output.txt  would have been 
+overwritten completely with the Goodbye!  text.
+You can redirect both the standard output stream and the standard 
+error stream to a file by using &>. This is useful when you don’t want to send 
+any output to the screen and instead save everything in a logfile (perhaps 
+for later analysis):
+$ ls -l / &> stdout_and_stderr.txt
+To append both the standard output and standard error streams to a 
+file, use the ampersand followed by the double chevron ( &>>).
+What if we want to send the standard output stream to one file and the 
+standard error stream to another? This is also possible using the streams’ 
+file descriptor numbers:
+$ ls -l / 1> stdout.txt 2> stderr.txt
+You may sometimes find it useful to redirect the standard error stream 
+to a file, as we’ve done here, so you can log any errors that occur during 
+runtime. The next example runs a nonexistent command, lzl. This should 
+generate bash errors that will be written into the error.txt  file:
+$ lzl 2> error.txt
+$ cat error.txt
+bash: lzl: command not found
+Notice that you don’t see the error onscreen because bash sends the 
+error to the file instead.
+Next, let’s use the standard input stream. Run the command in 
+Listing 1-20 in the shell to supply the contents of output.txt  as input to the 
+cat command.
+20   Chapter 1$ cat < output.txt
+Hello World!
+Goodbye!
+Listing 1-20: Using a file as a command’s input
+What if we want to redirect multiple lines to a command? Here docu -
+ment redirection ( <<) can help with this (Listing 1-21).
+$ cat << EOF
+  Black Hat Bash
+  by No Starch Press
+EOF
+Black Hat Bash
+by No Starch Press
+Listing 1-21: Here document redirection
+In this example, we pass multiple lines as input to a command. The EOF 
+in this example acts as a delimiter, marking the start and end points of the 
+input. Here document redirection  treats the input as if it were a separate file, 
+preserving line breaks and whitespace.
+The pipe operator ( |) redirects the output of one command and uses it 
+as the input of another. For example, we could run the ls command on the 
+root directory and then use another command to extract data from it, as 
+shown in Listing 1-22.
+$ ls -l / | grep "bin"
+lrwxrwxrwx   1 root root          7 Mar 10 08:43 bin -> usr/bin
+lrwxrwxrwx   1 root root          8 Mar 10 08:43 sbin -> usr/sbin
+Listing 1-22: Piping command output into another command
+We use ls to print the content of the root directory into the standard 
+output stream, then use a pipe to send it as input to the grep command, 
+which filters out any lines containing the word bin.
+Positional Arguments
+Bash scripts can take positional arguments  (also called parameters ) passed on 
+the command line. Arguments are especially useful, for example, when you 
+want to develop a program that modifies its behavior based on input passed 
+to it by another program or user. Arguments can also change features of the 
+script such as the output format and how verbose it will be during runtime.
+For example, imagine you develop an exploit and send it to a few col -
+leagues, each of whom will use it against a different IP address. Instead of 
+writing a script and asking the user to modify it with their network informa -
+tion, you can write it to take an IP address argument and then act against 
+this input to avoid having to modify the source code in each case.
+Bash Basics   21A bash script can access arguments passed to it on the command line 
+by using the variables $1, $2, and so on. The number represents the order in 
+which the argument was entered. To illustrate this, the script in Listing 1-23 
+takes in an argument (an IP address or domain name) and performs a ping 
+test against it by using the ping utility. Save this file as ping_with_arguments.sh .
+ping_with  
+_arguments.sh#!/bin/bash
+# This script will ping any address provided as an argument.
+SCRIPT_NAME="${0}"
+TARGET="${1}"
+echo "Running the script ${SCRIPT_NAME}..."
+echo "Pinging the target: ${TARGET}..."
+ping "${TARGET}"
+Listing 1-23: A script that accepts command line input
+This script assigns the first positional argument to the variable TARGET . 
+Notice, also, that the argument ${0} is assigned to the SCRIPT_NAME  variable. This 
+argument contains the script’s name (in this case, ping_with_arguments.sh ).
+To run this script, use the commands in Listing 1-24.
+$ chmod u+x ping_with_arguments.sh
+$ ./ping_with_arguments.sh nostarch .com
+Running the script ping_with_arguments.sh...
+Pinging the target nostarch .com . ..
+PING nostarch .com (104.20.120.46) 56(84) bytes of data.
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=1 ttl=57 time=6.89 ms
+64 bytes from 104.20.120.46 (104.20.120.46): icmp_seq=2 ttl=57 time=4.16 ms
+--snip--
+Listing 1-24: Passing arguments to a script
+This script will perform a ping command against the domain nostarch  
+.com passed to it on the command line. The value is assigned to the $1 vari-
+able; if we passed another argument, it would get assigned to the second 
+variable, $2. Use ctrl -C to exit this script, as ping may run indefinitely on 
+some operating systems.
+What if you want to access all arguments? You can do so using the vari -
+able $@. Also, using $#, you can get the total number of arguments passed. 
+Listing 1-25 demonstrates how this works.
+#!/bin/bash
+echo "The arguments are: $@"
+echo "The total number of arguments is: $#"
+Listing 1-25: Retrieving all arguments and the total number of arguments
+22   Chapter 1Save this script to a file named show_args.sh  and run it as follows:
+$ chmod u+x show_args.sh
+$ ./show_args.sh "hello" "world"
+The arguments are: hello world
+The total number of arguments is: 2
+Table 1-5  summarizes the variables related to positional arguments.
+Table 1-5:  Special Variables Related to Positional Arguments
+Variable Description
+$0 The name of the script file
+$1, $2, $3,  .  .  . Positional arguments
+$# The number of passed positional arguments
+$* All positional arguments
+$@ All positional arguments, where each argument is individually quoted
+When a script uses "$*" with the quotes included, bash will expand 
+arguments into a single word. For instance, the following example groups 
+the arguments into one word:
+$ ./script.sh "1" "2" "3"
+1 2 3
+When a script uses "$@" (again including the quotes), it will expand 
+arguments into separate words:
+$ ./script.sh "1" "2" "3"
+1
+2
+3
+In most cases, you will want to use "$@" so that every argument is treated 
+as an individual word.
+The following script demonstrates how to use these special variables in 
+a for loop:
+#!/bin/bash
+# Change "$@" to "$*" to observe behavior.
+for args in "$@"; do
+    echo "${args}"
+done
+Input Prompting
+Some bash scripts don’t take any arguments during execution. However, 
+they may need to ask the user for information in an interactive way and have 
+Bash Basics   23the response feed into their runtime. In these cases, we can use the read 
+command. You often see applications use input prompting  when attempting 
+to install software, asking the user to enter yes to proceed or no to cancel 
+the operation.
+In the bash script in Listing 1-26, we ask the user for their first and last 
+names and then print these to the standard output stream.
+input 
+_prompting.sh#!/bin/bash
+# Takes input from the user and assigns it to variables
+echo "What is your first name?"
+read -r firstname
+echo "What is your last name?"
+read -r lastname
+echo "Your first name is ${firstname} and your last name is ${lastname}"
+Listing 1-26: Prompting a user for input
+Save and run this script as input_prompting.sh :
+$ chmod u+x input_prompting.sh
+$ ./input_prompting.sh
+What is your first name?
+John
+What is your last name?
+Doe
+Your first name is John and your last name is Doe
+Notice that you are prompted to enter information that then gets 
+printed.
+Exit Codes
+Bash commands return exit codes , which indicate whether the execution of 
+the command succeeded. Exit codes fall in the 0 to 255 range, where 0 means 
+success, 1 means failure, 126 means that the command was found but is not 
+executable, and 127 means the command was not found. The meaning of any 
+other number depends on the specific command being used and its logic.
+Checking Exit Codes
+To see exit codes in action, save the script in Listing 1-27 to a file named 
+exit_codes.sh  and run it.
+#!/bin/bash
+# Experimenting with exit codes
+24   Chapter 1ls -l > /dev/null
+echo "The exit code of the ls command was: $?"
+lzl 2> /dev/null
+echo "The exit code of the non-existing lzl command was: $?"
+Listing 1-27: Using exit codes to determine a command’s success
+We use the special variable $? with the echo command to return the exit 
+codes of the executed commands ls and lzl. We also redirect their standard 
+output and standard error streams to the file /dev/null , a special device file 
+that discards any data sent to it. When you want to silence commands, you 
+can redirect their output to it.
+You should see output like the following:
+$ ./exit_codes.sh
+The exit code of the ls command was: 0
+The exit code of the non-existing lzl command was: 127
+We receive two distinct exit codes, one for each command. The first 
+command returns 0 (success), and the second returns 127 (command 
+not found).
+WARNING  Use /dev/null  with caution. You may miss out on important errors if you choose to 
+redirect output to it. When in doubt, redirect standard streams such as standard out -
+put and standard error to a dedicated logfile instead.
+To understand why you might want to use exit codes, imagine you’re 
+trying to download a 1GB file from the internet by using bash. It might be 
+wise to first check whether the file already exists on the filesystem in case 
+someone ran the script and retrieved it. Also, you might want to check that 
+you have enough free space on the disk before attempting the download. 
+By running commands and looking at their returned exit codes, you can 
+decide whether to proceed with the file download.
+Setting a Script’s Exit Code
+You can set the exit code of a script by using the exit command followed by 
+the code number, as shown in Listing 1-28.
+#!/bin/bash
+# Sets the exit code of the script to be 223
+echo "Exiting with exit code: 223"
+exit 223
+Listing 1-28: Setting a script’s exit code
+Save this script as set_exit_code.sh  and run it on the command line. Then 
+use the special variable $? to see the exit code it returns:
+Bash Basics   25$ chmod u+x set_exit_code.sh
+$ ./set_exit_code.sh
+Exiting with exit code: 223
+echo $?
+223
+You can use the $? variable to check the returned exit code not only of 
+a script but also of individual commands:
+$ ps -ef
+$ echo $?
+0
+Exit codes are important; they can be used in a series of scripts that 
+call one another or within the same script, to control the logical flow of the 
+code execution.
+Exercise 1: Recording Your Name and the Date
+Write a script that does the following:
+ 1. Accepts two arguments on the command line and assigns them to vari -
+ables. The first argument should be your first name, and the second 
+should be your last name.
+ 2. Creates a new file named output.txt .
+ 3. Writes the current date to output.txt  by using the date command. (Bonus 
+points if you can make the date command print the date in the DD-MM-YYYY  
+format; use man date  to learn how this works.)
+ 4. Writes your full name to output.txt .
+ 5. Makes a backup copy of output.txt , named backup.txt , using the cp com -
+mand. (Use man cp  if you aren’t sure of the command’s syntax.)
+ 6. Prints the content of the output.txt  file to the standard output stream.
+You can find an example solution, exercise_solution.sh , in the book’s 
+GitHub repository.
+Summary
+In this chapter, you ran simple Linux commands in the terminal and used 
+man to learn about command options. You also learned how to pass argu -
+ments to scripts and execute a sequence of commands from within scripts. 
+We covered the fundamentals of bash, such as how to write basic programs 
+that use variables, arrays, redirects, exit codes, and arguments. You also 
+learned how to prompt the user to enter arbitrary information and use it as 
+part of a script’s flow.

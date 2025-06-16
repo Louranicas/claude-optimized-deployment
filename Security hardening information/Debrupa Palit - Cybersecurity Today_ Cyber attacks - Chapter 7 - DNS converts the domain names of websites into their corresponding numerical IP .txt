@@ -1,0 +1,32 @@
+# Security Chapter Extract
+Book: Debrupa Palit - Cybersecurity Today_ Cyber attacks, network security, and threat prevention (2024) - libgen.li
+Chapter: 7 - DNS converts the domain names of websites into their corresponding numerical IP addresses, making it easier for us to navigate the Internet without having to remember complex numbers. For example, every device connected to the Internet, like a phone or a big server for a shopping website, communicates with each other using special numbers called IP addresses. Instead of typing in these long numbers every time the website is visited, an easier-to-remember name like example.com is used and the device knows which web page to open. So, domain names like this help in finding websites without needing to remember complicated numbers.
+Security Relevance Score: 8
+Word Count: 688
+Extracted: 2025-06-13 23:40:49
+
+---
+
+DNS converts the domain names of websites into their corresponding numerical IP addresses, making it easier for us to navigate the Internet without having to remember complex numbers. For example, every device connected to the Internet, like a phone or a big server for a shopping website, communicates with each other using special numbers called IP addresses. Instead of typing in these long numbers every time the website is visited, an easier-to-remember name like example.com is used and the device knows which web page to open. So, domain names like this help in finding websites without needing to remember complicated numbers.
+
+Figure 1.7: Working of DNS
+Working of Domain Name System
+DNS serves as a fundamental component of the Internet infrastructure, facilitating the translation of human-readable domain names into IP addresses, thereby enabling users to access websites and services seamlessly. The working of DNS is explained as:
+
+Domain name resolution: When you enter a domain name (e.g., example.com) into your web browser, your device first checks its local DNS cache to see if it already knows the corresponding IP address. If not found, it sends a query to a DNS resolver, typically provided by your Internet service provider (ISP) or configured in your network settings.
+DNS query process: The DNS resolver receives the query and checks its own cache. If the IP address is not cached, it starts the resolution process by sending queries to DNS root servers. These root servers provide information about the authoritative name servers responsible for top-level domains (TLDs) like .com, .org, etc.
+Iterative and recursive queries: The DNS resolver uses iterative queries to navigate through the DNS hierarchy, querying authoritative name servers at each step until it finds the IP address corresponding to the requested domain name. It may also use recursive queries, where it delegates the resolution process to other DNS servers if needed until the IP address is found.
+Caching for performance: Once the IP address is obtained, it is stored in the resolver's cache for future use. This caching mechanism improves performance by reducing the need to repeatedly query DNS servers for frequently accessed domain names. However, cached records have a limited lifespan, and the resolver periodically updates them to ensure accuracy.
+Response and communication: Finally, the DNS resolver returns the IP address to your device, allowing it to establish a connection with the desired website's server. This IP address is then used to route traffic over the Internet, enabling communication between your device and the web server hosting the requested website.
+
+Introduction to proxy and proxy chain
+A proxy server, also known as a proxy or an application-level gateway, functions as a bridge between a local network (such as all the computers within a company or building) and a broader network like the Internet. Users are not directly connected to the desired website; the user's request is first sent to the proxy server. The proxy server evaluates the request and then completes it. Proxies add an additional layer of security to computers and can be configured to function as web filters or firewalls, protecting against potential malware threats. When a proxy is combined with a secure web gateway or other email security software, it enhances the filtering of traffic, ensuring higher levels of safety. Individuals may use a proxy to mask the location. Proxies serve various purposes, including content filtering, encrypted data filtering, bypassing filters, logging, performance enhancement through caching, translation, error repair, and managing cross-domain resources
+Some of the advantages of proxy are as follows:
+
+Improve security.
+Enhance employees Internet browsing privacy.
+Distribution of Internet traffic to prevent program failures.
+Administering site access for employees within the workplace.
+Decrease bandwidth usage through file caching or traffic compression.
+
+Proxy chaining is an advanced proxy method for enhancing user security. It involves linking multiple proxies consecutively to enhance protection. Users of proxy chaining anticipate that hackers or ISP will face difficulty in tracing the original IP address of clients when applying this technique. Proxy users establish a proxy chain by configuring multiple proxies between the client and the destination server to enhance their online anonymity, as shown in Figure 1.

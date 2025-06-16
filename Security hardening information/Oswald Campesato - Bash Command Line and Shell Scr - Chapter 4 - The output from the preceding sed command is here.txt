@@ -1,0 +1,81 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 4 - The output from the preceding sed command is here:
+Security Relevance Score: 2
+Word Count: 383
+Extracted: 2025-06-13 23:40:50
+
+---
+
+The output from the preceding sed command is here:
+
+1,234
+
+A more general sed expression that can insert a comma in five-digit numbers is here:
+
+echo "12345" | sed 's/\([0-9]\{3\}\)$/,\1/g;s/^,//'
+
+The output of the preceding command is here:
+
+12,345
+
+DISPLAYING ONLY “PURE” WORDS IN A DATASET
+In the previous chapter, we solved this task using the egrep command, and this section shows you how to solve this task using the sed command.
+For simplicity, let’s work with a text string and that way we can see the intermediate results as we work toward the solution. The approach will be similar to the code block shown earlier which counted unique words. Let’s initialize the variable x as shown here:
+
+x="ghi abc Ghi 123 #def5 123z"
+
+The first step is to split x into one word per line by replacing space with newlines:
+
+echo $x |tr -s ' ' '\n'
+
+The output is here:
+
+ghi
+abc
+Ghi
+123
+#def5
+123z
+
+The second step is to invoke old with the regular expression ^[a-zA-Z]+, which matches any string consisting of one or more upper case and/or lower case letters (and nothing else). Note that the -E switch is needed to parse this kind of regular expression in sed, as it uses some of the newer/modern regular expression syntax not available when sed was new.
+
+echo $x |tr -s ' ' '\n' |sed -nE "s/(^[a-zA-Z][a-zAZ]*$)/\ 1/p"
+
+The output is here:
+
+ghi
+abc
+Ghi
+
+If you also want to sort the output and print only the unique words, pipe the result to the sort and uniq commands:
+
+echo $x |tr -s ' ' '\n' |sed -nE "s/(^[a-zA-Z][a-zAZ]*$)/\ 1/p"|sort|uniq
+
+The output is here:
+
+Ghi
+abc
+ghi
+
+If you want to extract only the integers in the variable x, use this command:
+
+echo $x |tr -s ' ' '\n' |sed -nE "s/(^[0-9][0-9]*$)/\1/ p" |sort|uniq
+The output is here:
+
+123
+
+If you want to extract alphanumeric words from the variable x, use this command:
+
+echo $x |tr -s ' ' '\n' |sed -nE "s/(^[0-9a-zA-Z]
+[0-9a-zA-Z]*$)/\1/p"|sort|uniq
+
+The output is here:
+
+123
+123z
+Ghi
+abc
+ghi
+
+Now you can replace echo $x with a dataset in order to retrieve only alphabetic strings from that dataset. Incidentally, it’s worth while for you to compare the code snippets in this section with the corresponding section in

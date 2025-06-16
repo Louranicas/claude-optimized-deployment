@@ -1,0 +1,168 @@
+{
+  "timestamp": "2025-06-13T16:45:41.999963",
+  "environment": {
+    "python_version": "3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]",
+    "platform": "linux",
+    "working_dir": "/home/louranicas/projects/claude-optimized-deployment"
+  },
+  "modules": {
+    "MCP Servers": {
+      "category": "MCP Servers",
+      "base_module": "src.mcp",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.mcp: SyntaxError: unexpected character after line continuation character (protocols.py, line 20)"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.mcp: SyntaxError: unexpected character after line continuation character (protocols.py, line 20)"
+      }
+    },
+    "Authentication/RBAC": {
+      "category": "Authentication/RBAC",
+      "base_module": "src.auth",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.auth: SyntaxError: unexpected character after line continuation character (models.py, line 312)"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.auth: SyntaxError: unexpected character after line continuation character (models.py, line 312)"
+      }
+    },
+    "Database": {
+      "category": "Database",
+      "base_module": "src.database",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.database: Missing dependency 'sqlalchemy'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.database: Missing dependency 'sqlalchemy'"
+      }
+    },
+    "Circle of Experts": {
+      "category": "Circle of Experts",
+      "base_module": "src.circle_of_experts",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.circle_of_experts: Missing dependency 'pydantic'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.circle_of_experts: Missing dependency 'pydantic'"
+      }
+    },
+    "Monitoring": {
+      "category": "Monitoring",
+      "base_module": "src.monitoring",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.monitoring: Missing dependency 'prometheus_client'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.monitoring: Missing dependency 'prometheus_client'"
+      }
+    },
+    "API": {
+      "category": "API",
+      "base_module": "src.api",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.api: cannot import name 'retry_with_backoff' from 'src.core.retry' (/home/louranicas/projects/claude-optimized-deployment/src/core/retry.py)"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.api: cannot import name 'retry_with_backoff' from 'src.core.retry' (/home/louranicas/projects/claude-optimized-deployment/src/core/retry.py)"
+      }
+    },
+    "Core Utilities": {
+      "category": "Core Utilities",
+      "base_module": "src.core",
+      "status": "failed",
+      "submodules": {},
+      "errors": [
+        "Failed to import src.core: Missing dependency 'fastapi'"
+      ],
+      "warnings": [],
+      "base_import": {
+        "success": false,
+        "message": "Failed to import src.core: Missing dependency 'fastapi'"
+      }
+    },
+    "Synthex Search Engine": {
+      "category": "Synthex Search Engine",
+      "base_module": "src.synthex",
+      "status": "passed",
+      "submodules": {
+        "src.synthex.engine": {
+          "success": true,
+          "message": "Successfully imported src.synthex.engine"
+        },
+        "src.synthex.agents": {
+          "success": true,
+          "message": "Successfully imported src.synthex.agents"
+        },
+        "src.synthex.config": {
+          "success": true,
+          "message": "Successfully imported src.synthex.config"
+        },
+        "src.synthex.security": {
+          "success": true,
+          "message": "Successfully imported src.synthex.security"
+        },
+        "src.synthex.secrets": {
+          "success": true,
+          "message": "Successfully imported src.synthex.secrets"
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "base_import": {
+        "success": true,
+        "message": "Successfully imported src.synthex"
+      },
+      "success_rate": "5/5"
+    }
+  },
+  "summary": {
+    "total_modules": 8,
+    "passed": 1,
+    "failed": 7,
+    "partial": 0,
+    "success_rate": "12.5%",
+    "missing_dependencies": [
+      "sqlalchemy",
+      "prometheus_client",
+      "fastapi",
+      "pydantic"
+    ],
+    "install_command": "pip install sqlalchemy prometheus_client fastapi pydantic"
+  },
+  "dependencies": {
+    "pydantic": false,
+    "aiohttp": true,
+    "bcrypt": false,
+    "sqlalchemy": false,
+    "fastapi": false,
+    "prometheus_client": false,
+    "opentelemetry": false,
+    "jwt": false,
+    "cryptography": true,
+    "yaml": true
+  }
+}

@@ -1,0 +1,43 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 4 - , you’ll use Kali Linux to run bash commands and complete hacking labs. If you’d like to set up Kali now, consult the steps included in Chapter 3.
+Security Relevance Score: 3
+Word Count: 645
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, you’ll use Kali Linux to run bash commands and complete hacking labs. If you’d like to set up Kali now, consult the steps included in Chapter 3.
+
+Accessing the Bash Shell
+If you’re running Linux or macOS, bash should already be available. On Linux, open the Terminal application by pressing ALT-CTRL-T. On macOS, you can find the terminal by navigating to the Launchpad icon on the system dock.
+Kali and macOS use the Z Shell by default, so when you open a new terminal window, you’ll have to enter exec bash to switch to a bash shell before you run commands. If you want to change your default shell to bash so you don’t have to manually switch shells, you can use the chsh -s /bin/bash command.
+If you’re running Windows, you can use the Windows Subsystem for Linux (WSL), which lets you run Linux distributions and access a bash environment. The official Microsoft WSL documentation page describes how to install it: https://learn.microsoft.com/en-us/windows/wsl/install.
+An alternative to WSL is Cygwin, which emulates a Linux environment by providing a collection of Linux utilities and system-call functionalities. To install Cygwin, visit https://www.cygwin.com/install.html to download the setup file, and then follow the installation wizard.
+Cygwin installs itself by default to the C:\cygwin64\ Windows path. To execute your bash scripts, save the scripts in the directory containing your username at C:\cygwin64\home. For example, if your username is david, you should save your scripts under C:\cygwin64\home\david. Then, from the Cygwin terminal, you’ll be able to change the directory to the home directory to run your scripts.
+
+
+Installing a Text Editor
+To start writing bash scripts, you’ll need a text editor, preferably one with handy features such as syntax highlighting built in. You can choose between terminal-based text editors and graphical user interface–based text editors. Terminal-based text editors (such as vi or GNU nano) are useful because during a penetration test they may be the only available options when you need to develop a script on the spot.
+If you prefer graphical text editors, Sublime Text (https://www.sublimetext.com) is one option you could use. In Sublime Text, you can toggle on the syntax highlighting feature for bash scripts by clicking Plain Text in the bottom-right corner and choosing Bash from the drop-down list of languages. If you’re using a different text editor, reference its official documentation to learn how to turn on syntax highlighting.
+
+
+
+Exploring the Shell
+Now that you have a functional bash environment, it’s time to learn some basics. Although you’ll develop scripts in your text editor, you’ll also probably find yourself frequently running single commands in the terminal. This is because you often need to see how a command runs and the kind of output it produces before including it in a script. Let’s get started by running some bash commands.
+First, enter the following command to verify that bash is available on your system:
+$ bash --version
+The version in the output will depend on the operating system you are running.
+
+Checking Environment Variables
+When running in a terminal, bash loads a set of environment variables with every new session that gets invoked. Programs can use these environment variables for various purposes, such as discovering the identity of the user running the script, the location of their home directory, and their default shell.
+To see the list of environment variables set by bash, run the env command directly from the shell (Listing 1-1).
+$ env
+
+SHELL=/bin/bash
+LANGUAGE=en_CA:en
+DESKTOP_SESSION=ubuntu
+PWD=/home/user
+--snip--
+Listing 1-1: Listing bash’s environment variables
+You can read individual environment variables by using the echo command, which writes text to the terminal. For example, to print the default shell set for the user, use the SHELL environment variable preceded by a dollar sign ($) and surrounded by curly brackets ({}). This will cause bash to expand the variable to its assigned value, as shown in Listing 1-

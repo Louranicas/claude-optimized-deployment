@@ -1,0 +1,34 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 4 - Endpoint Changes:
+Security Relevance Score: 8
+Word Count: 426
+Extracted: 2025-06-13 23:40:44
+
+---
+
+Endpoint Changes: This panel shows the most recent endpoint changes observed in your environment. It helps you keep track of the latest alterations and quickly spot any suspicious activity.
+
+By monitoring endpoint changes and staying alert to unexpected trends, you can enhance the security of your environment and quickly respond to potential incidents.
+Update Center and Search
+The Update Center dashboard in Splunk provides valuable insights into the update status of systems in your environment. Regularly reviewing this dashboard helps ensure that systems are updated properly and security risks are minimized.
+
+
+
+Figure 8.10: Update Center Dashboard
+Filters like Show only systems that should update, Destination, Business Unit, Category, and Time Range help refine the events displayed on the dashboard.
+The panels in the Update Center dashboard include:
+
+Key Indicators: Displays the summary information and relevant metrics for the dashboard sources over the past 48 hours.
+Top Systems Needing Updates: A bar chart showing the top systems in your environment that require updates to be installed.
+Top Updates Needed: A bar chart displaying the most critical updates needed across the environment, sorted by signature, such as the KB number.
+Systems Not Updating - Greater Than 30 Days: A list of systems that haven’t been updated for over 30 days, sorted by the number of days since their last update.
+Update Service Start Mode Anomalies: Shows all systems where the update startup task or service is disabled, which can help identify cases where administrators might have forgotten to re-enable the process after a restart.
+
+Patches and updates are highlighted by package or device on the Update Search panel. When troubleshooting problems brought on by a certain patch, it is especially helpful to be able to identify devices that have those patches installed.
+Display only systems that require update. Update Status, Signature, Destination, and Time Range are some of the filters for the Update Search dashboard.
+You can keep your environment secure and stable by routinely checking the Update Center and Update Search dashboards to make sure systems are patched and up to date.
+Hands-On Endpoint Domain Investigation with Splunk ES at JIT Inc.
+Overview
+The technologically astute company JIT Inc. uses Splunk Enterprise Security (ES) to protect its endpoint security domain. Endpoints are frequently the first line of defense and a frequent target for attacks in the constantly changing world of cyber threats. To efficiently manage and look into endpoint-related security issues, JIT Inc. makes use of Splunk ES’s endpoint domain dashboards, which include Malware Detection, System Center, Time Center, Endpoint Changes, Update Center, and Search.
+Scenario Setup

@@ -1,0 +1,40 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 16 - 3, I described a Python script that extracts Exif metadata from photos in the current directory and generates SQL commands with corresponding INSERT commands. The SQL commands could be saved to a file via output redirection and later applied to a database (for example, using the mysql command).
+But a much more elegant approach is if the script establishes a database connection and stores the metadata directly in the database. This approach avoids the detour with a SQL file. For the following example, I assume that the database is managed by a MySQL server and that the photos table exists there. The CREATE TABLE command documents the structure of the table:
+CREATE TABLE photos(  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,  name VARCHAR(255) NOT NULL,  size INT,  orientation INT,  datetimeoriginal DATETIME,  latitude DOUBLE,  longitude DOUBLE,  altitude DOUBLE,  -- ts contains the date and time of the last change  ts TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP()     ON UPDATE CURRENT_TIMESTAMP()); 
+19.3.1    PyMySQL
+Several Python modules are available for accessing MySQL or MariaDB databases, but I want to focus on PyMySQL in this section. The module is easy to install, is easy to use, and has proven itself in my work. You can find more information about alternative MySQL or database modules at the following links:
+Security Relevance Score: 2
+Word Count: 594
+Extracted: 2025-06-13 23:41:06
+
+---
+
+3, I described a Python script that extracts Exif metadata from photos in the current directory and generates SQL commands with corresponding INSERT commands. The SQL commands could be saved to a file via output redirection and later applied to a database (for example, using the mysql command).
+But a much more elegant approach is if the script establishes a database connection and stores the metadata directly in the database. This approach avoids the detour with a SQL file. For the following example, I assume that the database is managed by a MySQL server and that the photos table exists there. The CREATE TABLE command documents the structure of the table:
+CREATE TABLE photos(  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,  name VARCHAR(255) NOT NULL,  size INT,  orientation INT,  datetimeoriginal DATETIME,  latitude DOUBLE,  longitude DOUBLE,  altitude DOUBLE,  -- ts contains the date and time of the last change  ts TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP()     ON UPDATE CURRENT_TIMESTAMP()); 
+19.3.1    PyMySQL
+Several Python modules are available for accessing MySQL or MariaDB databases, but I want to focus on PyMySQL in this section. The module is easy to install, is easy to use, and has proven itself in my work. You can find more information about alternative MySQL or database modules at the following links:
+
+
+https://stackoverflow.com/questions/372885
+
+
+https://wiki.openstack.org/wiki/PyMySQL_evaluation
+
+
+As usual, PyMySQL must be installed using pip:
+$ pip  install requests        (Windows, Linux)$ pip3 install requests        (macOS, old Linux distributions) 
+When you establish a connection using connect, you need to specify the hostname of the server (localhost if the database server is running on the same machine as your script), the username, password, and the name of the database you want to access.
+MySQL and MariaDB support various UTF-8 variants. For the interaction with Python, utf8mb4 is the best solution. The cursorclass parameter controls the way PyMySQL returns SELECT results. The DictCursor cursor type wraps each data record in a dictionary, using the column names as keys. This facilitates further processing of the results.
+Each time you want to run a SQL command, you need a cursor object. I recommend using such cursors with with because, in this way, you can ensure that you release the objects as soon as possible and do not block unnecessary resources.
+The string with the SQL command must then be passed to the execute method. The command can contain any number of %s codes. execute replaces them with strings from the tuple, list, or dictionary passed in the second parameter. Note that no other codes are allowed here, such as %d for numbers, for example. If you want to store NULL, you must use the Python keyword None.
+# Sample file hello-pymysql.pyconn = pymysql.connect(host='localhost',                       user='username',                       password='topsecret',                       db='dbname',                       port=3306,                       charset='utf8mb4',                       cursorclass=pymysql.cursors.DictCursor)# read entries from the 'photos' tablewith conn.cursor() as cur:    sql = 'SELECT * FROM photos WHERE id < %s'    cur.execute(sql, (1000))    while row := cur.fetchone():        print(row) 
+Using execute, you can also run INSERT, UPDATE, or DELETE commands. commit completes the transaction. You can then get the ID number of the new record from the lastrowid property.
+sql = '''INSERT INTO photos (name, size, orientation)         VALUES (%s, %s, %s)'''with conn.cursor() as cur:    cur.execute(sql, ('img_1234.jpg', 3231283, 0))    conn.commit()    print('ID of new record:', cur.lastrowid) 
+If your script continues to run once the database operations are complete, you should close the database connection:
+conn.close() 
+More details on how to use PyMySQL can be found in the project documentation: https://pymysql.readthedocs.io.
+19.3.2    Saving Exif Metadata
+I have already explained how you can analyze the Exif data embedded in the image files of photos in Python using a script in

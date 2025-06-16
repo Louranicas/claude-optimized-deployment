@@ -1,0 +1,85 @@
+# Security Chapter Extract
+Book: Rong Su - Cybersecurity of Discrete Event Systems_ From Smart Attacks to Resilient Defence (2024, CRC Press) - libgen.li
+Chapter: 1 - In this paradigm, the plant generates observable
+outputs, received by the supervisor via an observation channel, and
+each control command specified as a set of allowable events is generated
+by the supervisor and fed to the plant via a command channel.
+The plant will nondeterministically pick one event from the control
+command and execute it. Unlike attacks in time-driven systems, attacks
+under consideration in a DES aim to change the order of events in
+specific system runs. There are two different streams of research on
+cyberattacks and resilient control. The first stream is to treat each
+attack as a fault that alters event orders in the system by either
+removing existing events or inserting fictitious events. In this case,
+research focuses firstly on how to decide the existence of an attack
+in the system based on a finite number of observations, similar to
+verifying diagnosability in fault diagnosis, and secondly on how to
+ensure sufficient control abilities to stop the propagation of the attack
+effect, e.g., by shutting down the entire system. Partial observation
+and existence of uncontrollable events complicate the synthesis process.
+The second stream is to develop a specific “smart” attack model that
+ensures certain intuitive properties such as covertness and guaranteed
+(strong or weak) damage infliction. Under such a smart attack model,
+4■Cybersecurit
+y of Discrete Event Systems
+the research focuses on analyzing how the attack may affect the
+closed-loop behavior, deciding whether the system is vulnerable to such
+an attack, and finally computing a supervisor that is resilient to the
+concerned attack. In this monograph, we will provide a detailed account
+of existing state-of-the-art modeling and resiliency results associated
+with smart attacks and point out challenges for future exploration.
+In the following sections, we will provide some real cyberattack
+cases and illustrate how they could be considered in a DES framework.
+This will provide motivations for technical developments introduced
+in this monograph and also provide future research topics that the
+community may consider. After that, we provide a brief overview
+of existing DES cybersecurity research and some mathematical
+preliminaries on DES supervisory control theory, which will be used
+in the remainder of this monograph.
+Security Relevance Score: 3
+Word Count: 391
+Extracted: 2025-06-13 23:40:25
+
+---
+
+In this paradigm, the plant generates observable
+outputs, received by the supervisor via an observation channel, and
+each control command specified as a set of allowable events is generated
+by the supervisor and fed to the plant via a command channel.
+The plant will nondeterministically pick one event from the control
+command and execute it. Unlike attacks in time-driven systems, attacks
+under consideration in a DES aim to change the order of events in
+specific system runs. There are two different streams of research on
+cyberattacks and resilient control. The first stream is to treat each
+attack as a fault that alters event orders in the system by either
+removing existing events or inserting fictitious events. In this case,
+research focuses firstly on how to decide the existence of an attack
+in the system based on a finite number of observations, similar to
+verifying diagnosability in fault diagnosis, and secondly on how to
+ensure sufficient control abilities to stop the propagation of the attack
+effect, e.g., by shutting down the entire system. Partial observation
+and existence of uncontrollable events complicate the synthesis process.
+The second stream is to develop a specific “smart” attack model that
+ensures certain intuitive properties such as covertness and guaranteed
+(strong or weak) damage infliction. Under such a smart attack model,
+4■Cybersecurit
+y of Discrete Event Systems
+the research focuses on analyzing how the attack may affect the
+closed-loop behavior, deciding whether the system is vulnerable to such
+an attack, and finally computing a supervisor that is resilient to the
+concerned attack. In this monograph, we will provide a detailed account
+of existing state-of-the-art modeling and resiliency results associated
+with smart attacks and point out challenges for future exploration.
+In the following sections, we will provide some real cyberattack
+cases and illustrate how they could be considered in a DES framework.
+This will provide motivations for technical developments introduced
+in this monograph and also provide future research topics that the
+community may consider. After that, we provide a brief overview
+of existing DES cybersecurity research and some mathematical
+preliminaries on DES supervisory control theory, which will be used
+in the remainder of this monograph.
+1.2 MOTIVATION EXAMPLES OF CYBERATTACKS
+1.2.1 Stuxnet
+– The First Known Cyber Weapon
+Stuxnet is a malicious computer worm first uncovered in 2010 and
+thought to have been in development since at least

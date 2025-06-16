@@ -1,0 +1,81 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 6 - Figure 8.5 (a) Before applying DBSCAN algorithm. (b) After applying DBSCAN algorithm.
+Security Relevance Score: 3
+Word Count: 373
+Extracted: 2025-06-13 23:40:31
+
+---
+
+Figure 8.5 (a) Before applying DBSCAN algorithm. (b) After applying DBSCAN algorithm.
+
+
+
+
+Figure 8.6 Count of normal and anomaly attack.
+
+
+
+
+8.5 Proposed Approach
+The research methodology involved a detailed examination of the performance of IDS utilizing the mentioned ML algorithms. The execution of this methodology was conducted using the Jupyter Notebook software. The stages encompassed in this process are outlined as follows:
+
+The preprocessing commenced with the NSL‐KDD dataset, which involved employing the Min–Max scaling technique. The normalization technique facilitates the scaling of data within a predefined range by utilizing the minimum and maximum values of each feature.
+Subsequently, a chi‐square test was conducted on the pre‐processed data to perform feature selection. This step leads to the identification of the top 10 features from the original set of 41 features.
+To assess performance, the study selected Random Forest, SVM, gradient boosting, kNN, and DBSCAN algorithms. The accuracy of each algorithm was evaluated initially using all available features and then with the top 10 selected features.
+
+
+Table 8.1 Selected features from the NSL‐KDD dataset.
+
+
+
+
+S. No
+Feature
+Description  
+
+
+1
+Service
+Refers to the category of network service linked with the network connection 
+
+2
+Flag
+The status of the network connection (e.g., SYN, ACK, RST) 
+
+3
+Logged_in
+Indicates whether a user is presently authenticated and logged into the system 
+
+4
+serror_rate
+Characterizes the proportion of connections experiencing SYN errors 
+
+5
+srv_serror_rate
+Signifies the percentage of connections to the same service encountering SYN errors 
+
+6
+same_srv_rate
+Illustrates the percentage of connections directed toward the identical service 
+
+7
+dst_host_srv_count
+Quantifies the number of connections to the same service on the target host 
+
+8
+dst_host_same_srv_rate
+Depicts the percentage of connections to the same service on the destination host 
+
+9
+dst_host_serror_rate
+Communicates the percentage of connections to the destination host encountering SYN errors 
+
+10
+dst_host_srv_serror_rate
+Characterizes the percentage of connections to the same service on the destination host that experience SYN errors   
+
+In addition to accuracy, precision and recall values were also computed for the aforementioned algorithms. The resulting precision and recall metrics were then compared.
+
+The analysis of these outcomes gave insights into the efficacy and appropriateness of various ML methods for bolstering intrusion detection capabilities.
+Description of the selected features is summarized as follows in Table 8.

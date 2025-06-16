@@ -1,0 +1,146 @@
+# Security Chapter Extract
+Book: Rong Su - Cybersecurity of Discrete Event Systems_ From Smart Attacks to Resilient Defence (2024, CRC Press) - libgen.li
+Chapter: 3 - (∀x, x′∈X1)(∀σ∈Σ)ξ1(x, σ) =x′⇐⇒ ξ2(θ(x), σ) =θ(x′).□
+We can check that automaton parallel composition is commutative
+and associative under DES-isomorphism. In addition, it has been
+shown in Ref. [3] that L(G 1×G2) =L(G 1)||L(G 2) and Lm(G1×
+G2) = Lm(G1)||Lm(G2). If we consider two languages L(G) and
+22■Cybersecurit
+y of Discrete Event Systems
+Figure 1.11 Relationship
+between automaton parallel composition and
+language synchronous product
+Lm(G) as the result of applying two mappings LandLmonG
+that map an automaton Gto two subsets in Σ∗, respectively, then
+the following commutative diagram in Figure 1.11 clearly displays
+the relationship between automaton parallel composition and the
+corresponding language synchronous product.
+In a special case, when Σ 1= Σ 2, the parallel composition of G1
+andG2is called meet, denoted as G1∧G2, where L(G 1∧G2) =
+L(G 1)∩L(G 2) and Lm(G1∧G2) =Lm(G1)∩Lm(G2).
+A weighted FSA is a 2-tuple (G = (X, Σ, ξ, x 0, Xm), f), where
+Gis an FSA and f:X×Σ→R+∪ {∞} is the (partial)
+weight function. Given two finite-state weighted automata (G 1=
+(X1,Σ1, ξ1, x1,0, X1,m), f1) and (G 2= (X 2,Σ2, ξ2, x2,0, X2,m), f2), the
+weighted parallel composition of ( G1, f1) and (G 2, f2), denoted as
+(G1, f1)×(G2, f2), is a finite-state weighted automaton ( G=G1×
+G2, f), where f:X1×X2×(Σ1∪Σ2)→R+∪{∞} is defined as follows:
+for any x1∈X1,x2∈X2andσ∈Σ,
+f((x1, x2), σ) :=
+
+g(f1(x1, σ), f2(x2, σ)) if σ∈EnG1(q1)∩EnG2(q2),
+f1(x1, σ) ifσ∈EnG1(q1)\Σ2,
+f2(x2, σ) ifσ∈EnG2(q2)\Σ1,
+undefined otherwise.
+where g: (R+∪ {∞}) ×(R+∪ {∞}) →(R+∪ {∞}) is a function to
+specify the weight of a transition, whose definition is dependent on the
+type of optimization objective and would be specified later.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■23
+Security Relevance Score: 5
+Word Count: 854
+Extracted: 2025-06-13 23:40:25
+
+---
+
+(∀x, x′∈X1)(∀σ∈Σ)ξ1(x, σ) =x′⇐⇒ ξ2(θ(x), σ) =θ(x′).□
+We can check that automaton parallel composition is commutative
+and associative under DES-isomorphism. In addition, it has been
+shown in Ref. [3] that L(G 1×G2) =L(G 1)||L(G 2) and Lm(G1×
+G2) = Lm(G1)||Lm(G2). If we consider two languages L(G) and
+22■Cybersecurit
+y of Discrete Event Systems
+Figure 1.11 Relationship
+between automaton parallel composition and
+language synchronous product
+Lm(G) as the result of applying two mappings LandLmonG
+that map an automaton Gto two subsets in Σ∗, respectively, then
+the following commutative diagram in Figure 1.11 clearly displays
+the relationship between automaton parallel composition and the
+corresponding language synchronous product.
+In a special case, when Σ 1= Σ 2, the parallel composition of G1
+andG2is called meet, denoted as G1∧G2, where L(G 1∧G2) =
+L(G 1)∩L(G 2) and Lm(G1∧G2) =Lm(G1)∩Lm(G2).
+A weighted FSA is a 2-tuple (G = (X, Σ, ξ, x 0, Xm), f), where
+Gis an FSA and f:X×Σ→R+∪ {∞} is the (partial)
+weight function. Given two finite-state weighted automata (G 1=
+(X1,Σ1, ξ1, x1,0, X1,m), f1) and (G 2= (X 2,Σ2, ξ2, x2,0, X2,m), f2), the
+weighted parallel composition of ( G1, f1) and (G 2, f2), denoted as
+(G1, f1)×(G2, f2), is a finite-state weighted automaton ( G=G1×
+G2, f), where f:X1×X2×(Σ1∪Σ2)→R+∪{∞} is defined as follows:
+for any x1∈X1,x2∈X2andσ∈Σ,
+f((x1, x2), σ) :=
+
+g(f1(x1, σ), f2(x2, σ)) if σ∈EnG1(q1)∩EnG2(q2),
+f1(x1, σ) ifσ∈EnG1(q1)\Σ2,
+f2(x2, σ) ifσ∈EnG2(q2)\Σ1,
+undefined otherwise.
+where g: (R+∪ {∞}) ×(R+∪ {∞}) →(R+∪ {∞}) is a function to
+specify the weight of a transition, whose definition is dependent on the
+type of optimization objective and would be specified later.
+Intro
+duction to Cybersecurity in Discrete Event Systems ■23
+1.4.2 Supervisory Control
+Next, we introduce the basic concepts of the Ramadge-Wonham
+supervisory control paradigm [12]. A plant is modeled as an FSA
+G= (X,Σ, δ, x 0, Xm), which generates event outputs that may
+be externally observed. The plant alphabet Σ is partitioned into
+controllable anduncontrollable alphabets, represented by Σ cand Σ uc,
+respectively. Each controllable event σ∈Σcdenotes one plant action
+(or function) that can be disabled externally, typically by a controller,
+whereas each uncontrollable event σ′∈Σucdenotes an action (or
+function) whose occurrence cannot be stopped by the controller. Some
+examples of controllable actions include turning on or off a machine
+in manufacturing, opening or closing a valve in access control, and
+dispatching or retrieving AGVs in robotic operations. Some examples
+of uncontrollable actions include component failures, completion of a
+chemical reaction, sensor output values, or cyber attacks, which are
+beyond the reach of the controller. To capture observability of the
+plant output, the alphabet Σ is also partitioned into observable and
+unobservable alphabets, represented by Σ oand Σ uo, respectively. Each
+observable event is typically associated with an action (or function)
+whose execution can be monitored by the controller via suitable
+sensors, whereas an unobservable event denotes an action (or function)
+whose execution cannot be detected externally by the controller.
+LetPo: Σ∗→Σ∗
+obe the natural projection. A supervisor is
+modeled by a mapping
+V:Po(L(G)) →Γ :={γ⊆Σ|Σuc⊆γ},
+where Γ is the set of all control patterns (orcontrol commands ), and
+each control pattern γ∈Γ must contain all uncontrollable events,
+i.e., Σ uc⊆γ. In the Ramadge-Wonham paradigm, the supervisor
+sends a control pattern to the plant G, instead of a single event
+typically seen in the systems and control literature. This is mainly
+due to the existence of uncontrollable events, which does not allow
+the supervisor to generate a unique control input to the plant G. By
+adopting this nondeterministic execution mechanism, the plant Gis
+expected to choose one event from the control pattern and execute it.
+The details of this nondeterministic choice are not explicitly explained
+in the original Ramadge-Wonham paradigm, but could play a key role
+24■Cybersecurit
+y of Discrete Event Systems
+Figure 1.12 The
+Ramadge-Wonham supervisory control architecture.
+in the networked control frameworks with imperfect communication
+channels [177], and cyber security analysis and control, which will be
+discussed in subsequent chapters.
+The standard Ramadge-Wonham supervisory control architecture
+is depicted in Figure 1.12, where event executions in the plant G
+are assumed to be instantaneous and asynchronous, i.e., at any
+time instant there can be no more than one event being executed.
+Although these assumptions have been relaxed in works on time-
+weighted automata and product systems that allow non-zero durations
+for event occurrences and concurrent event occurrences, respectively, in
+this monograph, we keep these assumptions to make relevant analyses
+and synthesis simple and easily comprehensible.
+If we carefully look at the definition of the supervisory control
+mapping V, we can see that the definition imposes two constraints on
+the supervisor. That is, first of all, the supervisor cannot disable any
+uncontrollable events, which is reflected in the property that Σ uc⊆γ
+for each control pattern γ∈Γ, and secondly, if two strings s, s′∈L(G)
+are observably identical, i.e., Po(s) = Po(s′), then the resulting control
+patterns must be identical, which is reflected in the domain of Vthat
+is defined over Po(L(G)). Under the influence of V, the closed-loop
+system is denoted as V/G. The closed behaviour of V/G is defined as
+follows:
+1.ϵ∈L(V/G),

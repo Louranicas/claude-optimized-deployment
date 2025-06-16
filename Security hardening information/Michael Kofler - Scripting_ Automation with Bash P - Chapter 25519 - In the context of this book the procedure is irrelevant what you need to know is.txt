@@ -1,0 +1,110 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 25519 - In the context of this book, the procedure is irrelevant; what you need to know is that the key files have different names depending on the SSH version.
+Security Relevance Score: 3
+Word Count: 957
+Extracted: 2025-06-13 23:41:06
+
+---
+
+In the context of this book, the procedure is irrelevant; what you need to know is that the key files have different names depending on the SSH version.
+
+
+
+
+Algorithm
+
+
+Private Key
+
+
+Public Key
+
+
+
+
+
+
+RSA
+
+
+id_rsa
+
+
+id_rsa.pub
+
+
+
+
+ECDSA
+
+
+id_ecdsa
+
+
+id_ecdsa.pub
+
+
+
+
+Curve25519
+
+
+id_ed25519
+
+
+id_ed25519.pub
+
+
+
+
+Table 12.1    
+            Names of the Key Files Depending on the Algorithm
+
+Never Share Your Private Key!
+SSH keys are also required by many hosting providers to set up new servers or virtual machines, by Git portals to authenticate Git commands, and so on. Always be sure you only pass or upload the public component of the key (*.pub identifier)—and never the private component!
+The keys that consist of two components do not correspond to our human imagination. The following analogy fits better:
+
+
+The private SSH key is equivalent to a conventional key.
+
+
+The public SSH key, on the other hand, corresponds to a lock.
+
+
+Thus, you have an unlimited supply of locks (copies of the public key) that you can place in any place you can think of, especially on foreign servers. However, you never let the corresponding key—the private key file—out of your hand.
+
+12.4.2    Storing the Public Component of the Key on the Server (macOS and Linux)
+If you work on a Linux or macOS client, the second step is also quite simple: You can use ssh-copy-id to copy the public component of your key to the user directory of the desired account on the server. Then, replace name with the account name (login name) and replace hostname with the computer name.
+$ ssh-copy-id name@hostname  name@hostnames's password: ******** 
+Subsequently, you can try out whether everything has worked. SSH login should now be possible without going through a password request:
+$ ssh name@hostname       (login without password!) 
+12.4.3    Storing the Public Component of the Key on the Server (Windows)
+On Windows, the ssh, scp, and ssh-keygen commands are available, but ssh-copy-id is missing. This omission has a simple reason: ssh-copy-id is not a compiled program, but a Bash script. Thus, a port to Windows would require more effort. Fortunately, not a problem: You can copy the public component of the key manually to the server and add it to the .ssh/authorized_keys file in the home directory of the desired account.
+The following listing summarizes the required commands. I have prefixed the prompt with a string indicating where the command is to be executed: on the local Windows machine or as part of an SSH session on the external host. I assume in this case that the host is running Linux or macOS. You must replace name with the account name; host, with the name of the external host; and id_rsa.pub (or id_ecdsa.pub), with the name for the public part of your key. 
+Windows> scp .ssh/id_rsa.pub name@host:Windows> ssh name@hosthost$ mkdir .sshhost$ touch .ssh/authorized_keyshost$ cat id_rsa.pub >> .ssh/authorized_keyshost$ chmod 700 .sshhost$ chmod 600 .ssh/authorized_keys 
+The mkdir and touch commands are only necessary if the .ssh/authorized_keys file does not yet exist. cat adds the key (which is simply a few lines of text with a hexadecimal code) to the end of this file. The two chmod commands ensure that the access rights for the .ssh directory and the authorized_keys file are correct; otherwise, the file will be ignored by the SSH server.
+If the SSH server runs the SELinux security system, as is common on Fedora, Red Hat, and so on, you must also ensure that the SELinux context is correct:
+host$ restorecon -R -v .ssh 
+Finally, in the terminal of your Windows computer, you must ensure that the SSH connection setup via ssh user@host now works without a password.
+
+
+
+
+
+
+
+
+
+12.5    Example: Uploading Images to a Linux Web Server
+The goal of this first example is to use a script to upload all new or modified images from a local directory via scp to an appropriately prepared directory on a web server.
+12.5.1    Preparatory Measures
+In this example, I assume that the web server is running on Ubuntu Linux and that the image directory is to be embedded in an existing WordPress installation. In principle, of course, the example also works without WordPress and for any other distribution. However, you may need to adjust paths and, for Red Hat-based distributions, make sure that the SELinux context of the image directory is set correctly.
+Image upload should be allowed to multiple users/accounts. For this reason, the imageupload group is created on the server. All users who are allowed to upload will be added to this group.
+In addition, the myimages directory is created on the server. chown assigns this directory to the www-data user (which is the system account of the web server in Debian and Ubuntu) and also to the imageupload group. The chmod command causes all members of the imageupload group to be allowed to work, read, and write in the directory and that newly uploaded files are automatically assigned to this group.
+All commands in the following listing are to be executed on the Linux server and require root privileges on that server (hence, the # prompt character):
+$ sudo -s# addgroup imageupload# usermod -a -G imageupload username1# usermod -a -G imageupload username2# usermod -a -G imageupload username3# mkdir /var/www/html/wordpress/myimages# chown www-data:imageupload /var/www/html/wordpress/myimages# chmod 2775 /var/www/html/wordpress/myimages 
+Finally, I assume that the users (username1, etc.) have uploaded their SSH keys, so scp works without an interactive login. Before you start developing the script, you should test it interactively, for example, as with the following command:
+$ scp tst.jpg username1@hostname:/var/www/html/wordpress/myimages 
+12.5.2    Bash Script
+In this example, I first assume that the local machine is running Linux or macOS. For this case, the Bash script initializes some variables first. If the last-run file does not exist, it will be created in the current directory with a date of early

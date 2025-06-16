@@ -1,0 +1,59 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 4 - # Windows host: File $env:ProgramData\ssh\sshd_config...Subsystem powershell c:/progra~1/powershell/7/pwsh.exe \  -sshs -nologo 
+The easiest way to open the file is to start the editor from the terminal (e.g., using code $env:ProgramData\ssh\sshd_config). This approach will automatically replace $env:ProgramData with the appropriate path on your machine (usually C:\ProgramData).  
+The strange Subsystem setting c:/progra~1/powershell/7/pwsh.exe is the usual path to the PowerShell installation in DOS notation (i.e., with a maximum of 8 plus 3 characters per filename or directory name). This ancient notation is necessary because OpenSSH cannot handle Windows filenames with spaces.
+Possibly the correct path is also c:/progra~2! The following commands show how you can find out the short notation. First, you want to use Get-Command to determine the installation location of PowerShell. Then, you must run cmd.exe to get the short notation of the program directory:
+> (Get-Command pwsh).Path  C:\Program Files (x86)\PowerShell\7\pwsh.exe> cmd /c 'for %X in ("C:\Program Files (x86)") do @echo %~sX'  C:\PROGRA~2 
+Finally, you need to restart the SSH server: 
+> Restart-Service sshd 
+The preparatory work for using a Linux machine for SSH remoting looks quite similar. On Linux, you must also add a Subsystem line to sshd_config. However, instead of /usr/bin/pwsh, you must use the path to PowerShell that is valid in your distribution. You can determine the path via which pwsh.
+# Linux host: File /etc/ssh/sshd_config...Subsystem powershell /usr/bin/pwsh -sshs -nologo 
+The following command restarts the SSH server:
+$ sudo systemctl restart sshd 
+Once you have completed this preparatory work, you can use New-PSSession  to establish an SSH connection and use it as a parameter for Invoke-Command. For the following example, I worked locally on a Windows machine, connecting to the Linux machine on the network and running Get-ChildItem there. You can use Remove-PSSession to terminate the SSH connection.
+> $session = New-PSSession linuxhostname -Username kofler> Invoke-Command -Session $session { Get-ChildItem /etc/*.conf }  Directory: /etc  Mode         LastWriteTime    Length Name  ----         -------------    ------ ----  --r--  02/10/2023    22:08       833 appstream.conf  --r--  01/27/2023    19:44         0 arptables.conf  --r--  12/06/2021    13:27      1438 dhcpcd.conf> Remove-PSSession $session 
+Further configuration tips and application examples can be found at the following links:
+Security Relevance Score: 2
+Word Count: 489
+Extracted: 2025-06-13 23:41:06
+
+---
+
+# Windows host: File $env:ProgramData\ssh\sshd_config...Subsystem powershell c:/progra~1/powershell/7/pwsh.exe \  -sshs -nologo 
+The easiest way to open the file is to start the editor from the terminal (e.g., using code $env:ProgramData\ssh\sshd_config). This approach will automatically replace $env:ProgramData with the appropriate path on your machine (usually C:\ProgramData).  
+The strange Subsystem setting c:/progra~1/powershell/7/pwsh.exe is the usual path to the PowerShell installation in DOS notation (i.e., with a maximum of 8 plus 3 characters per filename or directory name). This ancient notation is necessary because OpenSSH cannot handle Windows filenames with spaces.
+Possibly the correct path is also c:/progra~2! The following commands show how you can find out the short notation. First, you want to use Get-Command to determine the installation location of PowerShell. Then, you must run cmd.exe to get the short notation of the program directory:
+> (Get-Command pwsh).Path  C:\Program Files (x86)\PowerShell\7\pwsh.exe> cmd /c 'for %X in ("C:\Program Files (x86)") do @echo %~sX'  C:\PROGRA~2 
+Finally, you need to restart the SSH server: 
+> Restart-Service sshd 
+The preparatory work for using a Linux machine for SSH remoting looks quite similar. On Linux, you must also add a Subsystem line to sshd_config. However, instead of /usr/bin/pwsh, you must use the path to PowerShell that is valid in your distribution. You can determine the path via which pwsh.
+# Linux host: File /etc/ssh/sshd_config...Subsystem powershell /usr/bin/pwsh -sshs -nologo 
+The following command restarts the SSH server:
+$ sudo systemctl restart sshd 
+Once you have completed this preparatory work, you can use New-PSSession  to establish an SSH connection and use it as a parameter for Invoke-Command. For the following example, I worked locally on a Windows machine, connecting to the Linux machine on the network and running Get-ChildItem there. You can use Remove-PSSession to terminate the SSH connection.
+> $session = New-PSSession linuxhostname -Username kofler> Invoke-Command -Session $session { Get-ChildItem /etc/*.conf }  Directory: /etc  Mode         LastWriteTime    Length Name  ----         -------------    ------ ----  --r--  02/10/2023    22:08       833 appstream.conf  --r--  01/27/2023    19:44         0 arptables.conf  --r--  12/06/2021    13:27      1438 dhcpcd.conf> Remove-PSSession $session 
+Further configuration tips and application examples can be found at the following links:
+
+
+https://learn.microsoft.com/en-us/powershell/scripting/learn/remoting/ssh-remoting-in-powershell-core
+
+
+https://github.com/PowerShell/Win32-OpenSSH/issues/1498
+
+
+
+
+
+
+
+
+
+
+
+12.3    scp and rsync
+scp enables you to copy a file back and forth between a local computer and a remote computer. The following lines summarize the main syntax variants of scp. Unlike the ssh command, the hostname must always be followed by a colon! Remember: The dot (.) is the short notation for the current directory.
+# copy local file to an external host (upload)$ scp filename user@host:$ scp filename user@host:path/newfilename# copy the file of the external host into the local# file system (download)$ scp user@host:filename .$ scp user@host:path/filename .# copy entire directory trees recursively$ scp -r localdir/ user@host:$ scp -r user@host:remotedir . 
+
+Annoying Password Specification
+Even if not included in our listings for space reasons, each scp command must be acknowledged by entering a password, which is, of course, annoying. The solution in this case is to use an SSH key (

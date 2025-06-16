@@ -1,0 +1,82 @@
+{
+  "servers": [
+    {
+      "name": "Desktop Commander",
+      "package": "@wonderwhy-er/desktop-commander",
+      "description": "Terminal command execution and file management",
+      "synergy_score": 9,
+      "capabilities": ["command_execution", "file_management", "cross_platform"],
+      "integration_points": ["src/", "infrastructure/", "deployment/"],
+      "protocols": ["mcp-1.0", "stdio"],
+      "config": {
+        "port": 8672,
+        "timeout": 30,
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Kubernetes MCP",
+      "package": "@manusa/kubernetes-mcp-server", 
+      "description": "Native Kubernetes API integration",
+      "synergy_score": 10,
+      "capabilities": ["k8s_deployment", "resource_management", "cluster_monitoring"],
+      "integration_points": ["k8s/", "monitoring/", "deployment/"],
+      "protocols": ["mcp-1.0", "websocket"],
+      "config": {
+        "port": 8673,
+        "timeout": 60,
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Docker MCP",
+      "package": "@docker/mcp-server",
+      "description": "Container lifecycle management",
+      "synergy_score": 9,
+      "capabilities": ["container_execution", "image_building", "registry_integration"],
+      "integration_points": ["containers/", "docker/", "ci-cd/"],
+      "protocols": ["mcp-1.0", "stdio"],
+      "config": {
+        "port": 8674,
+        "timeout": 45,
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Security Scanner",
+      "package": "mcp-security-scanner",
+      "description": "Continuous security vulnerability scanning",
+      "synergy_score": 10,
+      "capabilities": ["vulnerability_scanning", "security_auditing", "compliance_checking"],
+      "integration_points": ["security/", "monitoring/", "audit/"],
+      "protocols": ["mcp-1.0", "http"],
+      "config": {
+        "port": 8675,
+        "timeout": 30,
+        "environment": "production"
+      }
+    },
+    {
+      "name": "Code Analyzer",
+      "package": "mcp-code-analyzer",
+      "description": "Advanced static code analysis",
+      "synergy_score": 9,
+      "capabilities": ["static_analysis", "code_quality", "technical_debt"],
+      "integration_points": ["src/", "analysis/", "quality/"],
+      "protocols": ["mcp-1.0", "grpc"],
+      "config": {
+        "port": 8676,
+        "timeout": 90,
+        "environment": "production"
+      }
+    }
+  ],
+  "metadata": {
+    "total_servers": 5,
+    "last_updated": "2025-06-13T09:19:00Z",
+    "integration_status": "active",
+    "priority_tier": "high",
+    "generated_by": "Claude↔PALMA Bridge",
+    "version": "1.0.0"
+  }
+}

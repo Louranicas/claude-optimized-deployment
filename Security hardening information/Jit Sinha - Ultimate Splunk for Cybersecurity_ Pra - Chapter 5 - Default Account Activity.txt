@@ -1,0 +1,140 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 5 - Default Account Activity:
+Security Relevance Score: 22
+Word Count: 2323
+Extracted: 2025-06-13 23:40:44
+
+---
+
+Default Account Activity:
+
+Scenario: JIT Inc. is concentrating on monitoring activity related to default and service accounts, which are frequently targets for attackers, in order to strengthen security.
+How It Assists: The activity of default system and service accounts is the focus of the Default Account Activity dashboard. By monitoring this dashboard, JIT Inc. is able to identify any odd activity or patterns of access related to these accounts, which are frequently signs of a breach or misuse.
+
+Implementation and Analysis
+
+Proactive Identification and Response: JIT Inc. is able to proactively identify and respond to security incidents connected to access through the ongoing monitoring of these dashboards.
+Incident Analysis and Investigation: JIT Inc. can use these dashboards for comprehensive analysis and investigation in the event that an access-related security event is detected, which will result in efficient incident resolution.
+Policy Enforcement and Compliance: These dashboards’ insights assist JIT Inc. in upholding regulatory requirements and enforcing access control regulations.
+
+The Access domain dashboards in Splunk ES are essential to JIT Inc.’s upkeep of a secure access environment. JIT Inc. may safeguard the integrity of their systems and data against unauthorized access and potential security breaches by using these dashboards to give them the tools they need to monitor, evaluate, and respond to threats linked to access.
+Endpoint Domain
+Securing gadgets like desktops, laptops, cellphones, and tablets falls within the endpoint security area. Organizations can identify and address possible security issues by tracking and analyzing malware infections, system configuration, system state (CPU utilization, open ports, uptime), patch status and history, and time synchronization data. Organizations should implement antivirus and anti-malware programs, make sure that software and operating systems are patched on time, and keep an eye out for endpoints that have been compromised in order to protect them.
+Key components of ES in the access domain include:
+
+Endpoint protection: Ensuring that the most recent security updates and up-to-date antivirus and anti-malware software are installed on all endpoints.
+Vulnerability management: Performing routine endpoint vulnerability scans and deploying the required patches or updates to reduce the risk of attacker exploitation.
+System configuration and hardening: Adopting best practices for system configurations, such as turning off superfluous services, getting rid of unused software, and giving user accounts the least amount of privilege possible.
+Monitoring and alerting: Continually keeping an eye on endpoint actions, events, and security logs to spot and warn about potentially dangerous activities.
+Incident response: Establishing an effective and efficient incident response procedure to deal with security incidents impacting endpoints.
+Access control: Putting robust access control mechanisms in place to stop illegal access to endpoints, like multi-factor authentication and proper user account management.
+Encryption: Encrypting sensitive data held on endpoints and ensuring secure endpoint-to-server connectivity.
+Asset management: To help identify and fix vulnerable systems, keep an up-to-date inventory of all endpoints, their configurations, software, and patch levels.
+Implementing endpoint detection and response (EDR) solutions will give you sophisticated threat detection, investigation, and response capabilities.
+Security education and training: Informing users on recommended practices for endpoint security, such as secure password management, phishing awareness, and how to report potential security issues.
+
+Endpoint Domain Areas
+This section will discuss dashboards such as the Malware Detection System Center, Time Center, Endpoint Changes, Update Center, and Search. These dashboards help monitor malware activity, system changes, and updates, and provide a temporal analysis of endpoints, aiding in strengthening endpoint security and ensuring system integrity.
+Malware Center
+A crucial tool for spotting potential malware outbreaks in your environment is the Malware Center dashboard. Based on information gathered by Splunk, it shows the current status of malware incidents and how that status varies over time. Using the Malware Search feature on the dashboard, you can directly look for malware events and dig down to the raw events for additional details. Through the Settings menu, you can also configure new data inputs.
+The dashboard provides several filters, including Action, Business Unit, Category, and Time Range, to help you narrow down the events displayed. You can concentrate on particular malware events in your environment using these filters.
+
+
+
+Figure 8.5: Malware Center Dashboard
+The Malware Center dashboard contains several panels, including:
+
+Key Indicators: This panel displays the metrics relevant to the dashboard sources over the past 48 hours, providing a summary of essential information.
+Malware Activity Over Time By Action: This chart shows all detected malware over the specified time, split by action (allowed, blocked, deferred), helping you identify whether too many malware infections are allowed.
+Malware Activity Over Time By Signature: This chart displays all detected malware over the specified time, split by signature (for example, Mal/Packer, LeakTest, EICAR-AV-Test, TROJ_JAVA.BY), allowing you to identify dominant infections in your environment.
+Top Infections: This panel presents a bar chart of the top infections in your environment, split by signature, to help you identify outbreaks related to specific types of malware.
+New Malware - Last 30 Days: This panel shows new malware detected on the network over the last 30 days, including the date and time each malware signature was first detected and the total number of infections. This information is crucial, as first-time infections are most likely to cause outbreaks.
+
+By utilizing the Malware Center dashboard, you can effectively monitor and manage malware threats in your environment, ensuring the security of your organization.
+Malware Search and Operations Dashboard
+The Malware Search dashboard and the Malware Operations dashboard are two essential tools for managing malware threats in your environment.
+Malware Search Dashboard
+This dashboard assists in searching malware-related events based on search filters like Action, Signature, File, Destination, User, and Time Range. It is primarily used for ad-hoc searching of malware data and drilldown searches from the Malware Center dashboard panels. The dashboard doesn’t display results unless it’s opened in response to a drilldown action or you update a filter, select a time range, and click Submit.
+Malware Operations Dashboard
+This dashboard tracks the status of endpoint protection products deployed in your environment. It helps you monitor the overall health of systems and identify systems that need updates or modifications to their endpoint protection software. It also allows you to see how the endpoint protection infrastructure is being administered.
+
+
+
+Figure 8.6: Malware Operations Dashboard
+Filters for the Malware Operations dashboard include Business Unit, Category, and Time Range. The dashboard contains several panels, such as:
+
+Key Indicators: Displays the metrics relevant to the dashboard sources over the past 48 hours, providing summary information.
+Clients by Product Version: Shows a bar chart of the number of clients with a certain version of the endpoint protection product installed.
+Clients by Signature Version: Shows a bar chart of the number of clients with a certain signature version.
+Repeat Infections: Displays repeated malware infections, sortable by signature, destination, action, or number of days.
+Oldest Infections: Shows the oldest malware infections in your environment, sortable by the date of detection, signature, destination host, or days the infection has been active.
+
+By utilizing the Malware Search and Malware Operations dashboards, you can effectively search for malware events, monitor endpoint protection, and manage the overall security of your organization.
+System Center
+Beyond what is given by deployed antivirus or host-based IDS solutions, the System Center dashboard in Splunk offers an overview of endpoint data and statistics. The system setup and performance data for hosts, such as memory, CPU, and disk utilization, are the main topics of this dashboard.
+
+
+
+Figure 8.7: System Center Dashboard
+You can use filters to refine the events displayed on the dashboard, including Destination, Business Unit, Category, and Time Range.
+The panels in the System Center dashboard are as follows:
+
+Operating Systems: This panel shows the various operating systems deployed on the network. It helps you detect operating systems that should not be present in your environment.
+Top-Average CPU Load by System: This panel displays the systems on the network with the highest average CPU load. It can be useful for identifying systems that may require further investigation or optimization.
+Services by System Count: This panel shows the services ordered by the number of systems on which they are present. It provides insights into the distribution of services across your environment.
+Ports By System Count: This panel displays the transport method (for example, TCP) and destination ports, ordered by the number of systems. It helps you understand the network communication patterns within your environment.
+
+Remember that if incorrect or missing data appears in the System Center dashboard, you should ensure that the technology add-ons supplying the data for this dashboard are installed on the full forwarders in your deployment. Technology add-ons containing knowledge needed for parsing data must be installed on the full forwarders.
+Time Center
+Splunk’s Time Center dashboard is made to help discover hosts that are not correctly synchronized with their clocks to help assure data integrity. When a system with a timing difference is found, it can create warnings that let you dive down to the raw data and conduct more research.
+You can use filters to refine the events displayed on the dashboard, such as Show only systems that should timesync, Business Unit, Category, and Time Range.
+
+
+
+Figure 8.8: Time Center Dashboard
+The panels in the Time Center dashboard include:
+
+Time Synchronization Failures: This panel displays a list of systems where time synchronization has failed. It helps you identify the hosts with potential time-related issues.
+Systems Not Time Synching: This panel shows a list of systems that have not synchronized their clocks within the specified time frame. It allows you to monitor and address potential time-related discrepancies in your environment.
+Indexing Time Delay: This panel displays hosts with significant discrepancies between the timestamp the host places on the event and the time the event appears in the Splunk platform. For example, if the timestamp on an event is later than the time that Splunk indexes the event, the host is timestamping events as future events. A large difference (on the order of hours) indicates improper time zone recognition.
+Time Service Start Mode Anomalies: This panel displays hosts that have a time service start mode, such as Manual, that others do not. It helps you identify inconsistencies in the time service start mode configurations across your environment.
+
+By monitoring and addressing time synchronization issues in your environment, you can ensure data integrity and improve the overall reliability of your systems.
+The Endpoint Changes
+You may see trends and uncover potential security incidents by using Splunk’s Endpoint Changes dashboard, which focuses on tracking file-system and registry changes in the endpoints in your environment. For instance, a sharp increase in modifications can be a sign of malware activity or a security breach.
+
+
+
+Figure 8.9: Endpoint Changes Dashboard
+To refine the events displayed on the dashboard, you can use filters such as Business Unit, Category, and Time Range.
+The panels in the Endpoint Changes dashboard include:
+
+Endpoint Changes by Action: This panel summarizes changes over time. A significant increase in changes could suggest the presence of a security incident, such as a virus or worm, causing alterations on the endpoints.
+Endpoint Changes by Type: This panel summarizes the types of changes observed on the endpoints, including file and registry changes. It helps you understand the nature of the changes and identify any unusual activity.
+Changes by System: This panel displays changes summarized by the system. It allows you to identify specific systems with an abnormal number of changes, which could indicate a security issue or unauthorized access.
+Recent Endpoint Changes: This panel shows the most recent endpoint changes observed in your environment. It helps you keep track of the latest alterations and quickly spot any suspicious activity.
+
+By monitoring endpoint changes and staying alert to unexpected trends, you can enhance the security of your environment and quickly respond to potential incidents.
+Update Center and Search
+The Update Center dashboard in Splunk provides valuable insights into the update status of systems in your environment. Regularly reviewing this dashboard helps ensure that systems are updated properly and security risks are minimized.
+
+
+
+Figure 8.10: Update Center Dashboard
+Filters like Show only systems that should update, Destination, Business Unit, Category, and Time Range help refine the events displayed on the dashboard.
+The panels in the Update Center dashboard include:
+
+Key Indicators: Displays the summary information and relevant metrics for the dashboard sources over the past 48 hours.
+Top Systems Needing Updates: A bar chart showing the top systems in your environment that require updates to be installed.
+Top Updates Needed: A bar chart displaying the most critical updates needed across the environment, sorted by signature, such as the KB number.
+Systems Not Updating - Greater Than 30 Days: A list of systems that haven’t been updated for over 30 days, sorted by the number of days since their last update.
+Update Service Start Mode Anomalies: Shows all systems where the update startup task or service is disabled, which can help identify cases where administrators might have forgotten to re-enable the process after a restart.
+
+Patches and updates are highlighted by package or device on the Update Search panel. When troubleshooting problems brought on by a certain patch, it is especially helpful to be able to identify devices that have those patches installed.
+Display only systems that require update. Update Status, Signature, Destination, and Time Range are some of the filters for the Update Search dashboard.
+You can keep your environment secure and stable by routinely checking the Update Center and Update Search dashboards to make sure systems are patched and up to date.
+Hands-On Endpoint Domain Investigation with Splunk ES at JIT Inc.
+Overview
+The technologically astute company JIT Inc. uses Splunk Enterprise Security (ES) to protect its endpoint security domain. Endpoints are frequently the first line of defense and a frequent target for attacks in the constantly changing world of cyber threats. To efficiently manage and look into endpoint-related security issues, JIT Inc. makes use of Splunk ES’s endpoint domain dashboards, which include Malware Detection, System Center, Time Center, Endpoint Changes, Update Center, and Search.
+Scenario Setup

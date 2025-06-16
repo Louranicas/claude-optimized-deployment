@@ -1,0 +1,137 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 623 - No coverage of networking concepts would be complete without touching on the Open Systems Interconnection Model (OSI model). This model is a framework to describe how computer systems can communicate with one another. From the physical layer, which involves cables and electrical signals, all the way to the application layer that the user directly interacts with. It is worth contextually mentioning that transport protocols like TCP and UDP operate at layer 4 (Transport Layer) of the OSI model. While a deep dive into networking concepts is beyond the scope of this book, additional details surrounding Nmap’s interaction with the OSI model will be covered in Chapter 3: Introduction to Attack Surface Mapping:
+Security Relevance Score: 19
+Word Count: 2792
+Extracted: 2025-06-13 23:40:38
+
+---
+
+No coverage of networking concepts would be complete without touching on the Open Systems Interconnection Model (OSI model). This model is a framework to describe how computer systems can communicate with one another. From the physical layer, which involves cables and electrical signals, all the way to the application layer that the user directly interacts with. It is worth contextually mentioning that transport protocols like TCP and UDP operate at layer 4 (Transport Layer) of the OSI model. While a deep dive into networking concepts is beyond the scope of this book, additional details surrounding Nmap’s interaction with the OSI model will be covered in Chapter 3: Introduction to Attack Surface Mapping:
+
+
+
+Figure 1.2: OSI and TCP/IP Model Comparison
+As you begin your journey into penetration testing in general, but especially Nmap, you will naturally begin to memorize a lot of ports and services, which are the most interesting from an attacker’s perspective. We will get into that a lot in later chapters, but for now, just take note of the major differences between TCP and UDP, and make sure you understand the three-way handshake.
+Now that we have touched on the very basics of prerequisite networking knowledge, let’s get down to brass tax and take a look at how Nmap actually functions. Most commonly as a penetration tester, you will be using Nmap on a Linux machine, typically Kali Linux, but there are several other distributions such as Ubuntu, Parrot, and Black Arch, which you may see from time to time. While Kali Linux is likely the most common platform you will see Nmap used on it is worth noting that Nmap can be easily installed and works well on, both Windows and MacOS too. We will go into installing Nmap in the next chapter when we walk through setting up a lab environment to practice the scans and techniques you will learn throughout this book. But for now, let’s look at and discuss some real Nmap scans.
+NOTE: Understanding the three-way handshake is the minimum prerequisite knowledge required for the next several sections. However, understanding additional network fundamentals such as the OSI Model would be beneficial to anyone studying Nmap.
+We will start with a default Nmap scan against http://scanme.nmap.org. This is a website designed specifically to allow people to practice using Nmap and can be freely used as a target for scans that are not overly aggressive. A default scan simply requires the command nmap followed by the target scanme.nmap.org, like so:
+> nmap scanme.nmap.org
+
+
+
+Figure 1.3: Default Nmap Scan Enumerating Ports
+We can see a lot of interesting things in this result. Starting from the top, we can tell that this version of Nmap is version 7.92 as well as the date and time that the scan started. In the next line, we can see that Nmap was able to resolve the hostname to an IP address (45.33.32.156). Next, we can see the results of the scan, which says that 994 TCP ports were closed, with Ports 22, 9929, and 31337 listed as open, with 25, 80, and 5431 listed as filtered. There are a couple of important things to take note of here, the first is that in total 1000 ports were scanned, the default setting of Nmap, if you do not otherwise specify, is to scan the top 1000 most common ports.
+The next thing to clarify is the state of the ports. Nmap has the capability of classifying six distinct states of ports which are important to understand:
+
+
+
+
+
+
+
+Open
+
+
+The port is actively accepting connections
+
+
+
+
+Closed
+
+
+The port is accessible, but there is no application listening on it
+
+
+
+
+Filtered
+
+
+Nmap cannot tell if it is opened or close, often due to a firewall
+
+
+
+
+Unfiltered
+
+
+The port is accessible, but Nmap cannot tell if it is open or closed. This status is rarely seen unless you are doing a very specific type of scanning to map firewall rulesets
+
+
+
+
+Open|Filtered
+
+
+Nmap cannot tell if it is Open or Filtered, possibly because of a lack of response
+
+
+
+
+Closed|Filtered
+
+
+Nmap cannot tell if it is Closed or Filtered
+
+
+
+Table 1.1: Overview of Port States
+Finally, we can see the services that Nmap believes to be running on each port. In Figure 1.3, they are secure shell (SSH), simple mail transfer protocol (SMTP), hypertext transfer protocol (HTTP), park-agent, nping-echo, and Elite.
+While understanding which ports and services are open and potentially open is helpful, we can elicit much more information by adding what are called flags. Flags are additional commands which can be added to the Nmap scan to add, remove, or modify the default functioning. Let’s use a few of these flags to try to enumerate the operating system of the host, as well as the version of each service. To do this, we will use the following syntax:
+> nmap -A scanme.nmap.org
+
+
+
+Figure 1.4: Nmap Scan Enumerating Ports, Services, and Operating System
+As you can see, this time we have a lot more information. We can tell that scanme.nmap.org is utilizing OpenSSH 6.6.1 and Apache version 2.4.7 on an Ubuntu Linux system. You may also notice that this time, the status of port 80 changed from filtered to open as additional information was queried, and Nmap was able to confirm the port was opened. Adding the single “-A” flag provides substantially more information than the default scan. This flag is very useful as it tells Nmap to expand the scope of its scan to include information on the services and the operating system of the endpoint.
+Let’s see if we can get even more detailed information about port 80 on this host. This time we will use three different flags: -sV -v and -p:
+>nmap -sV -v -p 22 scanme.nmap.org
+
+
+
+Figure 1.5: Adding Verbosity and Demonstrating Single Port Scanning
+This scan works a little bit differently; instead of using -A, we have replaced that flag with -sV, which will only enumerate the service versions. Since we already established the system is Ubuntu Linux, we can omit redundantly scanning for the operating system to save time. Next, the -v flag stands for verbosity, it will provide a more verbose output, which in turn may provide additional details on the service. Finally, -p indicates which port(s) to scan. Since the default of Nmap is to scan 1,000 ports, but we are just interested in port 22, we set -p 22 to only target that port.
+In this case, there wasn’t a lot more information on the OpenSSH instance than we had previously gathered, beyond the additional service info. But we have another trick up our sleeve; this time we will include a script called vulners.nse, which will search the vulners.org database and determine if there are any vulnerabilities associated with that version of OpenSSH:
+>nmap -sV -v -p 22 --script vulners.nse scanme.nmap.org
+
+
+
+
+Figure 1.6: Demonstrating vulnerability scanning with Nmap
+Now we have really got something to work with, a list of known vulnerabilities associated with OpenSSH version 6.6.1p1! The major takeaway here is that by adding different arguments, or flags, to your Nmap scan you can transform the functionality from a simple port scanner into much more. In this brief example, we used Nmap to fingerprint a system, enumerate the open ports and services, and perform vulnerability scanning to identify several vulnerabilities associated with one of the services, which may be exploitable very quickly.
+If this seemed a bit overwhelming, don’t worry. One of the questions I get asked all the time is “How do I remember all of those different flags?”; the good news is that you don’t have to memorize them (although in time you certainly will remember your favorites). Instead, you have a few options, the first is to simply remember the -h flag. As in many scripts, this opens the Nmap help menu right in your command line, which will give you the spark notes version of the options available to you:
+> nmap -h
+
+
+
+Figure 1.7: Demonstrating the Nmap help menu
+Another option is to use the Linux utility ‘man’ to open the Nmap reference guide in your terminal. Compared to the Help menu, this is far completer and more detailed, plus using ‘man’ lets you go page by page through all the Nmap documentation:
+>man nmap
+
+
+
+Figure 1.8: Demonstrating the Nmap manual in Linux CLI
+Yet another option is to visit https://nmap.org where you can find the complete documentation on Nmap, detailing what every single flag does.
+While each of these options is extremely helpful in remembering individual flags or understanding one command in particular, the aim of this book is to expand upon the utility of the official documentation. Where, in my opinion, the documentation falls short is that the majority of examples and descriptions focus on using individual features for individual purposes. Throughout this book, you will see numerous flags, all being used together to complement and amplify the capabilities of Nmap, leading to an extremely powerful tool. These combinations are going to be covered throughout the following chapters as we progressively delve into more and more advanced techniques. However, all of the flags used during real-world penetration tests of some of the world’s largest companies will be included in the Appendix of the book in a handy quick-reference guide.
+Using Nmap to Boost Your Career
+The field of cyber security is extremely vast, there are seemingly endless different aspects that one can specialize in. From cryptography to forensics, cloud to threat hunting, and red team to blue team, there are many potential career paths. Every week there will be at least one aspiring cyber professional reaching out on LinkedIn for advice on how to break into the industry, and the conversation usually starts very predictably. They will say they are trying to get a cyber security role but are not having any luck getting interviews. I always reply by asking what area of cyber security they are specifically targeting and studying for. To which nine out of ten times there will be a reply like this: “I’m open to anything! I am focusing on SOC analyst, GRC, threat intelligence, and penetration testing roles.”
+Let’s dig into that sentiment, because at first glance it may make a lot of sense. The person is just trying to get their foot in the door with any cyber security job they can and then figure out what they want to do from there. It makes logical sense, but in practice, it is a very inefficient approach. The skill set you need, both from a technical and soft skills perspective, is very different between all of those roles. For example, a GRC analyst would benefit certainly from a degree of technical acumen; but certainly, would not be expected to poison insecure network traffic, collect hashed credentials of enterprise users, crack those credentials, and take over an Active Directory domain. Whereas if you were applying for a junior penetration testing role, there would almost definitely be a line of questioning surrounding that concept.
+Trying to study everything at once to remain “open to anything” inadvertently results in your knowledge base being a mile wide but only an inch deep. What is far more effective in this field is having a good baseline knowledge of security as a whole, then deep diving into a particular area and really building up your expertise.
+The first certification I did when I got into security was the CompTIA Security+. Talk about a mile wide and an inch deep, there are questions and concepts of all kinds of things within the cyber security domain. It is designed to help people establish that baseline understanding, to be able to speak in the lexicon of cybersecurity, and to help pinpoint what areas to focus on further. There are only a couple of specific tools that tend to get regularly brought up in that exam, and Nmap is one of them.
+If Nmap comes up as a topic in one of the industry’s most prevalent baseline certification exams, where can it help you once you pass? Well, the title of this book should be a dead giveaway. Nmap and network penetration testing go together hand in hand. Because of this, you will see questions about Nmap on exams such as CompTIA Pentest+ and Certified Ethical Hacker (CEH), and you would be likely to rely on Nmap for critical reconnaissance during hands-on exams such as the eJPT or OSCP.
+It is important to note that Nmap is by far the most applicable to network penetration tests. There are many different types of pentests, all of which require a different skill set, different tooling, and different degrees of technical knowledge. There are web application pentests, API pentests, mobile applications pentests, cloud pentests, Internet of Things (IoT) pentests, and so on, Remember that this field is vast, and trying to specialize in everything doesn’t work well.
+This book is going to focus on building your skills in three types of security engagements: network penetration tests, purple teaming, and red teaming. By learning how Nmap can apply to and be used expertly for each of these major types of security tests, you will be able to stand out from the crowd both in technical performance, but also in technical interviews.
+First, consider someone who has been taking the “I’m open to anything” approach and is being interviewed for a network penetration testing role at a security company. They are asked the following question:
+“What are the first steps of active reconnaissance you would take during an internal network pentest?”
+Most people that I have personally posed this question to say something along these lines:
+“I would scan ports and analyze the services that are on those ports with Nmap.”
+While that answer is not technically wrong, it is unremarkable. By the end of this book, you will confidently be able to provide an answer with far more nuance and demonstrate immediately a higher degree of knowledge within that area. After completing this book and the suggested labs that go along with it, you will easily be able to answer the same question with something more along the lines of:
+“The first thing I would do in the active reconnaissance phase would be to begin mapping the attack surface. I would do this by enumerating the ports and services with a custom Nmap scan designed to minimize the noise on the network to avoid immediate detection. In addition to utilizing techniques such as packet fragmentation and reducing the speed of the scan, I would also be sure to scan only the local subnet first. This will allow me to gather information within the subnet I am scanning from without risking detection by going through an intrusion detection system to reach other subnets. I would also customize the targets to avoid scanning the gateway, again to reduce the risk of immediate detection. I would output that scan to an xml file and import it into Legion to get a graphical view of the local subnet, then determine the next steps based on that attack surface.”
+If only bits and pieces of that response really make sense to you at this point, don’t worry. We will be exploring those concepts, and many more, in great detail.
+Using Nmap Legally and Ethically
+It is extremely important to understand the responsibility that comes with utilizing a tool such as Nmap, both inside and outside of a professional setting. Nmap makes connections with the target endpoints and gathers information from those endpoints through a direct connection, which makes it a tool for active reconnaissance. The distinction between active and passive reconnaissance is crucial not only from a knowledge base perspective but also from a legal perspective.
+The main difference between the two is in the connection to the endpoint. Any tool or technique that is ‘actively’ connecting to another system that you do not own introduces legal risk to you. This is why things like rules of engagement (RoE) are so important during professional penetration tests. The RoE is an agreement between the client who owns the systems and the penetration tester regarding what is allowed and what is not allowed to be done to their systems. Without a RoE or another form of written permission to scan the systems, you may (depending on jurisdiction) be breaking the law by utilizing something like Nmap.
+Contrary to gathering information with active means, there are a plethora of passive methods of gathering information available to penetration testers. Many of these would be classified as open-source intelligence (OSINT). Using information that is already publicly available, there are often many ways to conduct reconnaissance without transitioning into active means:
+For example, say we wanted to see what ports are open on a web server, in this case, at 45.33.32.

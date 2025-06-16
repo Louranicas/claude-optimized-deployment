@@ -1,0 +1,44 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 10 - 4, the following Python script also extracts MAC addresses from the *.vbox files that have been passed as parameters:
+$ ./vbox-mac.py vbox/*.vbox     kali-2022.vbox: MAC=080027DB966A  kali-english.vbox: MAC=080027B8A33A                ... 
+Since the *.vbox file uses a namespace, the iter method cannot be used. Instead, the find and findall methods are used, each passing a dictionary with the namespace prefix as an additional parameter:  
+# Sample file vbox-mac.pyimport os, sysimport xml.etree.ElementTree as ETnamesp = { 'ns': 'http://www.virtualbox.org/'}for xmlfile in sys.argv[1:]:    basename = os.path.basename(xmlfile)    root = ET.parse(xmlfile).getroot()    machine = root.find('ns:Machine', namesp)    hardware = machine.find('ns:Hardware', namesp)    network = hardware.find('ns:Network', namesp)    for adapter in network.findall('ns:Adapter', namesp):        if 'MACAddress' in adapter.attrib:            print('%30s: MAC=%s' %              (basename, adapter.attrib['MACAddress']))
+Security Relevance Score: 3
+Word Count: 496
+Extracted: 2025-06-13 23:41:06
+
+---
+
+4, the following Python script also extracts MAC addresses from the *.vbox files that have been passed as parameters:
+$ ./vbox-mac.py vbox/*.vbox     kali-2022.vbox: MAC=080027DB966A  kali-english.vbox: MAC=080027B8A33A                ... 
+Since the *.vbox file uses a namespace, the iter method cannot be used. Instead, the find and findall methods are used, each passing a dictionary with the namespace prefix as an additional parameter:  
+# Sample file vbox-mac.pyimport os, sysimport xml.etree.ElementTree as ETnamesp = { 'ns': 'http://www.virtualbox.org/'}for xmlfile in sys.argv[1:]:    basename = os.path.basename(xmlfile)    root = ET.parse(xmlfile).getroot()    machine = root.find('ns:Machine', namesp)    hardware = machine.find('ns:Hardware', namesp)    network = hardware.find('ns:Network', namesp)    for adapter in network.findall('ns:Adapter', namesp):        if 'MACAddress' in adapter.attrib:            print('%30s: MAC=%s' %              (basename, adapter.attrib['MACAddress'])) 
+
+
+
+
+
+
+
+
+
+10.6    XML in Bash
+Bash can’t handle XML documents any more than it can handle JSON files. A possible workaround in this context is external commands, but these commands must be installed separately. On Linux, you can use the package management tools for your distribution, while on macOS the best choice is to use Homebrew.
+10.6.1    xmllint
+The xmllint command displays XML documents with indentations in a readable way and verifies their compliance with XML syntax rules. If an XML file cannot be edited at all, a short test using xmllint is appropriate. On macOS, the command is installed by default, but on Linux, the command is hidden in different packages, depending on the distribution:
+$ sudo apt install libxml2-utils   (Debian, Ubuntu)$ sudo dnf install libxml2         (Fedora, RHEL)$ yay -yS libxml2                  (Arch Linux) 
+In the simplest case, you pass the filename of an XML file to xmllint. The command verifies the XML syntax and either returns an error message or outputs the file unchanged.
+$ xmllint countries-malformed.xml  countries-malformed.xml:6: parser error: Opening and ending tag    mismatch: country line 4 and countries </countries>  countries-malformed.xml:7: parser error : Premature end of data    in tag country line 4 
+Optionally, you can also validate an XML file against a document type definition (DTD) or XML schema definition (XSD). You can correctly indent syntactically correct XML files with --format to improve readability:
+$ xmllint --format countries-unformatted.xml  <?xml version="1.0"?>  <countries>    <country code="AF" iso="4">Afghanistan</country>    ... 
+Finally, you can also process XPath expressions using xmllint, as in the following example:
+$ xmllint --xpath '/*/MapTZ[57]/@WinID' timezone-mapping.xml  WinID="Mountain Standard Time" 
+To use xmllint as a filter, you must pass a single minus sign as a parameter, for example, in the following code:
+$ curl -s <url> | xmllint - --format 
+
+Not Namespace Compatible
+XPath expressions in xmllint can only be analyzed correctly if the XML document does not use namespaces. Although you can find instructions on the internet on how to work around this limitation, using another tool is a better approach. One option is the xmlstarlet, which I’ll describe next.
+
+10.6.2    XMLStarlet
+On Linux and macOS, the xmlstarlet package provides the xmlstarlet command or simply xml (e.g., on Arch Linux). This package provides significantly more editing options than xmllint, especially for modifying XML documents. However, the project died down, and the current version has not been updated since

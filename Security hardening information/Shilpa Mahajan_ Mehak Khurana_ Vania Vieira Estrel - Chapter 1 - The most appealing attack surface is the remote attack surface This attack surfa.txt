@@ -1,0 +1,178 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 1 - The most appealing attack surface is the remote attack surface. This attack surface is a categorization for attack vectors in which it is not necessary for the malicious attacker to be close to the victim [14]. Rather, attacks are carried out through the network, most often the Internet. Figure 6.1 shows how several characteristics further categorize this surface into separate categories. Depending on how each endpoint is protected, different access controls are needed to access these attack surfaces [15].
+Security Relevance Score: 12
+Word Count: 4061
+Extracted: 2025-06-13 23:40:31
+
+---
+
+The most appealing attack surface is the remote attack surface. This attack surface is a categorization for attack vectors in which it is not necessary for the malicious attacker to be close to the victim [14]. Rather, attacks are carried out through the network, most often the Internet. Figure 6.1 shows how several characteristics further categorize this surface into separate categories. Depending on how each endpoint is protected, different access controls are needed to access these attack surfaces [15].
+
+
+Figure 6.1 The Android attack surface.
+
+
+Escalating privileges, either under the root or system user or in the kernel space, is the obvious next step once an attacker has successfully executed arbitrary code on a device. The physical attack surfaces are where attacks that necessitate physically accessing a device are made. As many parties engaged in manufacturing, Android devices usually make significant modifications as a part of their integration process, the term “third‐party modification attack surface” refers to the potentially vulnerable endpoints linked with the modified components of an Android application [16].
+On top of this complexity, a review of Android’s security must additionally include a number of security issues specific to Android, including fragmentation, malware, user behavior, and compartmentalization [17]. The term “fragmentation problem” describes the difficulty brought on by the several Android versions that have been changed and are being used on various devices. The increasing rise in harmful program creation and complexity that targets the Android OS is a concern for malware advocates [18]. The selection of management tools is a problem since it must optimize IT efficiency while avoiding features that overlap or clash with one another. The user behavior issue is the requirement to motivate users to follow appropriate security rules and procedures. The term compartmentalization, which divides a single device into many personal settings, lastly highlights the difficulty of offering dual personal and mobile virtualization [19].
+
+
+6.1.3 Android Malware
+Repackaging, update attacks, and drive‐by downloads are the three major social engineering‐based tactics for installing malware. Repackaging is the most widely utilized technique by malware developers to insert harmful payloads into software. Basically, malware writers obtain an application file (APK), decompile it, include harmful payloads, recompile, and then publish the modified application to a legitimate or unofficial market. By being persuaded to download and install these malicious software packages, users may become exposed. In the updated attack, the harmful payloads are only included in an update component that will retrieve or download them during runtime rather than the entire payload [20]. It is stealthier than malware installation methods that explicitly contain the complete harmful payload since the malicious payload is in the “updated” program and not the original application. The third method converts the standard drive‐by download attack vector for use in Android environments. They are simply luring consumers to download “interesting” or “feature‐rich” programs, though still not directly exploiting mobile browser vulnerabilities [21].
+
+
+Figure 6.2 Static feature extraction and detection.
+
+
+
+
+
+6.2 Malware Analysis Techniques
+This section describes in detail the techniques used to analyze malware in Android devices. Android Malware Detection Techniques can be broadly classified into three categories: static analysis, dynamic analysis, and hybrid analysis.
+
+6.2.1 Static Analysis
+The term “static analysis method” describes the process of studying source code or executable files even without having to run any applications. There are a number of features, including API calls and permissions for static analysis [2]. Figure 6.2 depicts the feature extraction techniques.
+Static analysis includes a wide variety of techniques that attempting to ascertain a software’s runtime behavior before execution. Naturally, the goal in a security environment is to weed before they are installed and run, programs are screened for potential malware. Static analysis identifies an application as malicious based on an inflated estimate of its runtime actions. Therefore, static analysis techniques increase accurate detection and reduce the likelihood of false positives [12].
+Over the 10‐year study timeframe, many solutions have been developed to address the problem of malware detection using a static analysis approach. These tools are separated into three groups for the sake of this analysis:
+
+Methods relying on code analysis, like bytecode analysis after decompilation,
+Methods relying on API calls and permissions, and
+Other methods that are a combination of several factors for detection.
+
+The majority of malware detection techniques use a variety of variables and defy simple classification.
+
+6.2.1.1 Code Analysis Based Tools
+Static analysis’s first subcategory focuses on analyzing an application code, at the bytecode or source level. We list and analyze the most noteworthy tools that use this method.
+
+
+6.2.1.2 Code Clone Detection Method
+A code clone detector used to spot known malicious Android applications was researched by Chen et al. They examined the applications’ source code using static analysis.
+The Dalvik virtual machine’s bytecode was initially converted to JVM bytecode by the authors using dex2jar. The Java decompiler JD‐CORE was then used to decompile the Java bytecode. This made it possible to detect clones in higher‐level code.
+This technique employs NiCad, an open‐source tool that groups code files based on their syntactic similarities and finds related code segments (functions, classes, blocks, etc.) among sets of code files. This method was able to successfully train NiCad to carry out malware detection by employing a training set made up of well‐known benign and malicious apps.
+This method makes it possible to discover malicious apps that are a part of specific malware families quickly and accurately. In fact, 95% of previously identified malware was found utilizing a dataset comprising 1170 malware‐infected apps from 19 different malware families [8].
+TinyDroid is a malware detection tool that uses static malware analysis. It first abstracts source code and then uses machine learning.
+Every app on TinyDroid is split into one of two categories: benign or malicious. Using a program named Apktool, the APK of the app is decompiled into Smali code (Figure 6.3). Smali can be thought of as a more sophisticated interpretation of Dalvik bytecode, that TinyDroid then further abstracts to symbolic instructions. The classification process used by this method subsequently computes the number of n‐grams of abstract instructions present in the code. As a result, a collection of n‐grams is calculated for every app under evaluation and contrasted with a collection of n‐grams that were taken from apps that were either known to be benign or malicious. The collection of n‐grams which best describe an app’s behavior if it is determined to be malicious will be uploaded to TinyDroid’s database of harmful app n‐grams.
+
+
+Figure 6.3 APK decompilation process.
+
+
+According to test results, TinyDroid displays a high degree of accuracy. In fact, whereas many antivirus programs have detection rates around 50%, TinyDroid’s detection rate (recall) may reach up to 95.6%, outperforming 7 of the 9‐antivirus programs it was compared to [9].
+NSDroid analyses the call graphs of applications to identify if it resemble known malware since malware groups have similar code.
+Using androgexf, first, the tool extracts the call graph of the apps. It then creates a signature for every app to further abstract this information. To produce this signature, do the following:
+In order to identify which sensitive API calls are made by each method (i.e., every node that belongs to the function graph), NSDroid first builds a label from the function graph. This label logs two attributes, the sensitive API calls and the type of API calls called by the function. It does so by using a predefined set of 15 sensitive API call categories. Thus, each node is labeled with a 15‐bit vector, and this information is registered with a single bit. To produce the signature for this node, each node’s label is XORed with those of all of its neighbors (callers and callees). This label serves as the foundation for the detection of code similarity. The classification of four distinct malware datasets totaling 32,190 programs is then carried out using three different classifiers, decision tree, random forest, and support vector machine (SVM), of which the latter produced the best results. The advantage of this scheme is its tremendous efficiency, which allows it to analyze 32,190 apps in just over 90 seconds. The technique is also very efficient, achieving 100% precision, recall, and accuracy across a range of malware types [18].
+The objective of Zhou et al.’s systematic detection and analysis of repackaged apps. They developed the DroidMOSS framework for measuring application similarity, which uses a fuzzy hash method to efficiently identify an application’s behavior changes. It doesn’t require access to source code because it works directly with the Dalvik bytecode. Three main steps make up how DroidMOSS works. The first step is to extract the set of instructions and author information from each application. It is possible to recognize each program separately thanks to these two qualities. Creating a fingerprint for every application in the second phase greatly reduces the length of the sequence. In the third step, which is based on the application fingerprint, the source of the applications is determined and the resemblance between pairs of applications from the same source is measured to identify recompiled applications. This technique depends on the original applications being present in the data collection that relate to them. DroidMOSS may overlook some repackaged programs if the testing database is insufficient. Since the prototype used a white‐list strategy, it might not be able to identify potentially harmful alterations to shared libraries or advertising SDKs4 [16].
+Finally, like with several other processes mentioned in this section, DroidMoss’ evaluation is based on the entirety of the code found in every part of the program. Activities, services, content providers, and broadcast receivers are the four different categories of Android components. While this may seem exhaustive, recent research suggests that malware creators insert dangerous code in the applications’ background‐running components [18].
+
+
+6.2.1.3 Methods Based on API Calls and Permissions
+This static analysis technique focuses on the examination of the application’s numerous API calls and the permissions it requests in the source code.
+
+
+6.2.1.4 Analysis of API Function Calls and Permissions
+This method first looks at the AndroidManifest.xml file to determine the permissions that the application uses. The authors point out that since some apps ask for more permissions than necessary, this may potentially be an overestimate of the permissions that the app uses. In order to build a set of API calls which need permissions and really appear in the app’s code, the writers decompile the.dex bytecode into Java source code. The API and permissions utilized in the code are then arranged into feature vectors, and three different machine learning algorithms – Random Forest, SVMs, and Artificial Neural Networks – are employed to classify the data (RNA) [20].
+The detection using API method calls performs better than the detection using only permissions, according to experimental results on a dataset with 6260 applications. The approach has a significant processing overhead. Depending on the machine learning algorithm, it achieves an accuracy between 81.68% and 94.41%.
+
+
+6.2.1.5 Risk Signals‐Based Detection
+This method seeks to enhance the detection method currently based on permissions by using an alarm system that considers the permissions requested by the app and the permissions that other apps of the same category request. If an app requests a permission and the majority of other apps with related features do the same, it infers that the request is likely necessary for the intended functionality [8].
+In order to reduce the cognitive load on users who might not be familiar with the technical workings of the operating system’s security architecture, Android consciously tries to restrict the amount of permissions. The efficiency of the strategy under discussion would be enhanced by a more detailed set of permissions, which would also result in more informative alarm messages. On applying a classification using SVMs to a dataset with 158,062 applications obtained through Contagio 5 malware dump repository, this method was able to achieve a detection rate (recall) of 80.99% [1].
+
+
+6.2.1.6 Other Methods
+In a third category, we finally list static analysis tools that do not really come under API or source code examination.
+DREBIN is another tool that uses the outcomes of the application’s static analysis to detect malware.
+The feature set of DREBIN seems to be among the most comprehensive of all the tools examined. It uses information from the decompiled .dex file (which includes chosen network addresses and API call) and the manifest file (which includes permissions, components, and requested hardware) to construct a total of 8 feature sets for each app. Without the need for intricate static analysis like data flow analysis, the full feature set is built in linear time. SVMs are then used for detection. Training is not carried out on the device itself to preserve a minimal footprint on the end device. The classifier is trained offline, then the user is presented with the sole model that was produced [6].
+DREBIN’s classifier is trained to detect the traits responsible for an application to be classified as malware. The Android Malware Genome Project’s 5560 malware samples and 131,611 safe apps from the Google Play Store and two additional marketplaces were used to test DREBIN. It outperformed numerous antivirus programs on the same dataset, with a successful detection of 93% with just 1% false positives [11].
+The DroidRanger application can identify the specific characteristics that malware from different harmful families share. It gathers Android applications from already‐established Android markets using a crawler and stores them in a central log or repository. DroidRanger extracts the essential attributes of each gathered application (author information, requested permissions, etc.) and stores them in a centralized database.
+This tool uses two different detecting methods. The first is dependent on a behavioral footprint based on application permissions. The second method is based on a heuristic assessment of the application’s behavior inferred through its manifest file and bytecode. Then, if any suspect applications are actually acting maliciously while in use, they are executed and observed. If yes, the first detection process database will be expanded to include the corresponding behavioral fingerprint [10].
+The top downloaded apps from 2011 were used to test this study, and the results were promising. With false negative frequency of 4.2%, DroidRanger only handles free applications and five Android stores [2].
+
+
+
+6.2.2 Dynamic Analysis
+An option for malware detection that doesn’t involve executing the program in order to see how it behaves and how it affects its surroundings is dynamic analysis. It is later compared to static analysis since it only picks up vulnerabilities as they are about to happen. Due to the fact that it only takes into account one possible program execution and not all possible program executions, it also has coverage restrictions [19].
+Dynamic analysis tools are divided into four major groups based on the element used for detection:
+
+Tools relying on system calls
+Tools relying on information of system (CPU usage or network communication)
+Tools relying on information of user space (e.g., API calls)
+Other methods.
+
+
+6.2.2.1 System Call Monitoring
+This dynamic analysis method uses the study of system calls to detect suspicious system calls that pose potential threats. Following methods are used to detect such system calls (Figure 6.4):
+
+
+6.2.2.2 Processing of Natural Language
+This detection technique, based on examining the Android application’s system calls through processing of natural language, is widely used in dynamic analysis. Using sequences of system calls from good and bad applications, tools that employ this technique train two classifiers. The long short‐term memory (LSTM) model serves as the foundation for both of these classifiers. In natural language, a system call is viewed as a “word” in their paradigm, and a series of system calls as a sentence. In both the legitimate and the malicious models, a probability is assigned by LSTM to the occurrence of a sentence. Then, if an execution has a higher likelihood of occurring in the malicious model, it is classified as malicious.
+
+
+Figure 6.4 Suspicious API calls.
+
+
+When the duration of system call sequences was varied from 50 to 50000 during testing of the model, the tool was able to attain an accuracy rate of 93.7% and 9.3% false positives [14].
+
+
+6.2.2.3 System Call Logs
+In this method, a dataset of malicious and normal android applications is employed. Prior to recording the system call, the applications are initially run in a regulated setting for a predetermined amount of time [5]. Each application is then given a Boolean vector. This specifies whether each of 18 more pertinent system calls exists along its execution after the less statistically significant system calls are discarded. An algorithm for machine learning is then fed this data. The Random Forest algorithm, the Naive Bayes algorithm, and the stochastic descent gradient algorithm are the three learning techniques used in this method. Finally, the tool classifies an unknown application as dangerous or benign using this dataset [3].
+It should be emphasized that if the dangerous behavior does not appear during the training period, a malware could potentially circumvent this detection system. This method automatically picks the system call sequences most likely to be predictive of malware detection from the extremely enormous number of possible system call sequences. It categorizes the execution traces as malware or not based on the repetition of the sequences of the chosen system calls. Using this strategy, this method was able to detect 1000 benign apps and 1000 malicious ones with a rate of accuracy of 97% [11].
+
+
+6.2.2.4 Crowdroid
+Crowdroid is a program created by Iker et al. that uses the advantages of crowdsourcing to find viruses in repackaged apps. Crowdroid employs a tracing tool called Strace, which exists on the majority of Linux distributions. It tracks system calls that running apps make to the Linux kernel on the end‐users devices. After that, this data is stored in a server [13].
+With the server, for each pair of application and user, a feature vector is produced which counts how many times the 250 system calls are invoked. The k‐means algorithm is then used to perform clustering on this data in order to distinguish amongst apps that, despite sharing the same name and identifier, demonstrate diverse behaviors. Naturally, as more people use Crowdroid, more data will be sent to the server, increasing the accuracy and precision of detection. Crowdroid tested well against three types of malware, including one created specifically for this test by the paper’s authors. Its detection rates ranged from 85% to 100%.
+
+
+
+6.2.3 Monitoring of System‐Level Behaviors
+In order to identify malware, this group of dynamic techniques emphasizes on system‐level data except the system calls. System calls are analyzed by several of these methods as well [15].
+EnDroid is a malware detection system that Feng et al. suggested. It is based on several kinds of dynamic behavior at the system level. To remove pointless features and retrieve crucial features from the behavior, EnDroid uses a feature selection method. The learning phase and the detecting phase are the two stages of the EnDroid process. By observing input/output processes, the learning phase entails extracting the dynamic behavioral traits of a certain application. The authors tracked ten different application action categories, including file activities, network operations, and cryptography operations [7].
+Each of these features is handled as a separate functionality, with a view to producing a feature vector. EnDroid trains many elementary classifiers using the feature vectors produced by both malicious and benign applications as input. Using these fundamental classifiers’ forecast probability, it creates a final categorization model for each application by utilizing an extra classifier. Then, this classification model is forwarded to the phase of detection. EnDroid extracts the dynamic behavioral features of an unidentified application during the subsequent detection phase and creates a feature vector for it. The classification model can determine whether the application is appropriate based on this vector. According to experimental findings, this method successfully identified 97.97% of malware and a false positive rate of 1.85% [2].
+
+
+6.2.4 Monitoring of User‐Space Level Behaviors
+This method looks for malicious apps using data acquired at the user‐space level. This often includes call data at the API level, as opposed to the system level.
+
+6.2.4.1 RepassDroid
+Semantic and syntactic analysis are used by the tool RepassDroid to automatically identify malicious Android applications.
+RepassDroid synthesizes the API used in the program as a semantic function and the necessary permissions as a syntactic function to examine the Android application. The next step is to automatically identify whether an application is malicious or benign using learning.
+The architecture of RepassDroid is built on two basic building blocks:
+
+The module for feature extraction. Each application’s call graph is created by the feature extraction module from a particular Android application using Flow-Droid. The features of the application (APIs and permissions) are then extracted from this graph to create feature vectors.
+The Module for Classifiers. The classification model was created by the authors using the Weka library and the feature vectors.
+
+Applications that were previously unknown, after being categorized as either malicious or benign, are combined into the model [4].
+
+
+6.2.4.2 Malware Detection Using Dynamically Generated Data and Machine Learning
+A malware detection method for Android smartphones was proposed by Wen et al. and is based on the SVM automated learning classifier. Their technology is designed specifically for this use and runs straight on the user’s smartphone. There are two main modules in the tool. Every time a new app is downloaded, the client module checks an existing database with known malicious apps (identified using their corresponding MD5 hash). Users are so forewarned if they try to install a malicious app. Otherwise, the server will get the app and process it further [16]. The feature extraction module on the server module uses both static and dynamic analysis to extract the features of the application. Permissions, intentions, and API are among the static features. The software is then run in an isolated environment to collect dynamic features like CPU usage, battery usage, and the number of processes that are active. After that, a feature selection module receives the features and filters out any duplicate features [19] (Figure 6.5).
+
+
+Figure 6.5 Dynamic feature extraction and detection.
+
+
+
+
+
+
+6.3 Hybrid Analysis
+The development of hybrid analysis makes use of both dynamic and static features and it improves the efficiency of learning algorithms. To achieve high reliability in the hybrid analysis, some studies offered multi‐classification strategies. Additionally, Publisher ID, Java package name, API call, class structure, crypto operations, intent receivers, and permission are examples of static aspects. Dynamic features include crypto operations, file operations, and network activity. The APK file extracted functionalities from Androidmanifest.xml and static components from classes.dex files. In hybrid analysis, static and dynamic features are combined and the purpose of these features is to identify malicious programs [18] (Figure 6.6).
+
+
+6.4 Result
+While Static Analysis comprises techniques that make code easy to extract with low computational power required, it is also susceptible to imitation attacks and code obfuscation. These techniques have low accuracy and high false positive rates. On the other hand, dynamic analysis gives high accuracy but at the cost of higher computational power and resources. It is difficult to handle multiple features in the case of dynamic analysis along with a higher time complexity. Comparing hybrid analysis to static and dynamic analysis, the primary advantages are that hybrid analysis performs with the highest accuracy. It also poses some challenges that include high time complexity, complicated framework, and high resource utilization.
+
+
+Figure 6.6 Hybrid malware analysis.
+
+
+
+
+6.5 Conclusion
+Malware detection techniques are classified largely on their nature. Due to changing nature of threats robust detection techniques are highly required. Machine learning methods can also identify unknown malware in related families. Malware are classified into their respective family based on their features. The survey provides insight about risks associated in malicious code along with tools and techniques suitable to deal with respective malware. This chapter examined a wide range of techniques for detecting and analyzing Android malware, revealing commonalities in how these mechanisms are emerging. The ability of Android malware to obstruct research and evade detection, including deep learning and machine learning techniques, was also covered in this chapter. This chapter evaluated the efficacy of current strategies for studying malware and for detection. In contrast to earlier surveys, which typically focused exclusively on mobile attacks, this chapter introduces static, dynamic, and hybrid analytic methodologies as well as suggested algorithms.
+
+
+References
+
+1 Kumar, R., Zhang, X., Khan, R. et al. (2019). Research on data mining of permission‐induced risk for android IoT devices. Applied Sciences 9:

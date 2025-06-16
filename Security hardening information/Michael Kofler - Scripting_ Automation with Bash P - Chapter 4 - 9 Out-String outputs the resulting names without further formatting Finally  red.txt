@@ -1,0 +1,155 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 4 - 9.) Out-String outputs the resulting names without further formatting. Finally, > redirects all output to the files.txt file. This file then contains a file or directory name on each line.
+> Get-ChildItem |  ForEach-Object {$_.Name} |  Out-String > files.txt 
+4.8.5    No Input Redirection
+Many shells also provide the option of input redirection via <. On Linux, command1 | command2 is therefore equivalent to the following command sequence (apart from the fact that the detour via a file costs storage space and time):
+$ command1 > file.txt$ command2 < file.txt 
+Unfortunately, PowerShell does not support < because PowerShell commands expect objects most of the time. But if you first write the result of a PowerShell command into a text file via command1 > file.txt, the object information will be lost. The text file contains only formatted text and subsequently cannot serve as a basis for processing the data in another command.
+The lack of input redirection becomes problematic when you use commands from the Linux world that require just input redirection. For example, you can make a backup of a database using mysqldump and restore it later via mysql. On Linux and macOS, the following code would work:
+$ mysqldump dbname > backup.sql   # Create backup$ mysql dbname  < backup.sql      # Restore database 
+In PowerShell, only the first command works, not the second. However, a workaround exists for this problem. For this purpose, run Get-Content to output the contents of the backup.sql file. Then, redirect this output to mysql by using |, as in the following example:
+> Get-Content backup.sql | mysql dbname
+Security Relevance Score: 2
+Word Count: 2412
+Extracted: 2025-06-13 23:41:06
+
+---
+
+9.) Out-String outputs the resulting names without further formatting. Finally, > redirects all output to the files.txt file. This file then contains a file or directory name on each line.
+> Get-ChildItem |  ForEach-Object {$_.Name} |  Out-String > files.txt 
+4.8.5    No Input Redirection
+Many shells also provide the option of input redirection via <. On Linux, command1 | command2 is therefore equivalent to the following command sequence (apart from the fact that the detour via a file costs storage space and time):
+$ command1 > file.txt$ command2 < file.txt 
+Unfortunately, PowerShell does not support < because PowerShell commands expect objects most of the time. But if you first write the result of a PowerShell command into a text file via command1 > file.txt, the object information will be lost. The text file contains only formatted text and subsequently cannot serve as a basis for processing the data in another command.
+The lack of input redirection becomes problematic when you use commands from the Linux world that require just input redirection. For example, you can make a backup of a database using mysqldump and restore it later via mysql. On Linux and macOS, the following code would work:
+$ mysqldump dbname > backup.sql   # Create backup$ mysql dbname  < backup.sql      # Restore database 
+In PowerShell, only the first command works, not the second. However, a workaround exists for this problem. For this purpose, run Get-Content to output the contents of the backup.sql file. Then, redirect this output to mysql by using |, as in the following example:
+> Get-Content backup.sql | mysql dbname 
+
+
+
+
+
+
+
+
+
+4.9    Loops
+Often, you need to process several elements one after the other in a script, such as each line of a text file, each file of a directory, and so on. Loops, which are available in several syntax variants in PowerShell, can help you with this process. In practice, the most important loop is foreach($item in $data). This loop inserts all elements from $data (i.e., a variable with an array or other enumeration) in sequence into the $item loop variable and processes them. In the following example, the string in $Text is split into words by using Split. These words are then output in a loop on the screen.
+> $Text = "I love PowerShell!"> foreach ($Word in $Text.Split(" ")) {      $Word  }  I  love  PowerShell! 
+4.9.1    ForEach-Object
+With ForEach-Object, PowerShell provides an alternative approach. The main difference is that ForEach-Object expects the objects to be processed as input. This expectation makes the command particularly suitable for pipes. Within the loop construct, you can access the currently active object via $_. The following loop is equivalent to the previous example:
+$Text.Split(" ") | ForEach-Object { $_ } 
+If you want to output the length of all words, you should use the following code:
+> $Text.Split(" ") | % { Write-Host $_.Length }  1  4  11 
+For this relatively common case (i.e., the application of a property or a method to the loop variable), there is a short notation available:
+> $Text.Split(" ") | ForEach-Object Length  1  4  11 
+Finally, because the ForEach-Object keyword is needed so often, it can be shortened even further using %: 
+> $Text.Split(" ") | % ToUpper()  I  LOVE  POWERSHELL! 
+When you combine ForEach-Object with the -Parallel option, it runs the statements in the loop (that is, the code between the curly brackets) in parallel threads. This approach can save a lot of time on powerful computers with many CPU cores. This parallel processing is the case in the following example: Get-ChildItem determines all *.bmp files in the current directory. Compress-Archive compresses each image into a file named <filename.bmp>.zip. 
+> Get-ChildItem *.bmp | ForEach-Object -Parallel {      Compress-Archive -DestinationPath "$_.zip" $_  } 
+4.9.2    for, while, do-while, and do-until
+PowerShell also uses the loop constructs known from other programming languages, namely, for, while, do-while, and do-until. This kind of looping is rather uncommon in shell scripts, which is why I only provide a short example of each without further explanation. If necessary, you can refer to the documentation.
+> for ($i=0; $i -lt 5; $i++) { $i }  # Output: 0, 1, ..., 4> $i=0> while ($i -lt 5) {      Write-Host $i      $i++  }  # Output again: 0, 1, ..., 4> $i=0> do {      Write-Host $i      $i++  } while ($i -lt 5)  # Output again: 0, 1, ..., 4> $i=0> do {      Write-Host $i      $i++  } until ($i -eq 5)  # Output yet again: 0, 1, ..., 4 
+
+
+
+
+
+
+
+
+
+4.10    Branches
+A common scenario is that you want to execute code only when a certain condition is met. Depending on the state of a variable, different branches of your code should be executed. The easiest way to create branches is to use an if-elseif-else statement. Any number of elseif blocks are allowed. Both elseif and else are optional. 
+if (condition1) {    statements} elseif (condition2) {    statements} else {    statements} 
+
+Blank Character
+The notations if(condition) and if (condition) are both syntactically valid. The more common and more readable version is the one that uses a space before the parentheses. This advice also applies to for, foreach, while, until, and so on.
+Note, however, that for functions and methods you cannot have a space between the names and the opening parenthesis!
+
+The following sample script first uses Get-CimInstance to create an array of Win32_LogicalDisk objects that describe the file systems of the current computer. The CIM standard helps you manage IT resources and is supported by Microsoft through the WMI API. In our example, we are only interested in type 3 disks (local disks). For each file system on a hard disk or SSD, the script calculates the free space as a percent and in gigabytes.    
+# Sample file Get-DiskFree.ps1$Drives = Get-CimInstance -ClassName Win32_LogicalDiskforeach ($Drive in $Drives) {    if ($Drive.DriveType -eq 3) {        $PercentageFree = 1.0 * $Drive.FreeSpace / $Drive.Size        $GBFree = $Drive.FreeSpace / 1000000000        "{0:S} {1:P1}  / {2,5:F0} GB free" -f `            $Drive.DeviceId, $PercentageFree, $GBFree    }} 
+To format the output, the script uses the -f format operator, in the following structure: 
+"format code" -f value1, value2, value3, ... 
+The string with the formatting statements is followed by the -f operator and then an array of values to be processed. Within the formatting string, {0} is replaced by the first value, {1} by the second value, and so on. The number can be followed by other formatting codes. In this example, I have used the following codes:
+
+
+{0:S}: Output the first value of the following array unchanged as a string
+
+
+{1:P1}: Format the second value as a percentage with one decimal place
+
+
+{2,5:F0}: Output third value as a float without decimal places (F0) right-aligned with five digits
+
+
+You can find good documentation on the allowed format codes, which PowerShell inherits from the .NET framework like so much else, at https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings.
+The script then returns the following output, for example:
+> .\Get-DiskFree.ps1  C: 84.2 %  /   180 GB free  F: 98.3 %  /    15 GB free 
+This script was supposed to illustrate the use of if. However, I will not hide from you that this code can also be formulated quite differently. In the following lines, Where-Object filters out the desired file systems from the array. ForEach processes the remaining results, accessing the current element through $_ instead of the loop variable $Drive. If you are familiar with functional programming—no matter which language—this solution will probably look more elegant to you:
+$Drives = Get-CimInstance -ClassName Win32_LogicalDisk$Drives | Where-Object -Property DriveType -eq 3 | ForEach {    $PercentageFree = 1.0 * $_.FreeSpace / $_.Size    $GBFree = $_.FreeSpace / 1000000000    "{0:S} {1:P1}  /  {2,5:F0} GB free" -f `         $_.DeviceId, $PercentageFree, $GBFree} 
+4.10.1    Case Distinctions Using switch
+switch can replace multiple if statements if different cases are to be processed for an expression. The following syntax is used in the simplest case:
+$option = "b"switch ($option) {    "A"     { Write-Output "Option A" }    "B"     { Write-Output "Option B" }    "C"     { Write-Output "Option C" }    default { Write-Output "Invalid" }} 
+Note that string comparisons in this context are not case sensitive, as usual.
+
+
+
+
+
+
+
+
+
+4.11    Functions and Parameters
+Functions provide the option to bundle multiple PowerShell commands, which facilitates organizing extensive scripts. In its simplest form, a function has the following structure:
+function Do-Something {    command1    command2    ...} 
+Within a script, functions can only be used after they have been defined. Thus, a script file first contains all the functions, while the code that is ultimately to be executed is located at the end.
+
+Naming Rules
+The PowerShell documentation recommends naming custom functions, such as cmdlets, according to the verb-noun pattern. The hyphen required in the name, like almost any other character, can be used without special marking.
+
+4.11.1    Function Results
+What is unusual compared to “real” programming languages is the structure of the return value of a function in PowerShell: The result is obtained from all the outputs created in the function! All partial results caused by the commands within the function are returned collectively. Statements whose results end up in variables are not taken into account.
+For example, when the following three statements are run within the function, the function result is an array formed by the result of command1, the "lorem ipsum" string, and the result of command2:
+command1command2Write-Output "lorem ipsum"# Result: Array with the partial results from command1 and# command2 and a string 
+In the second example, only $a + $b, which is a number, causes output to the success stream:
+$a = 123$b = command    # command returns 456 as the result$a + $b# Result: integer number 579 
+Additionally, three statements are executed in the third example. But because the results of command1 and command2 are stored in variables, and because Write-Debug does not write to the success stream, no result is produced!
+$a = command1Write-Debug "lorem ipsum"$b = command2# no result (therefore $null) 
+The structure of the result outlined in this context naturally also applies to commands that are executed in loops. Each output within the loop expands the function result that is returned at the end.
+
+Be Careful with Write-Output!
+For debugging purposes, you might be tempted to include Write-Output in a function to output intermediate results. Don’t do this! Write-Output produces an output that becomes part of the function result. A better approach is to use Write-Debug and enable debugging outputs via $DebugPreference = "Continue"!
+As an alternative, you can also use Write-Host. But this approach has a disadvantage in that you must remove these statements later. Output from Write-Host cannot be redirected or otherwise disabled. Compared to Write-Output, using Write-Host has an advantage in that it does not change the function result.
+
+4.11.2    return
+A function typically ends with the execution of the last command. However, you can also terminate a function prematurely using return (e.g., within a loop as soon as a condition is fulfilled). If you use return without parameters, the function result is composed of all previous outputs as before:
+command1command2return# Result: Array with the partial results of command1 and command2 
+Alternatively, you can pass a variable, expression, or command to return. In this case, the result of this expression is added to the previous partial results. (As a matter of fact, one would assume that only the return expression determines the result. But this is not the case with PowerShell!)
+command1command2return command3# Result: Array with the partial results of command1, command2# and command3 
+4.11.3    Parameters
+Usually, parameters are supposed to be passed to functions. Declaring the position, name, data type, default value, and other properties in advance using param makes sense. PowerShell offers a wealth of syntactic options, of which I will only consider the most important ones in this book. In the simplest case, you simply specify a list of parameters that are mandatory to pass. Specifying the data type in square brackets is optional; if you choose to do so, the data type will be checked when a parameter is passed.
+function Do-Something {    param(        [type1] $Parameter1        [type2] $Parameter2        [type3] $Parameter3    )} 
+Alternatively, the following short notation is allowed:
+function Do-Something ([type1]$Para1, [t2]$P2, [t3]$P3) { ... } 
+If you specify a default value for parameters, as in the following example, the parameter becomes optional, and thus does not need to be specified when called:
+function Do-It ([int]$A, [int]$B = 2, [String]C = "abc") { ... } 
+
+Functions without an Explicit Parameter List
+The use of param is optional. All data that does not correspond to the predefined parameter list is accessible within the function in the predefined $args variable. If you do not declare a parameter list, then $args applies to all parameters. The PowerShell documentation speaks of positional parameters in this context because the parameters have no name and can only be analyzed based on their position.
+However, the analysis of $args is prone to errors. Internally, $args is an array, so $args(0) is the first parameter, $args(1) is the second one, etc. $args.Length specifies how many parameters not declared via param were passed.
+
+4.11.4    Calling Functions
+Remember to pass parameters when calling functions without naming parentheses! This behavior is equivalent to calling cmdlets but, of course, differs from the behavior of almost all other programming languages.
+Do-It 1 2 "abc" 
+Parameters can be used like options. The associated values follow either separated by a space or in the -Parameter name:Value notation. The order then no longer plays a role. The following two calls of Do-It are equivalent to the previous line:
+Do-It -C "abc" -A 1 -B 2Do-It -B:2 -C:"abc" -A:1 
+4.11.5    Processing Standard Input
+Sometimes, a function is to be programmed in such a way that it can process objects from the standard input; that is, it can be called via the pipe operator in the following form: ... | My-Function. The easiest approach in such cases is to select the predefined $input variable. The following function calculates the total of the Length properties of all objects, divides the result by 1,000,000, and then displays the calculated result:
+function Get-TotalSize {    $TotalSize = 0    foreach($item in $input) {        $TotalSize += $Item.Length    }    $TotalSize /= 1000000    "Total size: {0:F1} MB" -f $TotalSize} 
+To calculate the space required by all files in the Downloads directory, the function can be called in the following way:
+> Get-ChildItem -Recurse C:\Users\kofler\Downloads\ |  Get-TotalSize  Total size: 247.4 MB 
+This script has a flaw: It relies on the fact that any object passed via standard input actually has a Length property. Set-StrictMode also interferes with this script if you pass a version number greater than

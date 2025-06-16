@@ -1,0 +1,931 @@
+openapi: 3.0.3
+info:
+  title: Chapter Extraction API
+  description: |
+    Comprehensive API for extracting, processing, and managing document chapters.
+    
+    ## Key Features
+    - Multiple input sources (files, URLs, text)
+    - Configurable extraction patterns
+    - Real-time processing via WebSocket
+    - Batch operations support
+    - Advanced search capabilities
+    - Multiple export formats
+    - Event-driven file monitoring
+    
+    ## Authentication
+    All endpoints require API key authentication via `X-API-Key` header.
+    
+    ## Rate Limiting
+    - 60 requests per minute per API key
+    - 1000 requests per hour per API key
+    
+  version: 1.0.0
+  contact:
+    name: SYNTHEX Agent 7
+    email: api-support@synthex.ai
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.synthex.ai/v1
+    description: Production server
+  - url: https://staging-api.synthex.ai/v1
+    description: Staging server
+  - url: http://localhost:8000/api/v1
+    description: Local development
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: extraction
+    description: Chapter extraction operations
+  - name: search
+    description: Search and filtering operations
+  - name: export
+    description: Export and format conversion
+  - name: batch
+    description: Batch processing operations
+  - name: monitoring
+    description: File monitoring and events
+  - name: websocket
+    description: Real-time WebSocket operations
+
+paths:
+  /chapters/extract:
+    post:
+      summary: Extract chapters from document
+      description: |
+        Extract chapters from various sources with configurable patterns.
+        Supports synchronous and asynchronous processing.
+      tags:
+        - extraction
+      operationId: extractChapters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtractionRequest'
+            examples:
+              fromText:
+                summary: Extract from text content
+                value:
+                  content: "Chapter 1: Introduction\n\nThis is the content..."
+                  config:
+                    chapter_pattern: "^Chapter\\s+(\\d+)"
+                    min_chapter_length: 100
+              fromUrl:
+                summary: Extract from URL
+                value:
+                  url: "https://example.com/document.txt"
+                  output_format: "markdown"
+              asyncProcessing:
+                summary: Async processing
+                value:
+                  file_path: "/path/to/large/document.pdf"
+                  async_processing: true
+      responses:
+        '200':
+          description: Successful extraction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /chapters/extract/file:
+    post:
+      summary: Extract chapters from uploaded file
+      description: Upload a file and extract chapters with optional configuration
+      tags:
+        - extraction
+      operationId: extractFromFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document file to process
+                config:
+                  type: string
+                  description: JSON-encoded extraction configuration
+                output_format:
+                  $ref: '#/components/schemas/ExportFormat'
+      responses:
+        '200':
+          description: Successful extraction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /chapters/batch:
+    post:
+      summary: Batch extract chapters
+      description: Extract chapters from multiple files in a single request
+      tags:
+        - batch
+      operationId: batchExtract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchExtractionRequest'
+      responses:
+        '200':
+          description: Batch extraction results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExtractionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /chapters/job/{jobId}:
+    get:
+      summary: Get extraction job status
+      description: Retrieve the status and results of an extraction job
+      tags:
+        - extraction
+      operationId: getJobStatus
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique job identifier
+      responses:
+        '200':
+          description: Job status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionResponse'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chapters/search:
+    post:
+      summary: Search extracted chapters
+      description: |
+        Search through extracted chapters with advanced filtering.
+        Supports full-text search, faceted filtering, and pagination.
+      tags:
+        - search
+      operationId: searchChapters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchQuery'
+            examples:
+              simpleSearch:
+                summary: Simple text search
+                value:
+                  query: "introduction"
+                  limit: 10
+              advancedSearch:
+                summary: Advanced search with filters
+                value:
+                  query: "methodology"
+                  filters:
+                    min_words: 500
+                    tags: ["research", "science"]
+                  sort_by: "relevance"
+                  include_content: true
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chapters/export/{jobId}/{format}:
+    get:
+      summary: Export chapters in specific format
+      description: Export extracted chapters in various formats
+      tags:
+        - export
+      operationId: exportChapters
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Job identifier
+        - name: format
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ExportFormat'
+          description: Export format
+      responses:
+        '200':
+          description: Exported content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chapters:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Chapter'
+            text/markdown:
+              schema:
+                type: string
+            text/html:
+              schema:
+                type: string
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Job or chapters not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chapters/monitor:
+    post:
+      summary: Start file monitoring
+      description: Monitor files or directories for changes and auto-extract chapters
+      tags:
+        - monitoring
+      operationId: startMonitoring
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonitoringRequest'
+      responses:
+        '200':
+          description: Monitoring started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonitoringResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chapters/monitor/{monitorId}:
+    delete:
+      summary: Stop file monitoring
+      description: Stop monitoring a specific path
+      tags:
+        - monitoring
+      operationId: stopMonitoring
+      parameters:
+        - name: monitorId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Monitoring stopped
+        '404':
+          description: Monitor not found
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chapters/ws/{clientId}:
+    get:
+      summary: WebSocket connection for real-time updates
+      description: |
+        Establish WebSocket connection for real-time chapter extraction updates.
+        
+        ## Message Types
+        
+        ### Client -> Server
+        - `subscribe`: Subscribe to job updates
+        - `extract`: Start extraction with real-time progress
+        - `ping`: Keep connection alive
+        
+        ### Server -> Client
+        - `progress`: Extraction progress updates
+        - `completed`: Extraction completed with results
+        - `error`: Error occurred during extraction
+        - `file_changed`: File change detected (monitoring)
+        - `pong`: Response to ping
+      tags:
+        - websocket
+      operationId: websocketConnect
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique client identifier
+      responses:
+        '101':
+          description: Switching Protocols
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication
+
+  schemas:
+    ExportFormat:
+      type: string
+      enum:
+        - json
+        - markdown
+        - html
+        - pdf
+        - docx
+      description: Available export formats
+
+    ChapterType:
+      type: string
+      enum:
+        - standard
+        - numbered
+        - named
+        - hierarchical
+        - custom
+      description: Types of chapters
+
+    ProcessingStatus:
+      type: string
+      enum:
+        - pending
+        - processing
+        - completed
+        - failed
+        - cancelled
+      description: Job processing status
+
+    ChapterMetadata:
+      type: object
+      required:
+        - id
+        - title
+        - start_line
+        - end_line
+        - word_count
+        - character_count
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique chapter identifier
+        title:
+          type: string
+          description: Chapter title
+        number:
+          type: integer
+          description: Chapter number (if applicable)
+        level:
+          type: integer
+          default: 1
+          description: Hierarchy level (1 for main chapters)
+        start_line:
+          type: integer
+          description: Starting line number in source
+        end_line:
+          type: integer
+          description: Ending line number in source
+        word_count:
+          type: integer
+          description: Number of words in chapter
+        character_count:
+          type: integer
+          description: Number of characters in chapter
+        has_subsections:
+          type: boolean
+          default: false
+          description: Whether chapter contains subsections
+        tags:
+          type: array
+          items:
+            type: string
+          description: Associated tags
+        extracted_at:
+          type: string
+          format: date-time
+          description: Extraction timestamp
+
+    Chapter:
+      type: object
+      required:
+        - metadata
+        - content
+      properties:
+        metadata:
+          $ref: '#/components/schemas/ChapterMetadata'
+        content:
+          type: string
+          description: Chapter text content
+        subsections:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chapter'
+          description: Nested subsections
+        parent_id:
+          type: string
+          format: uuid
+          description: Parent chapter ID (for subsections)
+
+    ExtractionConfig:
+      type: object
+      properties:
+        chapter_pattern:
+          type: string
+          default: "^(Chapter|CHAPTER)\\s+(\\d+)"
+          description: Regex pattern for chapter detection
+        section_pattern:
+          type: string
+          description: Regex pattern for section detection
+        min_chapter_length:
+          type: integer
+          default: 100
+          description: Minimum chapter length in characters
+        max_chapter_length:
+          type: integer
+          description: Maximum chapter length in characters
+        include_metadata:
+          type: boolean
+          default: true
+          description: Include metadata in results
+        preserve_formatting:
+          type: boolean
+          default: true
+          description: Preserve original formatting
+        extract_subsections:
+          type: boolean
+          default: true
+          description: Extract nested subsections
+        custom_patterns:
+          type: array
+          items:
+            type: string
+          description: Additional custom patterns
+
+    ExtractionRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          description: Direct text content to process
+        file_path:
+          type: string
+          description: Path to local file
+        url:
+          type: string
+          format: uri
+          description: URL to fetch content from
+        config:
+          $ref: '#/components/schemas/ExtractionConfig'
+        output_format:
+          $ref: '#/components/schemas/ExportFormat'
+        async_processing:
+          type: boolean
+          default: false
+          description: Process asynchronously
+      oneOf:
+        - required: [content]
+        - required: [file_path]
+        - required: [url]
+
+    ExtractionResponse:
+      type: object
+      required:
+        - job_id
+        - status
+        - total_chapters
+      properties:
+        job_id:
+          type: string
+          format: uuid
+          description: Unique job identifier
+        status:
+          $ref: '#/components/schemas/ProcessingStatus'
+        chapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chapter'
+          description: Extracted chapters (if completed)
+        total_chapters:
+          type: integer
+          description: Total number of chapters found
+        processing_time:
+          type: number
+          format: float
+          description: Processing time in seconds
+        error:
+          type: string
+          description: Error message (if failed)
+        export_url:
+          type: string
+          format: uri
+          description: URL to download exported content
+
+    BatchExtractionRequest:
+      type: object
+      required:
+        - files
+      properties:
+        files:
+          type: array
+          items:
+            type: string
+          description: List of file paths to process
+        config:
+          $ref: '#/components/schemas/ExtractionConfig'
+        output_format:
+          $ref: '#/components/schemas/ExportFormat'
+        parallel_processing:
+          type: boolean
+          default: true
+          description: Process files in parallel
+        max_concurrent:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 20
+          description: Maximum concurrent extractions
+
+    SearchQuery:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Search query text
+        filters:
+          type: object
+          properties:
+            min_words:
+              type: integer
+              description: Minimum word count
+            max_words:
+              type: integer
+              description: Maximum word count
+            tags:
+              type: array
+              items:
+                type: string
+              description: Filter by tags
+            job_id:
+              type: string
+              format: uuid
+              description: Filter by job ID
+          additionalProperties: true
+        limit:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+          description: Maximum results to return
+        offset:
+          type: integer
+          default: 0
+          minimum: 0
+          description: Results offset for pagination
+        sort_by:
+          type: string
+          enum:
+            - relevance
+            - word_count
+            - title
+            - date
+          default: relevance
+          description: Sort order
+        include_content:
+          type: boolean
+          default: false
+          description: Include full chapter content
+
+    SearchResponse:
+      type: object
+      required:
+        - query
+        - total_results
+        - results
+      properties:
+        query:
+          type: string
+          description: Original search query
+        total_results:
+          type: integer
+          description: Total matching results
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+          description: Search results
+        facets:
+          type: object
+          properties:
+            tags:
+              type: object
+              additionalProperties:
+                type: integer
+              description: Tag frequency counts
+            word_count_ranges:
+              type: object
+              properties:
+                0-1000:
+                  type: integer
+                1000-5000:
+                  type: integer
+                5000-10000:
+                  type: integer
+                10000+:
+                  type: integer
+          description: Search facets for filtering
+
+    SearchResult:
+      type: object
+      required:
+        - job_id
+        - chapter_id
+        - title
+        - score
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        chapter_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        score:
+          type: number
+          format: float
+          description: Relevance score
+        snippet:
+          type: string
+          description: Text snippet with highlights
+        word_count:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        content:
+          type: string
+          description: Full content (if requested)
+
+    MonitoringRequest:
+      type: object
+      required:
+        - path
+      properties:
+        path:
+          type: string
+          description: File or directory path to monitor
+        config:
+          $ref: '#/components/schemas/ExtractionConfig'
+        recursive:
+          type: boolean
+          default: false
+          description: Monitor subdirectories
+        file_patterns:
+          type: array
+          items:
+            type: string
+          description: File patterns to watch (e.g., "*.txt", "*.md")
+        webhook_url:
+          type: string
+          format: uri
+          description: Webhook for notifications
+
+    MonitoringResponse:
+      type: object
+      required:
+        - monitor_id
+        - path
+        - status
+      properties:
+        monitor_id:
+          type: string
+          format: uuid
+          description: Unique monitor identifier
+        path:
+          type: string
+          description: Monitored path
+        status:
+          type: string
+          enum:
+            - active
+            - paused
+            - stopped
+        created_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+        request_id:
+          type: string
+          description: Request tracking ID
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "validation_error"
+            message: "Invalid regex pattern in chapter_pattern"
+            details:
+              field: "config.chapter_pattern"
+              value: "^(Chapter"
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "unauthorized"
+            message: "Invalid or missing API key"
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          description: Number of seconds until next request allowed
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "rate_limit_exceeded"
+            message: "API rate limit exceeded"
+            details:
+              limit: 60
+              window: "1 minute"
+              retry_after: 45
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "internal_error"
+            message: "An unexpected error occurred"
+            request_id: "req_123abc"
+
+webhooks:
+  chapterExtracted:
+    post:
+      requestBody:
+        description: Notification when chapters are extracted
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event
+                - job_id
+                - chapters
+              properties:
+                event:
+                  type: string
+                  enum: [chapter_extracted]
+                job_id:
+                  type: string
+                  format: uuid
+                chapters:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Chapter'
+                timestamp:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Webhook processed successfully
+
+  fileChanged:
+    post:
+      requestBody:
+        description: Notification when monitored file changes
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event
+                - monitor_id
+                - path
+                - change_type
+              properties:
+                event:
+                  type: string
+                  enum: [file_changed]
+                monitor_id:
+                  type: string
+                  format: uuid
+                path:
+                  type: string
+                change_type:
+                  type: string
+                  enum: [created, modified, deleted]
+                chapters:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Chapter'
+                timestamp:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Webhook processed successfully

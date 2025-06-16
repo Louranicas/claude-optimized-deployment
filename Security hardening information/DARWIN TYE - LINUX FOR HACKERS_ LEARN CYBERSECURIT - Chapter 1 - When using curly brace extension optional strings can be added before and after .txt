@@ -1,0 +1,388 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 1 - When using curly brace extension, optional strings can be added before and after curly braces, and curly brace extension supports nesting.
+Here are examples:
+Security Relevance Score: 9
+Word Count: 4977
+Extracted: 2025-06-13 23:40:27
+
+---
+
+When using curly brace extension, optional strings can be added before and after curly braces, and curly brace extension supports nesting.
+Here are examples:
+
+root@server : echo \{a,g,h}
+
+
+// This is using curly braces
+
+Tilde expansion
+This is one of the above mentioned extended functions of Shell and represents the home directory of the current user by default in the shell script. We can also use the tilde expansion with a valid account login name to return the home directory of a specific account.
+However, note that the account must be a valid account in the system.Tilde extension uses \~+ to indicate the current working directory, and \~-indicates the former directory.
+A working directory is determined with the following expansion.
+Here are some other commands:
+
+root@server : echo \~root
+
+root@server : echo \~+
+
+// displays the top directory
+
+Variable Replacement
+In shell scripts, we frequently use $ to extend and replace variables. Also remember that variable characters can be placed in curly brackets, which can prevent variable characters that need to be extended from being confused with other characters that do not need to be extended.
+If $ is followed by a position variable with more than one number, \{} must be used, such as $1, $ \{11}, $ {12}. If the variable string is preceded by an exclamation point (!), you can implement an indirect reference to a variable instead of returning the value of the variable itself.
+Exclamation marks must be placed in curly braces, and only one layer of indirect reference to variables can be used.The variable replacement operation can also test whether the variable exists or is empty. If the variable does not exist or is empty, a default value can be set for the variable.Shell scripts support variable testing and substitution in various forms.
+Here is an example scenario:
+According to the rules of variable substitution, when a variable is undefined or defined but the value is null, the keyword streamer is returned.
+
+boats = “”
+
+
+root@server : echo $(boats : -streamer)
+
+But it only returns the keyword streamer, which will not change the value of boats, so the value of boats is still empty.Let's verify through an example that even if the boats variable is defined, the keywords will still be returned when the value is empty.
+Whether the variable is undefined or the value of the variable is empty, the following example returns the keyword and modifies the value of the variable.
+When the value of a variable is non-null, this extension will directly return the value of the variable itself.Occasionally, we can use variable substitution to realize the error reporting function of script, and judge whether a variable has a value. If there is no value or the value is empty, we can return specific error reporting information.
+
+root@server : echo $(boats : =yatch)
+
+Yatch
+root@server : echo $(boats)
+
+Yatch
+
+Looking at the opposite result, when the variable has a value and is not null, the keyword is returned, and when the variable is undefined or the value is null, it is null.
+In the previous chapter, we have written several cases of creating system accounts and configuring passwords.Combined with the variable replacement function we learned here, we can continue to optimize the scripts and realize more functions.
+Is that all for the substitution of variables?
+Of course not!Variable substitution also has very practical functions of string breaking and can separate the head and tail ( prefix and suffix) of a string. We will talk about these functionalities in the next section.
+Continuation of String Cutting and Pinch-off
+We suggest that these alternatives to variables will not change the values of variables themselves.The following examples demonstrate the specific application of these functions.
+Here is an explanation:
+Firstly, a variable home is defined, and the offset of the variable increases from 0, indicating the position of each character of the variable value.
+If a specific length is set, the value of the given length will be intercepted and ended. If the intercepted length is not specified, it will be directly intercepted to the end of the variable.Here, several examples are used to introduce the operation of pinching the head and removing the tail of variables.
+Use # to pinch the head and % to remove the tail.Because a # indicates the shortest match, execute the following command to delete only the first O and everything on its left.
+
+root@server : echo $(home$sr)
+
+
+// This will cut until sr in the string
+
+If you need to make the longest match, that is, find the last specified character all the time and delete all the characters before it, you need to use two # symbols.Delete from right to left until d is matched. One % matches from right to left.
+
+root@server : echo $(home%d*)
+
+It will stop at the first d, and the two % will match from right to left, but it will not stop until the last d is matched.
+If the variable is of array type, are these extensions still valid?The answer is yes. Understand the power of shell programming.
+You can modify the file name or extension in batches by pinching the head and removing the tail. There are two cases of modifying the file extension in batches.One script is to modify file extensions in the current directory in batches, and the other script is to modify file extensions in the specified directory in batches.
+Finally, learn the statistics and replacement of variable content. Through this set of functions, we can find variables, count the number of characters in variable content and replace variable content.
+In the next section, we will discuss about command substitution with various examples. Follow along!
+Command substitution
+We can use $ (command) or command to realize command replacement. It is recommended to use $ (command) so you can utilize the support for nested command replacement.
+Here is the command:
+
+root@server : du sh $ (pwd)
+
+Arithmetic Replacement
+The arithmetic replacement extension can perform arithmetic calculation and return the calculation result. The format of the arithmetic replacement extension is $ (()), or it can use the form of $ [].
+The arithmetic extension supports nesting.It is specifically introduced in this book. Here again, the function of arithmetic extension is demonstrated by a simple example.
+Here are the commands:
+
+root@server : k =3
+
+root@server : echo $((k\++)
+// This will give output as 3
+root@server : k =3
+root@server : echo $(( - -k))
+// This will give output as 1
+root@server : echo ( 5 !=7)
+
+// This will display as 1
+
+We suggest you to experiment with various arithmetic replacement functions as it seem simple but are actually complex due to its confusing nature.
+The process replacement command
+The process replacement transfers the return result of a process to another process by naming a pipeline.
+The syntax format of process replacement is:
+
+< (command) or > (command).
+
+Once the process replacement function is used, the system will create a file descriptor file in the /dev/fd/ directory, and pass the output result of the process to other processes through this file descriptor.
+We can pass the output result of one command to another process as its input through anonymous pipeline (|). In the above example, the purpose of who | wc -l is to count the current system login number through anonymous pipeline.
+
+root@server : who | wc -l
+
+We can also use process replacement to realize the same functions.< (who) will save the results generated by the who command to the file descriptor /dev/fd/63, and use this file descriptor as the input parameter of wc -l command.
+The final output result of wc -l ＜(who) will show that there are five lines in the file /dev/fd/63.It should be noted that the file descriptor is dynamically generated in real time, so when the process is finished executing, when the file descriptor is viewed by ls, it will be prompted that there is no such file.
+Using process substitution, we can also pass the output results of multiple processes to one process as its input parameter.
+
+root@server : paste cut -d /etc/passwd tp /etc/shadow
+
+In the following case, we want to extract the account name (the first column) and home directory (the sixth column) from the /etc/passwd file, and then extract the password information (the second column) from the /etc/shadow file.
+Finally, the data is merged into one file information through the paste command, which reads the contents of multiple files line by line and merges multiple files.
+
+root@server : paste
+
+
+// This is used to paste rows, columns and a lot other identifiers
+
+In Linux system, the output of the previous command can be redirected to a file by using a pipeline, but once the output of the command is redirected to a file, the output result of the command cannot be displayed on the screen.Use tee command to redirect the content to a file and display the output results on the screen.
+Here is the command:
+
+root@server : tee
+
+The following command can view all files ending in conf in the /etc directory, and save the output results to the /tmp/conf.log file.
+Note:
+If the file already exists in the system, the tee command will overwrite the original contents of the file.
+Next, we will demonstrate a case of process replacement with tee command.We will create three files with sh extension and three files with conf extension as experimental materials, and then write the output results of ls|tee into temporary file descriptors through process replacement.
+
+root@server : touch a,b,c (.sh)
+
+
+root@server : tee <config.log
+
+Finally, we will filter the contents of file descriptors through grep, redirect the file names ending in sh to sh.log file, and redirect the file names ending in conf to conf.log file.
+
+root@server : cat sh.log
+
+root@server : cat conf.log
+
+// This will paste all the details in the final config file
+
+Word Splitting
+Word splitting is often important to be learnt because there are usually a lot of use cases to be performed for strings. All the word splitting can effectively help us create efficient shell programs.
+The shell uses IFS variable for word segmentation. By default, it uses the value of IFS variable as separator, and then executes the command after the input data is segmented.If there is no custom IFS, the default values are spaces, Tab characters and line breaks.
+Here are the commands:
+
+root@server : read -p some : “ x y z “
+
+
+root@server : echo $x
+
+Path replacement
+Path replacement is also a famous shell functionality. Unless set -f is used to disable path replacement, Bash will search for \*,? and symbols. If these symbols are found, the pattern matching is replaced.
+The Shell processes the path or file after the path replacement when processing commands.If the nocaseglob option is turned on when using the shopt command, bash is case-insensitive when performing pattern matching, and it is case-sensitive by default.
+In addition, you can turn on the extglob option when you use the shopt command, which allows Bash to support extended wildcards.The -s option of shopt command can turn on specific Shell properties, and the -u option can turn off specific Shell properties.
+With regard to the path or file name, you can not only use Bash's automatic path extension function, but also use two external commands, basename and dirname, and intercept the contents of the path or file name in a path.
+When using the ls or find command to list files, it is always with a path by default, but sometimes we only need the file name, so we can use basename to extract the file name.
+Here are the commands :
+
+root@server : shopt nocaseglob
+
+
+root@server : basename sample.txt
+
+With this, we have completed a brief introduction to advanced shell functionalities to write better and complex shell programs. In the next chapter, we will introduce some shell properties to help you get a good understanding about the overall usage of shell programming. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Nine
+
+
+
+Shell Interpreter
+
+
+
+
+
+In the previous
+ chapter we talked about various shell properties that can enhance the shell programs. They are efficient and can help us create programs that are prone to less errors or warning while compiling them to hack the targets that we need to. In this final chapter of the shell module we will talk some advanced details about the shell interpreter that can help us understand how shell functions in the hardware kernel level.
+All the information about its interaction with the Linux kernel is essential if you are looking forward to write programs that requires sharing both kernel and hardware resources cumulatively. Follow along and experiment the given code in your own linux machine and clear errors all by your own for better understanding of the subject.
+Shell properties of Shell interpreter and initialization of command line terminal
+Shell script need to be executed in command terminal, and command terminal often supports a large number of properties and functions, so setting the properties of shell interpreter and command terminal can provide the best environment for script execution.
+First of all, let's look at the property setting and viewing method of Shell interpreter. At present, the LinuxMint operating system uses Bash interpreter by default, so we will mainly learn Bash's internal commands set and shopt.
+With these two commands, you can view and set many features of Bash.Use the set -o and shopt commands to view all the attributes supported by their respective commands and whether they are turned on or not.Set command can turn on or off specific Bash attributes through options, and shopt command can turn on or off some Bash attributes through -s and-u.
+We will demonstrate and explain these attributes one by one.The variables and functions defined by Bash are local by default, and they can no longer be called and used after entering subprocess. Using set -a can make all variables and functions be called by subprocess by default.
+By default, Bash supports curly brace replacement, so that we can use simple commands to quickly generate a data sequence, such as letter sequence table and number sequence table.
+The function can be turned on or off by using the “braceexpand” property. Sometimes it is necessary to set a set-e (error exit) at the beginning of the script.If we write a script, the main function of the script is to create an account, set the account password, and finally output a prompt message.
+
+root@server : vim script.if
+
+
+set - e (error exit)
+
+When the account already exists or the account creation fails due to other reasons, the default script will still insist on executing all the script commands.
+Obviously, there will be an avalanche error prompt.There are many scripts like this, and the related scripts such as installing software, modifying configuration files, and starting services may cause large-scale errors in the whole script because of a small mistake in front. Setting set -e can stop the whole script when the first command goes wrong.
+What is Hashall?
+“Hashall” allows Bash to record the executed command PATH and save it in a memory hash table, so that the next time the same command is executed, it is no longer necessary to search the command path through the path variable, which usually improves the efficiency.
+But sometimes, the path of the program changes, because the existence of Hash records will lead to the failure of command execution.It can be seen that the external commands executed before have specific record information, and hits represents the number of hits, that is, the number of times that the system can locate the command path by reading the Hash table.
+
+root@server : Hashall sample.txt
+
+Usually there is no problem in the above situation.However, if we move the ip command from the /usr/sbin/ directory to the /bin/ directory, the system still executes the command according to the location recorded in the Hash table, and the ip program cannot be found.
+
+root@server : hash -d
+
+
+root@server : hash -r
+
+We can use Hash -d to delete a certain record information, use Hash -r to clear the whole hash table, or use set +h to disable the hash table directly. These methods can solve similar problems.Bash can support calling with exclamation marks by setting the histexpand property.
+
+root@server : histexpand(!)
+
+Historical commands, such as Yum can directly call the last command in history that starts with yum.By default, when we use redirection symbols such as > or >&,the file will be overwritten, which may lead to the loss of existing data.
+
+root@server : yum <history>
+
+Setting noclobber property can prevent data from being overwritten.If the scripts we write use tools such as tar, rsync and mysqldump to back up the data, because the backup takes a certain amount of time, the scripts may be repeatedly executed, such as opening multiple command terminals to execute the same script repeatedly, or multiple remote connected users executing the same script, and finally the backed-up files are chaotic.
+
+root@server : no clobber tar
+
+For scripts like this, we can use the “noclobber” attribute of Bash to prevent the scripts from being executed repeatedly.If the script wants to read the user's input value as the script's variable parameter through read or position variable, and the actual execution script does not assign value to the script, an unexpected error will occur at this time.
+
+root@server : nounset var
+
+
+// This will display error as it is not defined by default
+
+Opening the “nounset” attribute of Bash can effectively prevent the error of undefined variables.Because the above script didn't assign values to $1 and $2 and set -u, it quit the script directly after prompting that the variables were assigned values.
+If “nounset” attribute is not set, the operations of creating account and changing password will still be executed and the wrong result will be returned.
+Advanced information about Hash Table:
+The function of Hash table has been introduced before. Under normal circumstances, the system will search the records in Hash table first when executing commands, and then execute commands according to the records in the table.
+However, according to the records in the Hash table, if the command cannot be found, an error will be reported.After we open the checkHash attribute through shopt, if the system cannot find the command according to the records in the hash table, we will continue to search the normal command path.
+When you can't find the program according to the Hash record when you open “checkhash”, you can continue to search the path of the program in other ways, and the command is executed normally. Cmdhist attribute allows us to record a history that needs to be saved by multiple lines of commands into a record.
+
+root@server : cmdhist
+
+In addition to using set and shopt commands to modify Bash properties, we can also use tput commands to view or set properties of command line terminals.Cols can display the number of columns of the current terminal, and 134 columns represent a line that can display 134 characters.
+
+root@server : tput
+
+You can display the number of lines of the current terminal through lines.Clear command can clear the current terminal, and the effect is the same as executing clear command or pressing Ctrl+L .
+With cup, you can move the cursor to specific rows and columns.Sc can save the current cursor position, and rc can restore the cursor to the last position saved by sc.
+
+root@server : cup
+
+You can set no display cursor through civis, and you can set display cursor through cvvis or cnorm.Blink can set the terminal to blink mode, bold can set the terminal to bold mode, and rev can exchange the font color and background color of the current terminal.
+
+root@server : cvvis
+
+With smcup, you can save the current screen, and rmcup can restore the recently saved screen status.With sgr0, you can cancel all terminal attributes and restore the terminal to normal status.The reset command can also reset our current terminal to its initial state.
+root@server : rmcup
+What Next?
+With this, we have completed a brief introduction to the functionalities of shell interpreter that can improve your productivity while dealing with shell scripts that need to be run on the bash terminal. If you are serious about hacking then you need to learn how to make your life easier by learning these commands that can save your time exponentially.
+Also, with this we are happy to say that you have successfully completed the fourth module of this book which provided tons of ways to explain various shell programming capabilities in very less time. We hope all the four modules have aspired you to become a hacker who will protect systems. In the final module of this book we will be directly discussing about Kali Linux, a hacking based operating system along with various network and web application scanning tools. Let us go!
+
+
+
+
+
+
+
+
+
+
+
+Conclusion
+
+
+
+
+
+Before heading
+ over to the next module of this book, we just want to provide a few information that can help you to polish your Linux programming skills using scripting languages such as Shell.
+What to do?
+Before writing scripts, always make sure what your goal is. You can’t change the goal of your script in the middle of the project. A perfect research about your resources, target and your own strength is important to be a successful Linux shell programmer.
+You can use websites such as Github to find a lot of open source scripts that can help you understand the script programming workflows that other programmers use. While it is true that every programmer works differently it doesn’t give any harm to understand how others work efficiently and use those tricks in your work flow.
+As a hacker, you need to be aware that shell program has a dangerous executional abilities and can destroy systems if that might be your intention . So, make sure and confirm with your guts about what you are trying to achieve. If done without your understanding of the legal impacts that may arise then you are definitely in trouble.
+All the best and we are thrilled to head over you to the next module of this book. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Kali Linux and Hacking tools
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Introduction
+
+
+
+
+
+In the previous
+ modules of this book we have learned about Linux and its architecture in detail along with the usage of shell and its advanced functionalities. While these modules have helped you understand the importance of Linux and its implementation of resources learning Linux without any use case is pretty bland. To make you sure again Linux is not a great day-to-day system for normal users but a sophisticated operating system that is enclosed with tons of tools for developers and security enthusiasts. Linux is also used by black hat hackers to steal data and sensitive information such as credit card numbers, cookies using their own tools or scripts.
+This final module of this book not only introduces cyber security fundamentals technically but will also provide information about tons of tools to help you understand what is actually going on.
+What are you going to learn?
+In the first chapter we will help you install Kali Linux( A hacker preferred operating system) in a virtual machine as we have already discussed about normal CD rom and USB installation procedures in the previous module of this book.
+In the second chapter we will talk about different types of hackers along with hacking procedures and some tips to create scripts and crack systems like a hacker.
+In the third chapter we will talk about different set of important tools that Kali Linux provides and will try to give a brief information about each of them.
+In the fourth chapter we will deal with the networking tools that are essential for being an efficient hacker.
+In the final section of the book we will talk about Burpsuite a penetration testing tool to analyze web application bugs with examples.
+How to use this book?
+Use the details in this book and try to do practical experimentation of the topics before deciding that you have mastered the topic. We also suggest you to follow github repos of open source projects to understand the importance of programming for Linux and Hacking enthusiasts
+Let us go and explore the world of hacking from a Linux enthusiast perspective.
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter One
+
+
+
+Installing Kali Linux in a Virtual Machine
+
+
+
+
+
+In the first
+ module of this book we gave a brief introduction to install Linux using both optical and USB drives. While both of them are very handy and easy to install they still are not safe because of the privacy issues. The most important aspect for hackers is to hide their identity by any means. You can’t go on hacking systems all the while leaving footprints of your system and IP address that can be tracked back to your home. Also it costs less to use a virtual machine instead of buying and installing a whole new server.
+This is the reason why virtual machines are used. They are not only easy to install but can provide a lot of functionalities all the while providing safety. Before installing Kali Linux in a virtual machine let us know a bit about virtual machines.
+What are virtual machines?
+Virtual machines are functioning operating systems but in a sandbox instead of directly communicating with the system hardware. While they may be less functional when compared to performance with the native hardware systems but they are still very fast and easy to use. They provide pause functionality that is not usually possible with traditional way. Virtual machine operating systems can be your handy utility tool whenever necessary.
+What are best virtual machine software?
+There are only few well functioning virtual machine software. Out of them Virtual box and VMware are highly recommended. In this book we are going to use virtual box as it is easy to use and is also an open source software. Brownie points!
+Are Virtual Machines recommended for hackers?
+Virtual Machine refers to a complete computer system with complete hardware system functions that is simulated by software and runs in a completely isolated environment. As a hacker there is nothing that can help you experiment with system files like a virtual machine mechanism offers. Hackers break things all the while learning how the system is built. If you break your native host system then it may give certain headaches and is not usually recommended. Your only way to break things and also be safe without destroying any sensitive work files is by using a virtual machine guest operating system.
+The virtual machine generates a brand new virtual image of the existing operating system. Usually Linux Distro developers themselves are releasing virtual machine files these days. It has exactly the same functions as the real operating system. After entering into the guest virtual machine, all operations can be freely performed in this brand new independent virtual system.
+You can install and run software independently, and save data in your own allocated hard disk space. You can have your own independent desktop, which will not have any impact on the real system, and that can be used to flexibly switch between the existing system and the virtual machine. All you need to do is either minimize or pause the virtual machine to access the host system. If you have good memory then there won’t be any lag while constantly shifting between the host and guest operating systems.
+What are the benefits of using virtual machine technology ?
+Almost all enterprises use Virtualization technology to maintain their services and products. For example, Docker a famous enterprise software also uses virtualization technology to offer their services. In this section, we will elaborately discuss about the advantages virtual machines come with.
+It cut costs
+If you want to install Linux and Windows systems on a computer without a virtual machine, there are two ways. One is to install multiple hard disks, each with an operating system. The disadvantage of this method is that it is more expensive.
+The second way is to install dual systems on one hard disk. The disadvantage of this method is that it is not safe enough, because the MBR of the system disk is a must for the operating system, and Windows is even more domineering.
+Every time the system is reinstalled, the system MBR must be rewritten. Due to this procedure, several operating systems may crash at the same time. The use of virtual machine software saves money and is safe. So for novices, learning Linux with a virtual machine couldn't be better.
+Safe and convenient
+After installing the Linux system on the virtual machine you don’t have to worry about formatting your hard disk. You can even set and change the settings of virtual system at will. You can format the virtual system hard disk, you can also repartition the virtual system hard disk using advanced features of Virtual box.
+Because a virtual machine is software running on a real system, any operation on the virtual machine system is an operation on the software. It can also be easily imported using a hard disk or pen drive to other Linux or windows systems. It is handy and gives you a lot of privacy with encrypted option. As a hacker this is indeed a boon for you.
+Simple and efficient
+The Linux system simulated by the virtual machine is exactly the same as the real Linux system. Now the specialized Linux servers of various companies will not allow novices to operate at will, and Linux servers for testing are generally in short supply. If you install a virtual Linux system on your computer, you can learn and test at will, regardless of any environment influences.
+Virtual machine operating environment and hardware requirements

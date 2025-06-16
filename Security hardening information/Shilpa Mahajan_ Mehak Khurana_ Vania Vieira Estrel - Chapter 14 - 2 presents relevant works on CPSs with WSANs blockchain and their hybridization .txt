@@ -1,0 +1,198 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 14 - 2 presents relevant works on CPSs with WSANs, blockchain, and their hybridization. The planned GIBCS‐CPS architecture and design goals appear in Section 14.3. The TMS [4] details are depicted in Section 14.4. Blockchain incorporation in GIBCS‐CPS occurs in Section 14.5. Performance is pondered in Section 14.6. To close, Section 14.7 brings in conclusions.
+Security Relevance Score: 30
+Word Count: 3810
+Extracted: 2025-06-13 23:40:31
+
+---
+
+2 presents relevant works on CPSs with WSANs, blockchain, and their hybridization. The planned GIBCS‐CPS architecture and design goals appear in Section 14.3. The TMS [4] details are depicted in Section 14.4. Blockchain incorporation in GIBCS‐CPS occurs in Section 14.5. Performance is pondered in Section 14.6. To close, Section 14.7 brings in conclusions.
+
+
+14.2 Methodology
+Demand for business sector facilities with remote and local treatment units necessitates CPS upgrading with pros and cons, banking on three relevant schemes: WSANs, blockchain, and hybrid strategies.
+
+14.2.1 WSAN‐Centered Solutions
+A WSAN infrastructure embraces many developing paradigms, mixing sensing, computation, and control, affecting real‐time physical process control and realization [24–26]. Multiple quality products with superior freedom at a constant price will be available to customers worldwide. To address expanding human, machine, and product interconnectivity concerns, all manufacturers require autonomous interaction and highly robust local and global interconnectivity across their systems and sub‐systems. WSANs’ benefits help streamline operations management. WSANs can be inexpensive, easily deployable, and flexible, making them better by decentralizing autonomous task decision‐making and lessening human interaction. Independence helps varied sectors supporting intelligent systems and processes, improving production dependability and profits. These networks undertake noise, fading, hotness, dust, multipath consequences, and electromagnetic (EM) interference at multiple stack protocol layers, disrupting “quality of service” (QoS)‐aware data delivery [24–30]. Diverse low‐power standards and remedies have eliminated obstacles. IEEE 802.15.4 enhancements fulfill utilization expectations [31], becoming part of most standards and answers, e.g., ZigBee [32], THREAD [33], WirelessHART [34], Z‐WAVE [4], ISA [35], 6LoWPAN [36], LoRa [37], and WIA‐PA [38]. These advances have increased a WSAN’s safety, time‐critical operation, and automation [39]. Ample work addressed designing and building efficient “medium access control” (MAC) protocols to improve network speed and QoS [40]. MAC affects dependability, scalability, low latency, energy efficiency, and security.
+
+14.2.1.1 Benefits
+Cost drop: The main operational and capital expenditures result from rapid installation, effortless repairs, trouble‐free system reconfigurations, etc., while saving time.
+Flexible architecture/design: Wireless solutions can malleably handle rigid, fixed specific processes, viz robots and gyratory equipment, in dangerous zones and extreme temperatures.
+Safety: Wirelessness translates to remotely reconfiguring and upholding processes and systems, preventing humans from being in hazardous locations. Likewise, mechanical failures are a common problem, which affects reliability and causes applications’ downtime. Wireless solutions are less prone to deterioration failures, making them safer and less inclined to failures.
+
+
+14.2.1.2 Challenges
+WSANs bring nontrivial challenges demanding serious remediation efforts. The imperfect, error‐prone wireless medium causes packet losses (PLs) and variable delays. Although wired networks have losses, WSANs have more caveats because of fluctuating channel conditions, narrow spectrum, multipath broadcast, and fading. Besides, an important issue is efficiently exploiting and accessing shared wireless mediums, which the MAC sublayer runs as a data link layer part. An inept MAC strategy can squander rare communication assets. The most critical challenges appear below.
+Packet losses: Channel impairments cause PLs in wireless interactions due to collisions, multipath fading, and small channel achievements. Buffer overflow yields congestion, which wastes packets in transit. Packet reordering follows a long transmission time, triggering packet dropouts.
+Variable delay: WSANs have random delays and insert time uncertainties within sampled, encoded, and diffused data hitting the target for decoding on the receiver, which adds delay. Retransmissions are frequent, with poor link quality, boosting delay and energy intake. A decisive performance indicator is the delay, which should have minimum variability and adequate upper bound to avoid adverse application QoS impacts.
+Data rate: The limited channel bandwidth constraints the number of communication network medium devices. Hence, an efficient protocol may minimize the overhead.
+All previous imperfections mentioned above may degrade performance. Thus, effective protocols can counterbalance these losses and lessen adverse effects.
+Today’s nodes have more memory, processing power, and extended battery life. In most usages, sensing, actuation, and control are also imperative. Sensors acquire data, and actuators send certain data‐centered control decisions as commands to adjust a CPS part.
+
+
+14.2.1.3 WSANs’ Structure
+Because actuation is vital in controlling processes and systems, the trend is integrating sensors, actuators, and their respective controllers to attain sensing and actuating node tasks. Actuators act in the physical environment and possess networking skills like reception, broadcasting, processing, and dispatching data. A robot may perform in the physical environment through assorted actuators. Yet, from a networking viewpoint, a robot may be deemed a single networking object (or actuator). Consequently, an actuator may contain many actuators, encompassing heterogeneous tools. A WSAN is a distributed hybrid, heterogeneous sensor/actuator structure whose sensors directly communicate with actuators. Actuators can also converse among themselves. Hence, WSANs encompass sensor‐to‐actuator and actuator‐to‐actuator interactions via single‐hop or multihop broadcasts. WSAN can perform sensing, data fusion, acting properly in the physical environment thanks to decision‐making, and collaborate distributedly. Actuators are rich in computational, communication, and battery power resources. They may perform sensing tasks for local corrections, strictly restricting trustworthiness, predictability, and availability and requiring a sink or gateway to observe the overall network.
+
+
+14.2.1.4 Characteristics of WSAN
+Generally, actuation is more complex than sensing. Depending on the application, an immediate response to a sensor input may be required, further imposing certain real‐time constraints. WSANs are characterized by some of the following unique features.
+Real‐time guarantee: This requirement interchangeably deals with latency and delay bound, i.e., strict timing constraints are involved between sensing and acting. As soon as data is detected, it should trigger actuators. If the required data encounters latency and the actuation command is performed late, it makes data less effective, meaning sensing data must be valid when acting.
+Reliable coordination: Sensors communicate among themselves and also with actuators. Thus, sensors‐to‐actuator and actuator‐to‐actuator coordinations are involved in selecting the suitable actuator for the action through metrics (viz existing energy, distance, location, coverage, etc.) These coordinations are essential to maintain reliability, self‐organization, and network QoS. Still, at the same time, they impose new challenges on networking to provide robust and delay‐tolerant protocols and solutions.
+Traffic differentiation: The environment is heterogeneous due to resource‐constrained sensors and resource‐rich devices like actuators. Therefore, efficient resource allocation and utilization techniques need to be developed. Energy efficiency for sensor nodes is a big concern but less concerning for actuators. Moreover, actuating messages are more delay‐sensitive than standard sensor measurements, so message priority differs. Heterogeneity must be exploited cleverly in protocol design so that application QoS requirements and constrained resources of the sensors are not at stack.
+
+
+14.2.1.5 WSANs Applications
+Application necessities vary regarding criticality, reliability, timeliness, and importance of data in detail.
+
+Safety systems: These are always critical and require immediate action during emergencies (i.e., in need of real‐time communication), are highly delay‐sensitive, and entail low latency and outstanding reliability. Nonetheless, in terms of bandwidth requirements, they tend to have moderate bandwidth.
+Control systems: They can be closed‐loop (CL), open‐loop (OL), and process control systems [41]. Generally, CL systems observe processes and act as per decision, being generally autonomous and not involving humans in the loop. OL structures do not possess feedback and call for persons in the loop, i.e., humans, to make adjustments. Each control arrangement imposes different delay constraints, e.g., CL is more fault‐finding than OL control. Process control systems can tolerate some delays.
+Alerting systems: These regular events or alert systems result from continuous observing that indicates short‐term operational costs at different stages of SW or HW.
+Predictive maintenance and automatic fault detection: This crucial trait helps anticipate a failure instigated by surveillance and possible automatic maintenance via advanced procedures resulting from sudden machine shutdowns that lead to impromptu downtime and massive losses. So, a reliable WSAN can estimate machine faults precisely and jointly to evade worst‐case situations.
+Monitoring systems: These include checking process variables, equipment condition, structural health, etc., to continuously gather data from an essential sector for long durations, analyses, and make better decisions. These systems cover nearly every application’s aspect.
+
+
+
+14.2.1.6 WSAN Requirements
+Reliability: Link quality varies in the unreliable wireless medium, and quality in both bidirectional link ways differs. Poor link quality can wane broadcast and create latency, worsening on‐time control decisions and leading to system letdowns and financial losses. The reliability can be handled at different levels. As an illustration, it can be modeled by an energy efficiency function that depicts the network lifecycle satisfactorily and consistently throughout that epoch. Reliability (packet reception rate) should exceed a threshold to assure a certain reliability level without degrading processes’ and systems’ efforts.
+Packet priority and heterogeneity: The real world calls for heterogeneousity. Sensing measurements, controlling commands, and actuation tasks engender different generated packets. Each traffic has a different treatment priority. Thus, assigning packet priority warrants some degree of timely performance. Selected actions require prompt execution, albeit others can endure a certain flexibility level for execution, as CL systems, actuation, and control commands are more indispensable than sensor data. Accordingly, the system responds appropriately to faults when a priority difference level is embedded in the protocol.
+Energy effectiveness/power consumption: Energy replacements for battery‐powered nodes are nearly unmanageable, especially in inaccessible areas. Nevertheless, energy efficiency is also a significant concern, e.g., reliability and latency. Augmenting reliability expands energy efficiency, leading to low packet reception rate and latency to the energy consumption detriment. Therefore, careful tradeoffs must be handled under existing metrics that estimate and analyze compromises, leading to robust and flexible protocol development.
+Adaptation: Often, control traffic requirements change dynamically for different process controller states. Altering the wireless medium and network topologies imposes further necessities. Communication protocols cope with dynamic traffic by adapting their parameters per control requirements and the medium.
+Scalability: It denotes a system’s capability to scale well or deliver high flexibility, supporting modifications adaptively for adding and removing nodes or functionalities without degrading performance. A WSAN may require too many nodes. Then, communication protocols’ scalability must comply with such a scenario. Yet, scalable MAC protocols’ development is a nontrivial and challenging task. Existing standards like WirtelessHART and ISA100.11a chiefly rely on “time division multiple access” (TDMA) protocols, constraining the participating nodes’ total while simultaneously satisfying QoS requirements. Therefore, WSANs require protocols supporting scalability at different protocol stack layers to achieve better performance.
+Multihop communication: Large‐scale network deployments usually span over a large area. So, many sensor nodes are deployed at different locations, with sensor nodes transmitting their data and relaying data of nodes located multiple hops from the sink. Therefore, multihop communication remains an inherent share of such scenarios, allowing further flexibility in adding new nodes in the current network in case of plant structural changes. It also adds redundancy. In primary communication path failure, nodes can utilize alternative paths to reach sinks. However, this also imposes challenges of selecting a particular relay node if multiple relay nodes exist to not overload a specific path and warrant timely data delivery with better routing and mobility administration.
+Scalability and network control in Ref. [42] use a WSAN controller to track traffic flows and assure network/ device traffic rule exchange. The quantity of controllers (the main factor in business sector sub‐CPS‐WSAN amalgamations) must be carefully planned [43–45]. A mathematical model uses convex optimization to find the ideal number of controllers for a WBAN framework, pondering latency, controllers, and WSAN‐enabled switches [13, 14]. A GCPSO uses a security‐integrated monitoring and control system to offer stakeholder services reliably and minimize risks. The heterogeneous structure of WSANs demands a method to supply QoS‐improved services [46]. Still, this work will not address this. WSAN deployment was recommended for bandwidth and real‐time data communications.
+
+
+
+14.2.2 Blockchain‐Based Solutions
+Since Bitcoin’s debut, several blockchain variants have permitted businesses to exploit new technologies to gather, process, and analyze stakeholder data. Distributed identification and permission control use blockchain‐enabled deployment with a comprehensive security policy view [47]. A hypothetical blockchain use in business has been extensively examined in Refs. [48, 49] to identify flaws and future research, mainly in blockchain deployment costs. Performance, architectures, and standards were supplanted with security and privacy compliance.
+Similarly, Refs. [50, 51] have systematically reviewed trendy business sector applications, covering security, privacy, and data analyses/sharing via blockchain, besides critical conceptions, including identity supervision, data encryption, storage, access control, and “smart contracts” (SCs). An e‐health CPS data privacy and network security prevented unauthorized access by a KDB distribution network utilizing a blockchain, mobile cloud platform, and the open “Interplanetary File System” (IPFS) [52]. Their deployment fallouts are promising and offer a feasible securing data transfer method on mobile clouds with performance ameliorations in trivial access organization, network latency, and safety through elevated privacy and security thresholds.
+Blockchain’s back‐end transaction logging could help third parties, and cryptographically verified platforms maintain confidence. Business decentralization has emerged in the business sector. Although limited, well‐defined cryptographical and mathematical methods like hashing enable blockchain’s developing ledger to be tamper‐proof, safe, and unchangeable [53, 54].
+Blockchain uses “consensus algorithms” (CAs) to validate and link blocks. Famous blockchain networks Bitcoin and Ethereum had insecure proof‐of‐work (PoW) CA [55]. CTs boosted blockchain security research. Later, blockchain 2.0 focuses on SCs [56, 57], or the law of code [58] may eliminate trusted third parties. Ethereum and Hyperledger Fabric, with chain codes [59, 60], became popular SC blockchains. Ethereum uses PoW as CA but has no restrictions, unlike Bitcoin. SCs cannot just work in finance [56]. CS still has room for improvement [61].
+Blockchain‐based CS applications are analyzed, showing the increase in networking adoption in various domains and encompassing IoT [62]. According to Ref. [63], blockchain technologies can protect shared data and provide data trust for anything “as a service.” The causes and symptoms of vulnerabilities follow.
+Broken access control (AC): It limits stakeholders’ access, restricting their resources despite assigned permissions. AC failure commonly means stakeholders performing business functions requiring different consents than the ones set, among other activities. Errors also lead to unauthorized records disclosure, alteration, or destruction. “AC vulnerabilities” (ACV) include:
+
+Allowing all participants access to resources intended for specific roles, stakeholders, or authorization groups violates least privilege.
+Bypassing access control checks with URL, internal application state, or HTML page modifications. API attack tools can bypass access regulation checks.
+No API controls (e.g., “PUT,” “POST,” or “DELETE”).
+Privilege elevation, where an attacker can log in as a user without executing administrative tasks from a lower‐privilege account.
+
+Prevention entails limited resources’ access with AC, working with a trusted server where the invader cannot alter data. Protection methodologies follow:
+
+Access should be repudiated by default, excluding if the element is a public resource.
+Use AC tools again throughout the application.
+Impose application business bounds.
+Deactivate web servers’ directory listings.
+Rate‐restrained API and controller permission.
+
+Cryptographic failures (CFs): They can compromise systems or expose sensitive data due to cryptography shortcomings. Credit card numbers and personally identifiable information need further protection. The data type determines protection techniques and compliance with information privacy rules like the EU “General Data Protection Regulation” (GDPR) [64]. Common CFs are:
+
+Unenforced browser encryption without HTTP security headers.
+Server certificate trust chain invalid.
+FTP, SMTP, and HTTP browser protocols communicate data clearly.
+Using or disregarding weak cryptographic techniques and protocols in legacy code.
+
+CF prevention depends on application functioning and data type. There are several facets to data protection. Preventing includes:
+
+Classify application‐processed, transferred, or stored data. Classify sensitive data by privacy, commercial, or regulatory requirements.
+Store only necessary data and trash after the action.
+Encrypt all data at rest and transmission.
+Avoid sending sensitive data over obsolete protocols.
+
+Injection: Source‐code examination can detect cross‐site scripting, SQL injection, XML injection, and others. Automation can find vulnerabilities by checking all parameters and data inputs. Applications are injection‐prone when:
+
+User data is accepted without validation, sanitization, or filtering.
+Sensitive data is extracted from hostile data.
+Executing prevention.
+
+Prevention of injection attempts requires separating queries and actions from data:
+
+Include interpreter special characters in escape syntax.
+Query controls prevent unexpected inputs from acting unofficially.
+Use safe APIs for prepared statements with parameterized queries apart from the interpreter.
+
+Insecure design: It is not an insecure implementation, albeit a design can have imperfections, occasioning vulnerabilities. Unsafe designs do not ameliorate during performance because they lack suitable security controls. Failing to accurately assess SW or HW risks associated with the design leads to insufficient safekeeping. A security culture employs impenetrable design policies to appraise CTs and confirm the code follows the rules and is verified against notorious attack schemes. Prevention embraces strategies that foster a safe development culture:
+
+Application security professionals’ partnerships can estimate and design controls through a secure development lifecycle.
+Ready‐to‐use components for secure design patterns.
+Resourceful CT modeling respects access controls, critical authentication, essential data flows, and business logic.
+
+Security misconfiguration: Besides other factors, an array of improperly configured controls may contribute to application vulnerability. Some common caveats:
+
+Wrongly configured cloud services permissions.
+Enabling unnecessary features leads to redundant opened ports, services, or erroneously elevated privileges.
+Default account login credentials may be unchangeable.
+
+A thorough, robust security configuration process starts repeatable precautionary actions across systems and is somewhat automated as below:
+
+Establishing a repeatable security strengthening strategy, ideally through automation, to protect new environments properly with every deployment.
+Only use what is necessary. Uninstall or eliminate extra features and components.
+Install an automated process to appraise security across environments.
+
+Vulnerable and outdated constituents: Unpatched legacy tools still in production after discovering and disclosing vulnerabilities can be a significant risk. Applications are in danger when not running the latest SW version. The application may be susceptible if a library or component version is used despite being unreliable. Non‐scanned components for vulnerabilities may also face risk. Launching a patch‐management process can alleviate the outbreak potential by terminating vulnerabilities before they turn into an issue, such as:
+
+Eradicating unused or superfluous libraries, constituents, frameworks, documentation, and archives.
+Continual surveillance and server‐ and client‐flank components’ inventory.
+Utilizing only sanctioned libraries and sources over protected links.
+Unsupported legacy libraries and components.
+
+Identification and authentication failures: Here, stakeholders’ identities, authentications, and session data are not settled before one can get into systems and data. Reasons that may jeopardize applications due to these failures consist of weak passwords, inadequately hashed, plain‐text data password warehousing, and letting bots perform automated CAs, viz credential stuffing, and brute‐force. Prevention via secure passwords for storage and retrieval may involve:
+
+Multi‐factor authentication implementation.
+Circumvention of default credentials in deployments (especially for administrative accounts).
+Limited account enumeration exposure.
+
+SW and data integrity failures: Trusting data and SW updates without testing their integrity allows invaders to issue malware employing the SW supply chain in seemingly legitimate SW updates. Numerous systems use automated updates without integrity verification. Prevention begins with confirmation and includes:
+
+Applying digital signatures or other authentication forms to get SW updates ensures they have come from credible sources and arrived intact.
+Verification if third‐party libraries and other reliances are from authentic sources.
+Verify that third‐party assets share no vulnerabilities by automated security tools and attend to the SW supply chain.
+
+Security logging and monitoring failures: Targets are audit logs and monitoring throughout an outbreak. Security watching and records are paramount to discovering and mitigating active breaches. Letdowns happen when:
+
+Logging does not record high‐value transactions, login tries, or failed attempts.
+Mistakes and warnings engender unclear, scant, or no log entries.
+APIs/applications are not examined for suspicious undertakings.
+Security logs exist only locally.
+Applications cannot spot CTs to issue timely “attacks in progress alerts.”
+
+Prevention aims at permitting security logging and checking across applications. Designers should guarantee appropriate security controls, such as
+
+Login, entrance control, and server‐side corroboration failures should relate to a logged stakeholder’s context to ensure that malign and suspicious activities are preserved long enough for analysis.
+Logs should be made in a suitable format for log supervision tools to read.
+Permit surveillance and alerts for distrustful activities.
+Embrace an incident reaction and mitigation plan.
+
+“Server‐side request forgery” (SSRF): It handles weaknesses within stakeholder‐convenience structures at application and network levels. SSRF flaws occur once web applications fetch stakeholder‐requested remote assets without validating the destination. Specific requests can go to the application via an unforeseen source. Applications ordinarily get hold of URLs for easier end‐users task‐switching (often within the application) while accessing other features over the fetched URL. Cumulative cloud/fog architectures’ complexity means SSRF happens at a higher frequency. Protected segmented networks separate remote resources and block other non‐essential traffic by employing “deny‐by‐default” policies. SSRF schemes should take in the following:
+
+Data input must be sanitized, validated, and filtered.
+Deactivation of HTTP server‐level redirection.
+Warranting server responses arrive as expected, so unprocessed server reactions should never reach a stakeholder.
+
+New vulnerability variants: They emphasize application data tendencies with extra training benefits for companies concentrating on particular CWEs for programming languages or frameworks actively utilized.
+
+Insecure design: It contains design and infrastructural flaws and risks. Distinguished from other exposures, insecure design cannot be amended through correct implementation.
+SW/data entry failures: They contain risks of accepting SW updates without corroborating integrity, focusing on the hypothesis that updates can have permanent trust.
+“Server‐side request forgery” (SSRF): Risks arise from URL fetching from an application to a different one at the stakeholder’s request without confirming the URL’s truthfulness. This server‐side defenselessness is risky since fake requests can bypass CS schemes like VPNs, firewalls, or other access controls.
+
+
+
+14.2.3 Hybrid Solutions
+Security enhances data privacy and scalability; thus, stakeholders combine “WSAN with blockchain” (WSANB) in the business sector [65–68]. This chapter’s focal point is the breakdown of current blockchain deployments in WSANs that endorse integrity, confidentiality, and network infrastructure accessibility. This will help determine the potential of adding blockchain into WSAN architecture for security and privacy [41, 69–74].
+Using a blockchain‐based WSAN data chain, providing a distributed trustworthy record of WSAN data, and breaking the isolation of multi‐vendor devices for fault recovery will reduce network failure recovery expenses via Ethereum and OpendayLight [75]. In Ref. [76], a general blockchain‐based WSAN framework addressed the centralized control plane issue by merging the control plane and application layer into one major component and adding security features to obtain blockchain‐improved distributed controller security. A blockchain‐based collaborative “distributed DoS” (DDoS) CT prevention solution employing SCs to enable WSAN domain collaboration and convey DDoS outbreak information reliably, effectively, and decentralizedly appeared in Ref. [77] (Figure 14.1).
+
+
+
+14.3 GIBCS: An Overview
+Figure 14.2 exhibits the GIBCS‐CPS design, which views local and remote business stakeholders. Participants can use terminals, cellphones, or other intelligent devices to access back‐end (data access layer) devices, viz servers, mainframes, databanks, and others that provide data services. The back end encompasses SW modules, devices, and computers not visible to users. Design must decouple client issues from the front‐end (presentation layer), back‐end SW, physical infrastructure, or HW. The WSAN regulates these gateways by distributing non‐selective security policies from WSAN controllers.
+
+
+Figure 14.1 General WSAN architecture. A sensor and actuator network with a sink amalgamates the network manager, security supervision, controller, and application. SC: Sensor controller. AC: Actuator controller.
+
+
+
+
+Figure 14.2 GIBCS‐CPS different layers.
+
+
+Data routing rules will be saved on the smartphone. Back‐end components include the GCPSO controller, database, and client application that monitors the mobile app and sensors. The proposed design’s architecture is shown in Figure 14.

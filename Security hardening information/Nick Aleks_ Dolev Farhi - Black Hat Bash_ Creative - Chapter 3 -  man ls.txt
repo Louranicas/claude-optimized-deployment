@@ -1,0 +1,68 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - $ man ls
+Security Relevance Score: 2
+Word Count: 613
+Extracted: 2025-06-13 23:40:57
+
+---
+
+$ man ls
+
+NAME
+      ls - list directory contents
+
+SYNOPSIS
+      ls [OPTION]... [FILE]...
+
+DESCRIPTION
+      List information about the FILEs (the current directory by default).
+      Sort entries alphabetically if none of -cftuvSUX nor
+      --sort is specified.
+
+      Mandatory arguments to long options are mandatory for short options too.
+      -a, --all
+      do not ignore entries starting with .
+--snip--
+
+Listing 1-3: Accessing a command’s manual page
+Linux commands can accept many types of input on the command line. For example, you can enter ls without any arguments to see files and directories, or pass it arguments to, for instance, display the list of files all on one line.
+Arguments are passed on the command line by using either short-form or long-form argument syntax, depending on the command in use. Short-form syntax uses a single dash (-) followed by one or more characters. The following example uses ls to list files and directories with a short-form argument syntax:
+$ ls -l
+Some commands let you supply multiple arguments by joining them together or listing them separately:
+$ ls -la
+$ ls -l -a
+
+Note that some commands may throw errors if you attempt to join two arguments with a single dash, so use the man command to learn the syntax that’s permitted.
+Some command options may allow you to use long-form argument syntax, such as the --help command to list the available options. Long-form argument syntax is prepended by the double dash (--) symbol:
+$ ls --help
+Sometimes the same command argument supports both short- and long-form argument syntax for convenience. For example, ls supports the argument -a (all) to display all files, including those that are hidden. (Files starting with a dot in their name are considered hidden in Linux.) However, you could also pass the argument --all, and the outcome would be identical:
+$ ls -a
+$ ls --all
+
+Let’s execute some simple Linux commands so you can see the variation of options each offers. First, create a single directory with mkdir:
+$ mkdir directory1
+Now let’s create two directories with mkdir:
+$ mkdir directory2 directory3
+Next, list processes by using ps with short-form argument syntax, supplying the arguments separately and then together:
+$ ps -e -f
+$ ps -ef
+
+Finally, let’s display the available disk space by using df with long-form argument syntax:
+$ df --human-readable
+Throughout this book, you’ll use Linux commands such as these in your scripts.
+
+
+
+Elements of a Bash Script
+In this section, you’ll learn the building blocks of a bash script. You’ll use comments to document what a script does, tell Linux to use a specific interpreter to execute the script, and style your scripts for better readability.
+Bash doesn’t have an official style guide, but we recommend adhering to Google’s Shell Style Guide (https://google.github.io/styleguide/shellguide.html), which outlines best practices to follow when developing bash code. If you work on a team of penetration testers and have an exploit code repository, using good code styling practices will help your team maintain it.
+
+The Shebang Line
+Every script should begin with the shebang line, a character sequence that starts with the hash and exclamation marks (#!), followed by the full path to the script interpreter. Listing 1-4 shows an example of a shebang line for a typical bash script.
+#!/bin/bash
+Listing 1-4: A bash shebang line
+The bash interpreter is typically located at /bin/bash. If you instead wrote scripts in Python or Ruby, your shebang line would include the full path to the Python or Ruby interpreter.
+You’ll sometimes encounter bash scripts that use a shebang line like this one:
+#!/usr/bin/env bash
+You may want to use this shebang line because it is more portable than the one in Listing 1-

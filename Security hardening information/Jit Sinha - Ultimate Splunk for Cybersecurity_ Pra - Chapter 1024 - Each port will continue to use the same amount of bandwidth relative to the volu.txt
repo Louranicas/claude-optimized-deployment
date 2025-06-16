@@ -1,0 +1,90 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 1024 - Each port will continue to use the same amount of bandwidth relative to the volume of network traffic as a whole. An improper rise in bandwidth may be visible on a port that has been mishandled. The drilldown sends the user to the Traffic Search dashboard where they may conduct a port-specific search.
+Long-Lasting Relationships reveal TCP connections active for more than three minutes. A connection that lasts for a long time between hosts could indicate strange or suspicious behavior. Drilldown launches Traffic Search dashboard and does event search.
+Security Relevance Score: 11
+Word Count: 1531
+Extracted: 2025-06-13 23:40:44
+
+---
+
+Each port will continue to use the same amount of bandwidth relative to the volume of network traffic as a whole. An improper rise in bandwidth may be visible on a port that has been mishandled. The drilldown sends the user to the Traffic Search dashboard where they may conduct a port-specific search.
+Long-Lasting Relationships reveal TCP connections active for more than three minutes. A connection that lasts for a long time between hosts could indicate strange or suspicious behavior. Drilldown launches Traffic Search dashboard and does event search.
+
+Traffic Size Analysis
+Analysts can find outliers and anomalies in their network environment by comparing traffic statistics with statistical data using the Traffic Size Analysis dashboard. The traffic data from multiple sources, such as firewalls, routers, switches, and network flows, can be examined using this dashboard.
+Investigating traffic data byte lengths, using the graph to identify suspicious data transmission patterns, and digging deeper into the summarized data to search for abnormal source/destination traffic are some of the dashboard’s key features.
+
+
+
+Figure 7.13: Traffic Size Analysis dashboard
+Dashboard Filters
+Filter using Description:
+
+Index of Standard Deviation: The amount of data that will be filtered out if that particular number of standard deviations is chosen is indicated by the percentage (%). Selecting more deviations will result in fewer traffic size anomalies and details, while selecting fewer deviations will result in more anomalies and information.
+Time Period: Pick the time frame that will be portrayed. Superior Filter To view the category events that can be filtered for this dashboard, go here.
+
+Dashboard Panels
+
+Important indices show the metrics from the last 48 hours that are pertinent to the sources of the dashboard. At the dashboard’s top, key indicators serve as summaries of information.
+Changing Traffic Size anomalies: The graph shows a count of the size of anomalous traffic over time in your environment. With time on the x-axis and count on the y-axis, it displays traffic volume that is more than the number of standard deviations (2 by default) set in the filter.
+Specifics on Traffic Size: Each traffic event is listed in a table along with any relevant information, such as its size in bytes. The count column displays the number of events seen for each source IP address if there are multiple events. The minimum, maximum, and average bytes for the traffic event are displayed in the bytes column. The traffic event’s standard deviations are shown by the letter Z.
+
+DNS Activity
+A summary of the data pertaining to the DNS infrastructure under observation is provided by the DNS Activity dashboard. The time chosen using the dashboard time picker determines the results that are shown.
+
+
+
+Figure 7.14: DNS Activity dashboard
+Dashboard Panels
+
+Important indicators for the previous 48 hours, metrics that are pertinent to the dashboard sources are shown. At the dashboard’s top, key indicators serve as summaries of information.
+Top Reply Codes from Original Sources show the most common DNS reply codes experienced by hosts. A host that launches a lot of DNS queries to unrecognized or inaccessible domains can be trying to exfiltrate data or engaging in other questionable behavior. Drilldown launches DNS Search dashboard and performs a search on the chosen Reply Code.
+Leading DNS query resources show the network’s top DNS query sources. A host issuing a lot of DNS queries could be misconfigured, have technical problems, or be engaging in questionable conduct. The drilldown launches the DNS Search dashboard and performs a search using the source IP address that was chosen.
+Leading DNS queries the top 10 DNS QUERY requests over time are shown. The drilldown launches the DNS Search dashboard and conducts a host address search.
+Queries Per Domain shows a list of the most popular searches organized by domain. An attempt at exfiltration or suspicious behavior may be indicated by an unknown domain receiving a lot of inquiries from hosts on the network. The drilldown launches the DNS Search dashboard and does a domain address search.
+
+Current DNS requests reveal additional information for the 50 most recent DNS Response queries. The drilldown launches the DNS Search dashboard and conducts a search at the chosen questioned address.
+DNS Search
+The DNS Search interface makes it easier to search through filtered DNS protocol data. It serves as the main endpoint for drilldown searches in DNS dashboard panels and is mostly used for ad hoc DNS data searching. No results will be displayed if the DNS Search page is not accessed in response to a drilldown action or after choosing a filter and/or time range and hitting Submit.
+SSL Activity
+The SSL Activity dashboard, which provides a summary of SSL-encrypted connections and traffic, allows analysts to monitor and examine SSL-encrypted traffic by usage without having to decrypt the payload. The searches on the dashboard return results based on the time period selected using the time picker.
+
+
+
+
+Figure 7.15: SSL Activity dashboard
+Dashboard Panels
+
+Important indices for the previous 48 hours, metrics that are pertinent to the dashboard sources are shown. At the dashboard’s top, key indicators serve as summaries of information.
+Common Name SSL Activity displays outgoing SSL connections according to the SSL certificate’s common name (CN). It can be a sign that something strange or suspect is going on if an unfamiliar domain receives a lot of SSL connections from hosts on the network. The drilldown takes the user to the SSL Search dashboard, where they may conduct a search on the chosen common name.
+Cloud SSL Sessions shows the number of active sessions by CN for each recognized cloud service. The Cloud Domains lookup file contains a list of pre-configured cloud service domains against which the CN is compared. The drilldown accesses the SSL Search dashboard and performs a search using the source IP and common name that were chosen.
+Most current SSL sessions provide extra SSL key information in a table that shows the 50 most recent SSL sessions. Color-coded text is used in the fields ssl_end_time, ssl_validity_window, and ssl_is_valid to identify expired, short-lived, or invalid certificates quickly. The drilldown takes the user to the SSL Search dashboard where the full details of the selected event are displayed.
+
+SSL Search
+Search engine-filtered SSL protocol data can be searched using the SSL Search dashboard. It is used for ad hoc scanning of SSL protocol data and is the primary destination for drilldown searches in the SSL Activity dashboard panels. No results will be displayed if the SSL Search page is not accessed in response to a drilldown action or after choosing a filter and/or time range and pressing Submit.
+Email Activity
+The Email Activity dashboard gives a summary of the information about the tracked email infrastructure. Using the dashboard time picker, the results are presented according to the chosen time frame.
+
+
+
+Figure 7.16: Email Activity dashboard
+Dashboard Panels:
+
+Key Indicators: Shows metrics over the previous 24 hours that are pertinent to the dashboard sources. At the dashboard’s top, key indicators serve as summaries of information.
+Top Email Sources: The hosts producing the most email protocol traffic are shown in the Top Email Sources section. A host that sends a lot of emails via the network can be engaging in strange or suspicious behavior. Periodicity displayed on the sparklines for different hosts may indicate a planned action. The drilldown launches the Email Search dashboard and does a source IP search.
+Large Emails: Shows the senders of emails over 2MB. A host that frequently sends big emails might be engaged in questionable activities or data espionage. The drilldown launches the Email Search dashboard and does a source IP search.
+Rarely Seen Senders: Shows email addresses of senders who don’t send emails very often. An email address that looks to be a service account or that is being sent by a non-user may be a sign of a phishing attempt or other questionable activities. The Email Search dashboard, which performs a search on the selected Sender, is accessed by drilling down.
+Rarely Seen Receivers: Shows email addresses of recipients who don’t usually get emails. A phishing attempt or suspicious activity may be indicated by an email address that corresponds to a service account or a recipient who is not a user. The drilldown launches the Email Search dashboard and does a recipient search.
+
+Email Search
+Email Search Dashboard:
+
+It Aids in using search filters to look up email protocol information.
+It is used as the principal location for drilldown searches from the Email Activity dashboard panels and ad-hoc searches of email protocol data.
+It Does not show any results until a drilldown action is taken, a filter is selected, and/or a time range is entered.
+
+Hands-On Protocol Intelligence with Splunk ES at JIT Inc.
+Overview
+One of the leading innovators in technology, JIT Inc., uses Splunk Enterprise Security (ES) to improve its network protocol intelligence. JIT Inc. uses the Protocol Intelligence capabilities of Splunk ES, concentrating on dashboards such as Protocol Center, Traffic Size Analysis, DNS Activity, DNS Search, SSL Activity, SSL Search, Email Activity, and Email Search, in an era where network traffic analysis is essential for cybersecurity. Every dashboard offers distinct perspectives on network activity and traffic, assisting in the identification and examination of cyber threats.
+Scenario Setup

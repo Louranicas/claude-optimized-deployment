@@ -1,0 +1,710 @@
+# Comprehensive Backup and Recovery Strategy for CODE Project
+# Includes database backups, persistent volume snapshots, and configuration backups
+
+---
+# PostgreSQL Backup CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: code-production
+  labels:
+    app: postgres-backup
+    component: backup
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+            component: backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            fsGroup: 999
+          initContainers:
+          - name: wait-for-postgres
+            image: postgres:15-alpine
+            command: ['sh', '-c', 'until pg_isready -h postgres -p 5432 -U postgres; do sleep 5; done']
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+          containers:
+          - name: postgres-backup
+            image: postgres:15-alpine
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              
+              # Set variables
+              BACKUP_DIR="/backup"
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_NAME="postgres_backup_${TIMESTAMP}.sql.gz"
+              BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
+              
+              # Create backup directory
+              mkdir -p ${BACKUP_DIR}
+              
+              echo "Starting PostgreSQL backup at $(date)"
+              
+              # Create backup with compression
+              pg_dumpall -h postgres -U postgres --clean --if-exists | gzip > ${BACKUP_PATH}
+              
+              # Verify backup
+              if [ -f "${BACKUP_PATH}" ] && [ -s "${BACKUP_PATH}" ]; then
+                echo "Backup created successfully: ${BACKUP_PATH}"
+                ls -lh ${BACKUP_PATH}
+              else
+                echo "Backup failed or is empty"
+                exit 1
+              fi
+              
+              # Upload to S3
+              aws s3 cp ${BACKUP_PATH} s3://${S3_BUCKET}/postgresql/daily/${BACKUP_NAME} \
+                --storage-class STANDARD_IA \
+                --server-side-encryption AES256
+              
+              # Create manifest file
+              cat > ${BACKUP_DIR}/backup_manifest.json << EOF
+              {
+                "timestamp": "${TIMESTAMP}",
+                "backup_type": "postgresql_full",
+                "filename": "${BACKUP_NAME}",
+                "size_bytes": $(stat -c%s ${BACKUP_PATH}),
+                "checksum": "$(sha256sum ${BACKUP_PATH} | cut -d' ' -f1)",
+                "s3_location": "s3://${S3_BUCKET}/postgresql/daily/${BACKUP_NAME}",
+                "retention_days": 30,
+                "created_by": "postgres-backup-cronjob"
+              }
+              EOF
+              
+              # Upload manifest
+              aws s3 cp ${BACKUP_DIR}/backup_manifest.json \
+                s3://${S3_BUCKET}/postgresql/manifests/manifest_${TIMESTAMP}.json
+              
+              # Cleanup old local backups
+              find ${BACKUP_DIR} -name "postgres_backup_*.sql.gz" -mtime +1 -delete
+              
+              echo "Backup completed successfully at $(date)"
+            env:
+            - name: PGHOST
+              value: "postgres"
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: "postgres"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            - name: S3_BUCKET
+              value: "code-backups-production"
+            - name: AWS_DEFAULT_REGION
+              value: "us-west-2"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 999
+              runAsGroup: 999
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "200m"
+              limits:
+                memory: "2Gi"
+                cpu: "1000m"
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+            - name: aws-credentials
+              mountPath: /root/.aws
+              readOnly: true
+          volumes:
+          - name: backup-storage
+            emptyDir:
+              sizeLimit: 10Gi
+          - name: aws-credentials
+            secret:
+              secretName: aws-backup-credentials
+              defaultMode: 0400
+
+---
+# Redis Backup CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-backup
+  namespace: code-production
+  labels:
+    app: redis-backup
+    component: backup
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app: redis-backup
+            component: backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            fsGroup: 999
+          containers:
+          - name: redis-backup
+            image: redis:7-alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              
+              BACKUP_DIR="/backup"
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_NAME="redis_backup_${TIMESTAMP}.rdb"
+              BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
+              
+              mkdir -p ${BACKUP_DIR}
+              
+              echo "Starting Redis backup at $(date)"
+              
+              # Create Redis backup using BGSAVE
+              redis-cli -h redis -p 6379 BGSAVE
+              
+              # Wait for backup to complete
+              while [ "$(redis-cli -h redis -p 6379 LASTSAVE)" = "$(redis-cli -h redis -p 6379 LASTSAVE)" ]; do
+                sleep 5
+              done
+              
+              # Copy the dump file
+              redis-cli -h redis -p 6379 --rdb ${BACKUP_PATH}
+              
+              # Compress backup
+              gzip ${BACKUP_PATH}
+              BACKUP_PATH="${BACKUP_PATH}.gz"
+              
+              # Upload to S3
+              aws s3 cp ${BACKUP_PATH} s3://${S3_BUCKET}/redis/daily/$(basename ${BACKUP_PATH}) \
+                --storage-class STANDARD_IA \
+                --server-side-encryption AES256
+              
+              echo "Redis backup completed successfully at $(date)"
+            env:
+            - name: S3_BUCKET
+              value: "code-backups-production"
+            - name: AWS_DEFAULT_REGION
+              value: "us-west-2"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 999
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "1Gi"
+                cpu: "500m"
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+            - name: aws-credentials
+              mountPath: /root/.aws
+              readOnly: true
+          volumes:
+          - name: backup-storage
+            emptyDir:
+              sizeLimit: 5Gi
+          - name: aws-credentials
+            secret:
+              secretName: aws-backup-credentials
+              defaultMode: 0400
+
+---
+# Configuration Backup CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: config-backup
+  namespace: code-production
+  labels:
+    app: config-backup
+    component: backup
+spec:
+  schedule: "0 1 * * *"  # Daily at 1 AM
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app: config-backup
+            component: backup
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: config-backup
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          containers:
+          - name: config-backup
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              
+              BACKUP_DIR="/backup"
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_NAME="k8s_config_backup_${TIMESTAMP}.tar.gz"
+              
+              mkdir -p ${BACKUP_DIR}/configs ${BACKUP_DIR}/secrets
+              
+              echo "Starting Kubernetes configuration backup at $(date)"
+              
+              # Backup ConfigMaps
+              kubectl get configmaps -n code-production -o yaml > ${BACKUP_DIR}/configs/configmaps.yaml
+              kubectl get configmaps -n monitoring -o yaml > ${BACKUP_DIR}/configs/monitoring-configmaps.yaml
+              kubectl get configmaps -n logging -o yaml > ${BACKUP_DIR}/configs/logging-configmaps.yaml
+              
+              # Backup Secrets (without sensitive data, just structure)
+              kubectl get secrets -n code-production -o yaml | \
+                sed 's/data:.*/data: {}/g' > ${BACKUP_DIR}/secrets/secrets-structure.yaml
+              
+              # Backup Deployments, Services, Ingresses
+              kubectl get deployments,services,ingresses,hpa,vpa,pdb -n code-production -o yaml > \
+                ${BACKUP_DIR}/configs/workloads.yaml
+              
+              # Backup RBAC
+              kubectl get roles,rolebindings,serviceaccounts -n code-production -o yaml > \
+                ${BACKUP_DIR}/configs/rbac.yaml
+              
+              # Backup Network Policies
+              kubectl get networkpolicies -n code-production -o yaml > \
+                ${BACKUP_DIR}/configs/network-policies.yaml
+              
+              # Create archive
+              cd ${BACKUP_DIR}
+              tar -czf ${BACKUP_NAME} configs/ secrets/
+              
+              # Upload to S3
+              aws s3 cp ${BACKUP_NAME} s3://${S3_BUCKET}/kubernetes/daily/${BACKUP_NAME} \
+                --storage-class STANDARD_IA \
+                --server-side-encryption AES256
+              
+              echo "Configuration backup completed successfully at $(date)"
+            env:
+            - name: S3_BUCKET
+              value: "code-backups-production"
+            - name: AWS_DEFAULT_REGION
+              value: "us-west-2"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+            - name: aws-credentials
+              mountPath: /home/1000/.aws
+              readOnly: true
+          volumes:
+          - name: backup-storage
+            emptyDir:
+              sizeLimit: 2Gi
+          - name: aws-credentials
+            secret:
+              secretName: aws-backup-credentials
+              defaultMode: 0400
+
+---
+# Velero Backup Schedule for Persistent Volumes
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-backup
+  namespace: velero
+  labels:
+    app: velero
+    component: backup
+spec:
+  schedule: "0 4 * * *"  # Daily at 4 AM
+  template:
+    includedNamespaces:
+    - code-production
+    - monitoring
+    - logging
+    excludedResources:
+    - events
+    - events.events.k8s.io
+    - backups.velero.io
+    - restores.velero.io
+    - resticrepositories.velero.io
+    includedNamespaceScopedResources:
+    - persistentvolumeclaims
+    - persistentvolumes
+    - secrets
+    - configmaps
+    snapshotVolumes: true
+    ttl: 720h  # 30 days
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+    metadata:
+      labels:
+        backup-type: daily
+        environment: production
+
+---
+# Velero Backup Schedule for Weekly Full Backup
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: weekly-full-backup
+  namespace: velero
+  labels:
+    app: velero
+    component: backup
+spec:
+  schedule: "0 5 * * 0"  # Weekly on Sunday at 5 AM
+  template:
+    includedNamespaces:
+    - code-production
+    - monitoring
+    - logging
+    - kube-system
+    - velero
+    excludedResources:
+    - events
+    - events.events.k8s.io
+    snapshotVolumes: true
+    ttl: 2160h  # 90 days
+    storageLocation: default
+    volumeSnapshotLocations:
+    - default
+    metadata:
+      labels:
+        backup-type: weekly-full
+        environment: production
+
+---
+# Backup Cleanup CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-cleanup
+  namespace: code-production
+  labels:
+    app: backup-cleanup
+    component: backup
+spec:
+  schedule: "0 6 * * 0"  # Weekly on Sunday at 6 AM
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            app: backup-cleanup
+            component: backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+          containers:
+          - name: backup-cleanup
+            image: amazon/aws-cli:latest
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              
+              echo "Starting backup cleanup at $(date)"
+              
+              # Delete PostgreSQL backups older than 30 days
+              aws s3 ls s3://${S3_BUCKET}/postgresql/daily/ | \
+                awk '$1 < "'$(date -d '30 days ago' '+%Y-%m-%d')'" {print $4}' | \
+                xargs -I {} aws s3 rm s3://${S3_BUCKET}/postgresql/daily/{}
+              
+              # Delete Redis backups older than 14 days
+              aws s3 ls s3://${S3_BUCKET}/redis/daily/ | \
+                awk '$1 < "'$(date -d '14 days ago' '+%Y-%m-%d')'" {print $4}' | \
+                xargs -I {} aws s3 rm s3://${S3_BUCKET}/redis/daily/{}
+              
+              # Delete config backups older than 60 days
+              aws s3 ls s3://${S3_BUCKET}/kubernetes/daily/ | \
+                awk '$1 < "'$(date -d '60 days ago' '+%Y-%m-%d')'" {print $4}' | \
+                xargs -I {} aws s3 rm s3://${S3_BUCKET}/kubernetes/daily/{}
+              
+              echo "Backup cleanup completed at $(date)"
+            env:
+            - name: S3_BUCKET
+              value: "code-backups-production"
+            - name: AWS_DEFAULT_REGION
+              value: "us-west-2"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+            volumeMounts:
+            - name: aws-credentials
+              mountPath: /home/1000/.aws
+              readOnly: true
+          volumes:
+          - name: aws-credentials
+            secret:
+              secretName: aws-backup-credentials
+              defaultMode: 0400
+
+---
+# Recovery Job Template (Manual Trigger)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-recovery-template
+  namespace: code-production
+  labels:
+    app: postgres-recovery
+    component: recovery
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      # This is a template for manual recovery jobs
+      # To use: kubectl create -f this-file.yaml
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 7200
+  template:
+    metadata:
+      labels:
+        app: postgres-recovery
+        component: recovery
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+      - name: postgres-recovery
+        image: postgres:15-alpine
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -euo pipefail
+          
+          echo "Starting PostgreSQL recovery at $(date)"
+          echo "Recovery file: ${RECOVERY_FILE}"
+          
+          # Download backup from S3
+          aws s3 cp s3://${S3_BUCKET}/postgresql/daily/${RECOVERY_FILE} /tmp/recovery.sql.gz
+          
+          # Verify download
+          if [ ! -f "/tmp/recovery.sql.gz" ]; then
+            echo "Failed to download recovery file"
+            exit 1
+          fi
+          
+          # Stop connections to database
+          psql -h postgres -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname != 'postgres' AND pid <> pg_backend_pid();"
+          
+          # Drop existing databases (except postgres, template0, template1)
+          psql -h postgres -U postgres -t -c "SELECT 'DROP DATABASE \"'||datname||'\";' FROM pg_database WHERE datname NOT IN ('postgres','template0','template1');" | psql -h postgres -U postgres
+          
+          # Restore from backup
+          gunzip -c /tmp/recovery.sql.gz | psql -h postgres -U postgres
+          
+          echo "PostgreSQL recovery completed successfully at $(date)"
+        env:
+        - name: PGHOST
+          value: "postgres"
+        - name: PGPORT
+          value: "5432"
+        - name: PGUSER
+          value: "postgres"
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+        - name: S3_BUCKET
+          value: "code-backups-production"
+        - name: AWS_DEFAULT_REGION
+          value: "us-west-2"
+        - name: RECOVERY_FILE
+          value: "REPLACE_WITH_BACKUP_FILENAME"  # Replace when creating actual job
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: aws-credentials
+          mountPath: /home/postgres/.aws
+          readOnly: true
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 10Gi
+      - name: aws-credentials
+        secret:
+          secretName: aws-backup-credentials
+          defaultMode: 0400
+
+---
+# ServiceAccount for Config Backup
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: config-backup
+  namespace: code-production
+
+---
+# ClusterRole for Config Backup
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: config-backup
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets", "services", "serviceaccounts"]
+  verbs: ["get", "list"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets", "daemonsets"]
+  verbs: ["get", "list"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses", "networkpolicies"]
+  verbs: ["get", "list"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings"]
+  verbs: ["get", "list"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list"]
+- apiGroups: ["autoscaling.k8s.io"]
+  resources: ["verticalpodautoscalers"]
+  verbs: ["get", "list"]
+- apiGroups: ["policy"]
+  resources: ["poddisruptionbudgets"]
+  verbs: ["get", "list"]
+
+---
+# ClusterRoleBinding for Config Backup
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: config-backup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: config-backup
+subjects:
+- kind: ServiceAccount
+  name: config-backup
+  namespace: code-production
+
+---
+# Backup Monitoring ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backup-jobs-monitor
+  namespace: code-production
+  labels:
+    app: backup-monitoring
+spec:
+  selector:
+    matchLabels:
+      component: backup
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics

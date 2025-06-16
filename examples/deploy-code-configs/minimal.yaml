@@ -1,0 +1,30 @@
+# Minimal configuration example for deploy-code
+# This is the simplest possible configuration for a basic deployment
+
+# Application name (required)
+name: my-app
+
+# Version to deploy (required)
+version: 1.0.0
+
+# Deployment target (required)
+target:
+  # Type of deployment: local, docker, kubernetes, or cloud
+  type: local
+  
+  # Path where the application will be deployed
+  path: /opt/my-app
+
+# Source configuration (required)
+source:
+  # Repository URL or local path
+  repository: https://github.com/username/my-app.git
+  # Branch to deploy (defaults to main if not specified)
+  branch: main
+
+# Basic runtime configuration
+runtime:
+  # Command to start the application
+  command: npm start
+  # Working directory (relative to deployment path)
+  workdir: .

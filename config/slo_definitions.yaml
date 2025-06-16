@@ -1,0 +1,614 @@
+# SLI/SLO Configuration File
+# This file defines Service Level Indicators (SLIs), Service Level Objectives (SLOs),
+# and error budget policies following SRE best practices.
+
+slis:
+  # API Service SLIs
+  api_availability:
+    type: availability
+    description: "API endpoint availability based on successful responses"
+    unit: ratio
+    query: |
+      (
+        sum(rate(http_requests_total{job="api",status!~"5.."}[5m])) /
+        sum(rate(http_requests_total{job="api"}[5m]))
+      ) * 100
+    aggregation: avg
+    labels:
+      service: api
+      tier: critical
+
+  api_latency_p50:
+    type: latency
+    description: "API 50th percentile latency"
+    unit: seconds
+    query: |
+      histogram_quantile(0.50,
+        rate(http_request_duration_seconds_bucket{job="api"}[5m])
+      )
+    aggregation: p50
+    labels:
+      service: api
+      tier: critical
+
+  api_latency_p95:
+    type: latency
+    description: "API 95th percentile latency"
+    unit: seconds
+    query: |
+      histogram_quantile(0.95,
+        rate(http_request_duration_seconds_bucket{job="api"}[5m])
+      )
+    aggregation: p95
+    labels:
+      service: api
+      tier: critical
+
+  api_latency_p99:
+    type: latency
+    description: "API 99th percentile latency"
+    unit: seconds
+    query: |
+      histogram_quantile(0.99,
+        rate(http_request_duration_seconds_bucket{job="api"}[5m])
+      )
+    aggregation: p99
+    labels:
+      service: api
+      tier: critical
+
+  api_error_rate:
+    type: error_rate
+    description: "API error rate (5xx responses)"
+    unit: percent
+    query: |
+      (
+        sum(rate(http_requests_total{job="api",status=~"5.."}[5m])) /
+        sum(rate(http_requests_total{job="api"}[5m]))
+      ) * 100
+    aggregation: avg
+    labels:
+      service: api
+      tier: critical
+
+  api_throughput:
+    type: throughput
+    description: "API requests per second"
+    unit: rps
+    query: |
+      sum(rate(http_requests_total{job="api"}[5m]))
+    aggregation: avg
+    labels:
+      service: api
+      tier: critical
+
+  # Database SLIs
+  database_availability:
+    type: availability
+    description: "Database connection availability"
+    unit: ratio
+    query: |
+      (
+        sum(mysql_up{job="mysql"}) /
+        count(mysql_up{job="mysql"})
+      ) * 100
+    aggregation: avg
+    labels:
+      service: database
+      tier: critical
+
+  database_query_latency_p95:
+    type: latency
+    description: "Database query 95th percentile latency"
+    unit: seconds
+    query: |
+      histogram_quantile(0.95,
+        rate(mysql_query_duration_seconds_bucket{job="mysql"}[5m])
+      )
+    aggregation: p95
+    labels:
+      service: database
+      tier: critical
+
+  database_connection_utilization:
+    type: quality
+    description: "Database connection pool utilization"
+    unit: percent
+    query: |
+      (
+        mysql_global_status_threads_connected{job="mysql"} /
+        mysql_global_variables_max_connections{job="mysql"}
+      ) * 100
+    aggregation: avg
+    labels:
+      service: database
+      tier: critical
+
+  # MCP Service SLIs
+  mcp_availability:
+    type: availability
+    description: "MCP service availability"
+    unit: ratio
+    query: |
+      (
+        sum(rate(mcp_requests_total{status="success"}[5m])) /
+        sum(rate(mcp_requests_total[5m]))
+      ) * 100
+    aggregation: avg
+    labels:
+      service: mcp
+      tier: high
+
+  mcp_latency_p99:
+    type: latency
+    description: "MCP request 99th percentile latency"
+    unit: seconds
+    query: |
+      histogram_quantile(0.99,
+        rate(mcp_request_duration_seconds_bucket[5m])
+      )
+    aggregation: p99
+    labels:
+      service: mcp
+      tier: high
+
+  # Circle of Experts SLIs
+  experts_availability:
+    type: availability
+    description: "Circle of Experts query success rate"
+    unit: ratio
+    query: |
+      (
+        sum(rate(experts_queries_total{status="success"}[5m])) /
+        sum(rate(experts_queries_total[5m]))
+      ) * 100
+    aggregation: avg
+    labels:
+      service: experts
+      tier: high
+
+  experts_response_time:
+    type: latency
+    description: "Circle of Experts response time"
+    unit: seconds
+    query: |
+      histogram_quantile(0.95,
+        rate(experts_query_duration_seconds_bucket[5m])
+      )
+    aggregation: p95
+    labels:
+      service: experts
+      tier: high
+
+  experts_consensus_quality:
+    type: quality
+    description: "Expert consensus quality score"
+    unit: score
+    query: |
+      avg(experts_consensus_score)
+    aggregation: avg
+    labels:
+      service: experts
+      tier: medium
+
+  # Authentication SLIs
+  auth_availability:
+    type: availability
+    description: "Authentication service availability"
+    unit: ratio
+    query: |
+      (
+        sum(rate(auth_requests_total{status!~"5.."}[5m])) /
+        sum(rate(auth_requests_total[5m]))
+      ) * 100
+    aggregation: avg
+    labels:
+      service: auth
+      tier: critical
+
+  auth_latency_p95:
+    type: latency
+    description: "Authentication latency 95th percentile"
+    unit: seconds
+    query: |
+      histogram_quantile(0.95,
+        rate(auth_request_duration_seconds_bucket[5m])
+      )
+    aggregation: p95
+    labels:
+      service: auth
+      tier: critical
+
+slos:
+  # Critical API SLOs
+  api_availability_monthly:
+    sli_name: api_availability
+    target: 99.9
+    comparison: gte
+    time_window: rolling_30d
+    description: "API should be available 99.9% of the time over 30 days"
+    priority: critical
+    business_impact: "Direct user impact, revenue loss"
+
+  api_availability_weekly:
+    sli_name: api_availability
+    target: 99.95
+    comparison: gte
+    time_window: rolling_7d
+    description: "API should be available 99.95% of the time over 7 days"
+    priority: critical
+    business_impact: "Direct user impact"
+
+  api_latency_p99_daily:
+    sli_name: api_latency_p99
+    target: 1.0
+    comparison: lte
+    time_window: rolling_24h
+    description: "API p99 latency should be less than 1 second over 24 hours"
+    priority: high
+    business_impact: "User experience degradation"
+
+  api_latency_p95_hourly:
+    sli_name: api_latency_p95
+    target: 0.5
+    comparison: lte
+    time_window: rolling_1h
+    description: "API p95 latency should be less than 0.5 seconds over 1 hour"
+    priority: high
+    business_impact: "User experience degradation"
+
+  api_error_rate_hourly:
+    sli_name: api_error_rate
+    target: 0.1
+    comparison: lte
+    time_window: rolling_1h
+    description: "API error rate should be less than 0.1% over 1 hour"
+    priority: high
+    business_impact: "User errors, support tickets"
+
+  # Database SLOs
+  database_availability_monthly:
+    sli_name: database_availability
+    target: 99.95
+    comparison: gte
+    time_window: rolling_30d
+    description: "Database should be available 99.95% of the time over 30 days"
+    priority: critical
+    business_impact: "Complete service outage"
+
+  database_query_latency_daily:
+    sli_name: database_query_latency_p95
+    target: 0.1
+    comparison: lte
+    time_window: rolling_24h
+    description: "Database query p95 latency should be less than 100ms over 24 hours"
+    priority: high
+    business_impact: "Performance degradation"
+
+  database_connection_utilization:
+    sli_name: database_connection_utilization
+    target: 80
+    comparison: lte
+    time_window: rolling_1h
+    description: "Database connection utilization should be less than 80%"
+    priority: medium
+    business_impact: "Capacity constraints"
+
+  # MCP Service SLOs
+  mcp_availability_weekly:
+    sli_name: mcp_availability
+    target: 99.5
+    comparison: gte
+    time_window: rolling_7d
+    description: "MCP service should be available 99.5% of the time over 7 days"
+    priority: high
+    business_impact: "Integration functionality loss"
+
+  mcp_latency_daily:
+    sli_name: mcp_latency_p99
+    target: 2.0
+    comparison: lte
+    time_window: rolling_24h
+    description: "MCP p99 latency should be less than 2 seconds over 24 hours"
+    priority: medium
+    business_impact: "Integration performance"
+
+  # Experts Service SLOs
+  experts_availability_weekly:
+    sli_name: experts_availability
+    target: 99.0
+    comparison: gte
+    time_window: rolling_7d
+    description: "Experts service should be available 99.0% of the time over 7 days"
+    priority: high
+    business_impact: "AI functionality loss"
+
+  experts_response_time_daily:
+    sli_name: experts_response_time
+    target: 5.0
+    comparison: lte
+    time_window: rolling_24h
+    description: "Experts response time should be less than 5 seconds over 24 hours"
+    priority: medium
+    business_impact: "AI response speed"
+
+  experts_consensus_quality_weekly:
+    sli_name: experts_consensus_quality
+    target: 85.0
+    comparison: gte
+    time_window: rolling_7d
+    description: "Expert consensus quality should be at least 85% over 7 days"
+    priority: medium
+    business_impact: "AI quality degradation"
+
+  # Authentication SLOs
+  auth_availability_monthly:
+    sli_name: auth_availability
+    target: 99.99
+    comparison: gte
+    time_window: rolling_30d
+    description: "Auth service should be available 99.99% of the time over 30 days"
+    priority: critical
+    business_impact: "User login failures, complete access loss"
+
+  auth_latency_hourly:
+    sli_name: auth_latency_p95
+    target: 0.2
+    comparison: lte
+    time_window: rolling_1h
+    description: "Auth p95 latency should be less than 200ms over 1 hour"
+    priority: high
+    business_impact: "Login experience degradation"
+
+error_budget_policies:
+  critical_service_policy:
+    applies_to:
+      - api_availability_monthly
+      - database_availability_monthly
+      - auth_availability_monthly
+    freeze_threshold: 0.1  # 10% of error budget remaining
+    alert_thresholds:
+      0.5: warning    # 50% budget consumed
+      0.2: error      # 80% budget consumed
+      0.1: critical   # 90% budget consumed
+    actions:
+      - budget_threshold: 50
+        type: notify_team
+        channels: ["slack://sre-alerts", "email://sre-team@company.com"]
+        message: "Error budget 50% consumed for {{slo_name}}"
+      - budget_threshold: 20
+        type: page_oncall
+        channels: ["pagerduty://sre-oncall"]
+        message: "Error budget critically low for {{slo_name}}"
+      - budget_threshold: 10
+        type: deployment_freeze
+        message: "Deployment freeze activated for {{slo_name}}"
+        duration: "24h"
+      - budget_threshold: 5
+        type: incident_escalation
+        channels: ["pagerduty://management"]
+        message: "SLO breach imminent for {{slo_name}}"
+
+  high_priority_policy:
+    applies_to:
+      - api_latency_p99_daily
+      - api_error_rate_hourly
+      - mcp_availability_weekly
+      - experts_availability_weekly
+    freeze_threshold: 0.2  # 20% of error budget remaining
+    alert_thresholds:
+      0.5: info
+      0.3: warning
+      0.2: error
+    actions:
+      - budget_threshold: 30
+        type: notify_team
+        channels: ["slack://dev-alerts"]
+        message: "Error budget 70% consumed for {{slo_name}}"
+      - budget_threshold: 20
+        type: escalate_oncall
+        channels: ["slack://sre-alerts"]
+        message: "Error budget critically low for {{slo_name}}"
+
+  medium_priority_policy:
+    applies_to:
+      - database_connection_utilization
+      - mcp_latency_daily
+      - experts_response_time_daily
+      - experts_consensus_quality_weekly
+    freeze_threshold: 0.0  # No deployment freeze
+    alert_thresholds:
+      0.3: warning
+      0.1: error
+    actions:
+      - budget_threshold: 30
+        type: notify_team
+        channels: ["slack://dev-alerts"]
+        message: "Error budget 70% consumed for {{slo_name}}"
+
+alert_rules:
+  slo_breach_imminent:
+    condition:
+      budget_threshold: 10
+      trend: degrading
+    severity: critical
+    cooldown_minutes: 30
+    message_template: |
+      🚨 SLO BREACH IMMINENT: {{slo_name}}
+      
+      Current compliance: {{compliance_percentage:.2f}}%
+      Error budget remaining: {{error_budget_remaining:.2f}}%
+      Trend: {{trend}}
+      
+      Immediate action required to prevent SLO breach.
+    channels:
+      - pagerduty://sre-oncall
+      - slack://incident-response
+
+  slo_breach_occurred:
+    condition:
+      compliance_threshold: 99.0  # Below target
+    severity: critical
+    cooldown_minutes: 15
+    message_template: |
+      💥 SLO BREACH: {{slo_name}}
+      
+      Current compliance: {{compliance_percentage:.2f}}%
+      Target: 99.9%
+      Time window: {{time_window}}
+      
+      SLO is currently breaching. Incident response required.
+    channels:
+      - pagerduty://sre-oncall
+      - slack://incident-response
+      - email://management@company.com
+
+  error_budget_exhausted:
+    condition:
+      budget_threshold: 0
+    severity: critical
+    cooldown_minutes: 60
+    message_template: |
+      ⛔ ERROR BUDGET EXHAUSTED: {{slo_name}}
+      
+      Error budget: 0% remaining
+      Deployment freeze in effect
+      
+      No further deployments allowed until error budget recovers.
+    channels:
+      - pagerduty://sre-oncall
+      - slack://deployment-freeze
+
+  performance_degradation:
+    condition:
+      trend: degrading
+      budget_threshold: 50
+    severity: warning
+    cooldown_minutes: 60
+    message_template: |
+      📉 PERFORMANCE DEGRADING: {{slo_name}}
+      
+      Current compliance: {{compliance_percentage:.2f}}%
+      Error budget remaining: {{error_budget_remaining:.2f}}%
+      Trend: Degrading
+      
+      Performance is trending downward. Investigation recommended.
+    channels:
+      - slack://sre-alerts
+
+notification_channels:
+  slack://sre-alerts:
+    type: slack
+    webhook_url: "${SLACK_SRE_WEBHOOK_URL}"
+    channel: "#sre-alerts"
+    username: "SLO Tracker"
+    icon_emoji: ":chart_with_downwards_trend:"
+
+  slack://dev-alerts:
+    type: slack
+    webhook_url: "${SLACK_DEV_WEBHOOK_URL}"
+    channel: "#dev-alerts"
+    username: "SLO Tracker"
+    icon_emoji: ":warning:"
+
+  slack://incident-response:
+    type: slack
+    webhook_url: "${SLACK_INCIDENT_WEBHOOK_URL}"
+    channel: "#incident-response"
+    username: "SLO Tracker"
+    icon_emoji: ":rotating_light:"
+
+  slack://deployment-freeze:
+    type: slack
+    webhook_url: "${SLACK_DEPLOYMENT_WEBHOOK_URL}"
+    channel: "#deployments"
+    username: "SLO Tracker"
+    icon_emoji: ":no_entry:"
+
+  pagerduty://sre-oncall:
+    type: pagerduty
+    integration_key: "${PAGERDUTY_SRE_INTEGRATION_KEY}"
+    service_name: "SRE On-Call"
+
+  pagerduty://management:
+    type: pagerduty
+    integration_key: "${PAGERDUTY_MGMT_INTEGRATION_KEY}"
+    service_name: "Management Escalation"
+
+  email://sre-team@company.com:
+    type: email
+    smtp_server: "${SMTP_SERVER}"
+    smtp_port: 587
+    smtp_username: "${SMTP_USERNAME}"
+    smtp_password: "${SMTP_PASSWORD}"
+    from_address: "slo-tracker@company.com"
+    to_addresses: ["sre-team@company.com"]
+
+governance:
+  review_schedule:
+    critical_slos:
+      frequency: monthly
+      reviewers: ["sre-lead", "engineering-manager", "product-owner"]
+      approval_required: 2
+    
+    high_priority_slos:
+      frequency: quarterly
+      reviewers: ["sre-lead", "engineering-manager"]
+      approval_required: 1
+    
+    medium_priority_slos:
+      frequency: quarterly
+      reviewers: ["sre-lead"]
+      approval_required: 1
+
+  change_approval:
+    critical_slos:
+      approvers: ["sre-lead", "engineering-director"]
+      required_approvals: 2
+      review_period_days: 7
+    
+    high_priority_slos:
+      approvers: ["sre-lead", "engineering-manager"]
+      required_approvals: 1
+      review_period_days: 3
+    
+    medium_priority_slos:
+      approvers: ["sre-lead"]
+      required_approvals: 1
+      review_period_days: 1
+
+  documentation_requirements:
+    - business_justification
+    - technical_implementation
+    - measurement_methodology
+    - historical_analysis
+    - impact_assessment
+
+reporting:
+  schedule:
+    daily_summary:
+      enabled: true
+      time: "09:00"
+      recipients: ["sre-team@company.com"]
+      format: email
+    
+    weekly_detailed:
+      enabled: true
+      day: monday
+      time: "09:00"
+      recipients: ["engineering-team@company.com"]
+      format: both  # email and slack
+    
+    monthly_executive:
+      enabled: true
+      day: 1
+      time: "10:00"
+      recipients: ["executives@company.com"]
+      format: pdf
+
+  retention:
+    raw_sli_data: "90d"
+    aggregated_data: "2y"
+    compliance_history: "5y"
+    alert_history: "1y"
+    review_records: "7y"

@@ -1,0 +1,70 @@
+# Dockerfile for running the application with comprehensive tracing
+
+FROM python:3.11-slim
+
+# Create non-root user
+RUN groupadd -r synthex && useradd -r -g synthex synthex
+
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements*.txt ./
+
+# Install Python dependencies with OpenTelemetry packages
+RUN pip install --no-cache-dir -r requirements-dev.txt && \
+    pip install --no-cache-dir \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    opentelemetry-exporter-jaeger-thrift \
+    opentelemetry-exporter-zipkin-json \
+    opentelemetry-exporter-otlp-proto-grpc \
+    opentelemetry-instrumentation-fastapi \
+    opentelemetry-instrumentation-sqlalchemy \
+    opentelemetry-instrumentation-redis \
+    opentelemetry-instrumentation-requests \
+    opentelemetry-instrumentation-aiohttp-client \
+    opentelemetry-instrumentation-psycopg2
+
+# Copy application code
+COPY src/ ./src/
+COPY config/ ./config/
+COPY examples/ ./examples/
+
+# Set environment variables for tracing
+ENV PYTHONPATH=/app
+ENV OTEL_SERVICE_NAME=claude-deployment-engine
+ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+ENV OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+ENV OTEL_EXPORTER_ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+
+# Create startup script
+RUN echo '#!/bin/bash\n\
+echo "🔍 Starting Claude Deployment Engine with comprehensive tracing..."\n\
+echo "Tracing endpoints:"\n\
+echo "  - Jaeger UI: http://localhost:16686"\n\
+echo "  - Zipkin UI: http://localhost:9411"\n\
+echo "  - Prometheus: http://localhost:9090"\n\
+echo "  - Grafana: http://localhost:3000"\n\
+echo ""\n\
+# Start the FastAPI application with tracing\n\
+exec uvicorn examples.tracing_example:app --host 0.0.0.0 --port 8000 --reload\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/monitoring/trace-health || exit 1
+
+# Start the application
+USER synthex
+CMD ["/app/start.sh"]

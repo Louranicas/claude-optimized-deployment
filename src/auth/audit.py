@@ -16,6 +16,25 @@ from collections import defaultdict, deque
 import threading
 import queue
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    AuthenticationError,
+    AuthorizationError,
+    ValidationError,
+    RateLimitError,
+    log_error
+)
+
+__all__ = [
+    "AuditEventType",
+    "AuditSeverity",
+    "AuditEvent",
+    "AuditLogger",
+    "audit_action"
+]
+
+
 # Import bounded collections
 try:
     from ..core.lru_cache import create_lru_cache, LRUCache
@@ -249,6 +268,7 @@ class AuditLogger:
         # Start background worker
         self._start_worker()
     
+    @handle_errors()
     def _start_worker(self) -> None:
         """Start background worker for processing events."""
         async def worker():
@@ -685,6 +705,7 @@ class AuditLogger:
         
         return 0
     
+    @handle_errors()
     def _cleanup_expired_stats(self) -> int:
         """
         Clean up expired statistics entries.
@@ -706,6 +727,7 @@ class AuditLogger:
         
         return 0
     
+    @handle_errors()
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics for monitoring."""
         stats_info = {}
@@ -817,6 +839,7 @@ class AuditLogger:
 # Convenience decorators for audit logging
 def audit_action(event_type: AuditEventType, severity: AuditSeverity = AuditSeverity.INFO):
     """Decorator for auditing function calls."""
+    @handle_errors()
     def decorator(func):
         async def async_wrapper(*args, **kwargs):
             # Extract user context if available
@@ -856,6 +879,7 @@ def audit_action(event_type: AuditEventType, severity: AuditSeverity = AuditSeve
                 )
                 raise
         
+        @handle_errors()
         def sync_wrapper(*args, **kwargs):
             # Similar for sync functions
             user_id = None

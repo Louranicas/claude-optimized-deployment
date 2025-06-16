@@ -13,11 +13,25 @@ from datetime import datetime, timedelta
 import weakref
 from collections import defaultdict
 
+__all__ = [
+    "MCPTransport",
+    "HTTPTransport",
+    "WebSocketTransport",
+    "MCPClient"
+]
+
 from src.mcp.protocols import (
     MCPRequest, MCPResponse, MCPNotification, MCPError,
     MCPMethod, MCPServerInfo, MCPCapabilities
 )
 from src.core.retry import retry_network, RetryConfig
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ConfigurationError
+)
 
 logger = logging.getLogger(__name__)
 

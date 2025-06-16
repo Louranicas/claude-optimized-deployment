@@ -12,6 +12,20 @@ from functools import wraps
 import asyncio
 import inspect
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error
+)
+
+__all__ = [
+    "ResourceType",
+    "ResourcePermission",
+    "PermissionChecker",
+    "require_permission"
+]
+
+
 
 class ResourceType(Enum):
     """Types of resources in the system."""
@@ -239,6 +253,7 @@ class PermissionChecker:
         """Set callback for permission check auditing."""
         self.audit_callback = callback
     
+    @handle_errors()
     def _audit_permission_check(self, user_id: str, resource: str,
                               action: str, result: bool, source: str) -> None:
         """Audit permission check."""

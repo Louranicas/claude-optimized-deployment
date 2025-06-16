@@ -1,0 +1,436 @@
+# RBAC Configuration for MCP Production Environment
+# Implements principle of least privilege for all MCP server components
+
+---
+# Service Account for MCP API Servers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-api-server
+  namespace: mcp-production
+  labels:
+    component: api
+    tier: application
+  annotations:
+    description: "Service account for MCP API servers with minimal required permissions"
+automountServiceAccountToken: true
+
+---
+# Service Account for MCP Worker Processes
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-worker
+  namespace: mcp-production
+  labels:
+    component: worker
+    tier: processing
+  annotations:
+    description: "Service account for MCP worker processes"
+automountServiceAccountToken: true
+
+---
+# Service Account for MCP Security Servers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-security-server
+  namespace: mcp-production
+  labels:
+    component: security
+    tier: security
+  annotations:
+    description: "Service account for MCP security scanning servers"
+automountServiceAccountToken: true
+
+---
+# Service Account for MCP Storage Servers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-storage-server
+  namespace: mcp-production
+  labels:
+    component: storage
+    tier: infrastructure
+  annotations:
+    description: "Service account for MCP storage servers"
+automountServiceAccountToken: true
+
+---
+# Service Account for MCP Communication Servers
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-communication-server
+  namespace: mcp-production
+  labels:
+    component: communication
+    tier: integration
+  annotations:
+    description: "Service account for MCP communication servers"
+automountServiceAccountToken: true
+
+---
+# Service Account for MCP Monitoring
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mcp-monitoring
+  namespace: mcp-production
+  labels:
+    component: monitoring
+    tier: observability
+  annotations:
+    description: "Service account for MCP monitoring and metrics collection"
+automountServiceAccountToken: true
+
+---
+# ClusterRole for MCP API Servers (minimal cluster-level permissions)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mcp-api-server-cluster-role
+  labels:
+    component: api
+rules:
+# Read-only access to nodes for system information
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list"]
+
+# Read access to namespaces for service discovery
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+
+# Minimal access to custom resources if needed
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list"]
+
+---
+# Role for MCP API Servers (namespace-scoped permissions)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: mcp-production
+  name: mcp-api-server-role
+  labels:
+    component: api
+rules:
+# Pod management for health checks and status
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+
+# Service discovery within namespace
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+
+# ConfigMap and Secret access for configuration
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+
+# Event creation for audit logging
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+
+---
+# Role for MCP Security Servers (enhanced permissions for security scanning)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: mcp-production
+  name: mcp-security-server-role
+  labels:
+    component: security
+rules:
+# Pod security scanning permissions
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list", "watch"]
+
+# Security context and policy verification
+- apiGroups: ["policy"]
+  resources: ["podsecuritypolicies"]
+  verbs: ["get", "list", "use"]
+
+# Network policy management
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch"]
+
+# Security event logging
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+
+# ConfigMap access for security configuration
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+
+---
+# Role for MCP Storage Servers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: mcp-production
+  name: mcp-storage-server-role
+  labels:
+    component: storage
+rules:
+# PVC management for dynamic storage
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+# Volume management
+- apiGroups: [""]
+  resources: ["persistentvolumes"]
+  verbs: ["get", "list", "watch"]
+
+# Storage class access
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list", "watch"]
+
+# ConfigMap and Secret access
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+
+# Event logging
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+
+---
+# Role for MCP Monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: mcp-production
+  name: mcp-monitoring-role
+  labels:
+    component: monitoring
+rules:
+# Full pod access for metrics collection
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "pods/status"]
+  verbs: ["get", "list", "watch"]
+
+# Service and endpoint monitoring
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+
+# Resource monitoring
+- apiGroups: [""]
+  resources: ["nodes", "nodes/metrics", "nodes/stats"]
+  verbs: ["get", "list", "watch"]
+
+# Metrics server access
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+# ConfigMap access for monitoring configuration
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding for MCP API Servers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mcp-api-server-cluster-binding
+  labels:
+    component: api
+subjects:
+- kind: ServiceAccount
+  name: mcp-api-server
+  namespace: mcp-production
+roleRef:
+  kind: ClusterRole
+  name: mcp-api-server-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# RoleBinding for MCP API Servers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mcp-api-server-binding
+  namespace: mcp-production
+  labels:
+    component: api
+subjects:
+- kind: ServiceAccount
+  name: mcp-api-server
+  namespace: mcp-production
+roleRef:
+  kind: Role
+  name: mcp-api-server-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# RoleBinding for MCP Security Servers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mcp-security-server-binding
+  namespace: mcp-production
+  labels:
+    component: security
+subjects:
+- kind: ServiceAccount
+  name: mcp-security-server
+  namespace: mcp-production
+roleRef:
+  kind: Role
+  name: mcp-security-server-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# RoleBinding for MCP Storage Servers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mcp-storage-server-binding
+  namespace: mcp-production
+  labels:
+    component: storage
+subjects:
+- kind: ServiceAccount
+  name: mcp-storage-server
+  namespace: mcp-production
+roleRef:
+  kind: Role
+  name: mcp-storage-server-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# RoleBinding for MCP Communication Servers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mcp-communication-server-binding
+  namespace: mcp-production
+  labels:
+    component: communication
+subjects:
+- kind: ServiceAccount
+  name: mcp-communication-server
+  namespace: mcp-production
+roleRef:
+  kind: Role
+  name: mcp-api-server-role  # Use same permissions as API servers
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# RoleBinding for MCP Monitoring
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mcp-monitoring-binding
+  namespace: mcp-production
+  labels:
+    component: monitoring
+subjects:
+- kind: ServiceAccount
+  name: mcp-monitoring
+  namespace: mcp-production
+roleRef:
+  kind: Role
+  name: mcp-monitoring-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Pod Security Policy for MCP Servers (if PSP is enabled)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: mcp-production-psp
+  labels:
+    component: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1001
+        max: 65535
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1001
+        max: 65535
+  readOnlyRootFilesystem: true
+  seccompProfile:
+    type: 'RuntimeDefault'
+
+---
+# ClusterRole for PSP usage
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mcp-psp-user
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - mcp-production-psp
+
+---
+# ClusterRoleBinding for PSP usage
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mcp-psp-binding
+roleRef:
+  kind: ClusterRole
+  name: mcp-psp-user
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: mcp-api-server
+  namespace: mcp-production
+- kind: ServiceAccount
+  name: mcp-worker
+  namespace: mcp-production
+- kind: ServiceAccount
+  name: mcp-security-server
+  namespace: mcp-production
+- kind: ServiceAccount
+  name: mcp-storage-server
+  namespace: mcp-production
+- kind: ServiceAccount
+  name: mcp-communication-server
+  namespace: mcp-production
+- kind: ServiceAccount
+  name: mcp-monitoring
+  namespace: mcp-production

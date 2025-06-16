@@ -1,0 +1,99 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 200 - We then send a second curl request to retrieve the output at ❺.
+Can you further improve this script? Try implementing some of the following features:
+Using a single HTTP request Remove the need to send two curl requests for each command.
+Changing directory persistence When using cd to move around the filesystem, have your script keep track of the present working directory.
+Creating a history audit log When commands are sent to the web shell, store them in a log that remembers which commands were executed and when.
+Using a quick access alias Instead of requiring users to manually type the target host and port in the script, accept these parameters as command line arguments and then store the full script path with these arguments as an alias.
+Security Relevance Score: 6
+Word Count: 786
+Extracted: 2025-06-13 23:40:57
+
+---
+
+We then send a second curl request to retrieve the output at ❺.
+Can you further improve this script? Try implementing some of the following features:
+Using a single HTTP request Remove the need to send two curl requests for each command.
+Changing directory persistence When using cd to move around the filesystem, have your script keep track of the present working directory.
+Creating a history audit log When commands are sent to the web shell, store them in a log that remembers which commands were executed and when.
+Using a quick access alias Instead of requiring users to manually type the target host and port in the script, accept these parameters as command line arguments and then store the full script path with these arguments as an alias.
+
+
+Limitations of Web Shells
+Despite their usefulness, web shells have several limitations. Here we discuss some of their common downsides.
+
+Lack of Persistence
+Web shells are often temporary, existing only as long as the compromised web server remains accessible. System administrators may regularly monitor and clean up uploaded files, reducing their persistence and effectiveness. Also, if the server is taken down, patched, or reconfigured, the web shell may become ineffective, reducing your ability to maintain access.
+
+
+Lack of Real-Time Responses
+Real-time responses from commands such as a ping won’t work, and unless you limit the number of ping commands you send, your web shell may hang, as hotkeys like CTRL-C to exit the command won’t be available.
+
+
+Limited Functionality
+Web shells often provide limited feedback or error messages, making it challenging to troubleshoot issues or understand the underlying cause of failures. They provide only a subset of the functionality available through native system administrative tools and may lack advanced bash features, such as key bindings.
+We’ve considered one way of gaining initial access to a target server. Let’s end this chapter by considering an additional method: OS command injection.
+
+
+
+OS Command Injection
+OS command injection is a type of security vulnerability that occurs when an application allows users to execute unauthorized operating system commands by supplying them as input to the application. As attackers, we can exploit a target’s lack of proper input sanitization to inject these malicious commands and gain an initial foothold into systems.
+Unlike web shells, OS command injection attacks don’t require us to upload malicious files to a server. Instead, we must identify places in the target application that rely directly on user input to construct operating system commands. Then, we must manipulate the user-supplied input by injecting specially crafted characters or sequences into them to break out of the intended input context and run our own commands.
+For example, the following is a snippet from a Python web application that allows users to submit a filename for processing:
+import os
+
+def process_file(filename):
+    command = "ls -l " + filename
+    output = os.popen(command).read()
+    return output
+
+As you can see, the application’s process_file() function takes the filename parameter and passes it to the ls -l operating system command without first checking the input for special characters or other malicious content.
+An attacker can exploit this vulnerability if the value to filename comes from a different function that accepts untrusted user input; in that case, they could inject additional commands into the filename parameter. For instance, if an attacker submitted a malicious filename input, such as file.txt; id, the application would construct the following command:
+ls -l file.txt; id
+This input would first execute the intended ls -l command by using the parameter file.txt, then run the injected id command.
+Notice that the input relies on the semicolon bash control operator (;) to escape the intended input context. In Chapters 1 and 2, you learned about several of these operators, which hold special meanings to the bash interpreter. Table 6-2 illustrates how to use these operators as a way to test for possible OS command injection vulnerabilities.
+Table 6-2: Common OS Command Injection Techniques
+
+
+
+Operator
+Description
+Example usage
+
+
+
+
+Semicolon (;)
+Executes multiple commands in a single line
+filename=abc.txt; id
+
+
+Pipe (|) or double pipe (||)
+Chains commands and redirects command output, as well as provides OR conditional logic
+filename=abd.txt | cat /etc/passwd
+
+
+Ampersand (&) or double ampersand (&&)
+Concatenates commands or runs them in the background, as well as provides AND conditional logic
+filename=abc.txt & ls -l
+
+
+Command substitution (`, $())
+Substitutes commands
+filename=`cat /etc/passwd`
+
+
+Redirection operators (>, >>, <)
+Redirects input/output
+filename=abc; cat /etc/passwd > pass.txt
+
+
+Double and single quotes (", ')
+Encapsulates command arguments
+filename="abc.txt; id"
+
+
+
+Let’s exploit an OS command injection vulnerability in the lab. Instead of using special hacking tools to find the vulnerability, we’ll lean on our understanding of bash syntax.
+We’ll target the p-web-02 web application located at http://172.16.10.

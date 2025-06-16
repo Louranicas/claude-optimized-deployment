@@ -1,0 +1,425 @@
+# Production ConfigMaps
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-config
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment
+    tier: api
+data:
+  # Application Configuration
+  app-name: "claude-deployment-engine"
+  environment: "production"
+  log-level: "INFO"
+  debug: "false"
+  
+  # Performance Configuration
+  workers: "4"
+  worker-connections: "1000"
+  max-requests: "10000"
+  max-requests-jitter: "1000"
+  timeout: "30"
+  keepalive: "2"
+  
+  # Node.js Memory Configuration
+  node-options: "--max-old-space-size=6144 --gc-interval=100 --optimize-for-size"
+  
+  # Circuit Breaker Configuration
+  circuit-breaker-enabled: "true"
+  circuit-breaker-failure-threshold: "5"
+  circuit-breaker-timeout: "30000"
+  circuit-breaker-reset-timeout: "60000"
+  
+  # Rate Limiting
+  rate-limit-enabled: "true"
+  rate-limit-requests-per-minute: "1000"
+  rate-limit-burst: "100"
+  
+  # Caching Configuration
+  cache-ttl: "3600"
+  cache-max-size: "10000"
+  
+  # Database Connection Pool
+  db-pool-min: "10"
+  db-pool-max: "50"
+  db-pool-idle-timeout: "300000"
+  db-pool-acquire-timeout: "60000"
+  
+  # Redis Configuration
+  redis-pool-min: "5"
+  redis-pool-max: "20"
+  redis-ttl: "3600"
+  
+  # Monitoring Configuration
+  metrics-enabled: "true"
+  metrics-port: "9090"
+  metrics-path: "/metrics"
+  health-check-path: "/health"
+  readiness-check-path: "/ready"
+  
+  # Tracing Configuration
+  tracing-enabled: "true"
+  tracing-sample-rate: "0.1"
+  jaeger-endpoint: "http://jaeger-collector:14268/api/traces"
+  
+  # Security Configuration
+  cors-enabled: "true"
+  cors-origins: "*"
+  helmet-enabled: "true"
+  trust-proxy: "true"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-nginx-config
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment
+    tier: proxy
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+    
+    events {
+        worker_connections 4096;
+        use epoll;
+        multi_accept on;
+    }
+    
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        
+        # Logging format
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for" '
+                        'rt=$request_time uct="$upstream_connect_time" '
+                        'uht="$upstream_header_time" urt="$upstream_response_time"';
+        
+        access_log /var/log/nginx/access.log main;
+        
+        # Performance optimizations
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        keepalive_requests 1000;
+        types_hash_max_size 2048;
+        server_tokens off;
+        
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 1024;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types
+            application/json
+            application/javascript
+            application/xml+rss
+            application/atom+xml
+            image/svg+xml
+            text/plain
+            text/css
+            text/js
+            text/xml
+            text/javascript;
+        
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+        limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/s;
+        
+        # Upstream configuration
+        upstream claude_api {
+            least_conn;
+            server claude-deployment-api:8000 max_fails=3 fail_timeout=30s;
+            keepalive 32;
+        }
+        
+        # Main server block
+        server {
+            listen 80;
+            server_name _;
+            
+            # Security headers
+            add_header X-Frame-Options "SAMEORIGIN" always;
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header X-XSS-Protection "1; mode=block" always;
+            add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+            add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
+            
+            # Health checks
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+            
+            # API endpoints with rate limiting
+            location /api/ {
+                limit_req zone=api burst=20 nodelay;
+                proxy_pass http://claude_api;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_cache_bypass $http_upgrade;
+                proxy_connect_timeout 60s;
+                proxy_send_timeout 60s;
+                proxy_read_timeout 60s;
+            }
+            
+            # Authentication endpoints with stricter rate limiting
+            location /auth/ {
+                limit_req zone=auth burst=5 nodelay;
+                proxy_pass http://claude_api;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+            
+            # Metrics endpoint (internal only)
+            location /metrics {
+                allow 10.0.0.0/8;
+                allow 172.16.0.0/12;
+                allow 192.168.0.0/16;
+                deny all;
+                proxy_pass http://claude_api;
+                proxy_set_header Host $host;
+            }
+            
+            # Static files (if any)
+            location /static/ {
+                expires 30d;
+                add_header Cache-Control "public, immutable";
+                proxy_pass http://claude_api;
+            }
+            
+            # Default location
+            location / {
+                limit_req zone=api burst=50 nodelay;
+                proxy_pass http://claude_api;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-redis-config
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment
+    tier: cache
+data:
+  redis.conf: |
+    # Redis Production Configuration
+    
+    # Network
+    bind 0.0.0.0
+    port 6379
+    tcp-backlog 511
+    timeout 300
+    tcp-keepalive 300
+    
+    # General
+    daemonize no
+    supervised no
+    pidfile /var/run/redis.pid
+    loglevel notice
+    logfile ""
+    databases 16
+    
+    # Memory Management
+    maxmemory 4gb
+    maxmemory-policy allkeys-lru
+    maxmemory-samples 5
+    
+    # Persistence
+    save 900 1
+    save 300 10
+    save 60 10000
+    stop-writes-on-bgsave-error yes
+    rdbcompression yes
+    rdbchecksum yes
+    dbfilename dump.rdb
+    dir /data
+    
+    # AOF
+    appendonly yes
+    appendfilename "appendonly.aof"
+    appendfsync everysec
+    no-appendfsync-on-rewrite no
+    auto-aof-rewrite-percentage 100
+    auto-aof-rewrite-min-size 64mb
+    aof-load-truncated yes
+    aof-use-rdb-preamble yes
+    
+    # Performance
+    hash-max-ziplist-entries 512
+    hash-max-ziplist-value 64
+    list-max-ziplist-size -2
+    list-compress-depth 0
+    set-max-intset-entries 512
+    zset-max-ziplist-entries 128
+    zset-max-ziplist-value 64
+    hll-sparse-max-bytes 3000
+    stream-node-max-bytes 4096
+    stream-node-max-entries 100
+    
+    # Security
+    # requirepass will be set via environment variable
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    rename-command KEYS ""
+    rename-command CONFIG "CONFIG_b835bfaf"
+    rename-command SHUTDOWN "SHUTDOWN_b835bfaf"
+    rename-command DEBUG ""
+    rename-command EVAL ""
+    
+    # Slow log
+    slowlog-log-slower-than 10000
+    slowlog-max-len 128
+    
+    # Latency monitoring
+    latency-monitor-threshold 100
+    
+    # Client output buffer limits
+    client-output-buffer-limit normal 0 0 0
+    client-output-buffer-limit replica 256mb 64mb 60
+    client-output-buffer-limit pubsub 32mb 8mb 60
+    
+    # Client query buffer
+    client-query-buffer-limit 1gb
+    
+    # Protocol
+    proto-max-bulk-len 512mb
+    
+    # HyperLogLog
+    hll-sparse-max-bytes 3000
+    
+    # Streams
+    stream-node-max-bytes 4096
+    stream-node-max-entries 100
+    
+    # TLS (will be configured via environment)
+    # tls-port 6380
+    # tls-cert-file redis.crt
+    # tls-key-file redis.key
+    # tls-ca-cert-file ca.crt
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-fluent-bit-config
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment
+    tier: logging
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         5
+        Log_Level     info
+        Daemon        off
+        Parsers_File  parsers.conf
+        HTTP_Server   On
+        HTTP_Listen   0.0.0.0
+        HTTP_Port     2020
+        storage.path  /var/log/flb-storage/
+        storage.sync  normal
+        storage.checksum  off
+        storage.backlog.mem_limit  5M
+    
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/*claude-deployment*.log
+        multiline.parser  docker, cri
+        Tag               kube.*
+        Mem_Buf_Limit     50MB
+        Skip_Long_Lines   On
+        Skip_Empty_Lines  On
+    
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     kube.var.log.containers.
+        Merge_Log           On
+        Keep_Log            Off
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude On
+        Annotations         Off
+        Labels              On
+    
+    [OUTPUT]
+        Name  es
+        Match *
+        Host  elasticsearch.logging.svc.cluster.local
+        Port  9200
+        Index claude-deployment
+        Type  _doc
+        Logstash_Format On
+        Logstash_Prefix claude-deployment
+        Logstash_DateFormat %Y.%m.%d
+        Include_Tag_Key On
+        Tag_Key @tag
+        Time_Key @timestamp
+        Time_Key_Format %Y-%m-%dT%H:%M:%S.%L%z
+        Retry_Limit 10
+    
+  parsers.conf: |
+    [PARSER]
+        Name   apache
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    
+    [PARSER]
+        Name   apache2
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    
+    [PARSER]
+        Name   nginx
+        Format regex
+        Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On

@@ -1,0 +1,88 @@
+# Security Chapter Extract
+Book: Darren Kitchen - Bash Bunny_ A Guide to the HotPlug Attack Platform (2022, Hak5 LLC) - libgen.li
+Chapter: 1 - The LED will 
+indicate magenta while the ECM Ethernet interface comes online and the DHCP client on the Bash 
+Bunny then attempts to obtain an IP address from your Mac. Once successful, the LED will change to 
+green.
+Security Relevance Score: 3
+Word Count: 792
+Extracted: 2025-06-13 23:40:20
+
+---
+
+The LED will 
+indicate magenta while the ECM Ethernet interface comes online and the DHCP client on the Bash 
+Bunny then attempts to obtain an IP address from your Mac. Once successful, the LED will change to 
+green.
+6.The Bash Bunny will get an IP address from your Mac in the 192.168.2.x/24 range (likely 192.168.2.2). 
+Check the bridge100 interface with the ifconfig command in a terminal.You should now be able to SSH 
+into the Bash Bunny from the terminal, for example with the command ssh root@192.168.2.2
+ 
+METHOD 2: SQUID VIA MACPORTS
+1.Configure a payload.txt for ATTACKMODE ECM_ETHERNET STORAGE
+2.Boot Bash Bunny from an ECM_ETHERNET configured payload
+3.Open a terminal on the OSX host. Install Macports if you don’t have it installed already. 
+http://macports.org
+4.Install and set up Squid on the OSX host:
+sudo port install squid 1
+sudo squid -z 2
+sudo squid 3
+5.You will now have an open (!!) proxy running on all interfaces of your host. If you are not in a trusted 
+environment, limit the interface in the squid.conf file.
+6.SSH to the bash bunny
+ssh root@172.16.64.1 1
+7.Set up the proxy server using environment variables.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+exporthttpproxy=http://172166410:3128<--changetheIPaddresstomatchthehos 1
+8.Your bash bunny should now be on-line.
+apt-get update; apt-get upgrade 1
+Software Updates
+Updating the Bash Bunny
+From time to time Hak5 releases firmware updates for the Bash Bunny including new features, bug fixes and 
+security improvements. The easiest way to install these is with the Bash Bunny updater.
+Available for Windows, Mac and Linux – this utility will automatically update your Bash Bunny to the latest 
+software version.
+The payload library on the Bash Bunny can also be kept up to date using this tool. When the updater runs it 
+will not only check for firmware updates (and updates to the utility itself), it will also synchronize your copy of 
+the /payloads/library folder with the official repository. Additionally it will update any available language files.
+The Bash Bunny Updater
+Start by  for your host OS – Windows 32/64, Linux 32/64 and Mac 
+versions are available. Connect your Bash Bunny to your computer in arming mode. Extract the contents of 
+the downloaded ZIP file to the root of the Bash Bunny’s flash storage.downloading the Bash Bunny updater
+For example, on Windows if the Bash Bunny is located at d:\ it should now contain the file 
+d:\bunnyupdater.exe
+Windows
+From Windows Explorer with your Bash Bunny connected in arming mode, browse to its flash storage, then 
+double-click the bunnyupdater program. Follow the instructions on screen.
+MacOS
+From OSX Finder, with your Bash Bunny connected in arming mode, browse to its flash storage then 
+double-click the BunnyUpdater app.
+Linux
+Running the Bash Bunny updater from Linux is a little trickier than Windows/OSX as you can’t just double-
+click the file, but if you’re comfortable in the command prompt it should be pretty natural and straightforward.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+For the most part, running bunnyupdater from the Bash Bunny’s FAT32-based USB flash disk is not 
+recommended. To run the bunnyupdater from your local Linux computer, the path to the Bash Bunny flash 
+disk must be supplied as a variable.
+Usage
+When the Bash Bunny Updater runs it will first prompt you to initiate the update. This tool requires an 
+Internet connection and will initiate downloads from Hak5 servers. It will first check for updates to itself, 
+followed by firmware updates and finally payload updates. After each update completes the tool exit. This 
+means in the case that a firmware update is available, that update will be applied to the Bash Bunny and 
+require a reboot of the device. Following the firmware update, the Bash Bunny updater may be run again to 
+update the payloads.
+Manually update the Bash Bunny Firmware
+Your Bash Bunny can be easily upgraded to the latest firmware version. Just copying an upgrade file to the 
+root of the Bash Bunny flash drive in arming mode, safely eject it, and plug it back into your computer in 
+arming mode.
+The first time the Bash Bunny is upgraded it will indicate the flashing process with a red blinking LED for up 
+to 10 minutes. The flashing process will be followed by a green LED to indicate that the Bash Bunny is 
+rebooting. Finally the standard slow blinking blue LED will indicate that the flashing process has succeeded 
+and arming mode is ready.
+DO NOT unplug the Bash Bunny while firmware upgrade is in progress. Doing so will spell certain 
+doom.
+DO NOT extract the contents of the downloaded .tar.gz to the Bash Bunny or change the 
+name of the downloaded .tar.gz file. Doing so will put your Bash Bunny into a boot loop on 
+firmwares 1.0 to 1.

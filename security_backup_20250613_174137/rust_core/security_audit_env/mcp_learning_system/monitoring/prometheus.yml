@@ -1,0 +1,74 @@
+# Prometheus configuration for MCP Learning System
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'mcp-learning'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules files
+rule_files:
+  - "alert_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Rust Core metrics
+  - job_name: 'rust-core'
+    static_configs:
+      - targets: ['rust-core:9090']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'mcp_core_.*'
+        action: keep
+
+  # Python Learning metrics
+  - job_name: 'python-learning'
+    static_configs:
+      - targets: ['python-learning:8001']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'mcp_learning_.*'
+        action: keep
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Node exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service
+
+# Remote write configuration for long-term storage
+remote_write:
+  - url: http://cortex:9009/api/prom/push
+    queue_config:
+      capacity: 10000
+      max_shards: 100
+      min_shards: 1
+      max_samples_per_send: 5000
+      batch_send_deadline: 10s
+      min_backoff: 30ms
+      max_backoff: 100ms

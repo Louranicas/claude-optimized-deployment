@@ -1,0 +1,169 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 4 - Compress the folder by using the tar command.
+To aid your script writing, we recommend looking into the find command, which has many powerful built-in features that allow you to search by user and group ownership.
+You can find a full solution, recursive_file_search.sh, in the book’s GitHub repository.
+Security Relevance Score: 15
+Word Count: 1568
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Compress the folder by using the tar command.
+To aid your script writing, we recommend looking into the find command, which has many powerful built-in features that allow you to search by user and group ownership.
+You can find a full solution, recursive_file_search.sh, in the book’s GitHub repository.
+
+
+
+Kernels and Bootloaders
+The main component of operating systems such as Linux is called the kernel. The kernel is responsible for core functionalities such as process and memory management, drivers, security, and more. It is a highly complex piece of software and, as such, is prone to vulnerabilities. One example of a kernel exploit is the Dirty COW vulnerability (CVE-2016-5195), which allowed remote execution and the ability to obtain root access without leaving system traces.
+Discovering the version of the kernel running on a system may allow you to escalate privileges with kernel exploits. To check the kernel version, use the following command:
+$ uname -r
+As the lab machines are based on Docker, they share the host’s (Kali’s) kernel, and running uname will print Kali’s kernel version.
+A Linux system could have more than one kernel version installed to allow for rollbacks in cases of system failure. Kernel files are located under the /boot directory. You can also find out which kernels are installed by running either of the following commands:
+$ rpm -qa | grep kernel
+$ ls -l /boot | grep "vmlinuz-"
+
+Make sure to use the correct package manager command for the host system.
+Unstable kernel exploits are dangerous to run and can crash and take down a server if they aren’t tested properly. We recommend obtaining explicit authorization before attempting to run these types of exploits.
+
+
+Configuration Files
+We’ve already highlighted a few types of configuration files in this chapter. Though these files are highly application dependent, they can often include sensitive data. During local reconnaissance, you’ll want to go after them, especially those that are related to web applications, which generally rely on many services as part of their normal operations. The web applications need to connect to these services, usually with some form of authentication, so you’ll probably find credentials nearby.
+Configuration files primarily live under the /etc directory and may or may not have an associated file extension, such as *.conf, *.cfg, *.ini *, .cnf, and *.cf. You might also find configuration files under users’ hidden directories, such as /home/user/.config/ or /home/user/.local. To perform a wide search for configuration files, use this command:
+$ find / -name "*.conf" -o -name "*.cf" -o -name "*.ini" -o -name "*.cfg" -type f 2> /dev/null
+To search a specific folder, change the find / portion of the command to another directory, such as find /etc. You can even chain multiple directories together, like so:
+$ find /etc /usr /var/www-name "*.conf" -o -name "*.cf" -o -name "*.ini" -o –name "*.cfg"
+-type f 2> /dev/null
+
+Third-party software also tends to include custom configuration that can be interesting. For example, WordPress usually uses a database for storing blog-related data, and its config file, wp-config.php, usually contains credentials related to databases such as MySQL:
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define('DB_NAME', 'database_name_here');
+
+/** MySQL database username */
+define('DB_USER', 'username_here');
+
+/** MySQL database password */
+define('DB_PASSWORD', 'password_here');
+
+The location of this file depends on where WordPress was installed because it usually resides within the application’s root directory, such as /var/www/html/wp-config.php. As you can see, it has a.php extension, because WordPress is written in the PHP language. The search we used earlier wouldn’t have caught this file, but we can tweak our command to search for files with the word config in them:
+$ find / -name "*config*" 2> /dev/null
+We already know that the p-web-02 server (172.16.10.12) runs WordPress; can you find its configuration file? Hint: it lives alongside the application in the web root directory.
+Being aware of common configuration files and their locations helps when you identify services of interest that are running on the host. Table 8-4 lists some examples.
+Table 8-4: Common Configuration File Locations
+
+
+
+Server type
+File location
+
+
+
+
+Web servers
+/etc/httpd/httpd.conf/etc/httpd/conf/httpd.conf/etc/apache2/apach2.conf/etc/lighttpd/lighttpd.conf /etc/nginx/nginx.conf
+
+
+File-sharing and file-transfer servers
+/etc/vsftpd/vsftpd.conf /etc/protftpd.conf /usr/local/etc/proftpd.conf /etc/samba/smb.conf
+
+
+Databases
+/etc/mysql/my.cnf /etc/my.cnf /etc/redis/redis.conf /etc/mongo.conf /etc/cassandra
+
+
+Domain name servers
+/etc/bind/named.conf /etc/dnsmasq.conf
+
+
+Mail servers
+/etc/postfix/main.cf /etc/mail/sendmail.cf /etc/dovecot/dovecot.conf
+
+
+Virtual private network servers
+/etc/openvpn /etc/ipsec.conf
+
+
+
+This table isn’t comprehensive, but it should give you an idea of where popular network servers commonly store their configurations.
+
+
+Scheduled Tasks
+Scheduled tasks allow you to specify a command or script for the system to run automatically at a specified interval. They’re interesting from a penetration-testing standpoint because they can often be written in a way that allows for privilege escalation conditions.
+For example, a task could read and execute instructions from world-writable files, and if a malicious user is able to write malicious instructions into them, the system might execute them with elevated privileges. A user could then take malicious actions, such as creating a privileged user, changing the folder permissions of a protected folder like /root, adding permissions to the existing user, starting custom malicious processes, and deleting or overwriting sensitive information in files.
+On Linux, we have two common mechanisms for scheduling tasks: Cron and At.
+
+Cron
+Let’s write a small script that creates a file and appends the current date and time to it (Listing 8-11).
+#!/bin/bash
+job_name="my_scheduled_job"
+
+echo "The time now is $(date)" >> "/tmp/${job_name}"
+
+exit 0
+
+Listing 8-11: A simple cron job
+Save this file and give it the name cron_task.sh. Make sure it is executable by using chmod u+x cron_task.sh.
+Next, we’ll use Cron to run this script every minute. Run the following to open a text editor:
+$ crontab -e
+Now append the following to the end of the /etc/crontab file and save it. Make sure you change the path to the place where you saved your script:
+* * * * * bash /path/to/cron_task.sh
+You may be asking yourself what those five asterisks (*) are all about. Cron has special syntax to describe its execution schedule. The format is as follows:
+Minutes (0-59), Hours (0-23), Days of the month (1-31), Month (1-12), Days of the week (0-6)
+For instance, the following syntax describes an echo task that will run every day at 11:30 PM:
+30 23 * * * echo "It is 23:30!" >> /tmp/cron.log
+The Cron process should execute the script. To make sure it worked, run ls in the /tmp folder. You should see the file /tmp/my_scheduled_job containing updates about the time:
+$ cat /tmp/my_scheduled_job
+
+The time now is Mon May 22 03:11:01
+The time now is Mon May 22 03:12:01
+The time now is Mon May 22 03:13:01
+
+In the context of penetration testing, cron jobs can be insecure. For example, a task may copy sensitive files to paths that are world-readable, allowing untrusted local users to obtain access to them. Here is an example of a backup job that is very insecure if it runs with the context of the root user:
+30 23 1 * * tar czvf /home/backup.tar.gz /etc /var
+Cron jobs like this will copy the sensitive directories /etc and /var to the /home directory. Since the /home directory is accessible to all local users, anyone with read access can copy this file or view it.
+Table 8-5 lists additional files that Cron uses for its runtime.
+Table 8-5: Cron Files
+
+
+
+Purpose
+Files
+
+
+
+
+Cron logs
+/var/spool/cron /var/spool/cron/crontab
+
+
+Job configuration
+/etc/crontab /etc/cron.d /etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly
+
+
+Cron security
+/etc/cron.deny /etc/cron.allow
+
+
+
+A user’s cron jobs are usually stored in /var/spool/cron/crontab/USER, and system-wide cron jobs are defined at /etc/crontab. Directories such as /etc/cron.hourly, /etc/cron.daily, /etc/cron.weekly, and /etc/cron.monthly contain shell scripts executed by the Cron process, and the /etc/crontab file defines the intervals at which scripts in these directories are executed.
+System administrators can restrict users from creating cron jobs. Two access control files define who can run the crontab command: /etc/cron.allow and /etc/cron.deny. If the /etc/cron.allow file exists, users listed in this file will be able to schedule tasks with Cron. If it doesn’t exist, all users can schedule tasks except for any user listed in /etc/cron.deny. If neither file exists, only privileged users can schedule tasks. If a user is listed in both the allow and deny files, the user will still be able to schedule tasks.
+
+
+At
+At is another job-scheduling tool in Linux, though it’s less common than Cron and uses a simpler approach. It works by specifying the shell command in the at prompt or piping the command to at as standard input by using |. The following example uses the at prompt to schedule a task:
+$ at now + 1 minute
+
+warning: commands will be executed using /bin/sh
+at Sat May 27 22:15:00
+at> rm -rf /home/user/.bash_history
+
+We start by specifying the schedule, using now + 1 minute to tell At to run commands one minute from now. At also takes in schedule syntax in additional formats. Here are a few examples of schedule definitions:
+$ at 22:00
+$ at 11pm + 3 days
+$ at tomorrow
+$ at Sunday
+$ at May 27 2050
+
+The first example schedules commands to run at 10 PM in military time. The second example runs at 11 PM three days from today. The third example runs commands tomorrow at the current time, and the fourth on Sunday at the current time. The final example runs on May 27,

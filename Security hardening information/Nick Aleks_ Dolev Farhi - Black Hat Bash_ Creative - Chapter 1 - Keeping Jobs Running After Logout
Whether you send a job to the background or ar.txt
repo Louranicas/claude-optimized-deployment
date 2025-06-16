@@ -1,0 +1,47 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 1 - Keeping Jobs Running After Logout
+Whether you send a job to the background or are running a job in the foreground, the process won’t survive if you close the terminal or log out. If you close the terminal, the process will receive a SIGHUP signal and terminate.
+What if we want to keep running a script in the background even after we’ve logged out of the terminal window or closed it? To do so, we could start a script or command with the nohup (no hangup) command prepended:
+$ nohup ./my_script.sh &
+The nohup command will create a file named nohup.out with standard output stream data. Make sure you delete this file if you don’t want it on the filesystem.
+There are additional ways to run background scripts, such as by plugging into system and service managers like systemd. These managers provide additional features, such as monitoring that the process is running, restarting it if it isn’t, and capturing failures. We encourage you to read more about systemd at https://man7.org/linux/man-pages/man1/init.1.html if you have such use cases.
+Security Relevance Score: 6
+Word Count: 441
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Keeping Jobs Running After Logout
+Whether you send a job to the background or are running a job in the foreground, the process won’t survive if you close the terminal or log out. If you close the terminal, the process will receive a SIGHUP signal and terminate.
+What if we want to keep running a script in the background even after we’ve logged out of the terminal window or closed it? To do so, we could start a script or command with the nohup (no hangup) command prepended:
+$ nohup ./my_script.sh &
+The nohup command will create a file named nohup.out with standard output stream data. Make sure you delete this file if you don’t want it on the filesystem.
+There are additional ways to run background scripts, such as by plugging into system and service managers like systemd. These managers provide additional features, such as monitoring that the process is running, restarting it if it isn’t, and capturing failures. We encourage you to read more about systemd at https://man7.org/linux/man-pages/man1/init.1.html if you have such use cases.
+
+
+
+Bash Customizations for Penetration Testers
+As penetration testers, we often follow standard workflows for all ethical hacking engagements, whether they are consulting work, bug bounty hunting, or red teaming. We can optimize some of this work with a few bash tips and tricks.
+
+Placing Scripts in Searchable Paths
+Bash searches for programs within directories defined by the PATH environment variable. Commands such as ls are always available to you because system and user binaries are located in directories that are part of the PATH.
+To see your PATH, run this command:
+$ echo $PATH
+
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+The output might look different, depending on your operating system.
+When you write a bash script, place it in a directory such as /usr/local/bin, which, as you can see, is part of the PATH. If you don’t do this, you have a few other options available:
+
+Call the script directly, using the full path.
+Change the directory to the one in which your script lives and execute it from there.
+Use aliases (shown in the next section).
+Add paths to the PATH environment variable.
+
+The benefit of placing the script in a searchable path is that you can simply call it by its name. You don’t have to provide the full path or have the terminal be in the same directory.
+
+
+Shortening Commands with Aliases
+When you find yourself frequently using a long Linux command, you can use an alias to map the command to a shorter custom name that will save you time when you need to run it.
+For example, imagine that you often use Nmap (discussed in

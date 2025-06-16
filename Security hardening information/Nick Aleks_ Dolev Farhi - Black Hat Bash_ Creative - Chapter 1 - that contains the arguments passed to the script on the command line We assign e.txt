@@ -1,0 +1,108 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 1 - that contains the arguments passed to the script on the command line. We assign each argument to the ip_address variable.
+Next, we run a Nuclei scan, passing it the -severity argument to scan for vulnerabilities categorized as either medium, high, or critical, and save the output to the result variable ❶. At ❷, we read the output passed to the while loop at ❹ line by line. From each line, we extract the first field, using the tr -d '[]' command to remove the [] characters for a cleaner output. We also extract the fourth field from each line, which is where Nuclei stores the vulnerable URL. At ❸, we send an email containing the relevant information.
+To run this script, save it to a file and pass the IP addresses to scan on the command line:
+$ nuclei-notifier.sh 172.16.10.10:8081 172.16.10.11 172.16.10.12 172.16.10.13
+To make this script your own, try having Nuclei output JSON data by using the -j option. Then pipe this output to jq, as shown in Chapter 4.
+Security Relevance Score: 5
+Word Count: 1032
+Extracted: 2025-06-13 23:40:57
+
+---
+
+that contains the arguments passed to the script on the command line. We assign each argument to the ip_address variable.
+Next, we run a Nuclei scan, passing it the -severity argument to scan for vulnerabilities categorized as either medium, high, or critical, and save the output to the result variable ❶. At ❷, we read the output passed to the while loop at ❹ line by line. From each line, we extract the first field, using the tr -d '[]' command to remove the [] characters for a cleaner output. We also extract the fourth field from each line, which is where Nuclei stores the vulnerable URL. At ❸, we send an email containing the relevant information.
+To run this script, save it to a file and pass the IP addresses to scan on the command line:
+$ nuclei-notifier.sh 172.16.10.10:8081 172.16.10.11 172.16.10.12 172.16.10.13
+To make this script your own, try having Nuclei output JSON data by using the -j option. Then pipe this output to jq, as shown in Chapter 4.
+
+
+
+Fuzzing for Hidden Files
+Now that we’ve identified the potential location of files, let’s use fuzzing tools to find hidden files on p-web-01 (http://172.16.10.10:8081/files). Fuzzers generate semi-random data to use as part of a payload. When sent to an application, these payloads can trigger anomalous behavior or reveal covert information. You can use fuzzers against web servers to find hidden paths or against local binaries to find vulnerabilities such as buffer overflows or DoS.
+
+Creating a Wordlist of Possible Filenames
+Fuzzing tools in the context of web application enumeration work best when fed custom wordlists tailored to your target. These lists could contain the name of the company, the individuals you’ve identified, relevant locations, and so on. These tailored wordlists can help you identify user accounts to attack, network and application services, valid domain names, covert files, email addresses, and web paths, for example.
+Let’s use bash to write a custom wordlist containing potential filenames of interest (Listing 5-5).
+$ echo -e acme-hyper-branding-{0..100}.{txt,csv,pdf,jpg}"\n" | sed 's/ //g' > files_wordlist.txt
+Listing 5-5: Using brace expansion to create multiple files with various extensions
+This command creates files with probable file extensions tailored to our target’s name, ACME Hyper Branding. It uses echo with brace expansion {0..100} to create arbitrary strings ranging from 0 to 100 and then appends these to the company name. We also use brace expansion to create multiple file extension types, such as .txt, .csv, .pdf, and .jpg. The -e option, for echo, enables us to interpret backslash (\) escapes. This means that \n will be interpreted as a newline. We then pipe this output to the sed command to remove all whitespace from the output for a cleaner list.
+Use head to view the created files:
+$ head files_wordlist.txt
+
+acme-hyper-branding-0.txt
+acme-hyper-branding-0.csv
+acme-hyper-branding-0.pdf
+acme-hyper-branding-0.jpg
+acme-hyper-branding-1.txt
+acme-hyper-branding-1.csv
+acme-hyper-branding-1.pdf
+acme-hyper-branding-1.jpg
+acme-hyper-branding-2.txt
+acme-hyper-branding-2.csv
+
+As you can see, this command’s output follows the format acme-hyper-branding-<some_number>.<some_extension>.
+
+
+Fuzzing with ffuf
+ffuf (an acronym for Fuzz Faster U Fool) is a versatile and blazing-fast web fuzzing tool. We’ll use ffuf to discover potential files under the /files endpoint that could contain interesting data.
+The following ffuf command uses the -c (color) option to highlight the results in the terminal, the -w (wordlist) option to specify a custom wordlist, the -u (URL) option to specify a path, and the full URL to the endpoint to fuzz. We run ffuf against p-web-01 (172.16.10.10):
+$ ffuf -c -w files_wordlist.txt -u http://172.16.10.10:8081/files/FUZZ
+
+:: Method           : GET
+:: URL              : http://172.16.10.10:8081/files/FUZZ
+:: Wordlist         : FUZZ: files_wordlist.txt
+:: Follow redirects : false
+:: Calibration      : false
+:: Timeout          : 10
+:: Threads          : 40
+:: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+________________________________________________
+
+acme-hyper-branding-5.csv [Status: 200, Size: 432, Words: 31, Lines: 9, Duration: 32ms]
+:: Progress: [405/405] :: Job [1/1] :: 0 req/sec :: Duration: [0:00:00] :: Errors: 0 ::
+
+Note that the word FUZZ at the end of the URL is a placeholder that tells the tool where to inject the words from the wordlist. In essence, it will swap the word FUZZ with each line from our file.
+According to the output, ffuf identified that the path http://172.16.10.10:8081/files/acme-hyper-branding-5.csv returned a status code of HTTP 200 OK. If you look closely at the output, you should see that the fuzzer sent 405 requests in less than a second, which is pretty impressive.
+
+
+Fuzzing with Wfuzz
+Wfuzz is another web fuzzing tool similar to ffuf. In fact, ffuf is based on Wfuzz. Let’s use Wfuzz to perform the same type of wordlist-based scan (-w) and then use its filtering capabilities to show only files that receive a response status code of 200 OK (--sc 200):
+$ wfuzz --sc 200 -w files_wordlist.txt http://172.16.10.10:8081/files/FUZZ
+
+--snip--
+Target: http://172.16.10.10:8081/files/FUZZ
+Total requests: 405
+
+=====================================================================
+ID         Response   Lines    Word       Chars       Payload
+=====================================================================
+
+000000022: 200        8 L      37 W       432 Ch      "acme-hyper-branding-5.csv"
+
+Total time: 0
+Processed Requests: 405
+Filtered Requests: 404
+Requests/sec.: 0
+
+Next, let’s use the wget command to download the identified file:
+$ wget http://172.16.10.10:8081/files/acme-hyper-branding-5.csv
+$ cat acme-hyper-branding-5.csv
+
+no, first_name, last_name, designation, email
+1, Jacob, Taylor, Founder, jtayoler@acme-hyper-branding.com
+2, Sarah, Lewis, Executive Assistance, slewis@acme-hyper-branding.com
+3, Nicholas, Young, Influencer, nyoung@acme-hyper-branding.com
+4, Lauren, Scott, Influencer, lscott@acme-hyper-branding.com
+5, Aaron,Peres, Marketing Lead, aperes@acme-hyper-branding.com
+6, Melissa, Rogers, Marketing Lead, mrogers@acme-hyper-branding.com
+
+We’ve located a table of PII, including first and last names, titles, and email addresses. Take notes of every detail we’ve managed to extract in this chapter; you never know when it will come in handy.
+Note that fuzzers can cause unintentional DoS conditions, especially if they’re optimized for speed. You may encounter applications running on low-powered servers that will crash if you run a highly capable fuzzer against them, so make sure you have explicit permission from the company you’re working with to perform such activities.
+
+
+
+Assessing SSH Servers with Nmap’s Scripting Engine
+Nmap contains many NSE scripts to test for vulnerabilities and misconfigurations. All Nmap scripts live in the /usr/share/nmap/scripts path. When you run Nmap with the -A flag, it will blast all NSE scripts at the target, as well as enable operating system detection, version detection, script scanning, and traceroute. This is probably the noisiest scan you can do with Nmap, so never use it when you need to be covert.
+In

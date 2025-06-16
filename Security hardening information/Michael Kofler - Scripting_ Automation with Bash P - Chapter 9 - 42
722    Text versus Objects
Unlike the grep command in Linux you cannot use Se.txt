@@ -1,0 +1,112 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 9 - 4.2).
+7.2.2    Text versus Objects
+Unlike the grep command in Linux, you cannot use Select-String to filter the results of any cmdlets in general. The reason is simple: cmdlets return objects, not text. (Text is displayed in the terminal but only because PowerShell automatically converts the objects to text beforehand.)
+Thus, for example, if you want to know what alias the Start-Process cmdlet has, the following command will have no effect. It does not recognize any text in the Get-Alias result.
+> Get-Alias | Select-String Start-Process 
+Now, you can use Out-String to convert the Get-Alias result into a string and search it. Basically, this approach works because Select-String also finds the match. However, Out-String turns the result into one string. Instead of displaying only the alias definition of Start-Process, the command returns the complete list of all aliases, which ultimately is the original result of Get-Alias. But nothing is gained by this exercise.
+> Get-Alias | Out-String | Select-String Start-Process  CommandType     Name  -----------     ----  Alias           ? -> Where-Object  Alias           % -> ForEach-Object  Alias           cd -> Set-Location  ... 
+Only Out-String -Stream provides the desired result. With this additional option, the cmdlet returns each line as a single string. Finally, the searched aliases saps and start are displayed.
+> Get-Alias | Out-String -Stream | Select-String Start-Process  Alias           saps -> Start-Process  Alias           start -> Start-Process 
+But command | Out-String -Stream | Select-String ... is rarely a good idea because cmdlets return objects. You can find out the result data type using Get-Member or Format-List and then formulate an appropriate condition for evaluation:
+> Get-Alias | ? {$_.Definition -eq 'Start-Process'}  Alias           saps -> Start-Process  Alias           start -> Start-Process 
+What is even more expedient is to consult Get-Help every now and then. With the -Definition option, Get-Alias directly determines the alias for the desired command:
+> Get-Alias -Definition Start-Process  Alias           saps -> Start-Process  Alias           start -> Start-Process
+Security Relevance Score: 3
+Word Count: 1701
+Extracted: 2025-06-13 23:41:06
+
+---
+
+4.2).
+7.2.2    Text versus Objects
+Unlike the grep command in Linux, you cannot use Select-String to filter the results of any cmdlets in general. The reason is simple: cmdlets return objects, not text. (Text is displayed in the terminal but only because PowerShell automatically converts the objects to text beforehand.)
+Thus, for example, if you want to know what alias the Start-Process cmdlet has, the following command will have no effect. It does not recognize any text in the Get-Alias result.
+> Get-Alias | Select-String Start-Process 
+Now, you can use Out-String to convert the Get-Alias result into a string and search it. Basically, this approach works because Select-String also finds the match. However, Out-String turns the result into one string. Instead of displaying only the alias definition of Start-Process, the command returns the complete list of all aliases, which ultimately is the original result of Get-Alias. But nothing is gained by this exercise.
+> Get-Alias | Out-String | Select-String Start-Process  CommandType     Name  -----------     ----  Alias           ? -> Where-Object  Alias           % -> ForEach-Object  Alias           cd -> Set-Location  ... 
+Only Out-String -Stream provides the desired result. With this additional option, the cmdlet returns each line as a single string. Finally, the searched aliases saps and start are displayed.
+> Get-Alias | Out-String -Stream | Select-String Start-Process  Alias           saps -> Start-Process  Alias           start -> Start-Process 
+But command | Out-String -Stream | Select-String ... is rarely a good idea because cmdlets return objects. You can find out the result data type using Get-Member or Format-List and then formulate an appropriate condition for evaluation:
+> Get-Alias | ? {$_.Definition -eq 'Start-Process'}  Alias           saps -> Start-Process  Alias           start -> Start-Process 
+What is even more expedient is to consult Get-Help every now and then. With the -Definition option, Get-Alias directly determines the alias for the desired command:
+> Get-Alias -Definition Start-Process  Alias           saps -> Start-Process  Alias           start -> Start-Process 
+
+
+
+
+
+
+
+
+
+7.3    Compressing and Archiving Files
+The Compress-Archive command allows you to pack a directory or individual files into a compressed archive file. Basically, the application of the command is simple:
+> Compress-Archive mypictures\ mypictures.zip> Compress-Archive *.txt archive.zip 
+With -Update, you can extend or change an existing archive, and with -Force, you can overwrite a possibly existing ZIP file. -CompressionLevel enables you to influence the compression algorithm. Permitted settings are Optimal (applies by default), Fastest, and NoCompression (for example, for already compressed image or PDF files).
+To unpack an archive, you can use Expand-Archive: 
+> Expand-Archive my.zip      # unpack in the current directory> Expand-Archive my.zip -DestinationPath dir   # unpack in dir 
+Amazingly, there is no way to view or list the contents of an archive file. If necessary, you may have to use commands from one of the numerous ZIP extension modules available on the internet.
+7.3.1    Compressing Search Results
+Basically, Compress-Archive can also process results of Get-ChildItem, as long as you specify the filename of the archive with the -DestinationPath option. However, the behavior of Compress-Archive takes some getting used to. Let’s assume we have the following directory structure:
+dirA\  file1  file2  dirB\     file3 
+Get-ChildItem will now recursively traverse the contents of dirA and pass it to Compress-Archive:
+> Get-ChildItem -Recurse dirA |  Compress-Archive -DestinationPath my.zip> Expand-Archive my.zip -DestinationPath dirC 
+The dirC directory now contains the following files and directories:
+dirC\  file1  file2  file3 (!)  dirB\     file3 
+This result occurs because Compress-Archive received the dirB directory once and the file3 file once from Get-ChildItem. dirB was processed correctly. However, file3 was processed without considering the directory. The file was therefore inserted into the archive twice. The documentation points out this special case, so the behavior is apparently not considered an error. In this respect, you should use Compress-Archive for further processing of files only if all files are located in the same directory.
+
+
+
+
+
+
+
+
+
+7.4    Process Management
+Start-Process allows you to start a new process, such as the Notepad editor for first tests:
+> Start-Process notepad 
+Start-Process starts the process in the background. If you do not want it to start, you can pass the -Wait option to it. Then, the terminal or your script will be blocked until the process ends.
+Usually, the new process has the same rights as the terminal or your script. To run a new process with admin rights, you must use -Verb RunAs. However, a warning dialog will then display in which the user of the computer must confirm that the app can make changes to the computer.
+Get-Process returns a list of all processes running on the computer. If you specify a process name as a parameter, only processes with the same name will be determined. With -IncludeUserName, the cmdlet also shows the assigned user:
+# all processes> Get-Process  NPM(K)  PM(M)  WS(M)  CPU(s)    Id  SI ProcessName  ------  -----  -----  ------    --  -- -----------       6   1.09   6.14    0.05  3888   0 AggregatorHost      24   9.11  34.42    0.52  7492   1 ApplicationFrameHost      10   1.79   8.25    0.00  2916   0 blnsvr                                         ...# show only notepad processes, with user names> Get-Process -IncludeUserName notepad     WS(M)   CPU(s)      Id UserName        ProcessName     -----   ------      -- --------        -----------     60.01     0.50    1212 KVMWIN\kofler   Notepad     59.88     0.47    8640 KVMWIN\kofler   Notepad 
+Provided you have a suitable process object and have started the process yourself, you can also stop processes via Stop-Process. Watch out, though: The following command terminates not only the process started earlier, but all running Notepad instances! (Only with admin rights can you also terminate foreign processes.)
+> Get-Process notepad | Stop-Process 
+7.4.1    Launching Other PowerShell Scripts
+If you want to run another PowerShell script—starting from an already running script—the best approach is to proceed as follows:
+> Start-Process powershell.exe `  -ArgumentList "-file C:\directory\myscript.ps1", "arg1", "arg2" 
+Start-Process thus starts a new PowerShell process to which you can pass the location of your script and any necessary parameters.
+If you do not want to start a second script as a new process, but only want to read (import) its code at the current position, you can do this by using the . source operator:
+. other-file.ps1 
+For complex tasks that require a lot of code, you should divide your script into modules and import them using Import-Module.
+7.4.2    Running Commands in the Background
+Sometimes, you don’t want to run an entire script in the background; often, a few commands are sufficient. You can pass these commands to Start-Job. In the following example, the contents of a directory are stored in a ZIP file. If the statement is in a script, the script will continue in the meantime.
+> Start-Job { Compress-Archiv mydir\ archive.zip } 
+If you need to rely on the completion of the ZIP file later in the script, you must remember the job ID. This allows you to later read the output of the operation using Receive-Job or wait for completion by using Wait-Job:
+$myjob = Start-Job { Compress-Archive mydir\ archive.zip }# first do something else ...# then wait for Compress-Archive to finishWait-Job $myjob 
+7.4.3    Managing Services
+Services (also referred to as system services) are background processes required for the operation of Windows and its functions. You can find out which services are running on your system by using the program of the same name or via the Get-Service command which lists all the services. You can also pass a pattern to the cmdlet to search specifically for services:
+> Get-Service  wl*  Status   Name     DisplayName  ------   ----     -----------  Stopped  WlanSvc  automatic WLAN configuration  Running  wlidsvc  login wizard for Microsoft accounts  Stopped  wlpasvc  service wizard for local profiles 
+Like many cmdlets, Get-Service displays less data than is actually available internally. If you want to know which of these services starts automatically, you can use Select-Object to also display the StartType property:
+> Get-Service  wl* | Select-Object Name, StartType  Name    StartType  ----    ---------  WlanSvc    Manual  wlidsvc    Manual  wlpasvc    Manual 
+You can start or stop the specified service using Start-Service, Restart-Service, and Stop-Service. Suspend-Service temporarily disables the service; it remains in the memory but stops responding. Resume-Service reactivates the service. (Note, however, that not all services support Suspend and Resume).     
+> Start-Service winrm 
+All the commands just listed have an immediate effect. To set the startup behavior for the future, on the other hand, you must use Set-Service with the -StartupType option, as in the following example:   
+> Set-Service -StartupType Automatic winrm 
+If necessary, you can set up your own services via New-Service and remove them again with Remove-Service.
+7.4.4    Working on Other Computers
+Basically, cmdlets are always executed on the local computer. Invoke-Command allows you to execute commands on other computers. Among other things, this requires that Windows Remote Management is active on this computer (the winrm service). The following two examples first run the Get-Process command and then run myscript.ps1 on the otherhost computer:
+> Invoke-Command otherhost { Get-Process }> Invoke-Command otherhost -FilePath C:\myscript.ps1 
+Instead of just running individual commands, you can use Enter-PSSession hostname to connect to another computer and open a PowerShell session there. If necessary, you can use -Credential name to specify the desired login name if different from your own. Of course, you must authenticate yourself with a password. You can end an active session using Exit-PSSession.  
+>  Enter-PSSession otherhost[otherhost]: PS C:\Users\username> Get-Process  ...[otherhost]: PS C:\Users\username> Exit-PSSession 
+An alternative to Enter-PSSession is the New-PSSession cmdlet. This approach also creates a connection to another computer. You can subsequently pass the session object as a parameter to other cmdlets, for example, to Copy-Item to copy files to another computer. However, New-PSSession is not intended for interactive use.
+
+Remoting Does Not Work
+Enter-PSSession and InvokeCommand often fail with uninformative error messages (such as “Access denied”) without further explanation. The solution is usually the Enable-PSRemoting command, which is executed on the target computer. For the causes of various errors and tips on how to fix them, refer to https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_remote_troubleshooting.
+
+
+SSH instead of Remoting
+SSH provides a functionality that’s comparable to Invoke-Command and Enter-PSSession but works across different platforms. However, SSH requires a running SSH server on the target computer, which is rather unusual on Windows.
+Since version 6, PowerShell even supports SSH remoting, that is, the use of the Enter-PSSession or New-PSSession commands via an SSH connection. In my tests, however, the configuration proved to be as error prone as for Windows Remote Management. More details on using SSH directly and on SSH remoting will follow in

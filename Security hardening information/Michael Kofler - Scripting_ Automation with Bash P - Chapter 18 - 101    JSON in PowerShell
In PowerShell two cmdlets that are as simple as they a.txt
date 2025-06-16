@@ -1,0 +1,36 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 18 - 10.1    JSON in PowerShell
+In PowerShell, two cmdlets that are as simple as they are powerful make processing JSON data a breeze:
+Security Relevance Score: 2
+Word Count: 415
+Extracted: 2025-06-13 23:41:06
+
+---
+
+10.1    JSON in PowerShell
+In PowerShell, two cmdlets that are as simple as they are powerful make processing JSON data a breeze:
+
+
+ConvertTo-JsonConvertTo-Json is mostly used in the cmdlet | ConvertTo-Json format and converts the result objects provided by the cmdlet into a string in JSON format. The properties of the objects serve as keys for the key-value pairs in the JSON document. The document can be saved to a file via output redirection.
+
+
+ConvertFrom-JsonConvertFrom-Json works exactly the opposite way: The cmdlet transforms the JSON string passed as parameters or via pipe back into PSObjects or hash tables, which can then be further processed using Select-Object, ForEach-Object, and so on.
+
+
+The following examples show some applications of the two cmdlets.
+10.1.1    Example: Saving Event Log Entries in JSON Format
+The following command reads the last ten security-specific entries from the event log and stores them in a JSON file:
+> Get-EventLog Security -Newest 10 |  ConvertTo-Json > security-events.json 
+The resulting security-events.json file looks as follows:
+[  {    "EventID": 4799,    "PSComputerName": "localhost",    "Index": 308255,    "Message": "A security-enabled local                group membership was ...",    "Source": "Microsoft-Windows-Security-Auditing",    ...  },  {    "EventID": 4799,    "PSComputerName": "localhost",    "Index": 308254,     ...  }] 
+10.1.2    Example: Analyzing Domain Queries
+The second example involves the analysis of a web request. The https://domainsdb.info website makes accessible a rather large (but by no means complete!) database with public information about registered domains. PowerShell provides a straightforward way to perform GET requests by means of Invoke-WebRequest. (Invoke-WebRequest is roughly comparable to the Linux commands curl or wget.) To find domains containing the rheinwerk string, you would use the following commands:
+> $url =  "https://api.domainsdb.info/v1/domains/search?domain=rheinwerk"> Invoke-WebRequest $url  StatusCode        : 200  StatusDescription : OK  Content           : {"domains": [{"domain": "rheinwerk-                        office.com", "create_date": ...  ... 
+The exciting part of the result is accessible via the Content property and is in JSON format. When formatted, the document looks as follows (heavily shortened):
+{  "domains": [    {      "domain": "rheinwerk-office.com",      "create_date": "2022-12-29T13:21:38.809015",      "A": [        "87.106.63.234"      ],      ...    },    {      "domain": "rheinwerk-publishing.com",      ...    }, ... ]} 
+The goal of this example is to filter out only the domain and A properties (i.e., the A record entry) from the rather large JSON document. After converting the JSON data into PowerShell objects, this filter step can be done pretty easily:
+> (Invoke-WebRequest $url | ConvertFrom-Json).domains |  Select-Object domain, A  domain                   A  ------                   -----------  rheinwerk-office.com     {87.106.63.234}  rheinwerk-publishing.com {46.235.24.150}  rheinwerk-verlag.com     {46.235.24.168}  ... 
+
+REST APIs
+An alternative to the Invoke-WebRequest and ConvertFrom-Json combination is the Invoke-RestMethod command, which I will introduce in

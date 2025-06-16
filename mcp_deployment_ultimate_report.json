@@ -1,0 +1,200 @@
+{
+  "ultimate_deployment_summary": {
+    "timestamp": "2025-06-08T16:08:31.690007",
+    "success_rate": "53.3%",
+    "production_score": "68.3%",
+    "servers_deployed": 8,
+    "servers_failed": 7,
+    "critical_errors": 0,
+    "duration_seconds": 0.57522,
+    "total_tools_deployed": 53
+  },
+  "deployment_success_details": {
+    "security-scanner": {
+      "tier": "security",
+      "status": "operational",
+      "class_name": "SecurityScannerMCPServer",
+      "tools_count": 5,
+      "deployed_at": "2025-06-08T16:08:31.556681"
+    },
+    "sast-scanner": {
+      "tier": "security",
+      "status": "operational",
+      "class_name": "SASTMCPServer",
+      "tools_count": 5,
+      "deployed_at": "2025-06-08T16:08:31.557375"
+    },
+    "supply-chain-security": {
+      "tier": "security",
+      "status": "operational",
+      "class_name": "SupplyChainSecurityMCPServer",
+      "tools_count": 6,
+      "deployed_at": "2025-06-08T16:08:31.558064"
+    },
+    "s3-storage": {
+      "tier": "storage",
+      "status": "operational",
+      "class_name": "S3StorageMCPServer",
+      "tools_count": 6,
+      "deployed_at": "2025-06-08T16:08:31.684078"
+    },
+    "cloud-storage": {
+      "tier": "storage",
+      "status": "operational",
+      "class_name": "CloudStorageMCP",
+      "tools_count": 10,
+      "deployed_at": "2025-06-08T16:08:31.684424"
+    },
+    "slack-notifications": {
+      "tier": "communication",
+      "status": "operational",
+      "class_name": "SlackNotificationMCPServer",
+      "tools_count": 8,
+      "deployed_at": "2025-06-08T16:08:31.686216"
+    },
+    "hub-server": {
+      "tier": "communication",
+      "status": "operational",
+      "class_name": "CommunicationHubMCP",
+      "tools_count": 7,
+      "deployed_at": "2025-06-08T16:08:31.687795"
+    },
+    "infrastructure-commander": {
+      "tier": "additional",
+      "status": "operational",
+      "class_name": "InfrastructureCommanderMCP",
+      "tools_count": 6,
+      "deployed_at": "2025-06-08T16:08:31.689242"
+    }
+  },
+  "deployment_failure_analysis": {
+    "desktop-commander": {
+      "error": "interface_validation_failed",
+      "details": "MCPServer.get_server_info() missing 1 required positional argument: 'user'",
+      "tier": "infrastructure"
+    },
+    "docker": {
+      "error": "interface_validation_failed",
+      "details": "MCPServer.get_server_info() missing 1 required positional argument: 'user'",
+      "tier": "infrastructure"
+    },
+    "kubernetes": {
+      "error": "interface_validation_failed",
+      "details": "MCPServer.get_server_info() missing 1 required positional argument: 'user'",
+      "tier": "infrastructure"
+    },
+    "azure-devops": {
+      "error": "interface_validation_failed",
+      "details": "MCPServer.get_server_info() missing 1 required positional argument: 'user'",
+      "tier": "devops"
+    },
+    "windows-system": {
+      "error": "interface_validation_failed",
+      "details": "MCPServer.get_server_info() missing 1 required positional argument: 'user'",
+      "tier": "devops"
+    },
+    "prometheus-monitoring": {
+      "error": "instantiation_failed",
+      "details": "Unsafe Prometheus URL: DNS resolution failed: DNS resolution failed for prometheus-service: [Errno -2] Name or service not known",
+      "tier": "monitoring"
+    },
+    "brave": {
+      "error": "interface_validation_failed",
+      "details": "MCPServer.get_server_info() missing 1 required positional argument: 'user'",
+      "tier": "search"
+    }
+  },
+  "tier_deployment_summary": {
+    "security": {
+      "deployed_count": 3,
+      "total_tools": 16,
+      "servers": [
+        "security-scanner",
+        "sast-scanner",
+        "supply-chain-security"
+      ],
+      "status": "operational"
+    },
+    "storage": {
+      "deployed_count": 2,
+      "total_tools": 16,
+      "servers": [
+        "s3-storage",
+        "cloud-storage"
+      ],
+      "status": "operational"
+    },
+    "communication": {
+      "deployed_count": 2,
+      "total_tools": 15,
+      "servers": [
+        "slack-notifications",
+        "hub-server"
+      ],
+      "status": "operational"
+    },
+    "additional": {
+      "deployed_count": 1,
+      "total_tools": 6,
+      "servers": [
+        "infrastructure-commander"
+      ],
+      "status": "operational"
+    },
+    "infrastructure": {
+      "deployed_count": 0,
+      "total_tools": 0,
+      "servers": [],
+      "status": "degraded",
+      "failed_count": 3,
+      "failed_servers": [
+        "desktop-commander",
+        "docker",
+        "kubernetes"
+      ]
+    },
+    "devops": {
+      "deployed_count": 0,
+      "total_tools": 0,
+      "servers": [],
+      "status": "degraded",
+      "failed_count": 2,
+      "failed_servers": [
+        "azure-devops",
+        "windows-system"
+      ]
+    },
+    "monitoring": {
+      "deployed_count": 0,
+      "total_tools": 0,
+      "servers": [],
+      "status": "degraded",
+      "failed_count": 1,
+      "failed_servers": [
+        "prometheus-monitoring"
+      ]
+    },
+    "search": {
+      "deployed_count": 0,
+      "total_tools": 0,
+      "servers": [],
+      "status": "degraded",
+      "failed_count": 1,
+      "failed_servers": [
+        "brave"
+      ]
+    }
+  },
+  "production_certification": {
+    "certification_level": "DEVELOPMENT_READY",
+    "status": "\ud83d\udd27 DEVELOPMENT READY",
+    "recommendation": "Additional development work required",
+    "production_score": 68.33333333333334,
+    "certification_date": "2025-06-08T16:08:31.690031",
+    "valid_until": "2025-06-08T16:08:31.690032"
+  },
+  "strategic_recommendations": [
+    "\ud83d\udd27 Significant work needed - focus on error mitigation",
+    "\ud83c\udfd7\ufe0f Deploy remaining infrastructure servers for complete coverage"
+  ]
+}

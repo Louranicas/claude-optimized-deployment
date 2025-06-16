@@ -1,0 +1,272 @@
+# Container Security Policies
+# Comprehensive security configuration for production containers
+
+# Pod Security Policy (for Kubernetes)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: claude-deployment-psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'runtime/default'
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: 'runtime/default'
+    apparmor.security.beta.kubernetes.io/defaultProfileName: 'runtime/default'
+spec:
+  # Prevent privileged containers
+  privileged: false
+  
+  # Prevent containers from running as root
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  
+  # Prevent root group access
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1000
+        max: 65535
+  
+  # Prevent privilege escalation
+  allowPrivilegeEscalation: false
+  
+  # Required security context
+  requiredDropCapabilities:
+    - ALL
+  
+  # Allowed capabilities (minimal set)
+  allowedCapabilities:
+    - NET_BIND_SERVICE
+  
+  # Volume restrictions
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  
+  # Prevent host access
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  hostPorts: []
+  
+  # SELinux/AppArmor
+  seLinux:
+    rule: 'RunAsAny'
+  
+  # Filesystem restrictions
+  readOnlyRootFilesystem: true
+  
+  # Resource limits enforcement
+  forbiddenSysctls:
+    - '*'
+
+---
+# Network Policy for container isolation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: claude-deployment-netpol
+spec:
+  podSelector:
+    matchLabels:
+      app: claude-deployment
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # Ingress rules - only allow specific traffic
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 8000
+  
+  # Egress rules - restrict outbound traffic
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+
+---
+# Security Context Constraints (for OpenShift)
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: claude-deployment-scc
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+fsGroup:
+  type: MustRunAs
+  ranges:
+    - min: 1000
+      max: 65535
+readOnlyRootFilesystem: true
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: MustRunAsNonRoot
+seLinuxContext:
+  type: MustRunAs
+users:
+  - system:serviceaccount:claude-deployment:default
+volumes:
+  - configMap
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+
+---
+# Falco Security Rules (Runtime Security)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-rules
+data:
+  claude_rules.yaml: |
+    # Custom Falco rules for Claude Deployment
+    
+    - rule: Unauthorized Process in Container
+      desc: Detect unauthorized process execution in Claude containers
+      condition: >
+        spawned_process and 
+        container.name startswith "claude-" and
+        not proc.name in (python, uvicorn, claude-optimized-deployment, nginx, redis-server, postgres, sh, bash)
+      output: >
+        Unauthorized process started in Claude container 
+        (user=%user.name command=%proc.cmdline container=%container.name image=%container.image)
+      priority: WARNING
+      tags: [process, container]
+    
+    - rule: Sensitive File Access in Container
+      desc: Detect access to sensitive files in Claude containers
+      condition: >
+        open_read and
+        container.name startswith "claude-" and
+        (fd.name startswith /etc/passwd or
+         fd.name startswith /etc/shadow or
+         fd.name startswith /etc/ssh/ or
+         fd.name startswith /root/.ssh/)
+      output: >
+        Sensitive file accessed in Claude container
+        (user=%user.name file=%fd.name container=%container.name)
+      priority: HIGH
+      tags: [filesystem, container]
+    
+    - rule: Network Connection from Claude Container
+      desc: Monitor outbound network connections
+      condition: >
+        outbound and
+        container.name startswith "claude-" and
+        not fd.net.cip in (claude_allowed_ips)
+      output: >
+        Unexpected outbound connection from Claude container
+        (user=%user.name connection=%fd.net.name container=%container.name)
+      priority: WARNING
+      tags: [network, container]
+    
+    - list: claude_allowed_ips
+      items: [
+        "172.18.0.0/16",
+        "172.19.0.0/16", 
+        "127.0.0.1",
+        "8.8.8.8",
+        "1.1.1.1"
+      ]
+
+---
+# OPA Gatekeeper Constraint Template
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: claudesecuritybaseline
+spec:
+  crd:
+    spec:
+      names:
+        kind: ClaudeSecurityBaseline
+      validation:
+        properties:
+          allowedImages:
+            type: array
+            items:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package claudesecuritybaseline
+        
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not starts_with(container.image, "localhost:5000/claude-optimized-deployment/")
+          msg := sprintf("Container image %v is not from allowed registry", [container.image])
+        }
+        
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.runAsUser == 0
+          msg := "Container must not run as root user"
+        }
+        
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.privileged == true
+          msg := "Privileged containers are not allowed"
+        }
+        
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.allowPrivilegeEscalation == true
+          msg := "Privilege escalation is not allowed"
+        }
+
+---
+# Constraint using the template
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: ClaudeSecurityBaseline
+metadata:
+  name: claude-security-baseline
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    namespaces: ["claude-deployment"]
+  parameters:
+    allowedImages:
+      - "localhost:5000/claude-optimized-deployment/"

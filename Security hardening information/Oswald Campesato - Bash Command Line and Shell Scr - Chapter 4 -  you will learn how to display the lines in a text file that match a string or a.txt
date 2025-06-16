@@ -1,0 +1,175 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 4 - , you will learn how to display the lines in a text file that match a string or a pattern, and in Chapter 5 you will learn how to replace a string with another string in a text file.
+FILE OWNERSHIP: OWNER, GROUP, AND WORLD
+Bash files can have partial or full rwx privileges, where r = read privilege, w = write privilege, x = execute and can be executed from the command line, simply by typing the file name (or the full path to the file if the file is not in your current directory). Invoking an executable file from the command line will cause the operating system to attempt to execute commands inside the text file (which must be valid shell commands or executable files with valid shell commands).
+Use the chmod command to change permissions for files. For example, if you need to set the owner, group, and other permissions equal to rwx rwr-- for a file, use the following command:
+chmod u=rwx g=rw o=r filename
+In the preceding command the options u, g, and o represent user permissions, group permissions, and others permissions, respectively.
+Modify permissions on a file by specifying + to add permission to a user, group or others and specify - to remove permissions. For example, given a file with the permissions rwx rw- r--, add the executable permission to “others” as follows:
+chmod o+x filename
+Add the executable permission to all permission categories, that is, for the user, group, and others as follows:
+chmod a+x filename
+As you can surmise, the letter a in the preceding code snippet means “all groups”. Conversely, specify a - in order to remove permissions from all groups, as shown here:
+chmod a-x filename
+HIDDEN FILES
+A so-called “hidden” file is a filename that starts with a period character (.). Bash programs (including the shell) use most of these files to store configuration information. Some common examples of hidden files include the files:
+.profile: the Bourne shell (sh) initialization script
+.bash_profile: the bash shell (bash) initialization script
+.kshrc: the Korn shell (ksh) initialization script
+.cshrc: the C shell (csh) initialization script
+.rhosts: the remote shell configuration file
+You can display a list of hidden files in a directory via the ls command and the -a option, as shown here:
+ls -a
+.        .profile     docs      lib     test_results
+..       .rhosts       hosts     pub     users
+.emacs   bin           hw1       res.01  work
+.exrc    ch07          hw2       res.02
+.kshrc   ch07.bak      hw3       res.03
+Keep in mind that a single dot (“.”) represents the current directory and a double dot (“..”) represents the parent directory of the current directory.
+HANDLING PROBLEMATIC FILENAMES
+A “problematic” filename is a filename that contains one or more whitespaces, hidden (non-printing) characters, or starts with a dash (“-”) character.
+You can use double quotes to list filenames that contain whitespaces, or you can precede each whitespace by a backslash “\”) character. For example, if you have a file named One Space.txt, you can use the ls command as follows:
+ls -1 "One Space.txt"
+Security Relevance Score: 4
+Word Count: 1747
+Extracted: 2025-06-13 23:40:50
+
+---
+
+, you will learn how to display the lines in a text file that match a string or a pattern, and in Chapter 5 you will learn how to replace a string with another string in a text file.
+FILE OWNERSHIP: OWNER, GROUP, AND WORLD
+Bash files can have partial or full rwx privileges, where r = read privilege, w = write privilege, x = execute and can be executed from the command line, simply by typing the file name (or the full path to the file if the file is not in your current directory). Invoking an executable file from the command line will cause the operating system to attempt to execute commands inside the text file (which must be valid shell commands or executable files with valid shell commands).
+Use the chmod command to change permissions for files. For example, if you need to set the owner, group, and other permissions equal to rwx rwr-- for a file, use the following command:
+chmod u=rwx g=rw o=r filename
+In the preceding command the options u, g, and o represent user permissions, group permissions, and others permissions, respectively.
+Modify permissions on a file by specifying + to add permission to a user, group or others and specify - to remove permissions. For example, given a file with the permissions rwx rw- r--, add the executable permission to “others” as follows:
+chmod o+x filename
+Add the executable permission to all permission categories, that is, for the user, group, and others as follows:
+chmod a+x filename
+As you can surmise, the letter a in the preceding code snippet means “all groups”. Conversely, specify a - in order to remove permissions from all groups, as shown here:
+chmod a-x filename
+HIDDEN FILES
+A so-called “hidden” file is a filename that starts with a period character (.). Bash programs (including the shell) use most of these files to store configuration information. Some common examples of hidden files include the files:
+.profile: the Bourne shell (sh) initialization script
+.bash_profile: the bash shell (bash) initialization script
+.kshrc: the Korn shell (ksh) initialization script
+.cshrc: the C shell (csh) initialization script
+.rhosts: the remote shell configuration file
+You can display a list of hidden files in a directory via the ls command and the -a option, as shown here:
+ls -a
+.        .profile     docs      lib     test_results
+..       .rhosts       hosts     pub     users
+.emacs   bin           hw1       res.01  work
+.exrc    ch07          hw2       res.02
+.kshrc   ch07.bak      hw3       res.03
+Keep in mind that a single dot (“.”) represents the current directory and a double dot (“..”) represents the parent directory of the current directory.
+HANDLING PROBLEMATIC FILENAMES
+A “problematic” filename is a filename that contains one or more whitespaces, hidden (non-printing) characters, or starts with a dash (“-”) character.
+You can use double quotes to list filenames that contain whitespaces, or you can precede each whitespace by a backslash “\”) character. For example, if you have a file named One Space.txt, you can use the ls command as follows:
+ls -1 "One Space.txt"
+
+ls –l One\ Space.txt
+Filenames that start with a dash (“-”) character are difficult to handle because the dash character is the prefix that specifies options for bash commands. Consequently, if you have a file whose name is –abc, then the command ls –abc will not work correctly, because the “-a” is interpreted as a switch for the ls command (and there is no “a” option).
+In most cases, the best solution to this type of filename is to rename the file. This can be done in your operating system if your client isn’t a bash shell, or you can use the following special syntax for the mv (“move”) command to rename the file. The preceding two dashes tell mv to ignore the dash in the filename. An example is here:
+mv -- -abc.txt renamed-abc.txt
+WORKING WITH ENVIRONMENT VARIABLES
+There are many built-in environment variables available, and the following subsections discuss the env command that displays the variables that have values in the environment, along with some common variables that are available in the environment of a command shell.
+The env Command
+The env (“environment”) command displays the variables that are in your bash environment. An example of the output of the env command is here:
+SHELL=/bin/bash
+TERM=xterm-256color
+TMPDIR=/var/folders/73/39lngcln4dj_scmgvsv53g_w0000gn/T/
+OLDPWD=/tmp
+TERM_SESSION_ID=63101060-9DF0-405E-84E1-EC56282F4803
+USER=ocampesato
+COMMAND_MODE=bash2003PATH=/opt/local/bin:/Users/ocampesato/
+android-sdk-mac_86/platform-tools:/Users/ocampesato/
+android-sdk-mac_86/tools:/usr/local/bin:
+PWD=/Users/ocampesato
+JAVA_HOME=/System/Library/Java/
+JavaVirtualMachines/1.6.0.jdk/Contents/Home
+LANG=en_US.UTF-8
+NODE_PATH=/usr/local/lib/node_modules
+HOME=/Users/ocampesato
+LOGNAME=ocampesato
+DISPLAY=/tmp/launch-xnTgkE/org.macosforge.xquartz:0
+SECURITYSESSIONID=186a4
+_=/usr/bin/env
+The common environment variables that are pre-defined for you include HOME, LOGNAME, PWD, SHELL, TERM, and TMPDIR. Use the echo command to see the value of a single environment variable. For example, if you want to see the value of the SHELL environment variable, type the following command (notice the “$” character):
+echo $SHELL
+Based on the output of the env command that you saw earlier in this section, the output of the preceding command is here:
+SHELL=/bin/bash
+One other point: if you do not specify the $ character, you will not see the value of the environment variable. For example, if you type:
+echo SHELL
+Then you will see the following output:
+SHELL
+Later you will learn how to change the value of a variable, and if you are feeling impatient, you can see some interesting examples of setting an environment variable:
+https://stackoverflow.com/questions/13998075/setting-environment-variable-for-one-program-call-in-bash-using-env
+Useful Environment Variables
+This section discusses some important environment variables, most of which you probably will not need to modify, but it’s useful to be aware of the existence of these variables and their purpose.
+The HOME variable contains the absolute path of the user’s home directory
+The HOSTNAME variable specifies the Internet name of the host
+The LOGNAME variable specifies the user’s login name
+The PATH variable specifies the search path (see next subsection)
+The SHELL variable specifies the absolute path of the current shell
+The USER specifies the user’s current username. This value might be different than the login name if a superuser executes the su command to emulate another user’s permissions.
+Setting the PATH Environment Variable
+Programs and other executable files can reside in many directories, so operating systems provide a search path that lists the directories that the OS searches for executable files. Tip: if a directory containing an executable file is not included in your PATH environment variable, simply add that directory to your PATH environment variable so that you can invoke an executable file by specifying just the filename: you don’t need to specify the full path to the executable file.
+The search path is stored in an environment variable, which is a named string maintained by the operating system. Every environment variable contains information available to the command shell and other programs.
+One detail to keep in mind: the path variable is named PATH in bash or Path in Windows (bash is case-sensitive; Windows is not). Set the PATH in bash/Linux as shown here:
+export PATH=$HOME/anaconda:$PATH
+Here is the command that adds the Python directory to the PATH variable for the current command shell when you are using the bash shell:
+export PATH="$PATH:/usr/local/bin/python"
+Another way to do the same thing as the preceding code snippet (when you are in the Bourne shell or ksh shell) is with this command:
+PATH="$PATH:/usr/local/bin/python"
+NOTE
+/usr/local/bin/python is the full path of the Python directory
+Specifying Aliases and Environment Variables
+You can define an environment variable and its value in a straightforward manner. For example, the following command initializes an environment variable called h1:
+h1=$HOME/test
+Now if you enter the following command:
+echo $h1
+If the value of $HOME is /Users/jsmith, then you will see the following output on OS X:
+/Users/jsmith/test
+The next code snippet shows you how to set the alias ll so that it displays a long listing of a directory:
+alias ll="ls -l"
+The following three alias definitions involve the ls command and various switches:
+alias ll="ls – l"
+alias lt="ls – lt"
+alias ltr="ls – ltr"
+As an example, you can replace the command ls -ltr (the letters “l,” “t,” and “r”) that you saw earlier in the chapter with the ltr alias and you will see the same reversed time-based long listing of filenames (reproduced here):
+total 56
+-rwx------ 1 ocampesato staff 176 Apr 06 19:21 sslinstructions.txt
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 19:21 output.txt
+-rw-r--r-- 1 ocampesato staff 11 Apr 06 19:21 outfile.txt
+-rwx------ 1 ocampesato staff 12 Apr 06 19:21 kyrgyzstan.txt
+-rwx------ 1 ocampesato staff 478 Apr 06 19:21 iphonemeetup.txt
+-rwx------ 1 ocampesato staff 146 Apr 06 19:21 checkincommands.txt
+-rwx------ 1 ocampesato staff 25 Apr 06 19:21 applecare.txt
+The bash shell supports the pipe (“|”) symbol that sends the output of one command to the input of another command, which is executed in a left-to-right fashion. For example, the following alias “pipes” the output of ls -1tr to the more command:
+alias ltrm="ls – ltr|more"
+In a similar manner, you can define aliases for directory-related commands:
+alias ltd="ls – lt | grep '^d'"
+
+alias ltdm="ls – lt | grep '^d'|more"
+FINDING EXECUTABLE FILES
+There are several commands available for finding executable files (binary files or shell scripts) by searching the directories in the PATH environment variable: which, whence, whereis, and whatis. The first pair of commands produce similar results as the which command, as discussed below.
+The which command gives the full path to whatever executable that you specify or a blank line if the executable is not in any directory that is specified in the PATH environment variable.” This is useful for finding out whether a particular command or utility is installed in the system.
+which rm
+The output of the preceding command is here:
+/bin/rm
+The whereis command provides the information that you get from the where command:
+$ whereis rm
+
+/bin/rm
+The whatis command looks up the specified command in the whatis database, which is useful for identifying system commands and important configuration files:
+git-rm(1)		- Remove files from the working tree
+and from the index
+
+grm(1), rm(1)		- remove files or directories
+
+rm(1), unlink(1)	- remove directory entries
+Consider it a simplified “man” command, which displays concise details about bash commands (e.g., type man ls and you will see several pages of explanation regarding the ls command).
+THE PRINTF COMMAND AND THE ECHO COMMAND
+In brief, use the printf command instead of the echo command if you need to control the output format. One key difference is that the echo command prints a newline character, whereas the printf statement does not print a newline character. Keep this point in mind when you see the printf statement in the awk code samples in

@@ -1,0 +1,184 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 6 - 5), while the second command runs a script in the local directory:
+$ sudo apt install somepackage  [sudo] Password for <accountname>: ********$ sudo ./myscript.sh 
+6.4.1    sudo Privileges for Selected Accounts Only
+sudo can only be used by selected users—usually, the person who performed the Linux installation and whose account was created first.
+sudo users must authenticate using their own password. The authentication will then remain valid for a few minutes. For additional sudo calls within this period of time, it is therefore not necessary to enter the password again.
+The /etc/sudoers file controls who has which privileges in sudo. Fortunately, changes to this relatively complex file are rarely necessary. If you want to assign sudo privileges to another account, you should run the following command (which of course assumes that you have sudo privileges yourself):
+$ sudo usermod -a -G sudo <account>     # Debian, Ubuntu ...$ sudo usermod -a -G wheel <account>    # Fedora, RHEL ... 
+These usermod commands add the <account> user to the sudo group (for Debian, Ubuntu, and compatible distributions) or to the wheel group (for Fedora and Red Hat Enterprise Linux [RHEL] compatible distributions). All members of these two groups will automatically have sudo privileges.
+6.4.2    Issues with Output Redirection
+The following two commands each attempt to modify a file in the /etc directory. The first command works, the second one triggers an error. Why’s that?
+$ sudo touch /etc/new-file           # works$ sudo echo "hello" > /etc/new-file  # Error: no permission 
+The problem is the output redirection. While sudo runs echo "hello" with root privileges, the rest of the command (i.e., the redirection of the output to the /etc/new-file file) is handled by Bash—and Bash runs with normal privileges. That’s where the error occurs.
+Once the cause is clear (I stumble into this trap myself at regular intervals), the solution is not difficult. Instead of just running echo (or whatever command) via sudo, you pass a new Bash process to sudo, which in turn executes the rest of the command, including the redirection. The -c option signifying command allows you to pass the command to be run to the Bash process:
+$ sudo bash -c 'echo "bla" > /etc/new-file' 
+6.4.3    Access Rights
+There is a three-tier system that controls who is allowed to read, write, and execute which files on Linux or macOS. Along with each file, nine access bits are stored, namely r (read), w (write), and x (execute) for the owner of the file, for all members of the group to which this file is assigned and finally for all other accounts.
+For example, the /etc/shadow system file, which contains hash codes for passwords on Linux, belongs to the root user and is assigned to the shadow group. root can read and modify the file, members of the shadow group can read it, and all other users have no rights. You can determine all this information using ls -l:
+$ ls -l /etc/shadow-rw-r-----  root shadow  ... shadow ^^^                                 rights for owners    ^^^                              rights for group members       ^^^                           rights for other users            ^^^^                     assigned owner                 ^^^^^^              assigned group                         ^^^         time (not shown)                             ^^^^^^  filename 
+The chown (change owner), chgrp (change group), and chmod (change mode) commands allow you to change the assignment of a file to its owner, the assigned group as well as the access rights. All this data can also be changed for directories, although the execute bit x has a different meaning for directories: It allows the use of this directory (i.e., cd directory).  
+The following three lines show simple examples of how to use chown, chgrp, and chmod: The first command makes the peter account the owner of the /var/www/html/index.html file. The second command assigns the www-data group to this file. The third command sets the read and write bits for the owner (u for user) and the group but disables these bits for all others (o for other). As a result, the index.html file can be read and modified by peter and by all members of the www-data group, but by no one else. (www-data is the group assigned to the web server on Debian and Ubuntu.)
+$ sudo chown peter       /var/www/html/index.html$ sudo chgrp www-data    /var/www/html/index.html$ sudo chmod ug+rw o-rw  /var/www/html/index.html 
+The execution of all three commands requires root privileges in most cases. Exceptions include changes for your own files, which only affect your own user account or groups assigned to you. Such modifications—for example, chmod +x myscript.sh to make a script executable—can take effect without sudo. (The macOS variant of chmod differs minimally from the Linux variant; you must run chmod a+x instead.)
+We lack space for further details, such as the many syntax variants of chmod or the octal representation of access rights. A more detailed description of Linux/Unix access rights can be found in any good Linux book as well as on numerous websites, for example, at https://kb.iu.edu/d/abdb.
+6.4.4    Managing Processes
+The ps command without options lists the processes that have been started from the terminal. The result of ps ax is already impressive: It will provide you with a list of all processes running on the computer or in the virtual machine along with detailed information (process number, parameters, etc.). More information is provided by ps axu: This command also shows who started which process.
+The result of ps can be further processed with other commands. In the following examples, wc -l (word count, lines) counts the output lines and thus the active processes. grep filters the lines from the result that contain the ssh search term.
+$ ps ax | wc -l      # count number of processes$ ps ax | grep ssh   # show only SSH processes 
+top shows the running processes sorted by their CPU usage. The display is refreshed every 3 seconds until you end the command via (Q).
+Security Relevance Score: 7
+Word Count: 3025
+Extracted: 2025-06-13 23:41:06
+
+---
+
+5), while the second command runs a script in the local directory:
+$ sudo apt install somepackage  [sudo] Password for <accountname>: ********$ sudo ./myscript.sh 
+6.4.1    sudo Privileges for Selected Accounts Only
+sudo can only be used by selected users—usually, the person who performed the Linux installation and whose account was created first.
+sudo users must authenticate using their own password. The authentication will then remain valid for a few minutes. For additional sudo calls within this period of time, it is therefore not necessary to enter the password again.
+The /etc/sudoers file controls who has which privileges in sudo. Fortunately, changes to this relatively complex file are rarely necessary. If you want to assign sudo privileges to another account, you should run the following command (which of course assumes that you have sudo privileges yourself):
+$ sudo usermod -a -G sudo <account>     # Debian, Ubuntu ...$ sudo usermod -a -G wheel <account>    # Fedora, RHEL ... 
+These usermod commands add the <account> user to the sudo group (for Debian, Ubuntu, and compatible distributions) or to the wheel group (for Fedora and Red Hat Enterprise Linux [RHEL] compatible distributions). All members of these two groups will automatically have sudo privileges.
+6.4.2    Issues with Output Redirection
+The following two commands each attempt to modify a file in the /etc directory. The first command works, the second one triggers an error. Why’s that?
+$ sudo touch /etc/new-file           # works$ sudo echo "hello" > /etc/new-file  # Error: no permission 
+The problem is the output redirection. While sudo runs echo "hello" with root privileges, the rest of the command (i.e., the redirection of the output to the /etc/new-file file) is handled by Bash—and Bash runs with normal privileges. That’s where the error occurs.
+Once the cause is clear (I stumble into this trap myself at regular intervals), the solution is not difficult. Instead of just running echo (or whatever command) via sudo, you pass a new Bash process to sudo, which in turn executes the rest of the command, including the redirection. The -c option signifying command allows you to pass the command to be run to the Bash process:
+$ sudo bash -c 'echo "bla" > /etc/new-file' 
+6.4.3    Access Rights
+There is a three-tier system that controls who is allowed to read, write, and execute which files on Linux or macOS. Along with each file, nine access bits are stored, namely r (read), w (write), and x (execute) for the owner of the file, for all members of the group to which this file is assigned and finally for all other accounts.
+For example, the /etc/shadow system file, which contains hash codes for passwords on Linux, belongs to the root user and is assigned to the shadow group. root can read and modify the file, members of the shadow group can read it, and all other users have no rights. You can determine all this information using ls -l:
+$ ls -l /etc/shadow-rw-r-----  root shadow  ... shadow ^^^                                 rights for owners    ^^^                              rights for group members       ^^^                           rights for other users            ^^^^                     assigned owner                 ^^^^^^              assigned group                         ^^^         time (not shown)                             ^^^^^^  filename 
+The chown (change owner), chgrp (change group), and chmod (change mode) commands allow you to change the assignment of a file to its owner, the assigned group as well as the access rights. All this data can also be changed for directories, although the execute bit x has a different meaning for directories: It allows the use of this directory (i.e., cd directory).  
+The following three lines show simple examples of how to use chown, chgrp, and chmod: The first command makes the peter account the owner of the /var/www/html/index.html file. The second command assigns the www-data group to this file. The third command sets the read and write bits for the owner (u for user) and the group but disables these bits for all others (o for other). As a result, the index.html file can be read and modified by peter and by all members of the www-data group, but by no one else. (www-data is the group assigned to the web server on Debian and Ubuntu.)
+$ sudo chown peter       /var/www/html/index.html$ sudo chgrp www-data    /var/www/html/index.html$ sudo chmod ug+rw o-rw  /var/www/html/index.html 
+The execution of all three commands requires root privileges in most cases. Exceptions include changes for your own files, which only affect your own user account or groups assigned to you. Such modifications—for example, chmod +x myscript.sh to make a script executable—can take effect without sudo. (The macOS variant of chmod differs minimally from the Linux variant; you must run chmod a+x instead.)
+We lack space for further details, such as the many syntax variants of chmod or the octal representation of access rights. A more detailed description of Linux/Unix access rights can be found in any good Linux book as well as on numerous websites, for example, at https://kb.iu.edu/d/abdb.
+6.4.4    Managing Processes
+The ps command without options lists the processes that have been started from the terminal. The result of ps ax is already impressive: It will provide you with a list of all processes running on the computer or in the virtual machine along with detailed information (process number, parameters, etc.). More information is provided by ps axu: This command also shows who started which process.
+The result of ps can be further processed with other commands. In the following examples, wc -l (word count, lines) counts the output lines and thus the active processes. grep filters the lines from the result that contain the ssh search term.
+$ ps ax | wc -l      # count number of processes$ ps ax | grep ssh   # show only SSH processes 
+top shows the running processes sorted by their CPU usage. The display is refreshed every 3 seconds until you end the command via (Q). 
+
+Alternatives to top
+Some useful alternatives to top exist. While htop has a clear display, iotop, iftop, or powertop use other sorting criteria—I/O load, network performance, or (estimated) power consumption, respectively. These commands usually must be installed separately.
+
+6.4.5    Terminating Processes
+To terminate an out-of-control or infinite loop script that you started in the terminal, you can simply press (Ctrl) + (C). You can stop other processes associated with your account via kill pid. Instead of pid, you must specify the process number, which you can determine either via ps ax or top.
+Despite its dramatic name, kill actually only sends signals to other processes. Without any additional options, it sends the SIGTERM signal, which is effectively a polite request that the process be terminated. However, the process can ignore this signal. In such cases, kill -9 pid usually provides the desired result. In this context, -9 indicates the signal number. Signal 9 is called SIGKILL and terminates every process immediately unless a longer lasting system function is being executed. If that’s the case, even SIGKILL won’t help. 
+As you may have guessed already, you can only terminate your own processes using kill. Only root is allowed to stop external processes. For this purpose, you can combine kill with sudo (e.g., sudo kill -9 pid).
+A bit annoying that you must find out the process number first before you can run kill. A more convenient command in this context is killall n, where n is the name of the process to be terminated. Watch out, though: sudo killall n can have far-reaching consequences because it kills all processes with the same name, no matter who started them.
+6.4.6    Background Processes and System Services
+When you boot a Linux system, numerous background processes are started automatically. These processes are responsible for various system tasks and server services. You can use the systemctl command to stop such system services, restart them, start them automatically in the future, and so on.
+$ sudo systemctl                 # list all services$ sudo systemctl stop name       # stop 'name' service$ sudo systemctl start name      # start the service$ sudo systemctl restart name    # restart the service$ sudo systemctl reload name     # read configuration files$ sudo systemctl enable name     # start the service automatically                                 # in the future$ sudo systemctl disable name    # no longer start the service                                 # in the future 
+systemctl is especially important if you have installed a new server service on Linux. Depending on the distribution (e.g., Fedora or Red Hat), services do not get started automatically once the installation process has completed. You must take care of the configuration first and then start the service manually using systemctl start. If everything works, you can enable the service permanently via systemctl enable.
+In other distributions, newly installed services are started immediately with a default configuration (e.g., Debian, Ubuntu), but even in this case, changes to the configuration are usually required. For your changes to take effect, you must run systemctl reload. (For very fundamental changes, even systemctl restart is required.)
+6.4.7    Logging Files
+The services running on Linux log a large amount of data. Some programs store log files as text files in the /var/log directory, such as most mail and web servers. The following command lists all logging messages of the mail server that concern a specific email address:
+$ sudo grep customer@somecompany.com /var/log/mail.log 
+Smaller server processes mostly use the central syslog. You can read the messages using journalctl, as in the following examples:
+$ journalctl               # read all syslog messages$ journalctl -u sshd       # read only messages from the SSH server 
+6.4.8    Determining Free Memory
+free -h determines the free memory. The -h option stands for human readable. The numerical data is therefore provided with suitable units, such as M for megabyte (MB), G for gigabyte (GB), and so on. However, the result is not easy to interpret. The free memory is indicated in the final available column and is around 15 GBs on the test computer. According to the free column, it would seem to be less than 1 GB, but the system takes into account a lot of buffer memory that Linux can make available at any time.
+$ free -h         total     used     free    shared  buff/cache  available  Mem:    30Gi     14Gi    938Mi     478Mi        15Gi       15Gi  Swap:     0B       0B       0B 
+You can determine the free space on the hard disk or SSD using df -h (disk free). By default, the command lists all Linux file systems, including various internal file systems. Using -x tmpfs, you can at least eliminate the temporary file systems and this way reduce the information overload a little. In the following example, the second and third lines are the most interesting ones. There are still 159 GBs free in the root file system and 195 GBs in the /home file system for the user directories.
+$ df -h -x tmpfs  Filesystem                Size  Used Avail Use% Mounted on  dev                        16G     0   16G   0% /dev  /dev/mapper/vgcrypt-root  196G   28G  159G  15% /  /dev/mapper/vgcrypt-home  590G  366G  195G  66% /home  /dev/nvme0n1p1            2.0G   80M  1.9G   4% /boot  /dev/sdb1                 1.7T  1.1T  570G  66% /run/media/kofler/p1-backup2 
+A great alternative to df is the duf command, but it needs to be installed separately. Basically, the command provides the same information, but it formats the result much more clearly.
+6.4.9    Determining Other System Information
+Do you want to know which distribution is running in a virtual machine or on a server? Take a look at the /etc/os-release file:
+$ cat /etc/os-release  NAME="Arch Linux"  BUILD_ID=rolling  ... 
+You can determine the version of the running kernel by using uname:
+$ uname -r  6.1.1-arch1-1 
+You can read error, warning, debug, and status messages from the kernel with dmesg. The best approach is to redirect the result of dmesg to less so that you can scroll through the information, which can extend over several pages. In most current distributions, the kernel messages can only be read with root privileges.
+$ sudo dmesg |  less 
+
+
+
+
+
+
+
+
+
+6.5    Software Installation
+Linux distributions contain a good basic set of commands by default. However, depending on the direction in which your scripts develop, it can happen that exactly one specific command is missing. This case occurs particularly often when you use containers, for example, with Docker. In containers, the basic equipment is reduced to a minimum for reasons of space.
+A missing command is rarely an insurmountable problem: Most Linux distributions are associated with a huge archive of software packages. All you need to do is install the correct package from these package sources that contains the commands you need.
+
+Differences among apt, dnf, zypper, and brew
+Fundamental differences exist between Linux distributions when it comes to package management. In this section, I focus on the apt command, which is used on Debian, Ubuntu, and related distributions.
+In the Red Hat world, for example, on Fedora or AlmaLinux, you would use dnf instead, which works quite similarly to apt. For SUSE Linux Enterprise Server (SLES) distributions in turn, zypper is used.
+By default, no package management exists at all on macOS. However, external tools like brew (see https://brew.sh) can take care of this task and make a rich selection of open-source tools accessible for macOS. Once installed, the brew command also works similarly to apt or dnf.  
+
+6.5.1    Updating Software
+You can update all packages installed on Debian or Ubuntu with only two commands:
+$ sudo apt update$ sudo apt full-upgrade 
+You’ll probably ask yourself why two (similar sounding) commands are necessary; why isn’t one sufficient? apt update only updates the information as to which packages are available in the external package sources. So, the program updates the directory of available software, but without touching the existing packages. Only apt full-upgrade downloads the updated packages after a query and installs them. If the update affects basic functions such as the Linux kernel, a reboot must be performed afterwards for the update to take effect.
+6.5.2    Installing Additional Packages
+The installation of new software also starts with apt update (unless you have just run this command as part of an update). apt install then downloads the desired software package, in the following example various encryption tools collected in the openssl package:
+$ sudo apt update$ sudo apt install openssl 
+In Linux, software is often distributed across multiple packages. Relatively often, to execute the commands from package A, libraries are required that are located in package B. apt recognizes such dependencies and installs all the required additional packages after a query. So, don’t be surprised if apt install xy reports that it installs not just one package, but five or ten!
+
+Finding Packages
+If you need a certain command for your script, guessing in which package the command is located can often be difficult. Package and command names do not always match, especially if a package contains multiple commands. Sometimes (but unfortunately not always!), the apt search xy command, which searches for search term xy in the package description, delivers the desired result. Package search engines available on the internet work better; for Ubuntu, you can use visit, for example, https://packages.ubuntu.com.
+
+
+
+
+
+
+
+
+
+
+6.6    Other Commands
+To conclude this chapter, I want to briefly introduce you to a few more frequently used commands:
+
+
+aliasalias defines shortcuts. alias ll='ls -lh' allows you to run the frequently used ls -l -h command (to list files with detailed information and present the file size as human readable) in the ll short notation. Shortcuts are best specified in the .bashrc file so that they are permanently available.
+
+
+cat file cat file outputs a text file. The command is often combined with input or output redirection. For example, cat text1 text2 text3 > result joins three text files and saves the result in a new file.
+Cat > newfile is also particularly useful. This construct allows you to create a short new text file without launching an editor. Because no file was passed to the command for reading, it expects the input in the terminal (i.e., from standard input). Pressing (Ctrl) + (D) terminates the input:
+$ cat > newfileLine 1Line 2<Ctrl>+<D> 
+
+
+datedate returns the current date and time. A string starting with + optionally controls the output format. For example, date "+%Y-%m-%d" generates a string with the date in International Organization for Standardization (ISO) format (for example, 2023-12-31).
+
+
+historyhistory lists all recently executed commands.
+
+
+ipip determines or changes the network configuration. The following examples contain commands that are used particularly often:
+$ ip addr       # lists all IP addresses of the computer$ ip link       # lists the network adapters$ ip route      # displays the routing table 
+
+
+less fileless file displays a text file just like cat. This command is suitable for longer files because you can scroll through the text at your leisure using the cursor keys. (Q) terminates the program.
+
+
+ln file linkln file link creates a link to an existing file. The -s option creates a symbolic link instead of a hard link. If you’re unsure about the order in which you need to specify the parameters: All important Linux commands expect the source first, then the target. This rule applies to cp, mv, ln, and so on.
+
+
+man commandman command displays the help text for a command. As with less, you can use the cursor keys to scroll through the often several pages of text. / allows you to specify a search term. (Q) terminates the help.
+
+
+ping hostname/ipaddressping hostname/ipaddress sends Internet Control Message Protocol (ICMP) packets to another host and shows how long the response takes. This command typically runs endlessly until it is terminated via (Ctrl) + (C). ping -c <n> sends only n packets and then terminates by itself.
+
+
+wc file wc file counts the number of lines, words, and characters in a text file. By using the -c (count bytes), -w (words), or -l (lines) options, you can reduce the output to one number.
+
+
+which command which command determines the location where the command is stored. For example, which cp returns the following result: /usr/bin/cp.
+
+
+
+
+
+
+
+
+
+
+7    cmdlets for PowerShellThis chapter presents a compact compilation of the most important cmdlets—a kind of basic PowerShell vocabulary for interactive operation and for script programming. If you have had years of experience in PowerShell, you can safely skip this chapter.Besides the preinstalled cmdlets, countless PowerShell extensions are available on the internet. The NuGet package manager, which I will introduce to you in

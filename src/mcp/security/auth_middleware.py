@@ -20,6 +20,28 @@ from functools import wraps
 import asyncio
 from collections import defaultdict
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ValidationError,
+    ConfigurationError,
+    CircuitBreakerError,
+    RateLimitError
+)
+
+__all__ = [
+    "UserRole",
+    "Permission",
+    "AuthContext",
+    "RateLimitInfo",
+    "MCPAuthMiddleware",
+    "require_auth",
+    "get_auth_middleware",
+    "initialize_auth_middleware"
+]
+
+
 logger = logging.getLogger(__name__)
 
 

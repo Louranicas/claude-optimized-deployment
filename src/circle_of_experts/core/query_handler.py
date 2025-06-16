@@ -26,6 +26,10 @@ from src.circle_of_experts.utils.validation import (
     ValidationError
 )
 
+__all__ = [
+    "QueryHandler"
+]
+
 try:
     import psutil
     PSUTIL_AVAILABLE = True
@@ -403,7 +407,8 @@ class QueryHandler:
                 content_parts.append(f"- {area}")
             content_parts.append("")
         
-        content = "\n".join(content_parts)
+        content = "
+".join(content_parts)
         
         return await self.create_query(
             title=title,
@@ -469,7 +474,8 @@ class QueryHandler:
                 ""
             ])
         
-        content = "\n".join(content_parts)
+        content = "
+".join(content_parts)
         
         context = {
             "requirements_count": len(requirements),

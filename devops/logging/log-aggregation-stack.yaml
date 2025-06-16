@@ -1,0 +1,870 @@
+---
+# Elasticsearch StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: logging
+  labels:
+    app: elasticsearch
+    component: search-engine
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+        component: search-engine
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - elasticsearch
+            topologyKey: kubernetes.io/hostname
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+      initContainers:
+      - name: sysctl
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          sysctl -w vm.max_map_count=262144
+          echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+        securityContext:
+          privileged: true
+      - name: chown
+        image: elasticsearch:8.11.0
+        command:
+        - sh
+        - -c
+        - |
+          chown -R 1000:1000 /usr/share/elasticsearch/data
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: data
+          mountPath: /usr/share/elasticsearch/data
+      containers:
+      - name: elasticsearch
+        image: elasticsearch:8.11.0
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        ports:
+        - name: rest
+          containerPort: 9200
+          protocol: TCP
+        - name: inter-node
+          containerPort: 9300
+          protocol: TCP
+        env:
+        - name: cluster.name
+          value: "code-logging"
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: discovery.seed_hosts
+          value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
+        - name: cluster.initial_master_nodes
+          value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
+        - name: ES_JAVA_OPTS
+          value: "-Xms2g -Xmx2g"
+        - name: xpack.security.enabled
+          value: "true"
+        - name: xpack.security.transport.ssl.enabled
+          value: "true"
+        - name: xpack.security.transport.ssl.verification_mode
+          value: "certificate"
+        - name: xpack.security.transport.ssl.keystore.path
+          value: "/usr/share/elasticsearch/config/certs/elastic-keystore.p12"
+        - name: xpack.security.transport.ssl.truststore.path
+          value: "/usr/share/elasticsearch/config/certs/elastic-truststore.p12"
+        - name: xpack.security.http.ssl.enabled
+          value: "true"
+        - name: xpack.security.http.ssl.keystore.path
+          value: "/usr/share/elasticsearch/config/certs/elastic-keystore.p12"
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /_cluster/health?local=true
+            port: 9200
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /_cluster/health?wait_for_status=green&timeout=1s
+            port: 9200
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: data
+          mountPath: /usr/share/elasticsearch/data
+        - name: certs
+          mountPath: /usr/share/elasticsearch/config/certs
+          readOnly: true
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: certs
+        secret:
+          secretName: elasticsearch-certs
+          defaultMode: 0444
+      - name: config
+        configMap:
+          name: elasticsearch-config
+          defaultMode: 0444
+      - name: tmp
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 100Gi
+
+---
+# Elasticsearch Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: logging
+  labels:
+    app: elasticsearch
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: rest
+    port: 9200
+    targetPort: rest
+  - name: inter-node
+    port: 9300
+    targetPort: inter-node
+  selector:
+    app: elasticsearch
+
+---
+# Elasticsearch Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-config
+  namespace: logging
+data:
+  elasticsearch.yml: |
+    cluster.name: "code-logging"
+    network.host: 0.0.0.0
+    
+    # Security
+    xpack.security.enabled: true
+    xpack.security.transport.ssl.enabled: true
+    xpack.security.http.ssl.enabled: true
+    
+    # Memory and Performance
+    bootstrap.memory_lock: false
+    indices.memory.index_buffer_size: 20%
+    indices.memory.min_index_buffer_size: 96mb
+    
+    # Index Management
+    action.auto_create_index: "logstash-*,fluentd-*,*beat-*"
+    action.destructive_requires_name: true
+    
+    # Logging
+    logger.level: INFO
+    appender.console.type: Console
+    appender.console.name: console
+    appender.console.layout.type: PatternLayout
+    appender.console.layout.pattern: '[%d{ISO8601}][%-5p][%-25c{1.}] %marker%m%n'
+    
+    rootLogger.level: info
+    rootLogger.appenderRef.console.ref: console
+
+---
+# Logstash Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: logging
+  labels:
+    app: logstash
+    component: log-processor
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+        component: log-processor
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - logstash
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: logstash
+        image: logstash:8.11.0
+        ports:
+        - name: beats
+          containerPort: 5044
+          protocol: TCP
+        - name: http
+          containerPort: 9600
+          protocol: TCP
+        env:
+        - name: LS_JAVA_OPTS
+          value: "-Xmx2g -Xms2g"
+        - name: ELASTICSEARCH_HOSTS
+          value: "https://elasticsearch:9200"
+        - name: ELASTICSEARCH_USERNAME
+          value: "elastic"
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: config
+          mountPath: /usr/share/logstash/pipeline
+          readOnly: true
+        - name: logstash-config
+          mountPath: /usr/share/logstash/config/logstash.yml
+          subPath: logstash.yml
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: data
+          mountPath: /usr/share/logstash/data
+      volumes:
+      - name: config
+        configMap:
+          name: logstash-pipeline
+          defaultMode: 0444
+      - name: logstash-config
+        configMap:
+          name: logstash-config
+          defaultMode: 0444
+      - name: tmp
+        emptyDir: {}
+      - name: data
+        emptyDir: {}
+
+---
+# Logstash Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: logging
+  labels:
+    app: logstash
+spec:
+  type: ClusterIP
+  ports:
+  - name: beats
+    port: 5044
+    targetPort: beats
+    protocol: TCP
+  - name: http
+    port: 9600
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: logstash
+
+---
+# Logstash Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: logging
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    path.config: /usr/share/logstash/pipeline
+    xpack.monitoring.enabled: true
+    xpack.monitoring.elasticsearch.hosts: ["https://elasticsearch:9200"]
+    xpack.monitoring.elasticsearch.username: elastic
+    xpack.monitoring.elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+    xpack.monitoring.elasticsearch.ssl.verification_mode: none
+
+---
+# Logstash Pipeline Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline
+  namespace: logging
+data:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+      
+      # Fluentd/Fluent Bit input
+      forward {
+        port => 24224
+      }
+      
+      # HTTP input for webhook logs
+      http {
+        port => 8080
+        codec => json
+      }
+    }
+    
+    filter {
+      # Parse JSON logs
+      if [message] =~ /^\{.*\}$/ {
+        json {
+          source => "message"
+        }
+      }
+      
+      # Add Kubernetes metadata
+      if [kubernetes] {
+        mutate {
+          add_field => {
+            "[@metadata][index_prefix]" => "k8s"
+          }
+        }
+      }
+      
+      # Parse CODE application logs
+      if [kubernetes][container][name] =~ /^code-/ {
+        grok {
+          match => {
+            "message" => "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{DATA:logger} - %{GREEDYDATA:log_message}"
+          }
+        }
+        
+        date {
+          match => [ "timestamp", "ISO8601" ]
+        }
+        
+        mutate {
+          add_field => {
+            "[@metadata][index_prefix]" => "code-app"
+          }
+        }
+      }
+      
+      # Parse access logs
+      if [fields][logtype] == "access" {
+        grok {
+          match => {
+            "message" => "%{COMBINEDAPACHELOG}"
+          }
+        }
+        
+        mutate {
+          add_field => {
+            "[@metadata][index_prefix]" => "access-logs"
+          }
+        }
+      }
+      
+      # Security log parsing
+      if [fields][logtype] == "security" {
+        mutate {
+          add_field => {
+            "[@metadata][index_prefix]" => "security-logs"
+          }
+        }
+      }
+      
+      # GeoIP enrichment for access logs
+      if [clientip] {
+        geoip {
+          source => "clientip"
+          target => "geoip"
+        }
+      }
+      
+      # User Agent parsing
+      if [agent] {
+        useragent {
+          source => "agent"
+          target => "useragent"
+        }
+      }
+      
+      # Add index name based on metadata
+      mutate {
+        add_field => {
+          "[@metadata][index_name]" => "%{[@metadata][index_prefix]}-%{+YYYY.MM.dd}"
+        }
+      }
+      
+      # Remove sensitive information
+      mutate {
+        remove_field => [ "password", "token", "secret", "key" ]
+      }
+    }
+    
+    output {
+      elasticsearch {
+        hosts => ["https://elasticsearch:9200"]
+        user => "elastic"
+        password => "${ELASTICSEARCH_PASSWORD}"
+        ssl_verification_mode => "none"
+        index => "%{[@metadata][index_name]}"
+        template_name => "code_logs"
+        template_pattern => "*"
+        template => {
+          "index_patterns" => ["*"]
+          "settings" => {
+            "number_of_shards" => 1
+            "number_of_replicas" => 1
+            "index.refresh_interval" => "30s"
+            "index.mapping.total_fields.limit" => 2000
+          }
+          "mappings" => {
+            "properties" => {
+              "@timestamp" => { "type" => "date" }
+              "level" => { "type" => "keyword" }
+              "message" => { "type" => "text", "analyzer" => "standard" }
+              "kubernetes" => {
+                "properties" => {
+                  "namespace" => { "type" => "keyword" }
+                  "pod" => { "type" => "keyword" }
+                  "container" => { "type" => "keyword" }
+                }
+              }
+              "geoip" => {
+                "properties" => {
+                  "location" => { "type" => "geo_point" }
+                  "country_name" => { "type" => "keyword" }
+                  "city_name" => { "type" => "keyword" }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      # Debug output (remove in production)
+      # stdout { codec => rubydebug }
+    }
+
+---
+# Fluent Bit DaemonSet for log collection
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluent-bit
+  namespace: logging
+  labels:
+    app: fluent-bit
+    component: log-collector
+spec:
+  selector:
+    matchLabels:
+      app: fluent-bit
+  template:
+    metadata:
+      labels:
+        app: fluent-bit
+        component: log-collector
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "2020"
+        prometheus.io/path: "/api/v1/metrics/prometheus"
+    spec:
+      serviceAccountName: fluent-bit
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: fluent-bit
+        image: fluent/fluent-bit:2.2.0
+        ports:
+        - name: http
+          containerPort: 2020
+          protocol: TCP
+        env:
+        - name: FLUENT_ELASTICSEARCH_HOST
+          value: "elasticsearch"
+        - name: FLUENT_ELASTICSEARCH_PORT
+          value: "9200"
+        - name: FLUENT_ELASTICSEARCH_SCHEME
+          value: "https"
+        - name: FLUENT_ELASTICSEARCH_USER
+          value: "elastic"
+        - name: FLUENT_ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: config
+          mountPath: /fluent-bit/etc
+          readOnly: true
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: runlogjournal
+          mountPath: /run/log/journal
+          readOnly: true
+        - name: dmesg
+          mountPath: /dev/kmsg
+          readOnly: true
+        - name: etcmachineid
+          mountPath: /etc/machine-id
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: config
+        configMap:
+          name: fluent-bit-config
+          defaultMode: 0444
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: runlogjournal
+        hostPath:
+          path: /run/log/journal
+      - name: dmesg
+        hostPath:
+          path: /dev/kmsg
+      - name: etcmachineid
+        hostPath:
+          path: /etc/machine-id
+          type: File
+      - name: tmp
+        emptyDir: {}
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      - operator: "Exists"
+        effect: "NoExecute"
+      - operator: "Exists"
+        effect: "NoSchedule"
+
+---
+# Fluent Bit Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: logging
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Daemon Off
+        Flush 1
+        Log_Level info
+        Parsers_File parsers.conf
+        Plugins_File plugins.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port 2020
+        Health_Check On
+    
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*code*.log
+        multiline.parser docker, cri
+        Tag kube.code.*
+        Mem_Buf_Limit 50MB
+        Skip_Long_Lines On
+        Refresh_Interval 10
+    
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        multiline.parser docker, cri
+        Tag kube.*
+        Mem_Buf_Limit 50MB
+        Skip_Long_Lines On
+        Refresh_Interval 10
+        Exclude_Path /var/log/containers/*fluent*.log,/var/log/containers/*prometheus*.log
+    
+    [INPUT]
+        Name systemd
+        Tag host.*
+        Systemd_Filter _SYSTEMD_UNIT=kubelet.service
+        Systemd_Filter _SYSTEMD_UNIT=docker.service
+        Systemd_Filter _SYSTEMD_UNIT=containerd.service
+    
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Kube_URL https://kubernetes.default.svc:443
+        Kube_CA_File /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix kube.var.log.containers.
+        Merge_Log On
+        Merge_Log_Key log_processed
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude Off
+        Annotations Off
+        Labels On
+    
+    [FILTER]
+        Name grep
+        Match kube.*
+        Exclude kubernetes.namespace_name (kube-system|kube-public|kube-node-lease)
+    
+    [FILTER]
+        Name record_modifier
+        Match *
+        Record hostname ${HOSTNAME}
+        Record cluster_name code-production
+    
+    [OUTPUT]
+        Name es
+        Match kube.code.*
+        Host ${FLUENT_ELASTICSEARCH_HOST}
+        Port ${FLUENT_ELASTICSEARCH_PORT}
+        HTTP_User ${FLUENT_ELASTICSEARCH_USER}
+        HTTP_Passwd ${FLUENT_ELASTICSEARCH_PASSWORD}
+        tls On
+        tls.verify Off
+        Index code-app
+        Type _doc
+        Logstash_Format On
+        Logstash_Prefix code-app
+        Logstash_DateFormat %Y.%m.%d
+        Include_Tag_Key On
+        Tag_Key @tag
+        Time_Key @timestamp
+        Generate_ID On
+        Replace_Dots On
+        Retry_Limit 3
+        Buffer_Size 32k
+    
+    [OUTPUT]
+        Name es
+        Match kube.*
+        Host ${FLUENT_ELASTICSEARCH_HOST}
+        Port ${FLUENT_ELASTICSEARCH_PORT}
+        HTTP_User ${FLUENT_ELASTICSEARCH_USER}
+        HTTP_Passwd ${FLUENT_ELASTICSEARCH_PASSWORD}
+        tls On
+        tls.verify Off
+        Index kubernetes
+        Type _doc
+        Logstash_Format On
+        Logstash_Prefix kubernetes
+        Logstash_DateFormat %Y.%m.%d
+        Include_Tag_Key On
+        Tag_Key @tag
+        Time_Key @timestamp
+        Generate_ID On
+        Replace_Dots On
+        Retry_Limit 3
+        Buffer_Size 32k
+    
+    [OUTPUT]
+        Name es
+        Match host.*
+        Host ${FLUENT_ELASTICSEARCH_HOST}
+        Port ${FLUENT_ELASTICSEARCH_PORT}
+        HTTP_User ${FLUENT_ELASTICSEARCH_USER}
+        HTTP_Passwd ${FLUENT_ELASTICSEARCH_PASSWORD}
+        tls On
+        tls.verify Off
+        Index systemd
+        Type _doc
+        Logstash_Format On
+        Logstash_Prefix systemd
+        Logstash_DateFormat %Y.%m.%d
+        Include_Tag_Key On
+        Tag_Key @tag
+        Time_Key @timestamp
+        Generate_ID On
+        Replace_Dots On
+        Retry_Limit 3
+        Buffer_Size 32k
+  
+  parsers.conf: |
+    [PARSER]
+        Name docker
+        Format json
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep On
+    
+    [PARSER]
+        Name cri
+        Format regex
+        Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+    
+    [PARSER]
+        Name code-app
+        Format regex
+        Regex ^(?<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?<level>\w+)\s+(?<logger>[\w\.]+)\s+-\s+(?<message>.*)$
+        Time_Key timestamp
+        Time_Format %Y-%m-%dT%H:%M:%S.%LZ
+  
+  plugins.conf: |
+    [PLUGINS]
+        Path /fluent-bit/bin/out_es.so
+
+---
+# ServiceAccount for Fluent Bit
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluent-bit
+  namespace: logging
+
+---
+# ClusterRole for Fluent Bit
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluent-bit
+rules:
+- apiGroups: [""]
+  resources:
+  - namespaces
+  - pods
+  - nodes
+  verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding for Fluent Bit
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fluent-bit
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fluent-bit
+subjects:
+- kind: ServiceAccount
+  name: fluent-bit
+  namespace: logging

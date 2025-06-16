@@ -1,0 +1,709 @@
+# Multi-service deployment configuration for deploy-code
+# Complex microservices architecture with inter-service dependencies
+
+# Application metadata
+name: microservices-platform
+version: 3.2.1
+description: "Multi-service platform with API gateway, databases, and messaging"
+
+# Global configuration
+global:
+  # Shared environment variables
+  environment:
+    PLATFORM_VERSION: "3.2.1"
+    LOG_FORMAT: "json"
+    METRICS_ENABLED: "true"
+    TRACING_ENABLED: "true"
+    
+  # Shared labels
+  labels:
+    platform: microservices
+    version: "3.2.1"
+    team: platform-engineering
+    
+  # Shared security context
+  security:
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+
+# Service definitions
+services:
+  # API Gateway Service
+  api-gateway:
+    name: api-gateway
+    version: 2.1.0
+    
+    # Deployment configuration
+    target:
+      type: kubernetes
+      namespace: platform
+      replicas: 3
+      
+      # Resource requirements
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
+    
+    # Source configuration
+    source:
+      repository: https://github.com/company/api-gateway.git
+      branch: release/2.1.0
+      dockerfile: Dockerfile.gateway
+    
+    # Runtime configuration
+    runtime:
+      image: registry.company.com/api-gateway:2.1.0
+      
+      environment:
+        SERVICE_NAME: api-gateway
+        PORT: "8080"
+        LOG_LEVEL: "info"
+        
+        # Downstream service URLs
+        USER_SERVICE_URL: "http://user-service:8080"
+        ORDER_SERVICE_URL: "http://order-service:8080"
+        INVENTORY_SERVICE_URL: "http://inventory-service:8080"
+        NOTIFICATION_SERVICE_URL: "http://notification-service:8080"
+        
+        # Rate limiting
+        RATE_LIMIT_REQUESTS: "1000"
+        RATE_LIMIT_WINDOW: "60"
+        
+        # JWT configuration
+        JWT_SECRET_KEY: "${JWT_SECRET}"
+        JWT_EXPIRY: "24h"
+      
+      # Health checks
+      healthCheck:
+        liveness:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        
+        readiness:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+    
+    # Networking
+    networking:
+      service:
+        type: LoadBalancer
+        ports:
+          - name: http
+            port: 80
+            targetPort: 8080
+          - name: metrics
+            port: 9090
+            targetPort: 9090
+      
+      ingress:
+        enabled: true
+        hosts:
+          - api.company.com
+        tls:
+          enabled: true
+          secretName: api-tls
+    
+    # Dependencies
+    dependencies:
+      - user-service
+      - order-service
+      - inventory-service
+      - notification-service
+
+  # User Service
+  user-service:
+    name: user-service
+    version: 1.8.2
+    
+    target:
+      type: kubernetes
+      namespace: platform
+      replicas: 2
+      
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "2Gi"
+          cpu: "1500m"
+    
+    source:
+      repository: https://github.com/company/user-service.git
+      branch: release/1.8.2
+      dockerfile: Dockerfile.service
+    
+    runtime:
+      image: registry.company.com/user-service:1.8.2
+      
+      environment:
+        SERVICE_NAME: user-service
+        PORT: "8080"
+        
+        # Database configuration
+        DATABASE_URL: "postgresql://user_service:${USER_DB_PASSWORD}@postgres-primary:5432/user_db"
+        DATABASE_POOL_SIZE: "20"
+        DATABASE_TIMEOUT: "30"
+        
+        # Cache configuration
+        REDIS_URL: "redis://redis-cluster:6379"
+        CACHE_TTL: "3600"
+        
+        # Message queue
+        RABBITMQ_URL: "amqp://platform:${RABBITMQ_PASSWORD}@rabbitmq:5672/"
+        QUEUE_NAME: "user-events"
+      
+      # Persistent storage
+      volumes:
+        - name: user-uploads
+          mountPath: /app/uploads
+          size: 10Gi
+          storageClass: fast-ssd
+    
+    # Database migration
+    hooks:
+      preDeployment:
+        - name: database-migration
+          command: npm run migrate
+          timeout: 300
+    
+    dependencies:
+      - postgres-primary
+      - redis-cluster
+      - rabbitmq
+
+  # Order Service
+  order-service:
+    name: order-service
+    version: 2.3.1
+    
+    target:
+      type: kubernetes
+      namespace: platform
+      replicas: 3
+      
+      resources:
+        requests:
+          memory: "1Gi"
+          cpu: "750m"
+        limits:
+          memory: "3Gi"
+          cpu: "2000m"
+    
+    source:
+      repository: https://github.com/company/order-service.git
+      branch: release/2.3.1
+      dockerfile: Dockerfile.service
+    
+    runtime:
+      image: registry.company.com/order-service:2.3.1
+      
+      environment:
+        SERVICE_NAME: order-service
+        PORT: "8080"
+        
+        # Database configuration (separate database)
+        DATABASE_URL: "postgresql://order_service:${ORDER_DB_PASSWORD}@postgres-orders:5432/order_db"
+        
+        # External service integrations
+        PAYMENT_SERVICE_URL: "https://api.payment-provider.com"
+        SHIPPING_SERVICE_URL: "https://api.shipping-provider.com"
+        
+        # Event sourcing
+        EVENT_STORE_URL: "postgresql://events:${EVENT_DB_PASSWORD}@postgres-events:5432/event_store"
+        
+        # Message queue configuration
+        RABBITMQ_URL: "amqp://platform:${RABBITMQ_PASSWORD}@rabbitmq:5672/"
+        ORDER_EVENTS_QUEUE: "order-events"
+        INVENTORY_EVENTS_QUEUE: "inventory-events"
+    
+    # Scaling configuration
+    scaling:
+      horizontal:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 10
+        metrics:
+          - type: cpu
+            targetAverageUtilization: 70
+          - type: custom
+            name: orders_per_minute
+            targetValue: 100
+    
+    dependencies:
+      - postgres-orders
+      - postgres-events
+      - rabbitmq
+      - inventory-service
+
+  # Inventory Service
+  inventory-service:
+    name: inventory-service
+    version: 1.5.3
+    
+    target:
+      type: kubernetes
+      namespace: platform
+      replicas: 2
+      
+      resources:
+        requests:
+          memory: "768Mi"
+          cpu: "600m"
+        limits:
+          memory: "2.5Gi"
+          cpu: "1800m"
+    
+    source:
+      repository: https://github.com/company/inventory-service.git
+      branch: release/1.5.3
+      dockerfile: Dockerfile.service
+    
+    runtime:
+      image: registry.company.com/inventory-service:1.5.3
+      
+      environment:
+        SERVICE_NAME: inventory-service
+        PORT: "8080"
+        
+        # Database configuration
+        DATABASE_URL: "postgresql://inventory_service:${INVENTORY_DB_PASSWORD}@postgres-inventory:5432/inventory_db"
+        
+        # Cache for fast lookups
+        REDIS_URL: "redis://redis-cluster:6379"
+        INVENTORY_CACHE_PREFIX: "inv:"
+        CACHE_TTL: "300"
+        
+        # Message queue
+        RABBITMQ_URL: "amqp://platform:${RABBITMQ_PASSWORD}@rabbitmq:5672/"
+        INVENTORY_UPDATES_QUEUE: "inventory-updates"
+    
+    dependencies:
+      - postgres-inventory
+      - redis-cluster
+      - rabbitmq
+
+  # Notification Service
+  notification-service:
+    name: notification-service
+    version: 1.2.4
+    
+    target:
+      type: kubernetes
+      namespace: platform
+      replicas: 2
+      
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "200m"
+        limits:
+          memory: "1Gi"
+          cpu: "800m"
+    
+    source:
+      repository: https://github.com/company/notification-service.git
+      branch: release/1.2.4
+      dockerfile: Dockerfile.service
+    
+    runtime:
+      image: registry.company.com/notification-service:1.2.4
+      
+      environment:
+        SERVICE_NAME: notification-service
+        PORT: "8080"
+        
+        # External service integrations
+        EMAIL_PROVIDER_URL: "https://api.sendgrid.com"
+        SMS_PROVIDER_URL: "https://api.twilio.com"
+        PUSH_PROVIDER_URL: "https://fcm.googleapis.com"
+        
+        # Template storage
+        TEMPLATE_STORAGE_BUCKET: "notification-templates"
+        
+        # Message queue
+        RABBITMQ_URL: "amqp://platform:${RABBITMQ_PASSWORD}@rabbitmq:5672/"
+        NOTIFICATION_QUEUE: "notifications"
+        
+        # Rate limiting for external APIs
+        EMAIL_RATE_LIMIT: "100"
+        SMS_RATE_LIMIT: "50"
+    
+    dependencies:
+      - rabbitmq
+
+# Infrastructure services
+infrastructure:
+  # Primary PostgreSQL Database
+  postgres-primary:
+    name: postgres-primary
+    type: database
+    
+    target:
+      type: kubernetes
+      namespace: platform
+    
+    runtime:
+      image: postgres:15-alpine
+      
+      environment:
+        POSTGRES_DB: platform_db
+        POSTGRES_USER: platform
+        POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+        
+        # Performance tuning
+        POSTGRES_SHARED_BUFFERS: "256MB"
+        POSTGRES_EFFECTIVE_CACHE_SIZE: "1GB"
+        POSTGRES_MAX_CONNECTIONS: "200"
+      
+      # Persistent storage
+      volumes:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+          size: 100Gi
+          storageClass: fast-ssd
+          
+        # Backup volume
+        - name: postgres-backup
+          mountPath: /backup
+          size: 50Gi
+          storageClass: standard
+    
+    # Backup configuration
+    backup:
+      enabled: true
+      schedule: "0 2 * * *"  # Daily at 2 AM
+      retention: 30  # Keep for 30 days
+
+  # Orders Database
+  postgres-orders:
+    name: postgres-orders
+    type: database
+    
+    target:
+      type: kubernetes
+      namespace: platform
+    
+    runtime:
+      image: postgres:15-alpine
+      
+      environment:
+        POSTGRES_DB: order_db
+        POSTGRES_USER: order_service
+        POSTGRES_PASSWORD: "${ORDER_DB_PASSWORD}"
+      
+      volumes:
+        - name: orders-data
+          mountPath: /var/lib/postgresql/data
+          size: 200Gi
+          storageClass: fast-ssd
+
+  # Inventory Database
+  postgres-inventory:
+    name: postgres-inventory
+    type: database
+    
+    target:
+      type: kubernetes
+      namespace: platform
+    
+    runtime:
+      image: postgres:15-alpine
+      
+      environment:
+        POSTGRES_DB: inventory_db
+        POSTGRES_USER: inventory_service
+        POSTGRES_PASSWORD: "${INVENTORY_DB_PASSWORD}"
+      
+      volumes:
+        - name: inventory-data
+          mountPath: /var/lib/postgresql/data
+          size: 50Gi
+          storageClass: fast-ssd
+
+  # Event Store Database
+  postgres-events:
+    name: postgres-events
+    type: database
+    
+    target:
+      type: kubernetes
+      namespace: platform
+    
+    runtime:
+      image: postgres:15-alpine
+      
+      environment:
+        POSTGRES_DB: event_store
+        POSTGRES_USER: events
+        POSTGRES_PASSWORD: "${EVENT_DB_PASSWORD}"
+      
+      volumes:
+        - name: events-data
+          mountPath: /var/lib/postgresql/data
+          size: 500Gi
+          storageClass: fast-ssd
+
+  # Redis Cluster
+  redis-cluster:
+    name: redis-cluster
+    type: cache
+    
+    target:
+      type: kubernetes
+      namespace: platform
+      replicas: 3
+    
+    runtime:
+      image: redis:7-alpine
+      
+      # Redis cluster configuration
+      command: 
+        - redis-server
+        - --cluster-enabled yes
+        - --cluster-config-file nodes.conf
+        - --cluster-node-timeout 5000
+        - --appendonly yes
+        - --maxmemory 2gb
+        - --maxmemory-policy allkeys-lru
+      
+      volumes:
+        - name: redis-data
+          mountPath: /data
+          size: 20Gi
+          storageClass: fast-ssd
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    name: rabbitmq
+    type: messagequeue
+    
+    target:
+      type: kubernetes
+      namespace: platform
+      replicas: 3
+    
+    runtime:
+      image: rabbitmq:3.12-management-alpine
+      
+      environment:
+        RABBITMQ_DEFAULT_USER: platform
+        RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD}"
+        RABBITMQ_CLUSTER_NAME: platform-cluster
+        
+        # Performance tuning
+        RABBITMQ_VM_MEMORY_HIGH_WATERMARK: "0.8"
+        RABBITMQ_DISK_FREE_LIMIT: "50MB"
+      
+      # Management UI
+      ports:
+        - name: amqp
+          port: 5672
+        - name: management
+          port: 15672
+      
+      volumes:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+          size: 30Gi
+          storageClass: standard
+
+# Cross-cutting concerns
+crossCutting:
+  # Service mesh (Istio)
+  serviceMesh:
+    enabled: true
+    provider: istio
+    
+    # Mutual TLS
+    mtls:
+      mode: STRICT
+    
+    # Traffic management
+    trafficManagement:
+      # Load balancing
+      loadBalancer:
+        strategy: ROUND_ROBIN
+      
+      # Circuit breaker
+      circuitBreaker:
+        maxConnections: 100
+        maxPendingRequests: 50
+        maxRetries: 3
+      
+      # Timeout configuration
+      timeout: 30s
+      
+      # Retry policy
+      retryPolicy:
+        attempts: 3
+        perTryTimeout: 10s
+
+  # Monitoring and observability
+  monitoring:
+    # Prometheus metrics collection
+    prometheus:
+      enabled: true
+      scrapeInterval: 30s
+      
+      # Service monitors
+      serviceMonitors:
+        - name: api-gateway
+          endpoints:
+            - port: metrics
+              path: /metrics
+        - name: microservices
+          selector:
+            matchLabels:
+              app.kubernetes.io/component: service
+          endpoints:
+            - port: metrics
+              path: /metrics
+    
+    # Grafana dashboards
+    grafana:
+      enabled: true
+      dashboards:
+        - name: platform-overview
+          file: dashboards/platform-overview.json
+        - name: service-health
+          file: dashboards/service-health.json
+    
+    # Jaeger tracing
+    jaeger:
+      enabled: true
+      samplingRate: 0.1
+      
+      # Trace collection
+      collector:
+        replicas: 2
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+
+  # Security
+  security:
+    # Network policies
+    networkPolicies:
+      enabled: true
+      
+      # Default deny all ingress
+      defaultDeny: true
+      
+      # Service-specific policies
+      policies:
+        - name: api-gateway-ingress
+          podSelector:
+            matchLabels:
+              app: api-gateway
+          ingress:
+            - from:
+              - namespaceSelector:
+                  matchLabels:
+                    name: istio-system
+        
+        - name: service-to-service
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/component: service
+          ingress:
+            - from:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/component: service
+    
+    # Pod security standards
+    podSecurity:
+      enforcement: restricted
+      audit: restricted
+      warn: restricted
+
+# Deployment strategy
+deployment:
+  # Rolling deployment with service mesh
+  strategy:
+    type: RollingUpdate
+    
+    # Blue-green for critical services
+    blueGreen:
+      services:
+        - api-gateway
+        - order-service
+      
+      # Automated traffic shifting
+      trafficShifting:
+        enabled: true
+        initialWeight: 10
+        increment: 10
+        interval: 300  # 5 minutes
+    
+    # Canary for new features
+    canary:
+      services:
+        - user-service
+        - inventory-service
+      
+      steps:
+        - weight: 5
+          duration: 600   # 10 minutes
+        - weight: 25
+          duration: 1800  # 30 minutes
+        - weight: 50
+          duration: 3600  # 1 hour
+        - weight: 100
+
+# Disaster recovery
+disasterRecovery:
+  # Multi-region deployment
+  regions:
+    primary: us-east-1
+    secondary: us-west-2
+  
+  # Data replication
+  replication:
+    # Database replication
+    databases:
+      postgres-primary:
+        replicas:
+          - region: us-west-2
+            type: read-replica
+            lag: 5s
+      
+      postgres-orders:
+        replicas:
+          - region: us-west-2
+            type: read-replica
+            lag: 10s
+    
+    # Cache replication
+    redis:
+      crossRegion: true
+      replicationMode: async
+  
+  # Failover configuration
+  failover:
+    automatic: true
+    rto: 300   # Recovery Time Objective: 5 minutes
+    rpo: 60    # Recovery Point Objective: 1 minute
+    
+    # Health checks for failover
+    healthChecks:
+      - endpoint: https://api.company.com/health
+        interval: 30s
+        timeout: 10s
+        failureThreshold: 3

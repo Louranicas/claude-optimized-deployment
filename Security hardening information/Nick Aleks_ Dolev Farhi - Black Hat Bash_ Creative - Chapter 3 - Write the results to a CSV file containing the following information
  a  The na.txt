@@ -1,0 +1,61 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - Write the results to a CSV file containing the following information:
+  a.  The name provided to the script
+  b.  The target domain provided to the script
+  c.  The ping result (either success or failure)
+  d.  The current date and time
+As with most tasks in bash, there are multiple ways to achieve this goal. You can find an example solution to this exercise, exercise_solution.sh, in the book’s GitHub repository.
+Security Relevance Score: 7
+Word Count: 612
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Write the results to a CSV file containing the following information:
+  a.  The name provided to the script
+  b.  The target domain provided to the script
+  c.  The ping result (either success or failure)
+  d.  The current date and time
+As with most tasks in bash, there are multiple ways to achieve this goal. You can find an example solution to this exercise, exercise_solution.sh, in the book’s GitHub repository.
+
+
+
+Summary
+In this chapter, you learned how to perform flow control by using conditions, loops, and functions; how to control scripts by using jobs; and how to search and parse text. We also highlighted bash tips and tricks for building more effective penetration-testing workflows.
+
+
+
+
+
+
+
+
+
+
+
+
+3
+SETTING UP A HACKING LAB
+
+
+
+In this chapter, you’ll set up a lab environment containing hacking tools and an intentionally vulnerable target. You’ll use this lab in chapter exercises, but you can also turn to it whenever you need to write, stage, and test a bash script before running it against real targets.
+The locally deployed target and its assets mimic the production environment of a mock internet hosting company called ACME Infinity Servers, which has its own fake employees, customers, and data. This fabricated internet hosting company and its customers will provide you with a diverse range of intentionally vulnerable applications, user accounts, and infrastructure that you can practice attacking in later chapters.
+The lab will be fully contained in a Kali virtual machine. This virtual machine will require the following minimum specifications: at least 4GB of RAM, at least 40GB of storage, and an internet connection.
+
+Security Lab Precautions
+Follow these guidelines to reduce the risks associated with building and operating a hacking lab:
+
+Avoid connecting the lab directly to the internet. Hacking lab environments typically run vulnerable code or outdated software. While these vulnerabilities are great for hands-on learning, they could pose risks to your network, computer, and data if they become accessible from the internet. Instead, we recommend working through the book when connected to local networks that you trust or operating offline after the lab is set up.
+Deploy the lab in a virtual environment by using a hypervisor. Separating the lab environment from your primary operating system is generally a good idea, as it prevents conflicts that could potentially break other software on your computer. We recommend using a virtualization tool to ensure this separation. In the next section, you’ll install the lab in a Kali virtual machine.
+Take frequent snapshots of your virtual machine. Snapshots are backups of your virtual machine that allow you to restore it to a previous state. Lab environments often won’t stay stable after you attack them, so take snapshots whenever your lab is in a stable state.
+
+With these best practices in mind, let’s get our hands dirty and our lab up and running!
+
+
+Installing Kali
+Kali is a Linux distribution created for penetration testing. Based on Debian, it was designed by OffSec. We’ll use Kali as our lab’s operating system because it comes bundled with some of the libraries, dependencies, and tools we’ll need.
+Your Kali machine will play two roles in the lab environment. First, it will act as the host responsible for running the target networks and machines against which you’ll run your scripts. Second, it will serve as the hacking machine from which you’ll perform your attacks.
+You can find an x64 version of the Kali virtual machine images for the VMware Workstation and Oracle VirtualBox hypervisors at https://www.kali.org/get-kali/#kali-platforms. Pick the hypervisor of your choice and follow the official installation instructions at https://www.kali.org/docs/installation/ to install it.
+After completing the installation process, you should see the Kali login screen shown in Figure 3-

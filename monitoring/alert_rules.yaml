@@ -1,4 +1,187 @@
 groups:
+  - name: mcp.availability
+    rules:
+      # MCP Server Availability Alerts
+      - alert: MCPServerDown
+        expr: mcp_server_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          alert_level: critical
+          component: mcp_server
+        annotations:
+          summary: "MCP server {{ $labels.server_name }} is down"
+          description: "MCP server {{ $labels.server_name }} has been down for more than 1 minute"
+          runbook_url: "https://runbooks.example.com/mcp-server-down"
+          
+      - alert: MCPServerDegraded
+        expr: mcp_server_health_status{check_type="readiness"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_server
+        annotations:
+          summary: "MCP server {{ $labels.server_name }} is degraded"
+          description: "MCP server {{ $labels.server_name }} is in degraded state for more than 5 minutes"
+          runbook_url: "https://runbooks.example.com/mcp-server-degraded"
+          
+      - alert: MCPServerHighErrorRate
+        expr: rate(mcp_server_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_server
+        annotations:
+          summary: "High error rate on MCP server {{ $labels.server_name }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-high-error-rate"
+
+  - name: mcp.performance
+    rules:
+      # Performance Degradation Alerts
+      - alert: MCPSlowResponseTime
+        expr: histogram_quantile(0.95, rate(mcp_request_duration_seconds_bucket[5m])) > 5.0
+        for: 3m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_performance
+        annotations:
+          summary: "Slow response times on MCP server {{ $labels.server_name }}"
+          description: "95th percentile response time is {{ $value }}s on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-slow-response"
+          
+      - alert: MCPCriticalResponseTime
+        expr: histogram_quantile(0.95, rate(mcp_request_duration_seconds_bucket[5m])) > 10.0
+        for: 1m
+        labels:
+          severity: critical
+          alert_level: critical
+          component: mcp_performance
+        annotations:
+          summary: "Critical response times on MCP server {{ $labels.server_name }}"
+          description: "95th percentile response time is {{ $value }}s on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-critical-response"
+          
+      - alert: MCPHighConcurrentOperations
+        expr: mcp_concurrent_operations > 50
+        for: 5m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_performance
+        annotations:
+          summary: "High number of concurrent operations on {{ $labels.server_name }}"
+          description: "{{ $value }} concurrent operations running on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-high-concurrency"
+
+  - name: mcp.resources
+    rules:
+      # Resource Exhaustion Alerts
+      - alert: MCPHighMemoryUsage
+        expr: mcp_server_memory_usage_bytes / 1024 / 1024 / 1024 > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_resources
+        annotations:
+          summary: "High memory usage on MCP server {{ $labels.server_name }}"
+          description: "Memory usage is {{ $value | humanizeBytes }} on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-high-memory"
+          
+      - alert: MCPHighCPUUsage
+        expr: mcp_server_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_resources
+        annotations:
+          summary: "High CPU usage on MCP server {{ $labels.server_name }}"
+          description: "CPU usage is {{ $value }}% on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-high-cpu"
+          
+      - alert: MCPLowResourceEfficiency
+        expr: mcp_resource_usage_score{resource_type="overall"} < 30
+        for: 10m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_resources
+        annotations:
+          summary: "Low resource efficiency on MCP server {{ $labels.server_name }}"
+          description: "Resource efficiency score is {{ $value }}% on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-low-efficiency"
+
+  - name: mcp.security
+    rules:
+      # Security Incident Alerts
+      - alert: MCPSecurityIncident
+        expr: increase(mcp_server_errors_total{error_type="security"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          alert_level: critical
+          component: mcp_security
+        annotations:
+          summary: "Security incident detected on MCP server {{ $labels.server_name }}"
+          description: "{{ $value }} security errors detected on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-security-incident"
+          
+      - alert: MCPAuthenticationFailures
+        expr: rate(mcp_server_errors_total{error_type="authentication"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_security
+        annotations:
+          summary: "High authentication failure rate on {{ $labels.server_name }}"
+          description: "Authentication failure rate is {{ $value | humanizePercentage }} on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-auth-failures"
+          
+      - alert: MCPUnauthorizedAccess
+        expr: increase(mcp_server_errors_total{error_type="authorization"}[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_security
+        annotations:
+          summary: "Multiple unauthorized access attempts on {{ $labels.server_name }}"
+          description: "{{ $value }} authorization failures on server {{ $labels.server_name }}"
+          runbook_url: "https://runbooks.example.com/mcp-unauthorized-access"
+
+  - name: mcp.dependencies
+    rules:
+      # Dependency Health Alerts
+      - alert: MCPDependencyDown
+        expr: mcp_server_dependency_status == 0
+        for: 2m
+        labels:
+          severity: critical
+          alert_level: critical
+          component: mcp_dependencies
+        annotations:
+          summary: "Critical dependency {{ $labels.dependency_name }} is down for {{ $labels.server_name }}"
+          description: "Dependency {{ $labels.dependency_name }} for server {{ $labels.server_name }} has been down for 2 minutes"
+          runbook_url: "https://runbooks.example.com/mcp-dependency-down"
+          
+      - alert: MCPDependencyDegraded
+        expr: mcp_server_dependency_status{critical="false"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          alert_level: warning
+          component: mcp_dependencies
+        annotations:
+          summary: "Non-critical dependency {{ $labels.dependency_name }} is down for {{ $labels.server_name }}"
+          description: "Non-critical dependency {{ $labels.dependency_name }} for server {{ $labels.server_name }} has been down for 5 minutes"
+          runbook_url: "https://runbooks.example.com/mcp-dependency-degraded"
+
   - name: memory.alerts
     rules:
       # System Memory Threshold Alerts

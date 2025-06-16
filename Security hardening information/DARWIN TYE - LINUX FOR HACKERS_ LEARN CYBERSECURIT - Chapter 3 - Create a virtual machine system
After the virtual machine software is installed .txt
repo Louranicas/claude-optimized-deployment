@@ -1,0 +1,206 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 3 - Create a virtual machine system
+After the virtual machine software is installed, double-click the Oracle VM VirtualBox icon on the desktop to start the application and create the virtual machine system.
+The specific steps are as follows:
+1) Press the CTRL+N shortcut key to create a new virtual machine so that the “New Virtual Computer" interface will pop up. Fill in the name, type and system version of the new virtual machine here. The name of the new virtual machine here is “Kali Linux”, the operating system type is "Linux", the version is "Linux 4.3 (64bit)”. After selecting all the appropriate options then click the "Next" button.
+2) Configure the virtual machine memory size. A minimum of 2GB should be given for better performance. For smooth performance make the virtual machine configured with “4096MB" and click the "Next" button.
+3) Add a virtual hard disk and there select the "Create a virtual hard disk now" radio button, and then click the "Create" button.
+4) Setting the virtual hard disk file is similar. Here select the "VDI (VirtualBox Disk Image)" radio button, and click the "Next" button. If you are using VMware you should select the .vmdk file format.
+5) Set the virtual hard disk space allocation method. This is where all the content of your virtual machine will be stored. You can select "Dynamic Allocation" or "Fixed Size" according to the situation. For optimal performance select the "Dynamic Allocation" radio button and click the "Next" button.
+6) Set the location and size of the virtual disk file. Here, select the file location as “F:\files\KaliLinux.vdi" ( yours may be different) and the virtual disk size as "100GB", click the "Create" button to complete Creation of virtual disk.
+7) After the virtual machine is opened and the virtual disk is created, the entire virtual machine is created. This is the entire control and management interface of VirtualBox. Click the virtual machine name on the left, and you can See the configuration properties of this virtual machine.
+8) In the VirtualBox control and management interface, you can create, manage and start the virtual machine. First select the virtual machine name on the left, and then click the "Settings" button to set the virtual machine, about the specific settings of the system.
+In the settings interface, you can set the other settings such as general, system, display, storage, sound, network, serial port, USB device, shared folder and other aspects of the virtual machine.
+So far, the installation and basic configuration of the virtual machine have been introduced. In the next section, the method of installing Linux on the virtual machine will be described. It is quite similar to the CD rom installation we have discussed in the first module of this book.
+4) Linux installation method on virtual machine
+There are two commonly used methods for installing Linux on a virtual machine: CD-ROM installation and ISO image file installation.
+1) Optical drive installation method
+In the "Oracle VirtualBox Management Controller" interface, select the virtual machine that needs to be installed, and then click the "Settings" button to enter the virtual machine settings interface, and then select the "Storage" option.
+After clicking the "Storage" option, an IDE controller and a SATA controller will appear on the right. Under the SATA controller is the virtual disk device of the virtual machine, and the default IDE controller is empty and displays "No Disk". Click the "No Disk" option so that the property settings of the IDE controller will appear on the right. Click the CD icon under "Properties”. All available devices will appear, both physical devices and virtual devices. The physical device "F:" here is the CD-ROM drive of the physical machine. After selecting it, click the "OK" button. Use the physical CD-ROM to install the system.
+Finally, click the "Start" icon on the "Oracle VirtualBox Management Controller" interface to start the virtual machine. VirtualBox will automatically read the CD of the physical machine and will enter the Linux boot installation interface.
+2) ISO image file installation method
+ISO file is a kind of CD image file. The burning software can directly burn the ISO file into an installable system CD. Since the ISO file runs directly on the hard disk, the data transfer speed is very fast. The CD installation method is simple but because the transmission speed of ordinary CD-ROM drives is relatively slow, the installation process is also relatively slow.
+Therefore, it is recommended to install the system through an ISO file on a virtual machine.
+1) Similar to the CD-ROM installation method, when selecting the ISO installation method, select the virtual machine to be installed on the "Oracle VirtualBox Management Controller" interface, and then click the "Settings" icon to enter the virtual machine setting interface. Then select the "Storage" option, click the "Select Disk" button and specify the corresponding ISO file on the physical machine. Finally click the "OK" button to complete the loading of the ISO image file.
+2) Click the "Start" icon on the "Oracle VirtualBox Management Controller" interface to start the virtual machine. VirtualBox will automatically read the ISO file and then boot into the Linux installation interface.
+3) Sometimes the virtual machine may not be able to boot from the CD-ROM drive or ISO file, and you may need to modify the boot sequence of the virtual machine. After the virtual machine starts, quickly press the F12 key on the keyboard to enter the virtual machine boot sequence configuration interface.
+4) The default boot sequence of the virtual machine is hard disk, floppy drive, optical drive and network. If you want to choose to boot from the optical drive, directly press the c key in the interface to enter the CD to boot. Other operations are similar.
+5) After the VirtualBox virtual machine is started, it will enter a new virtual computer console. When entering the new virtual computer console, there will be a problem of switching the mouse and keyboard between the virtual machine and the physical machine.
+6) By default, the switch key is the right Ctrl key, that is, when the virtual machine monopolizes the keyboard and mouse, press the right Ctrl key to exit the exclusive mode, and press the right Ctrl key again to enter the exclusive mode again. This right Ctrl key is also called It is a hot key or a host key.
+7) The combination of the host key and other keys can realize shortcut operations on the virtual machine. For example, the Host+Del key combination represents the Ctrl+Alt+Del key combination on the keyboard, Host+R represents the restart of the virtual machine, and the Host+H key combination represents normal Shut down the virtual machine, and so on.
+From now, just follow the installation procedure we have discussed in the first module to install the Kali Linux until the Home Screen appears.
+Security Relevance Score: 13
+Word Count: 3263
+Extracted: 2025-06-13 23:40:27
+
+---
+
+Create a virtual machine system
+After the virtual machine software is installed, double-click the Oracle VM VirtualBox icon on the desktop to start the application and create the virtual machine system.
+The specific steps are as follows:
+1) Press the CTRL+N shortcut key to create a new virtual machine so that the “New Virtual Computer" interface will pop up. Fill in the name, type and system version of the new virtual machine here. The name of the new virtual machine here is “Kali Linux”, the operating system type is "Linux", the version is "Linux 4.3 (64bit)”. After selecting all the appropriate options then click the "Next" button.
+2) Configure the virtual machine memory size. A minimum of 2GB should be given for better performance. For smooth performance make the virtual machine configured with “4096MB" and click the "Next" button.
+3) Add a virtual hard disk and there select the "Create a virtual hard disk now" radio button, and then click the "Create" button.
+4) Setting the virtual hard disk file is similar. Here select the "VDI (VirtualBox Disk Image)" radio button, and click the "Next" button. If you are using VMware you should select the .vmdk file format.
+5) Set the virtual hard disk space allocation method. This is where all the content of your virtual machine will be stored. You can select "Dynamic Allocation" or "Fixed Size" according to the situation. For optimal performance select the "Dynamic Allocation" radio button and click the "Next" button.
+6) Set the location and size of the virtual disk file. Here, select the file location as “F:\files\KaliLinux.vdi" ( yours may be different) and the virtual disk size as "100GB", click the "Create" button to complete Creation of virtual disk.
+7) After the virtual machine is opened and the virtual disk is created, the entire virtual machine is created. This is the entire control and management interface of VirtualBox. Click the virtual machine name on the left, and you can See the configuration properties of this virtual machine.
+8) In the VirtualBox control and management interface, you can create, manage and start the virtual machine. First select the virtual machine name on the left, and then click the "Settings" button to set the virtual machine, about the specific settings of the system.
+In the settings interface, you can set the other settings such as general, system, display, storage, sound, network, serial port, USB device, shared folder and other aspects of the virtual machine.
+So far, the installation and basic configuration of the virtual machine have been introduced. In the next section, the method of installing Linux on the virtual machine will be described. It is quite similar to the CD rom installation we have discussed in the first module of this book.
+4) Linux installation method on virtual machine
+There are two commonly used methods for installing Linux on a virtual machine: CD-ROM installation and ISO image file installation.
+1) Optical drive installation method
+In the "Oracle VirtualBox Management Controller" interface, select the virtual machine that needs to be installed, and then click the "Settings" button to enter the virtual machine settings interface, and then select the "Storage" option.
+After clicking the "Storage" option, an IDE controller and a SATA controller will appear on the right. Under the SATA controller is the virtual disk device of the virtual machine, and the default IDE controller is empty and displays "No Disk". Click the "No Disk" option so that the property settings of the IDE controller will appear on the right. Click the CD icon under "Properties”. All available devices will appear, both physical devices and virtual devices. The physical device "F:" here is the CD-ROM drive of the physical machine. After selecting it, click the "OK" button. Use the physical CD-ROM to install the system.
+Finally, click the "Start" icon on the "Oracle VirtualBox Management Controller" interface to start the virtual machine. VirtualBox will automatically read the CD of the physical machine and will enter the Linux boot installation interface.
+2) ISO image file installation method
+ISO file is a kind of CD image file. The burning software can directly burn the ISO file into an installable system CD. Since the ISO file runs directly on the hard disk, the data transfer speed is very fast. The CD installation method is simple but because the transmission speed of ordinary CD-ROM drives is relatively slow, the installation process is also relatively slow.
+Therefore, it is recommended to install the system through an ISO file on a virtual machine.
+1) Similar to the CD-ROM installation method, when selecting the ISO installation method, select the virtual machine to be installed on the "Oracle VirtualBox Management Controller" interface, and then click the "Settings" icon to enter the virtual machine setting interface. Then select the "Storage" option, click the "Select Disk" button and specify the corresponding ISO file on the physical machine. Finally click the "OK" button to complete the loading of the ISO image file.
+2) Click the "Start" icon on the "Oracle VirtualBox Management Controller" interface to start the virtual machine. VirtualBox will automatically read the ISO file and then boot into the Linux installation interface.
+3) Sometimes the virtual machine may not be able to boot from the CD-ROM drive or ISO file, and you may need to modify the boot sequence of the virtual machine. After the virtual machine starts, quickly press the F12 key on the keyboard to enter the virtual machine boot sequence configuration interface.
+4) The default boot sequence of the virtual machine is hard disk, floppy drive, optical drive and network. If you want to choose to boot from the optical drive, directly press the c key in the interface to enter the CD to boot. Other operations are similar.
+5) After the VirtualBox virtual machine is started, it will enter a new virtual computer console. When entering the new virtual computer console, there will be a problem of switching the mouse and keyboard between the virtual machine and the physical machine.
+6) By default, the switch key is the right Ctrl key, that is, when the virtual machine monopolizes the keyboard and mouse, press the right Ctrl key to exit the exclusive mode, and press the right Ctrl key again to enter the exclusive mode again. This right Ctrl key is also called It is a hot key or a host key.
+7) The combination of the host key and other keys can realize shortcut operations on the virtual machine. For example, the Host+Del key combination represents the Ctrl+Alt+Del key combination on the keyboard, Host+R represents the restart of the virtual machine, and the Host+H key combination represents normal Shut down the virtual machine, and so on.
+From now, just follow the installation procedure we have discussed in the first module to install the Kali Linux until the Home Screen appears.
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Two
+
+
+
+Hacking philosophy
+
+
+
+
+
+In the previous
+ chapter we have installed Kali Linux in a virtual machine and we are now ready to experiment with it to learn a bit about hacking and get a solid introduction that is considered necessary for an ethical hacker.
+First, we will start with a pretty basic question.
+What is Hacking?
+It may seem arbitrary because of constant wrong introduction of hacking in popular culture references. From 90’s films, books and comics are representing hackers as a shady guys who are trying to break systems and collapse the internet.
+But, is it right? Or hackers really what they are represented? I mean there are definitely some bad people who stay in dark web and sell stolen credit card information at cheap prices for people who are willing to exploit.
+But on the other side of coin there are also thousands of ethical hackers who are working hard to protect complex network systems to be not attacked by some mischiefs that are trying to brute force the systems.
+Hacking is a computer learning where people try to destroy systems. While it may seem that destroying is a bad thing but what they are doing actually is to help us understand the loopholes that may arise while developing software, operating systems and applications.
+In the early days hacking used to be a skill that requires both hardware and software access. But now, after the advent of internet and network architecture anything can be hacked just with the help of few software with just a computer.
+What is Linux to Hackers?
+All popular hackers highly recommend newbies( which they also call as script kiddies) to stop using windows or macOS for hacking. Windows and macOS are not only very bad operating systems for hackers but can also compromise your security while hacking and cracking systems.
+Linux is a highly secured kernel based system that is pre installed with network monitoring tools and other command utilities that can help you to monitor both network traffic and application anomalies.
+There are tens of different Linux distros that you can use to hack systems. But for different reasons and easy installation procedures a lot of security researchers use Kali Linux as their daily hacking machine. We also recommend you to check out Parrot Linux, another security researcher recommended Linux distro.
+In the previous chapter we already provided step-by-step instruction to install Kali linux in a virtual machine. You can also install Kali Linux as a separate operating system using the USB installation method we explained in module 1 of this book.
+What is a Hacking procedure?
+Hackers use different procedures to crack and destroy systems. Some use simple tools to find bugs and create their own scripts to exploit them. Some advanced hackers create their own worms, spiders to crack systems on a much larger viewpoint.
+Remember Ransomware software that destroyed a lot of industries a few years back? It used an unknown bug in windows to exploit the systems all around the world and locked them to pay money to not delete their sensitive information from servers.
+Talented hackers always do a complete research about the target system before attacking it. Newbies often lose at this point and waste their system resources by attacking a lot of targets at the same time Whereas experienced hackers pin point a specific location and hack it using different tricks.
+How many type of hackers are there?
+There are mostly three type of hackers that are usually distinguished by the technical world. Among them the most important are ethical hackers who help to secure the systems with their penetration testing skills and loophole detection.
+Here is a small description about each type of hackers for you.
+1) Black hat hackers
+These are the type of hackers who uses hacking practices for their personal gain. They exploit systems and steal data with a motive. According to latest statistics black hat hackers steal more than 2billion USD every year from the internet. More tech companies are worried about the black hat hackers and spend thousands of crores to develop intrusive detection systems. If you are learning this book to become a black hat hacker we are warning you that it is not easy out there.
+2) White hat hackers
+These are the type of hackers who do hacking to secure systems. Almost every security researcher come under this category. Not only hackers but also forensic specialists and reverse engineers fall under this category. White hat hackers are as sophisticated as black hat hackers in knowledge and speed. The only advantage that white hat hackers possess apart from black hat hackers is that they have a good information about the target and can use different creative workflows to find vulnerabilities and bugs.
+3) Gray hat hackers
+If a hacker does fall in between other two categories then we can simply call him as a gray hat hacker. Hackers working for a government or an university can fall under this category.
+What Next?
+To be a hacker you need to have a good mind for research about the target. In the next chapter we will talk about different networking tools to improve your reconnaissance knowledge. We also suggest you to learn about hacking and cybersecurity in much larger detail by reading different blogs. You can also try to involve in bug bounty hunting if you become interested in ethical hacking.
+Let us get going into the next chapter where we will discuss about different hacking tools that Kali linux provides.
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Three
+
+
+
+Networking tools in Kali Linux
+
+
+
+
+
+In the previous
+ modules of this book we discussed about hacking philosophy along with an introduction to Kali Linux. While Kali linux is an excellent way to master and utilize tools, we also need to be aware of some of the monitoring tools that are available in it. Networking is the backbone for internet communication and understanding the basics of it is a must for every programmer.
+Linux provides many useful tools for developers to debug and evaluate server programs.Skilled network programmers will constantly use one or more of these tools to monitor server behavior in the whole process of developing server programs.
+Some of these tools are common tools for hackers.
+This chapter will discuss some of the most commonly used tools: tcpdump, nc, strace, lsof, netstat, vmstat, ifstat and mpstat. These tools support many options, but our discussion is limited to the most common and practical ones. Also, remember that we only provide the important commands for your understanding of the abilities of the tool. To further know and experiment with the tool we first suggest you to
+Tcpdump
+Tcpdump is a classic network capture tool. Even today, we have a package grabbing tool like Wireshark which is easier to use and master, and tcpdump is still a necessary tool for network programmers.Tcpdump provides users with a large number of options to filter data packets or customize the output format.
+Before learning more about tcpdump we suggest you to understand about the essence of network packets and how they are tracked using tools such as Wireshark. If you are an efficient hacker it is also important to learn a bit about sniffing networks to collect sensitive information from the data that is being collected.
+We introduced a lot about different hacking tools in this chapter, and now we summarize the common options with examples for your better understanding of the wonders this tool can do.
+In 4.0 and earlier versions, the default capture length was 68 bytes.This is enough for protocols such as IP, TCP and UDP, but for protocols such as DNS and NFS, 68 bytes usually cannot hold a complete data packet.
+For example, when we grab DNS packets, we use the -s option (the version of tcpdump on the test machine is 4.0).
+
+root@server : tcpdump -s 192.132.112.11
+
+However, in the version after 4.0, the default capture length was changed to 65 535 bytes, so we don't have to worry about the capture length. -s, the serial number of TCP segment is displayed as absolute value, not relative value. -w, directs the output of tcpdump to a file in a special format. And -r will read the packet information from the file and display it.
+In addition to using options, tcpdump also supports using expressions to further filter packets.Operands of tcpdump expressions are divided into three types: type, direction and protocol.The following are introduced in turn in this section.Type will explain the meaning of the parameter immediately following it. All the types supported by tcpdump include host, net, port and portrange.
+They specify host name (or IP address), network address expressed by CIDR method, port number and port range respectively.For example, to grab data packets on the whole 1.2.7.0/255.233.211.0 network, you can use the following command.
+
+root@server : $ tcpdump net 1.2.7.0/13
+
+Here, src specifies the sender of data packets, and dst specifies the destination of data packets.
+For example, to grab packets entering port 13111, you can use the following command:
+
+root@server : $ tcpdump dstport13111
+
+For example, to grab all the internet control message protocol, you can use the following command.
+
+root@server : $ tcpdump ICMP
+
+You can use it for several other protocols such as SMTP, FTP etc.
+Of course, we can also use logical operators to organize the above operands to create more complex expressions.The logical operators supported by tcpdump are exactly the same as those in programming languages, including and (&&), or ( | |), not (!).
+For example, to grab IP data packets exchanged between host -laptop and all hosts other than the source, we can use the following command.
+
+root@server : $ tcpdump IP host
+
+If the expression is complex, we can use parentheses to group them.However, when using parentheses, we either use backslash "\" to escape it, or enclose it in single quotation marks "'" to avoid it being interpreted by shell.
+For example, to grab packets from host 8.0.2.4 and destination port 3369 or 12, you can use the following command.
+
+root@server : $ tcpdump src 8.0.2.4 and (dstport 3369 or 12)
+
+In addition, tcpdump also allows direct use of some protocol fields in packets to filter packets.For example, to grab only TCP synchronization segments, you can use the following command.
+
+root@server : $ tcpdump TCP [13]&2!=0
+
+Because the second bit of the 14th byte of TCP header is the synchronization flag we can get a lot of information from the data.Finally, the specific output format of tcpdump is not only related to options, but also related to protocols.We discussed the tcpdump output format of IP, TCP, ICMP, DNS and other protocols.For tcpdump output formats of other protocols, please refer to the man manual of tcpdump, and this book will not repeat them.
+With this, we have completed a brief introduction to the popular network monitoring tool tcpdump. In the next section we will discuss about lsof, another popular network monitoring tool in Kali Linux with in command examples. Follow along!
+lsof
+lsof(list open file) is a tool to list the file descriptors opened by the current system.Through it, we can know which file descriptors are opened by interested processes, or by which processes.
+The usage method of this option is:
+
+$ lsof-I [46] [protocol] [@ hostname | ipaddr] [:service | port]
+
+where 4 represents IPv4 protocol and 6 represents IPv6 protocol.Protocol specifies the transport layer protocol, which can be TCP or UDP. Hostname specifies the host name and Ipaddr specifies the IP address of the host. Service specifies the service name and Port specifies the port number respectively.
+For example, to display the socket file descriptors of all ssh services connected to the host 192.168.1.108, you can use the command.
+
+root@server : $lsof-i@192.168.1.108:22
+
+If no parameters are specified after the -i option, the lsof command will display all socket file descriptors.-u, displays all file descriptors opened by all processes started by the specified user and -c, displays all file descriptors opened by the specified command.
+For example, to see which file descriptors are opened by the websrv program, you can use the following command.
+
+root@server :$ lsof-c websrv-p
+
+To display all file descriptors opened by the specified process use the man command. -t, only the PID of the process with the target file descriptor turned on is displayed.We can also directly take the file name as an argument of the lsof command to see which processes have opened the file.
+It can be seen from the code listing that the program files and dynamic libraries on the test machine are stored in the equipment "8,3". Where "8" indicates that this is a SCSI hard disk;"3" indicates that this is the third partition on the hard disk, namely sda

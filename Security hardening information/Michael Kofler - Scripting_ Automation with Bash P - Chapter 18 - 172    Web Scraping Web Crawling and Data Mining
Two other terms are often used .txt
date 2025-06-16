@@ -1,0 +1,66 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 18 - 17.2    Web Scraping, Web Crawling, and Data Mining
+Two other terms are often used along with web scraping that have similar meanings. While web scraping extracts data from a website, web crawling tracks the links of a website. Through web crawling, you can create a directory of all pages on a website and, when tracking links to other pages, even a directory of large parts of the internet. Search engines like Google or Bing are based on the concept of web crawling.
+Data mining also goes a step further than web scraping: In this context, we are combining and statistically analyzing information from different data sources and over longer periods of time. Many reasons exist for data mining, such as marketing studies or scientific tasks.
+Security Relevance Score: 2
+Word Count: 759
+Extracted: 2025-06-13 23:41:06
+
+---
+
+17.2    Web Scraping, Web Crawling, and Data Mining
+Two other terms are often used along with web scraping that have similar meanings. While web scraping extracts data from a website, web crawling tracks the links of a website. Through web crawling, you can create a directory of all pages on a website and, when tracking links to other pages, even a directory of large parts of the internet. Search engines like Google or Bing are based on the concept of web crawling.
+Data mining also goes a step further than web scraping: In this context, we are combining and statistically analyzing information from different data sources and over longer periods of time. Many reasons exist for data mining, such as marketing studies or scientific tasks.
+
+
+
+
+
+
+
+
+
+17.3    Downloading Websites Using wget
+In its simplest usage, you can use the wget command to download a file via HTTP(S) or FTP. The following command downloads an image of the cover of this book from my website and saves it in the local directory:
+$ wget https://kofler.info/wp-content/uploads/scripting-en.jpg 
+Most of the time, wget is installed by default on Linux; if not the case, apt/dnf install wget will help you get set up. On macOS, the best way to install the command is to use brew install wget (see https://brew.sh). A variant compiled for Windows can be downloaded from: https://eternallybored.org/misc/wget. However, you must take care of saving the program yourself in one of the directories listed in PATH. 
+wget can be controlled by dozens of options documented in its man page or at https://linux.die.net/man/1/wget.
+17.3.1    Example 1: Downloading Directly Linked Images
+I will refrain from an encyclopedic description here, but instead show you three typical cases of using wget.
+The first command, which I have specified once with the more readable long options and a second time in a more compact way with equivalent short options, downloads all image files with the extensions *.jpg, *.jpeg, *.png, and *.gif that are used directly on the home page of https://example.com. However, the command does not take into account images used in other pages of https://example.com.
+$ wget --no-directories --span-hosts --page-requisites \       --accept jpg,jpeg,png,gif --execute robots=off example.com$ wget -nd -H -p -A jpg,jpeg,png,gif -e robots=off example.com 
+Let’s briefly explain the meanings of these options next:
+
+
+--no-directories does not create image directories on your computer that represent the location of images on the website. Rather, all images are stored in the currently active directory.
+
+
+--span-hosts also takes into account links to images located on websites other than the home page (here https://example.com).
+
+
+--page-requisites tells wget to download not only the HTML start page, but also all additional files linked there (images, but also CSS files, etc.).
+
+
+--accept restricts the previous option: We are only interested in files with the specified identifiers.
+
+
+--execute specifies that any rules formulated on the website in the robots.txt file should be ignored for search engines. That’s not the way to do it!
+
+
+The command fails for images whose URL does not end with the identifier, such as in the following example:
+https://example.com/images/img_1234.jpg?s=2b63769b 
+17.3.2    Example 2: Downloading all PDF Files Linked on the Website
+The second command is a variant of the first. This time, PDF documents are downloaded instead of images. However, not only should the start page of https://example.com be taken into account, but also all other pages of this website, which wget can reach by analyzing links starting from the home page within four jumps.
+$ wget --recursive -no-directories --level=4 --accept pdf \       --execute robots=off example.com$ wget -r -nd -l 4 -A pdf -e robots=off example.com 
+The command uses two new options:
+
+
+--recursive tells wget to continue following the links located on the home page and also to search the target pages. By default, the command only includes pages on the source domain. (I have omitted --span-hosts in this example. The explanation follows below).
+
+
+--level specifies how many link levels should be considered. You can use --level inf to really search a website in its entirety.
+
+
+You need patience when running the command. Note that the command only considers PDF files stored directly on the specified website, not PDF documents located elsewhere (for example, in an Amazon cloud directory).
+In contrast to the first example, using the --span-hosts option is not recommended here. Although wget will then also download PDF files located on other servers, at the same time the command will extend the search to the pages of other servers. Tips on how you can limit this problem, for example by listing selected external hosts, are provided by Stack Overflow: https://stackoverflow.com/questions/

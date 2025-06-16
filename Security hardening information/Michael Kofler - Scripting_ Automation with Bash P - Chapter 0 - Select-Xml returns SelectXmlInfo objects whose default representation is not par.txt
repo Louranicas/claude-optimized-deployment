@@ -1,0 +1,82 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 0 - Select-Xml returns SelectXmlInfo objects whose default representation is not particularly helpful in the output. Only Select-Object -ExpandProperty Node returns the actual text of the attribute.
+> Select-Xml "/*/MapTZ[57]/@WinID" -Xml $tmz  Node  Path        Pattern  ----  ----        -------  WinID InputStream /TimeZoneMapping/MapTZ[57]/@WinID> Select-Xml -Xml $tmz -XPath $xpath |  Select-Object -ExpandProperty Node  #text  -----  Mountain Standard Time 
+The third example refers to *.vbox files that describe virtual machines from Oracle VM VirtualBox. Despite the *.vbox identifier, these files are ordinary XML files.
+<?xml version="1.0"?><VirtualBox xmlns="http://www.virtualbox.org/" version="...">  <Machine uuid="{c197c895-7b0c-4fa3-a05b-165377b33232}" ...>    <MediaRegistry>      <HardDisks>        <HardDisk uuid="..." location="kali-english.vdi"            format="VDI" type="Normal"/>            ... 
+However, your first attempts to analyze the files may fail miserably. Select-Xml simply returns an empty result without any warning or error message:
+> Select-Xml  './/HardDisk/@location' kali.vbox 
+The reason for this failure is that the XML file refers to a namespace. In this case, there is only one default namespace (xmlns), but some XML files even use multiple namespaces (xmlns:name). To process such files, you must pass a hash table to Select-Xml that assigns a prefix to each namespace. For the default namespace, ns is usually used, but any string is allowed with the exception of xmlns. You must subsequently specify the prefix in the XPath expression as well. The following command extracts the name of the image file of a virtual machine:
+> $vbnamespace = @{ns = "http://www.virtualbox.org/"}> Select-Xml './/ns:HardDisk/@location' -Namespace $vbnamespace `  kali.vbox | Select-Object -ExpandProperty Node  kali-install.vdi 
+The second example scans all virtual machines for active network adapters and returns objects with the *.vbox filename and the MAC address used. The Split-Path cmdlet is used here with the -Leaf option to extract the filename from the path.  
+> Select-Xml './/ns:Network/ns:Adapter' `     -Namespace $vbnamespace *.vbox |  Where-Object { $_.Node.enabled -eq 'true' } |  ForEach-Object {    [PSCustomObject]@{path = Split-Path $_.Path -Leaf;                      mac = $_.Node.MACAddress}  }  path                 mac  ----                 ---  kali-2022.vbox       080027DB966A  kali.vbox            0800278EB571  metasplaitable2.vbox 080027E770F0  ubuntu.vbox          0800278556EA
+Security Relevance Score: 3
+Word Count: 633
+Extracted: 2025-06-13 23:41:06
+
+---
+
+Select-Xml returns SelectXmlInfo objects whose default representation is not particularly helpful in the output. Only Select-Object -ExpandProperty Node returns the actual text of the attribute.
+> Select-Xml "/*/MapTZ[57]/@WinID" -Xml $tmz  Node  Path        Pattern  ----  ----        -------  WinID InputStream /TimeZoneMapping/MapTZ[57]/@WinID> Select-Xml -Xml $tmz -XPath $xpath |  Select-Object -ExpandProperty Node  #text  -----  Mountain Standard Time 
+The third example refers to *.vbox files that describe virtual machines from Oracle VM VirtualBox. Despite the *.vbox identifier, these files are ordinary XML files.
+<?xml version="1.0"?><VirtualBox xmlns="http://www.virtualbox.org/" version="...">  <Machine uuid="{c197c895-7b0c-4fa3-a05b-165377b33232}" ...>    <MediaRegistry>      <HardDisks>        <HardDisk uuid="..." location="kali-english.vdi"            format="VDI" type="Normal"/>            ... 
+However, your first attempts to analyze the files may fail miserably. Select-Xml simply returns an empty result without any warning or error message:
+> Select-Xml  './/HardDisk/@location' kali.vbox 
+The reason for this failure is that the XML file refers to a namespace. In this case, there is only one default namespace (xmlns), but some XML files even use multiple namespaces (xmlns:name). To process such files, you must pass a hash table to Select-Xml that assigns a prefix to each namespace. For the default namespace, ns is usually used, but any string is allowed with the exception of xmlns. You must subsequently specify the prefix in the XPath expression as well. The following command extracts the name of the image file of a virtual machine:
+> $vbnamespace = @{ns = "http://www.virtualbox.org/"}> Select-Xml './/ns:HardDisk/@location' -Namespace $vbnamespace `  kali.vbox | Select-Object -ExpandProperty Node  kali-install.vdi 
+The second example scans all virtual machines for active network adapters and returns objects with the *.vbox filename and the MAC address used. The Split-Path cmdlet is used here with the -Leaf option to extract the filename from the path.  
+> Select-Xml './/ns:Network/ns:Adapter' `     -Namespace $vbnamespace *.vbox |  Where-Object { $_.Node.enabled -eq 'true' } |  ForEach-Object {    [PSCustomObject]@{path = Split-Path $_.Path -Leaf;                      mac = $_.Node.MACAddress}  }  path                 mac  ----                 ---  kali-2022.vbox       080027DB966A  kali.vbox            0800278EB571  metasplaitable2.vbox 080027E770F0  ubuntu.vbox          0800278556EA 
+10.4.3    ConvertTo-Xml, Export-Clixml, and Import-Clixml
+Finally, I want to briefly introduce three cmdlets for conversions between PowerShell objects and XML documents:   
+
+
+ConvertTo-XmlConvertTo-Xml converts a PowerShell object into the XML data type:
+$myxmlvar = Get-Date | ConvertTo-Xml 
+Note that no official ConvertFrom-Xml cmdlet exists with the reverse function. However, if you search the internet for ConvertFrom-Xml, you’ll come across various cmdlets from the community that assemble a PSCustomObject from an XML document to which it corresponds as much as possible.
+
+
+Export-ClixmlExport-Clixml saves a PowerShell object in an XML file that conforms to the Common Language Infrastructure (CLI) standard:
+Get-Date | Export-Clixml 'date.xml' 
+
+
+Import-ClixmlThe counterpart reads a file again and creates the corresponding PowerShell object out of it:
+$olddate = Import-Clixml 'date.xml' 
+
+
+
+
+
+
+
+
+
+
+
+10.5    XML and Python
+Various official (and even more external) XML libraries are available for Python. These modules are optimized for different application purposes, for example, for the particularly efficient processing of large files, for the most secure analysis of XML files, or for creating your own XML documents. The following pages provide a good overview:
+
+
+https://docs.python.org/3/library/xml.html
+
+
+https://realpython.com/python-xml-parser
+
+
+This section focuses on the xml.etree.ElementTree module, which ships with Python by default. This module is easy to use and well suited for analyzing XML documents. The following lines show how you can read an XML string or an XML file and access the root element of the XML document:  
+import xml.etree.ElementTree as ET# read XML file ...root = ET.parse('filename.xml').getroot()# ... or process XML from strings = '<?xml ...>...'root = ET.fromString(s) 
+root is an object of the Element class that has the following features:
+
+
+tag: Name of the current XML tag
+
+
+text: Text in tag (but no subelements)
+
+
+attrib: Dictionary with keys of the XML tag
+
+
+All subelements of an Element can be directly looped. The loop variable itself contains Element objects as well:
+for sub in e:  # loop through all sub-elements 
+Alternatively, you can access the nth element directly:
+sub = e[3]

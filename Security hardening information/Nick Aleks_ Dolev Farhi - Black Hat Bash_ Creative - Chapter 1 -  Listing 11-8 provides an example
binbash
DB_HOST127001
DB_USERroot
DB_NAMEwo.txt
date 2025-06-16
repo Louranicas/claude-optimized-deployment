@@ -1,0 +1,27 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 1 - ). Listing 11-8 provides an example.
+#!/bin/bash
+DB_HOST="127.0.0.1"
+DB_USER="root"
+DB_NAME="wordpress"
+Security Relevance Score: 2
+Word Count: 137
+Extracted: 2025-06-13 23:40:57
+
+---
+
+). Listing 11-8 provides an example.
+#!/bin/bash
+DB_HOST="127.0.0.1"
+DB_USER="root"
+DB_NAME="wordpress"
+
+# SQL commands as input to the mysql command
+mysql -h "${DB_HOST}" -u "${DB_USER}" -p "${DB_NAME}" << "EOF"
+INSERT INTO `wordpress`.`wp_users` ...
+INSERT INTO `wordpress`.`wp_usermeta` ...
+EOF
+
+Listing 11-8: Running SQL commands in a bash script
+We set a few variables containing database connection information such as the host, user, and name. We then use the mysql command (which works for MariaDB servers) and pass these variables to the command. Using a heredoc (<<), we define a list of SQL commands as input to the mysql command. The two EOF delimiter strings signal the beginning and end of the command within the heredoc. Once you enter this command, you’ll be prompted to enter the password you discovered through the brute-force attack in “Brute-Forcing with Medusa” on page

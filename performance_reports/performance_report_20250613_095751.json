@@ -1,0 +1,384 @@
+{
+  "benchmark_info": {
+    "timestamp": "2025-06-13T09:57:49.956647",
+    "duration": 25.23642635345459,
+    "system_baseline": {
+      "cpu_count": 16,
+      "memory_total": 32813113344,
+      "memory_available": 23072972800,
+      "disk_usage": 51.4,
+      "python_version": "3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]",
+      "platform": "linux"
+    },
+    "total_tests": 15
+  },
+  "results": [
+    {
+      "test_name": "rust_infrastructure_scanning",
+      "duration": 0.39382440398912877,
+      "throughput": 2539.2027255568555,
+      "memory_usage": {
+        "used_mb": 0.40234375,
+        "peak_mb": 0.8601913452148438,
+        "current_mb": 0.05286884307861328,
+        "objects_created": 8
+      },
+      "cpu_usage": 13.5,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 0.0003661535447463393,
+      "latency_p95": 0.00040937294252216814,
+      "latency_p99": 0.0004131344158668071,
+      "metadata": {
+        "total_operations": 1000,
+        "avg_latency": 0.00037801661889534443,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "rust_config_parsing",
+      "duration": 0.18644631502684206,
+      "throughput": 2681.737099110898,
+      "memory_usage": {
+        "used_mb": 0.97265625,
+        "peak_mb": 0.8601226806640625,
+        "current_mb": 0.03967761993408203,
+        "objects_created": 3
+      },
+      "cpu_usage": 9.75,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 0.00034806004259735346,
+      "latency_p95": 0.00036864361027255654,
+      "latency_p99": 0.0005662317120004442,
+      "metadata": {
+        "total_operations": 500,
+        "avg_latency": 0.0003550406154245138,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "rust_simd_operations",
+      "duration": 0.014157079975120723,
+      "throughput": 14127.207047743934,
+      "memory_usage": {
+        "used_mb": 0.0,
+        "peak_mb": 0.8601226806640625,
+        "current_mb": 0.02027130126953125,
+        "objects_created": -2
+      },
+      "cpu_usage": 20.049999999999997,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 1.5669036656618118e-05,
+      "latency_p95": 1.8113671103492352e-05,
+      "latency_p99": 2.5418775621801404e-05,
+      "metadata": {
+        "total_operations": 200,
+        "avg_latency": 1.6422513290308416e-05,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "cache_write_performance",
+      "duration": 0.015823542955331504,
+      "throughput": 126393.94386237187,
+      "memory_usage": {
+        "used_mb": 0.97265625,
+        "peak_mb": 0.8600997924804688,
+        "current_mb": 0.70184326171875,
+        "objects_created": 13
+      },
+      "cpu_usage": 5.55,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 2.5150366127490997e-06,
+      "latency_p95": 4.108558641746639e-06,
+      "latency_p99": 6.403212901204824e-06,
+      "metadata": {
+        "total_operations": 2000,
+        "avg_latency": 2.7845472795888783e-06,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "cache_read_performance",
+      "duration": 0.024009225075133145,
+      "throughput": 208253.28532483976,
+      "memory_usage": {
+        "used_mb": 0.0,
+        "peak_mb": 0.8601226806640625,
+        "current_mb": 0.1603240966796875,
+        "objects_created": -2
+      },
+      "cpu_usage": 11.15,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 2.2640451788902283e-06,
+      "latency_p95": 2.6150373741984367e-06,
+      "latency_p99": 4.579279338940982e-06,
+      "metadata": {
+        "total_operations": 5000,
+        "avg_latency": 2.3466980550438168e-06,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "cache_invalidation_performance",
+      "duration": 0.01149209903087467,
+      "throughput": 87016.30549070281,
+      "memory_usage": {
+        "used_mb": 0.0,
+        "peak_mb": 0.8601226806640625,
+        "current_mb": 0.0143280029296875,
+        "objects_created": -2
+      },
+      "cpu_usage": 5.75,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 2.20397487282753e-06,
+      "latency_p95": 2.374988980591297e-06,
+      "latency_p99": 2.4553667753934854e-06,
+      "metadata": {
+        "total_operations": 1000,
+        "avg_latency": 2.2055335575714706e-06,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "circuit_breaker_normal",
+      "duration": 0.010982971987687051,
+      "throughput": 273150.10940238065,
+      "memory_usage": {
+        "used_mb": 0.0,
+        "peak_mb": 0.8599853515625,
+        "current_mb": 0.0992584228515625,
+        "objects_created": 12
+      },
+      "cpu_usage": 9.45,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 3.209570422768593e-07,
+      "latency_p95": 3.600725904107094e-07,
+      "latency_p99": 4.1106250137090683e-07,
+      "metadata": {
+        "total_operations": 3000,
+        "avg_latency": 3.2428423097978036e-07,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "circuit_breaker_failures",
+      "duration": 0.011740215006284416,
+      "throughput": 85177.31570203019,
+      "memory_usage": {
+        "used_mb": 0.0,
+        "peak_mb": 0.8601226806640625,
+        "current_mb": 0.03749847412109375,
+        "objects_created": -2
+      },
+      "cpu_usage": 6.0,
+      "success_rate": 2.0,
+      "error_count": 980,
+      "latency_p50": 2.6145135052502155e-06,
+      "latency_p95": 2.855906495824456e-06,
+      "latency_p99": 3.6366097629070275e-06,
+      "metadata": {
+        "total_operations": 1000,
+        "avg_latency": 2.5761534925550224e-06,
+        "system_load": 0.37890625
+      }
+    },
+    {
+      "test_name": "retry_exponential_backoff",
+      "duration": 0.7160976820159703,
+      "throughput": 698.2287648137493,
+      "memory_usage": {
+        "used_mb": -3.1953125,
+        "peak_mb": 0.860076904296875,
+        "current_mb": 0.4282674789428711,
+        "objects_created": 2020
+      },
+      "cpu_usage": 4.2,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 2.225046046078205e-06,
+      "latency_p95": 0.10091842767433264,
+      "latency_p99": 0.7010955340589863,
+      "metadata": {
+        "total_operations": 500,
+        "avg_latency": 0.03435540951043367,
+        "system_load": 0.34814453125
+      }
+    },
+    {
+      "test_name": "retry_fixed_delay",
+      "duration": 12.15532738796901,
+      "throughput": 16.453690930443734,
+      "memory_usage": {
+        "used_mb": -14.6015625,
+        "peak_mb": 0.9675750732421875,
+        "current_mb": 0.012950897216796875,
+        "objects_created": -1505
+      },
+      "cpu_usage": 4.0,
+      "success_rate": 94.0,
+      "error_count": 12,
+      "latency_p50": 2.4239998310804367e-06,
+      "latency_p95": 0.20085301106446424,
+      "latency_p99": 0.20121394072193652,
+      "metadata": {
+        "total_operations": 200,
+        "avg_latency": 0.06072526759293396,
+        "system_load": 0.2939453125
+      }
+    },
+    {
+      "test_name": "cpu_intensive_load",
+      "duration": 0.03370414290111512,
+      "throughput": 593.398860747718,
+      "memory_usage": {
+        "used_mb": 0.95703125,
+        "peak_mb": 0.8600997924804688,
+        "current_mb": 0.08137702941894531,
+        "objects_created": 377
+      },
+      "cpu_usage": 6.7,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 0.012495345959905535,
+      "latency_p95": 0.012610617751488463,
+      "latency_p99": 0.01262874756124802,
+      "metadata": {
+        "total_operations": 20,
+        "avg_latency": 0.00998015440418385,
+        "system_load": 0.2939453125
+      }
+    },
+    {
+      "test_name": "memory_intensive_load",
+      "duration": 10.02365927293431,
+      "throughput": 9.976396571062432,
+      "memory_usage": {
+        "used_mb": 15.703125,
+        "peak_mb": 6.547649383544922,
+        "current_mb": 0.013217926025390625,
+        "objects_created": -2
+      },
+      "cpu_usage": 9.350000000000001,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 0.09973855246789753,
+      "latency_p95": 0.10463349366909824,
+      "latency_p99": 0.10609325049794281,
+      "metadata": {
+        "total_operations": 100,
+        "avg_latency": 0.10013559047831222,
+        "system_load": 0.4765625
+      }
+    },
+    {
+      "test_name": "io_intensive_load",
+      "duration": 0.015069045941345394,
+      "throughput": 3318.060094489028,
+      "memory_usage": {
+        "used_mb": 0.0,
+        "peak_mb": 0.8601226806640625,
+        "current_mb": 0.02637195587158203,
+        "objects_created": 4
+      },
+      "cpu_usage": 7.25,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 9.688193676993251e-05,
+      "latency_p95": 0.00010664106230251491,
+      "latency_p99": 0.00014342583948746308,
+      "metadata": {
+        "total_operations": 50,
+        "avg_latency": 9.927446255460382e-05,
+        "system_load": 0.4765625
+      }
+    },
+    {
+      "test_name": "memory_allocation_patterns",
+      "duration": 1.0471107999328524,
+      "throughput": 95.50087727718275,
+      "memory_usage": {
+        "used_mb": -11.22265625,
+        "peak_mb": 0.8599853515625,
+        "current_mb": 0.033359527587890625,
+        "objects_created": 12
+      },
+      "cpu_usage": 3.5,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 0.010331659985240549,
+      "latency_p95": 0.01062593124806881,
+      "latency_p99": 0.011494186443742366,
+      "metadata": {
+        "total_operations": 100,
+        "avg_latency": 0.010384123874828219,
+        "system_load": 0.4765625
+      }
+    },
+    {
+      "test_name": "garbage_collection_efficiency",
+      "duration": 0.39245056500658393,
+      "throughput": 127.4045815150277,
+      "memory_usage": {
+        "used_mb": 0.27734375,
+        "peak_mb": 0.8601226806640625,
+        "current_mb": 0.034214019775390625,
+        "objects_created": 199
+      },
+      "cpu_usage": 9.65,
+      "success_rate": 100.0,
+      "error_count": 0,
+      "latency_p50": 0.007665463490411639,
+      "latency_p95": 0.0077720933826640245,
+      "latency_p99": 0.007856441341573372,
+      "metadata": {
+        "total_operations": 50,
+        "avg_latency": 0.00767408549785614,
+        "system_load": 0.4765625
+      }
+    }
+  ],
+  "summary": {
+    "total_throughput_ops_per_sec": 804198.1299210811,
+    "average_latency_ms": 8.738156935820976,
+    "average_success_rate_percent": 93.06666666666666,
+    "total_memory_used_mb": -9.734375,
+    "fastest_test": "circuit_breaker_normal",
+    "highest_throughput_test": "circuit_breaker_normal",
+    "performance_grade": "A (Very Good)"
+  },
+  "recommendations": [
+    "Consider throughput optimization for: memory_intensive_load",
+    "Implement connection pooling for database operations",
+    "Consider implementing Redis for distributed caching",
+    "Add monitoring for circuit breaker metrics",
+    "Implement gradual retry backoff strategies",
+    "Consider horizontal scaling for high-load scenarios"
+  ],
+  "performance_baseline": {
+    "baseline_metrics": {
+      "min_throughput_ops_per_sec": 9.976396571062432,
+      "max_acceptable_latency_ms": 200.85301106446423,
+      "max_memory_usage_mb": 6.547649383544922,
+      "min_success_rate_percent": 2.0
+    },
+    "sla_targets": {
+      "target_throughput_ops_per_sec": 42890.56692912433,
+      "target_latency_p95_ms": 35.06629285123199,
+      "target_success_rate_percent": 99.5,
+      "max_memory_growth_percent": 20
+    },
+    "alert_thresholds": {
+      "throughput_degradation_percent": 30,
+      "latency_spike_multiplier": 2.0,
+      "memory_leak_mb_per_hour": 50,
+      "error_rate_percent": 5.0
+    }
+  }
+}

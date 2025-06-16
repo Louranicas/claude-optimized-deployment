@@ -23,19 +23,26 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-# Core dependencies - minimal memory footprint
+# Core dependencies - minimal memory footprint with MCP support
 dependencies = [
     # Core Python support
     "python-dotenv>=1.0.0",
     
+    # MCP Framework - Core packages for server implementation
+    "mcp>=1.1.0",
+    "mcp-server>=1.1.0",
+    
     # HTTP client - consolidated to httpx only (replaces aiohttp, requests, httplib2)
     "httpx[http2]>=0.26.0",
     "aiofiles>=23.0.0",
+    "websockets>=12.0",
     
     # API Framework
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "starlette>=0.36.0",
     
     # Database - core only
     "sqlalchemy[asyncio]>=2.0.0",
@@ -44,20 +51,86 @@ dependencies = [
     # Essential utilities
     "click>=8.1.0",
     "rich>=13.7.0",
+    "typer>=0.9.0",
     "tenacity>=8.2.0",
     
     # Logging - essential only
     "structlog>=24.1.0",
+    "colorama>=0.4.6",
     
-    # Security - consolidated
-    "cryptography>=42.0.0",
-    "pyjwt[crypto]>=2.8.0",
+    # Security - consolidated with security fixes
+    "cryptography>=45.0.3",
+    "pyjwt[crypto]>=2.10.1",
     
-    # Serialization - JSON only by default, YAML optional
-    "pyyaml>=6.0.0",
+    # Serialization and Configuration
+    "pyyaml>=6.0.2",
+    "orjson>=3.9.0",
+    
+    # Performance and Caching
+    "lru-dict>=1.3.0",
+    "cachetools>=5.3.0",
+    
+    # Date and Time utilities
+    "python-dateutil>=2.8.2",
+    "humanize>=4.9.0",
 ]
 
 [project.optional-dependencies]
+# MCP Server-specific dependencies
+mcp_servers = [
+    "psutil>=5.9.0",
+    "sh>=2.0.0",
+    "plumbum>=1.8.2",
+    "paramiko>=3.4.0",
+    "fabric>=3.2.0",
+    "scikit-learn>=1.4.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "coverage>=7.4.0",
+    "bandit>=1.7.0",
+    "pylint>=3.0.0",
+    "aiosqlite>=0.19.0",
+    "asyncpg>=0.29.0",
+    "redis[hiredis]>=5.0.0",
+]
+
+# MCP Testing framework
+mcp_testing = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-timeout>=2.1.0",
+    "pytest-benchmark>=4.0.0",
+    "factory-boy>=3.3.0",
+    "faker>=22.0.0",
+    "freezegun>=1.4.0",
+    "respx>=0.21.0",
+    "testcontainers>=3.7.0",
+    "hypothesis>=6.96.0",
+    "locust>=2.24.0",
+]
+
+# MCP Development tools
+mcp_dev = [
+    "black>=24.1.0",
+    "isort>=5.13.0",
+    "ruff>=0.1.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+    "ipython>=8.20.0",
+    "ipdb>=0.13.0",
+    "jupyter>=1.0.0",
+    "line-profiler>=4.1.0",
+    "memory-profiler>=0.61.0",
+    "pip-tools>=7.3.0",
+    "safety>=3.0.0",
+    "pip-audit>=2.6.0",
+    "sphinx>=7.2.0",
+    "mkdocs>=1.5.0",
+]
+
 # Infrastructure tools (heavy dependencies)
 infrastructure = [
     "terraform>=1.5.0",
@@ -128,7 +201,8 @@ dev = [
     "mypy>=1.8.0",
     "pre-commit>=3.6.0",
     "bandit>=1.7.0",
-    "safety>=2.3.0",
+    "safety>=3.0.0",
+    "pip-audit>=2.6.0",
 ]
 
 # Rust integration
@@ -139,7 +213,7 @@ rust = [
 
 # Full installation (all optional dependencies)
 all = [
-    "claude-optimized-deployment[infrastructure,cloud,ai,database,monitoring,data,dev,rust]"
+    "claude-optimized-deployment[mcp_servers,mcp_testing,mcp_dev,infrastructure,cloud,ai,database,monitoring,data,dev,rust]"
 ]
 
 [project.urls]

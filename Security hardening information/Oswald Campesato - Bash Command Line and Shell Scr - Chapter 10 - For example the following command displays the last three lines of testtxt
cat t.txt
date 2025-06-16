@@ -1,0 +1,130 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 10 - For example, the following command displays the last three lines of test.txt:
+cat test.txt |tail -3
+The following command also displays the last three lines of test.txt:
+tail -3 test.txt
+You can display the last three lines of multiple files. The following command displays the last three lines in the text file columns2.txt, columns3.txt, and columns4.txt:
+tail -3 columns[2-4].txt
+The output of the preceding command is here:
+==> columns2.txt <==
+five six
+one two three
+four five
+Security Relevance Score: 2
+Word Count: 1000
+Extracted: 2025-06-13 23:40:50
+
+---
+
+For example, the following command displays the last three lines of test.txt:
+cat test.txt |tail -3
+The following command also displays the last three lines of test.txt:
+tail -3 test.txt
+You can display the last three lines of multiple files. The following command displays the last three lines in the text file columns2.txt, columns3.txt, and columns4.txt:
+tail -3 columns[2-4].txt
+The output of the preceding command is here:
+==> columns2.txt <==
+five six
+one two three
+four five
+
+==> columns3.txt <==
+five 123 six
+one two three
+four five
+
+==> columns4.txt <==
+five 123 six
+one two three
+four five
+The following code snippet checks if the first line of test.txt contains the string aa:
+x=`cat test.txt |tail -1|grep aa`
+if [ "$x" != "" ]
+   echo "found aa in the test.txt"
+fi
+The following command displays three values:
+tail iphonemeetup.txt |wc
+10     26     192
+The first number in both output listings is 10, which confirms that only the first 10 lines or the final ten lines are displayed. Note that if a file contains 10 or fewer lines, then the output of head, tail, cat, and more is identical.
+You can change the number of lines that you want to see in the output of the head command or the tail command. For example, the command displays three lines:
+$ head -3 iphonemeetup.txt
+iPhone meetup
+=============
+* iPhone.WebDev.com
+The next command the last three lines:
+$ tail -3 iphonemeetup.txt
+* Bezier curves
+* Urbanspoon vs Yelp
+The tail command with the –f option is useful when you have a long-running process that is redirecting output to a file. For example, suppose that you invoke this command from your home directory:
+find . –print |xargs grep –i abc </tmp/abc &
+Invoke the following command to see the contents of the file /tmp/abc whenever it is updated:
+tail –f /tmp/abc
+COMPARING FILE CONTENTS
+There are several commands for comparing text files, such as the cmp command and the diff command.
+The cmp command is a simpler version of the diff command: diff reports the differences between two files, whereas cmp only shows at what point they differ.
+NOTE
+Both diff and cmp return an exit status of 0 if the compared files are identical, and 1 if the files are different, so you can use both commands in a test construct within a shell script.
+The comm command is useful for comparing sorted files:
+comm –options first-file second-file
+The command comm file1 file2 outputs three columns:
+column 1 = lines unique to file1
+column 2 = lines unique to file2
+column 3 = lines common to both.
+The options allow the suppressing of the output of one or more columns.
+-1 suppresses column 1
+-2 suppresses column 2
+-3 suppresses column 3
+-12 suppresses both columns 1 and 2, etc.
+The comm command is useful for comparing “dictionaries” or word lists containing sorted text files with one word per line.
+THE PARTS OF A FILENAME
+The basename command “strips” the path information from a filename, printing only the filename. The construction basename $0 is the name of the currently executing script. This functionality can be used for “usage” messages if, for example, a script is called with missing arguments:
+echo "Usage: 'basename $0' arg1 arg2 ... argn"
+The dirname command strips the basename from a filename, printing only the path information.
+NOTE
+Basename and dirname can operate on any arbitrary string. The argument does not need to refer to an existing file, or even be a filename.
+The strings command displays printable strings (if any) in a binary or data file. An example invocation is here:
+strings /bin/ls
+The first few lines of output from the preceding command are here:
+$FreeBSD: src/bin/ls/cmp.c,v 1.12 2002/06/30 05:13:54
+obrien Exp $
+@(#) Copyright (c) 1989, 1993, 1994
+The Regents of the University of California. All
+rights reserved.
+$FreeBSD: src/bin/ls/ls.c,v 1.66 2002/09/21 01:28:36
+wollman Exp $
+$FreeBSD: src/bin/ls/print.c,v 1.57 2002/08/29
+14:29:09 keramida Exp $
+$FreeBSD: src/bin/ls/util.c,v 1.38 2005/06/03
+11:05:58 dd Exp $
+\\""
+@(#)PROGRAM:ls PROJECT:file_cmds-264.50.1
+COLUMNS
+1@ABCFGHLOPRSTUWabcdefghiklmnopqrstuvwx
+bin/ls
+Unix2003
+WORKING WITH FILE PERMISSIONS
+In a previous section, you used the touch command to create an empty file abc and then saw its long listing:
+-rw-r--r-- 1 owner staff 0 Nov 2 17:12 abc
+Each file in bash contains a set of permissions for three different user groups: the owner, the group, and the world. The set of permissions are read, write, and execute that they have value 4, 2, and 1, respectively, in base 8 (octal). Thus, the permissions for a file in each group can have the following values: 0 (none), 1 (execute), 2 (write), 4 (read), 5 (read and execute), 6 (read and write), and 7 (read, write, and execute).
+For example, a file whose permissions are 755 indicate:
+Owner has read/write/execute permissions
+Group has write/execute permissions
+World has write/execute permissions
+You can use various options with the chmod command to change permissions for a file.
+The chmod Command
+The chmod command enables you to change permissions for files and directories. The octal representation 777 corresponds to the permissions rwxrwxrwx, which enables read, write, and execute for all three groups. The octal representation 644 corresponds to the permissions rw-r—r—.
+The following command makes “filename” executable for all users:
+chmod +x filename
+Note that the following command makes a file executable only for the owner of the file:
+chmod u+x filename
+The following command sets “suid” bit on “filename” permissions, which allows an ordinary user to execute “filename” with same privileges as the owner of the file (but is not applicable to shell scripts):
+chmod u+s filename
+The following command makes filename readable/writable to the owner and only readable to group and others:
+chmod 644 filename
+The following command makes “filename” read-only for everyone:
+chmod 444 filename
+Provide everyone with read, write, and execute permission in the directory (and also sets the “sticky bit”):
+chmod 1777 directory-name
+Revoke all permissions for a directory (but no restrictions are enforced on the root user):
+chmod 000 directory-name

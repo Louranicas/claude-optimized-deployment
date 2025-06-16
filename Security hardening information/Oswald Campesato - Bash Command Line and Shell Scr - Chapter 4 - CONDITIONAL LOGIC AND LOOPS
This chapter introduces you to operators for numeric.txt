@@ -1,0 +1,459 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 4 - CONDITIONAL LOGIC AND LOOPS
+This chapter introduces you to operators (for numeric data and string variables), conditional logic (if/else/fi), and several types of loops (for, while, and until) in bash.
+The first part of this chapter shows you how to perform arithmetic operations and the operators that are available for doing so. You will also see how to assign values to variables, and then how to read user input in a shell script.
+The second portion of this chapter shows you how to use the test command for variables, files, and directories (such as determining if two variables are equal). You will learn how to use various relational, Boolean, and string operators.
+The third section introduces conditional logic (if/else/fi), the case/esac switch statement, along with for loops, nested for loops, while loops, and until loops. You will also learn how to define your own custom functions in shell scripts.
+The final section shows you how to work with arrays in bash, which includes examples of iterating through array elements and updating their contents.
+QUICK OVERVIEW OF OPERATORS IN BASH
+The bash shell supports the following operators, each of which is discussed in greater detail in this chapter:
+Arithmetic Operators
+String Operators
+File Test Operators
+Boolean Operators
+The expr command is often used to perform arithmetic operations (add, subtract, multiply, or divide) on numeric values.
+Arithmetic operators enable you to compare pairs of numbers and pairs of strings. The operators for comparing numbers include –eq, –lt, and –gt for comparing equality, less than and greater than, respectively. On the other hand, string operators for comparing strings include ==, <, and > for comparing equality, less than and greater than, respectively.
+Some file-related operators that are available in bash include –f, –d, –e for checking if a filename is a file, a directory, or checking for the existence of a file, respectively.
+Boolean operators (also called logical operators) in bash are –a, –o, ! for the AND operation, OR operation, and negation, respectively.
+ARITHMETIC OPERATIONS AND OPERATORS
+Arithmetic operators include +, -, *, and /, in order to add, subtract, divide and multiply two numbers, respectively. The % operator is the modulus operator, which returns the remainder of the division of two numbers. Use the = operator to assign a value to an operand, == to test if two operands are equal, and != to test if two operands are unequal.
+Arithmetic in POSIX shells is performed with $ and double parentheses, as shown here:
+echo "$(($num1+$num2))"
+In addition, you can use command substitution to assign the result of an arithmetic operation to a variable:
+num1=3
+num2=5
+x='echo "$(($num1+$num2))"'
+A simpler alternative to the preceding code snippet involves the expr command, which is discussed in the next section.
+The expr Command
+The previous section shows you how to add two numbers using double parentheses; another technique uses the expr command, as shown here:
+expr $num1 + $num2
+As you probably expect, the expr command supports arithmetic operations involving hard-coded numbers, as shown in the following example that adds two numbers:
+sum=`expr 2 + 2`
+echo "The sum: $sum"
+This would produce the following result:
+The sum: 4
+Keep in mind that spaces are required between operators and expressions (so 2+2 is incorrect), and expressions must be inside “backtick” characters (also called inverted commas).
+An interesting use of the expr command is for finding the length of a string, as shown here:
+x="abc"
+echo `expr "$x" : ‘.*’`
+3
+echo ${#x}
+3
+echo `expr "$x" : ‘.*’`
+3
+Arithmetic Operators
+The bash shell supports the arithmetic operations addition, subtraction, multiplication, and division via the operators +, -, *, and /, respectively. The following example illustrates these operations.
+x=15
+y=4
+Security Relevance Score: 2
+Word Count: 3731
+Extracted: 2025-06-13 23:40:50
+
+---
+
+CONDITIONAL LOGIC AND LOOPS
+This chapter introduces you to operators (for numeric data and string variables), conditional logic (if/else/fi), and several types of loops (for, while, and until) in bash.
+The first part of this chapter shows you how to perform arithmetic operations and the operators that are available for doing so. You will also see how to assign values to variables, and then how to read user input in a shell script.
+The second portion of this chapter shows you how to use the test command for variables, files, and directories (such as determining if two variables are equal). You will learn how to use various relational, Boolean, and string operators.
+The third section introduces conditional logic (if/else/fi), the case/esac switch statement, along with for loops, nested for loops, while loops, and until loops. You will also learn how to define your own custom functions in shell scripts.
+The final section shows you how to work with arrays in bash, which includes examples of iterating through array elements and updating their contents.
+QUICK OVERVIEW OF OPERATORS IN BASH
+The bash shell supports the following operators, each of which is discussed in greater detail in this chapter:
+Arithmetic Operators
+String Operators
+File Test Operators
+Boolean Operators
+The expr command is often used to perform arithmetic operations (add, subtract, multiply, or divide) on numeric values.
+Arithmetic operators enable you to compare pairs of numbers and pairs of strings. The operators for comparing numbers include –eq, –lt, and –gt for comparing equality, less than and greater than, respectively. On the other hand, string operators for comparing strings include ==, <, and > for comparing equality, less than and greater than, respectively.
+Some file-related operators that are available in bash include –f, –d, –e for checking if a filename is a file, a directory, or checking for the existence of a file, respectively.
+Boolean operators (also called logical operators) in bash are –a, –o, ! for the AND operation, OR operation, and negation, respectively.
+ARITHMETIC OPERATIONS AND OPERATORS
+Arithmetic operators include +, -, *, and /, in order to add, subtract, divide and multiply two numbers, respectively. The % operator is the modulus operator, which returns the remainder of the division of two numbers. Use the = operator to assign a value to an operand, == to test if two operands are equal, and != to test if two operands are unequal.
+Arithmetic in POSIX shells is performed with $ and double parentheses, as shown here:
+echo "$(($num1+$num2))"
+In addition, you can use command substitution to assign the result of an arithmetic operation to a variable:
+num1=3
+num2=5
+x='echo "$(($num1+$num2))"'
+A simpler alternative to the preceding code snippet involves the expr command, which is discussed in the next section.
+The expr Command
+The previous section shows you how to add two numbers using double parentheses; another technique uses the expr command, as shown here:
+expr $num1 + $num2
+As you probably expect, the expr command supports arithmetic operations involving hard-coded numbers, as shown in the following example that adds two numbers:
+sum=`expr 2 + 2`
+echo "The sum: $sum"
+This would produce the following result:
+The sum: 4
+Keep in mind that spaces are required between operators and expressions (so 2+2 is incorrect), and expressions must be inside “backtick” characters (also called inverted commas).
+An interesting use of the expr command is for finding the length of a string, as shown here:
+x="abc"
+echo `expr "$x" : ‘.*’`
+3
+echo ${#x}
+3
+echo `expr "$x" : ‘.*’`
+3
+Arithmetic Operators
+The bash shell supports the arithmetic operations addition, subtraction, multiplication, and division via the operators +, -, *, and /, respectively. The following example illustrates these operations.
+x=15
+y=4
+
+sum=`expr $x + $y`
+diff=`expr $x - $y`
+prod=`expr $x \* $y`
+div=`expr $x / $y`
+mod=`expr $x % $y`
+
+echo "sum = $sum"
+echo "difference = $diff"
+echo "product = $prod"
+echo "quotient = $div"
+echo "modulus = $mod"
+Here are some examples (assume that x and y have numeric values) of the equality (“==”) and inequality (“!=”) operators:
+[ $x == $y ] returns false
+[ $x != $y ] returns true
+Note the required spaces in the preceding expressions. All arithmetic calculations are done using long integers.
+Boolean and Numeric Operators
+Bash supports relational operators that are specific to numeric values: they will not work correctly for string values unless their value is numeric. Here is a list of some common operators:
+$a – eq $b checks if $a and $b are equal
+$a – ne $b checks if $a and $b are unequal
+$a – gt $b checks if $a is larger than $b
+$a – lt $b checks if $a is smaller than $b
+$a – ge $b checks if $a is larger or equal to $b
+$a – ge $b checks if $a is smaller than or equal to $b
+Note that the preceding expressions are written inside a pair of square brackets with spaces on both sides: [ $a –eq $b ], [ $a –ne $b ], and so forth.
+Compound Operators and Numeric Operators
+Suppose that a equals 5 and variable b equals 15 in the following examples:
+[ ! false ] is true
+-o If one operand is true then the condition is true:
+[ $a -lt 20 -o $b -gt 100 ] is true
+-a If both operands are true then the condition is true (otherwise it is false):
+[ $a -lt 20 -a $b -gt 100 ] is false
+! The not operator reverses the value of the condition
+\( ... \) Group expressions by enclosing them within \( and \)
+Logical conditions and other tests are usually enclosed in square brackets []. Note that there is a space between square brackets and operands. It will show an error if no space is provided. An example of a valid syntax is as follows:
+[ $var -eq 0 ]
+Performing arithmetic conditions on variables or values can be done as follows:
+[ $var -eq 0 ] # true when $var equal to 0
+[ $var -ne 0 ] # true when $var differs from 0
+You can also combine the preceding operators with –a (“AND”) or –o (“OR”) to specify compound test conditions, as shown here:
+[ $var1 -ne 0 -a $var2 -gt 2 ]
+[ $var1 -ne 0 -o $var2 -gt 2 ]
+The test command performs condition checks and also reduces the number of brackets. The same set of test conditions enclosed within [] can be used for the test command, as shown here:
+if [ $var -eq 0 ]; then echo "True"; fi
+can be written as
+if test $var -eq 0 ; then echo "True"; fi
+WORKING WITH VARIABLES
+You already saw some example of variables in bash, and this section provides information about how to assign values to variables. You will also see how to use conditional logic to test the values of variables.
+Always remember that bash variables do not have any type-related information, which means that no distinction is made between a number and a string (similar to JavaScript). However, you will get an error message if you attempt to perform arithmetic operations on non-numeric values in bash (which is not always the case in JavaScript).
+Assigning Values to Variables
+This section contains some simple examples of assigning values to variables with double quotes and single quotes:
+x="abc"
+y="123"
+echo "x = $x and y = ${y}"
+echo "xy = $x$y"
+echo "double and single quotes: $x" '$x'
+The preceding code block results in the following output:
+x = abc and y = 123
+xy = abc123
+double and single quotes: abc $x
+Make sure that you do not insert any whitespace between a variable and its value. For example, if you type the following command:
+z = "abc"
+You will see the following output:
+-bash: z: command not found
+On the other hand, you can insert whitespace between text strings and variables in the echo command, as you saw in the previous code block.
+One more thing to keep in mind: the following syntax is invalid because the variable y is preceded by the $ symbol:
+$y=3
+-bash: =3: command not found
+Listing 4.1 displays the contents of variable-operations.sh that illustrates how to assign variables with different values and how to update them.
+Listing 4.1: variable-operations.sh
+#length of myvar:
+myvar=123456789101112
+echo ${#myvar}
+
+#print last 5 characters of myvar:
+echo ${myvar: -5}
+
+#10 if myvar was not assigned
+echo ${myvar:-10}
+
+#last 10 symbols of myvar
+echo ${myvar: -10}
+
+#substitute part of string with echo:
+echo ${myvar//123/999}
+
+#add integers a to b and assign to c:
+a=5
+b=7
+c=$((a+b))
+echo "a: $a b: $b c: $c"
+
+# other ways to calculate c:
+c='expr $a + $b'
+echo "c: $c"
+c='echo "$a+$b"|bc'
+echo "c: $c"
+Launch the code in Listing 4.1 and you will see the
+following output:
+15
+01112
+123456789101112
+6789101112
+999456789101112
+a: 5 b: 7 c: 12
+The read Command for User Input
+The following statement is the syntax for reading characters from input into the variable myvar:
+read -n number_of_chars myvar
+For example, the following code snippet reads two characters from the command line (in the form of user input) and then displays those two characters:
+$ read -n 2 var
+echo "var: $var"
+Various other options are possible with the read command. For example, the following command reads a password in non-echoed mode:
+read -s var Display a message with read using:
+read -p "Enter input:"   var
+BOOLEAN OPERATORS AND STRING OPERATORS
+There are various operators in bash for testing string variables and combining those operators with Boolean operators. Suppose that the variables x and y have the values “abc” and "efg", respectively:
+[ $x = $y ] is false
+[$x != $y ] is true
+[ -z $x ]     is false because $a has non-zero length
+[ -n $x ]     is true because $a has non-zero length
+[ $x ]          is false because $x is a non-empty string
+You can also combine the preceding operators to form compound statements, similar to the compound statements in the previous section.
+Keep in mind that the “==” operator is for string comparisons, whereas “-eq” is for numeric tests and numeric comparisons. You can also determine whether or not a string has non-zero length, as shown here:
+-n s1 String s1 has nonzero length
+-z s1 String s1 has zero length
+When you perform string comparison, use double square brackets because single brackets can sometimes lead to errors.
+Two strings can be compared to determine whether they are the same as follows:
+[[ $str1 = $str2 ]]: true when str1 equals str2
+[[ $str1 == $str2 ]]: alternative method for string equality check
+We can check whether two strings are not the same as follows:
+[[ $str1 != $str2 ]]: true when str1 and str2 mismatches
+We can find out the alphabetically smaller or larger string as follows:
+[[ $str1 > $str2 ]]: true when str1 is alphabetically greater than str2
+[[ $str1 < $str2 ]]: true when str1 is alphabetically lesser than str2
+[[ -z $str1 ]]: true if str1 holds an empty string
+[[ -n $str1 ]]: true if strl holds a non-empty string
+Compound Operators and String Operators
+Combine multiple string-related conditions using the logical operators && and || as follows:
+if [[ -n $str1 ]] && [[ -z $str2 ]] ;
+then
+  Checks if file descriptor is open and associatedcommands;
+fi
+For example:
+str1="Not empty "
+str2=""
+if [[ -n $str1 ]] && [[ -z $str2 ]];
+then
+   echo str1 is non-empty and str2 is empty string.
+fi
+The output is as follows:
+str1 is non-empty and str2 is empty string.
+Sometimes you will see bash scripts (such as installation-related shell scripts) that contain compound expressions to perform multiple operations. In particular, the && operator is used to “connect” multiple commands that executed sequentially (in a left-to-right fashion). Each command in the sequence is executed only if all the preceding commands in the sequence executed successfully. If the current command (in a sequence) does not execute successfully, the remaining commands (if any) that appear on the right-side of the failed command will not be executed.
+For example, the following code block uses the && operator to first create a directory, then cd into that directory, and then display a message:
+OLDDIR='pwd'
+cd /tmp
+CURRDIR='pwd'
+echo "current directory: $CURRDIR"
+mydir="/tmp/abc/def"
+mkdir -p $mydir && cd $mydir && echo "now inside
+$mydir"
+newdir='pwd'
+echo "new directory: $newdir"
+echo "new directory: 'pwd'"
+cd $OLDDIR
+echo "current directory: 'pwd'"
+At this point you are familiar with all the bash commands in the preceding code block: try to predict the output before you launch the preceding code block (were you correct)?
+FILE TEST OPERATORS
+Bash shell supports numerous operators to test various properties of files. Suppose that the variable file is a non-empty text file that has read, write, and execute permissions:
+-b file Checks if file is a block special file
+-c file Checks if file is a character special file
+-d file Checks if file is a directory
+-e file Checks if file exists
+-f file Checks if file is an ordinary file
+-g file Checks if file has its set group ID (SGID) bit set
+-k file Checks if file has its sticky bit set
+-p file Checks if file is a named pipe
+-t file Checks if file descriptor is open and associated with a terminal
+-u file Checks if file has its set user id (SUID) bit set
+-r file Checks if file is readable
+-w file Checks if file is writeable
+-x file Checks if file is executable
+-s file Checks if file has size greater than 0
+-e file Checks if file exists
+f1 -nt f2 File f1 is newer than file f2
+f1 -ot f2 File f1 is older than file f2
+-u file Checks if file has its set user id (SUID) bit set
+-r file Checks if file is readable
+-w file Checks if file is writeable
+-x file Checks if file is executable
+-s file Checks if file has size greater than 0
+-e file Checks if file exists
+f1 -nt f2 File f1 is newer than file f2
+f1 -ot f2 File f1 is older than file f2
+An example of testing for the existence of a file with the –e option is shown here:
+fpath="/etc/passwd"
+if [ -e $fpath ]; then
+   echo File exists;
+else
+   echo Does not exist;
+fi
+Compound Operators and File Operators
+Combine Boolean operators and file-related operators with the && (“AND”) operator or the || (“OR”) operators. The following example checks if a file exists and also if it has write permissions:
+fpath="/tmp/somedata"
+
+if [ -e $fpath ] && [ – w $fpath ]
+then
+  echo "File $fpath exists and is writable"
+else
+  if [ ! -e $fpath ]
+  then
+    echo "File $fpath does not exist "
+else
+    echo "File $fpath exists but is not writable"
+  fi
+fi
+Notice the use of the && operator in the first if statement in the preceding code block. The following syntax is incorrect because there are two consecutive operators and the bash shell will not interpret the syntax correctly:
+if [ -e $fpath -a –w $fpath ]
+Notice that compound operators with string operators also use the && or the || operators:
+if [[ -n $str1 ]] && [[ -z $str2 ]] ;
+However, compound operators with numeric operators do not require the && or the || operators, as shown here:
+[ $a -lt 20 -a $b -gt 100 ]
+CONDITIONAL LOGIC WITH IF/ELSE/FI STATEMENTS
+Bash supports conditional logic, but with a slightly different syntax from other programming languages. The following example shows you how to use an if/else/if statement in bash that prints one message if the variable x (which is initialized with the value 25) is less than 30 and a different message if the value of x is not less than 30:
+x=25
+if [ $x -lt 30 ]
+then
+   echo "x is less than 30"
+else
+   echo "x is at least 30"
+fi
+Listing 4.2 displays the contents of the shell script testvars.sh that checks if the variable x is defined.
+Listing 4.2: testvars.sh
+x="abc"
+
+if [ -n "$x" ]
+then
+   echo "x is defined: $x"
+else
+   echo "x is not defined"
+fi
+Listing 4.2 initializes the variable x with the value abc, and then uses the if/else/fi construct to determine whether or not x is initialized, and also print an appropriate message. Launch the shell script in Listing 4.2 and you will see the following output:
+x is defined: abc
+Listing 4.3 displays the contents of the shell script testvars2.sh that checks if the variable y is undefined.
+Listing 4.3: testvars2.sh
+if [ -z "$y" ]
+then
+   y="def"
+   echo "y is defined: $y"
+else
+   echo "y is defined: $y"
+fi
+Listing 4.3 first checks whether or not the variable y defined, and since it is not defined, the following two statements are executed in order to initialize y and then print a message:
+y="def"
+echo "y is defined: $y"
+Launch the shell script in Listing 4.3 and you will see the following output:
+y is defined: def
+THE CASE/ESAC STATEMENT
+The case/esac statement is the counterpart to a switch statement in other programming languages. This statement allows you to test various conditions that can include metacharacters. A common scenario involves testing user input: you can check if users entered a string that starts with an upper case or lower case “n” (for no) as well as “y” (for yes).
+Listing 4.4 displays the contents of case1.sh that checks various conditions in a case/esac statement.
+Listing 4.4: case1.sh
+x="abc"
+
+case $x in
+  a) echo "x is an a" ;;
+  c) echo "x is a c" ;;
+  a*) echo "x starts with a" ;;
+  *) echo "no matches occurred" ;;
+esac
+Listing 4.4 starts by initializing the variable x with the value abc, followed by the case keyword which checks various conditions. As you can see, x matches the third condition, which is true because the value of x starts with the letter a. Now launch the shell script in Listing 4.4 and you will see the following output:
+x starts with a
+Listing 4.5 shows you how to prompt users for an input string and then process that input via a case/esac statement.
+Listing 4.5: UserInfo.sh
+echo -n "Please enter your first name: "
+read fname
+echo -n "Please enter your last name: "
+read lname
+echo -n "Please enter your city: "
+read city
+
+fullname="$fname $lname"
+echo "$fullname lives in $city"
+
+case $city in
+  San*) echo "$fullname lives in California " ;;
+  Chicago) echo "$fullname lives in the Windy City "
+;;
+  *) echo "$fname lives in la-la land " ;;
+esac
+Listing 4.5 starts by prompting users for their first name, last name and city and then assigning those values to the variables fname, lname and city, respectively. Next, the variable fullname is defined as the concatenation of the values of fname and lname.
+The next portion of Listing 4.5 is the case keyword that checks if the city variable starts with the string San or if the city variable equals Chicago. The third option is the default option, which is true if both of the preceding conditions are false.
+Listing 4.6 displays the contents of StartChar.sh that checks the type of the first character of a user-provided string.
+Listing 4.6: StartChar.sh
+while (true)
+do
+  echo -n "Enter a string: "
+  read var
+
+  case ${var:0:1} in
+  [0-9]*) echo "$var starts with a digit" ;;
+  [A-Z]*) echo "$var starts with an uppercase letter"
+;;
+  [a-z]*) echo "$var starts with a lowercase letter"
+;;
+    *) echo "$var starts with another symbol" ;;
+  esac
+done
+Listing 4.6 starts by prompting users for a string and then initializes the variable var with that input string.
+The next portion of Listing 4.6 is the case keyword that checks if the variable var starts with 0 or more digits, upper case letters, or lower case letters, and then displays an appropriate message. The default condition is executed if none of the preceding conditions is true.
+Listing 4.7 displays the contents of StartChar2.sh that checks the type of the first pair of characters of a user-provided string.
+Listing 4.7: StartChar2.sh
+while (true)
+do
+  echo -n "Enter a string: "
+  read var
+
+  case ${var:0:2} in
+  [0-9][0-9]) echo "$var starts with to digit" ;;
+  [A-Z][A-Z]) echo "$var starts with two uppercase letters" ;;
+  [a-z][a-z]) echo "$var starts with two lowercase letters" ;;
+      *) echo "$var starts with another pattern" ;;
+  esac
+done
+Listing 4.7 starts with a while loop whose contents are identical to the contents of Listing 4.6, and you can read the preceding section for an explanation of the code. The only difference is that this code sample repeats indefinitely, and you can press ctrl-c to terminate the execution of the shell script.
+Listing 4.8 displays the contents of StartChar3.sh that checks the type of the first character of a user-provided string.
+Listing 4.8: StartChar3.sh
+while (true)
+do
+  echo -n "Enter a string: "
+  read var
+
+   case ${var:0:1} in
+    [0-9]*) echo "$var starts with a digit" ;;
+    [[:upper:]]) echo "$var starts with a uppercase letter" ;;
+    [[:lower:]]) echo "$var starts with a lowercase letter" ;;
+      *) echo "$var starts with another symbol" ;;
+   esac
+done
+Listing 4.8 also starts with a while loop that contains a case/esac statement. However, in this example, the conditions involve zero or more digits, upper case letters, and lower case letters. In addition, this code sample also repeats indefinitely, and you can press ctrl-c to terminate the execution of the shell script.
+WORKING WITH STRINGS IN SHELL SCRIPTS
+Notice the “curly brackets” syntax in the second code snippet. Listing 4.9 displays the contents of substrings.sh that illustrates examples of the “curly brackets” syntax in order to find substrings of a given string.
+Listing 4.9: substrings.sh
+x="abcdefghij"
+echo ${x:0}
+echo ${x:1}
+echo ${x:5}
+echo ${x:7:3}
+
+echo ${x:-4}
+echo ${x:(-4)}
+echo ${x: -4}
+The output from the preceding echo statements is here:
+abcdefghij
+bcdefghij
+fghij
+hij
+abcdefghij
+ghij
+ghij
+Listing 4.9 initializes the variable x as abcdefghij, followed by three echo statements that display substrings of the variable x, starting from index 0, 1, and 5, respectively. The fourth echo statement displays the substring of x that starts from column 7 and has length

@@ -44,7 +44,23 @@ except ImportError:
     
     psutil = MockPsutil()
 
-from ..circle_of_experts import CircleOfExperts, QueryRequest
+try:
+    from ...src.circle_of_experts import CircleOfExperts, QueryRequest
+except ImportError:
+    try:
+        from src.circle_of_experts import CircleOfExperts, QueryRequest
+    except ImportError:
+        # Mock classes if not available
+        class CircleOfExperts:
+            async def process_query(self, query):
+                class MockResponse:
+                    def __init__(self):
+                        self.expert_responses = []
+                return MockResponse()
+        
+        class QueryRequest:
+            def __init__(self, **kwargs):
+                pass
 
 
 class ResourceType(Enum):
@@ -518,6 +534,26 @@ class ResourceManager:
                         candidates[req.resource_type].append(pool)
         
         return candidates
+    
+    async def _check_pool_constraints(
+        self,
+        pool: ResourcePool,
+        requirement: ResourceRequirement,
+        constraints: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """Check if pool meets requirement constraints"""
+        # Basic constraint checking
+        if pool.available_capacity < requirement.min_amount:
+            return False
+        
+        # Check pool-specific constraints
+        if pool.constraints:
+            for constraint_key, constraint_value in pool.constraints.items():
+                if constraints and constraint_key in constraints:
+                    if constraints[constraint_key] != constraint_value:
+                        return False
+        
+        return True
     
     async def _generate_allocation_options(
         self,

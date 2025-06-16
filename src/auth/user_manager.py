@@ -21,6 +21,24 @@ from .rbac import RBACManager
 from .permissions import PermissionChecker
 from ..core.exceptions import ValidationError, ConflictError, NotFoundError
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    AuthenticationError,
+    AuthorizationError,
+    ValidationError,
+    ResourceNotFoundError,
+    RateLimitError,
+    log_error
+)
+
+__all__ = [
+    "UserCreationRequest",
+    "PasswordResetRequest",
+    "UserManager"
+]
+
+
 
 @dataclass
 class UserCreationRequest:
@@ -31,6 +49,7 @@ class UserCreationRequest:
     roles: List[str] = None
     metadata: Dict[str, Any] = None
     
+    @handle_errors()
     def validate(self) -> None:
         """Validate user creation request."""
         # Username validation
@@ -66,6 +85,7 @@ class PasswordResetRequest:
     """Request for password reset."""
     email: str
     
+    @handle_errors()
     def validate(self) -> None:
         """Validate password reset request."""
         try:

@@ -1,0 +1,211 @@
+# OpenTelemetry Tracing Configuration
+tracing:
+  # Service configuration
+  service:
+    name: "claude-deployment-engine"
+    version: "${APP_VERSION:-1.0.0}"
+    environment: "${ENVIRONMENT:-development}"
+    namespace: "${SERVICE_NAMESPACE:-default}"
+  
+  # Sampling configuration
+  sampling:
+    # Basic sampling rate (0.0 to 1.0)
+    base_rate: 0.1
+    
+    # Custom sampling rules
+    custom_sampling:
+      enabled: true
+      
+      # Always sample these conditions
+      always_sample:
+        - errors: true
+        - slow_requests: true
+        - critical_users: true
+        - high_value_operations: true
+      
+      # Sampling rates by operation type
+      operation_rates:
+        api: 0.2
+        database: 0.1
+        cache: 0.05
+        external: 0.3
+        background: 0.01
+      
+      # Performance thresholds for sampling
+      thresholds:
+        slow_request_ms: 1000
+        slow_db_query_ms: 100
+        slow_cache_ms: 50
+        slow_external_ms: 2000
+  
+  # Exporter configuration
+  exporters:
+    # Primary exporter
+    primary: "multi"
+    
+    # Jaeger configuration
+    jaeger:
+      enabled: true
+      endpoint: "${JAEGER_ENDPOINT:-localhost:6831}"
+      agent_host: "${JAEGER_AGENT_HOST:-localhost}"
+      agent_port: "${JAEGER_AGENT_PORT:-6831}"
+      collector_endpoint: "${JAEGER_COLLECTOR_ENDPOINT:-}"
+      username: "${JAEGER_USERNAME:-}"
+      password: "${JAEGER_PASSWORD:-}"
+    
+    # Zipkin configuration
+    zipkin:
+      enabled: true
+      endpoint: "${ZIPKIN_ENDPOINT:-http://localhost:9411/api/v2/spans}"
+    
+    # OTLP configuration
+    otlp:
+      enabled: true
+      endpoint: "${OTLP_ENDPOINT:-localhost:4317}"
+      headers: "${OTLP_HEADERS:-}"
+      compression: "gzip"
+      timeout: 10
+    
+    # Console exporter (for development)
+    console:
+      enabled: "${TRACE_CONSOLE_ENABLED:-false}"
+  
+  # Instrumentation configuration
+  instrumentation:
+    # Auto-instrumentation settings
+    auto_instrument:
+      enabled: true
+      libraries:
+        - fastapi
+        - sqlalchemy
+        - redis
+        - requests
+        - aiohttp
+        - psycopg2
+    
+    # Custom attributes
+    custom_attributes:
+      service.team: "platform"
+      service.owner: "claude-team"
+      deployment.region: "${AWS_REGION:-us-east-1}"
+      deployment.zone: "${AVAILABILITY_ZONE:-us-east-1a}"
+    
+    # Performance thresholds
+    performance_thresholds:
+      api_slow_threshold_ms: 1000
+      db_slow_threshold_ms: 100
+      redis_slow_threshold_ms: 50
+      http_slow_threshold_ms: 2000
+  
+  # Resource configuration
+  resource:
+    attributes:
+      service.name: "${SERVICE_NAME:-claude-deployment-engine}"
+      service.version: "${APP_VERSION:-1.0.0}"
+      service.instance.id: "${INSTANCE_ID:-${HOSTNAME:-unknown}}"
+      deployment.environment: "${ENVIRONMENT:-development}"
+      host.name: "${HOSTNAME:-unknown}"
+      host.id: "${HOST_ID:-unknown}"
+      container.name: "${CONTAINER_NAME:-}"
+      container.id: "${CONTAINER_ID:-}"
+      k8s.namespace.name: "${K8S_NAMESPACE:-}"
+      k8s.pod.name: "${K8S_POD_NAME:-}"
+      k8s.deployment.name: "${K8S_DEPLOYMENT_NAME:-}"
+  
+  # SLI/SLO configuration
+  slos:
+    api_latency:
+      description: "API request latency"
+      threshold_ms: 500
+      target_percentage: 95.0
+      measurement_type: "latency"
+    
+    database_latency:
+      description: "Database query latency"
+      threshold_ms: 100
+      target_percentage: 99.0
+      measurement_type: "latency"
+    
+    external_service_latency:
+      description: "External service call latency"
+      threshold_ms: 2000
+      target_percentage: 90.0
+      measurement_type: "latency"
+    
+    error_rate:
+      description: "Error rate across all operations"
+      threshold: 0.01  # 1%
+      target_percentage: 99.0
+      measurement_type: "error_rate"
+  
+  # Alert configuration
+  alerts:
+    enabled: true
+    
+    rules:
+      - name: "high_avg_latency"
+        condition: "avg_latency_ms"
+        threshold: 1000
+        severity: "warning"
+        description: "Average latency exceeded 1 second"
+      
+      - name: "critical_p95_latency"
+        condition: "p95_latency_ms"
+        threshold: 2000
+        severity: "critical"
+        description: "95th percentile latency exceeded 2 seconds"
+      
+      - name: "high_error_rate"
+        condition: "error_rate"
+        threshold: 0.05  # 5%
+        severity: "critical"
+        description: "Error rate exceeded 5%"
+      
+      - name: "slo_violation"
+        condition: "slo_compliance"
+        threshold: 0.95  # Below 95%
+        severity: "warning"
+        description: "SLO compliance below target"
+  
+  # Business metrics configuration
+  business_metrics:
+    enabled: true
+    
+    # Track these business dimensions
+    dimensions:
+      - user_id
+      - tenant_id
+      - customer_tier
+      - feature_flags
+      - business_value
+      - operation_type
+    
+    # High-value operations (always sampled)
+    high_value_operations:
+      - payment_processing
+      - user_authentication
+      - data_export
+      - critical_api_calls
+    
+    # Customer tiers (for sampling priority)
+    customer_tiers:
+      premium: 1.0      # Always sample
+      enterprise: 0.8   # 80% sampling
+      standard: 0.3     # 30% sampling
+      trial: 0.1        # 10% sampling
+  
+  # Development settings
+  development:
+    # Enable detailed logging
+    verbose_logging: true
+    
+    # Export traces to file for debugging
+    file_export:
+      enabled: false
+      path: "/tmp/traces.json"
+    
+    # Trace validation
+    validate_traces: true
+    
+    # Debug sampling decisions
+    debug_sampling: false

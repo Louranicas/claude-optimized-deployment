@@ -1,0 +1,98 @@
+{
+  "audit_id": "SYNTHEX-AUDIT-20250613-165927",
+  "start_time": "2025-06-13T16:59:27.619626",
+  "phases": {
+    "code_analysis": {
+      "files_analyzed": 20,
+      "vulnerabilities": 1
+    },
+    "dependency_scan": {
+      "vulnerabilities": 8
+    },
+    "configuration_check": {
+      "issues": 0
+    },
+    "secret_detection": {
+      "secrets_found": 1
+    },
+    "vulnerability_patterns": {
+      "vulnerabilities": 0
+    }
+  },
+  "vulnerabilities": [
+    {
+      "file": "rust_core/src/synthex/mcp_v2.rs",
+      "type": "CODE",
+      "severity": "MEDIUM",
+      "description": "Unsafe block usage in Rust"
+    },
+    {
+      "dependency": "    #   requests",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Security vulnerabilities"
+    },
+    {
+      "dependency": "    #   cryptography",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Known security vulnerabilities"
+    },
+    {
+      "dependency": "    # via requests",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Security vulnerabilities"
+    },
+    {
+      "dependency": "cryptography==45.0.3",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Known security vulnerabilities"
+    },
+    {
+      "dependency": "    #   requests",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Security vulnerabilities"
+    },
+    {
+      "dependency": "pyyaml==6.0.2",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Unsafe YAML loading vulnerability"
+    },
+    {
+      "dependency": "requests==2.32.4",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Security vulnerabilities"
+    },
+    {
+      "dependency": "    # via requests",
+      "type": "DEPENDENCY",
+      "severity": "HIGH",
+      "description": "Security vulnerabilities"
+    },
+    {
+      "file": "src/core/secrets_rotation_config.py",
+      "type": "SECRET",
+      "severity": "CRITICAL",
+      "description": "Password exposed"
+    }
+  ],
+  "summary": {
+    "security_score": 0,
+    "grade": "F",
+    "total_issues": 10,
+    "critical_issues": 1,
+    "audit_passed": false,
+    "severity_breakdown": {
+      "CRITICAL": 1,
+      "HIGH": 8,
+      "MEDIUM": 1,
+      "LOW": 0
+    }
+  },
+  "end_time": "2025-06-13T16:59:29.894108"
+}

@@ -1,0 +1,93 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 1 - For key1, we can use echo $key1 to display the value of this variable.
+Security Relevance Score: 3
+Word Count: 1080
+Extracted: 2025-06-13 23:40:27
+
+---
+
+For key1, we can use echo $key1 to display the value of this variable.
+
+root@server : read something
+
+
+672
+
+Application case:
+Note that after the password is prompted here, when the user enters the password 672, the computer displays the plaintext of the password on the screen, which is not what we want to see!
+What to do?
+The read command supports the -s option, which can make any data input by the user not displayed, but the read command can still read the data input by the user, but the data is not displayed.Let's look at a script case written with the read command.
+Here is the command:
+
+read -s -p “ Use this to save”
+
+This script reads the user name and password entered by the user through the read command, and when reading the password entered by the user, the content of the password is not directly displayed on the screen, which is safer.
+The user name and password entered by the user are stored in two variables, user and pass respectively. Here, call the values in the variables with $,use the useradd command to create a system account, and use the passwd command to configure the password for the user. Passwd is directly used to modify the password.
+Here is the script:
+
+#! /bin/bash
+
+# Read the data
+read -p “ Enter the name “ user
+read -s “ Enter the password” pass
+user add “$something”
+
+#print password
+
+By default, the password is configured by man-machine interaction, which requires manual input and repeated input twice.Here, we use a | symbol, which is like a pipeline. Its function is to pass the output result of the previous command to the next command through the pipeline as the input of the latter command.
+
+echo “$pass” |passwd —stdin “$something”
+
+What are command pipelines?
+Sometimes, in Linux system, we need to complete a complex task, but a certain command may not be able to complete this task. At this time, we need to combine two or more commands together to complete such a task.
+As said from the Linux documentation, similar to the pipeline for transporting water, the pipeline of Linux system can store the output result (data) of command 1 into the pipeline, and then let command 2 read the data from the pipeline and further process the data.
+In the next section, we will talk about the advanced abilities of giving output and input to the functions that are available.
+a) who
+The who command can help us check which accounts log in to the computer at what time.However, when there is a lot of login information on the computer, it is inconvenient to record the number of logins manually.
+The wc command in Linux system can count the number of rows, but the wc command needs data. If you give wc several rows of data, this command can automatically count the number of rows of data.We can use pipelines to combine who and wc commands.
+
+root@server : who
+
+b) ss
+For another example, ss command can view the list of ports that all services in Linux system listen to.However, ss command itself has no flexible filtering function, while grep command has powerful and flexible filtering function, so these two commands can be used together through pipeline.Obviously, there are a lot of data that are not filtered by grep command, which is not clear enough.
+After ss command stores its output data into the pipeline, grep command reads the data from the pipeline again, and filters out data lines containing sshd from many data, and the final output result is only two lines of data.
+
+root@server : ss
+
+In a conclusion….
+In this way, we can see the data we need more simply and clearly.Some commands are special, such as the passwd command we used earlier, which is used to modify the system account password, but the command can only read the password from the keyboard by default.
+If you want the command to read the data from the pipeline and use it as the password, you need to use the --stdin option.As shown, the echo command will display the output results on the screen by default. After having a pipeline, the echo command can store the output 123456 in the pipeline, and passwd can read 123456 from the pipeline to modify the password of the system account ‘sample’.
+In the next section of this module, we will discuss about the advanced topics that are related to input and output statements in shell scripting. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Three
+
+
+
+Redirecting Input and Output in Shell
+
+
+
+
+
+In the previous
+ chapter we gave a satisfactory introduction to the importance and implementation of input and output statements in shell scripting. In this chapter we will talk about advanced expertise details such as Redirection of input and output statements with sufficient examples. Follow along!
+Why is Redirection important in shell?
+In most systems, the output information is usually displayed on the screen by default, while the standard input information is obtained through the keyboard.
+However, when writing scripts, we can't or don't want the output information of some commands to be displayed on the screen (when the scripts are executed, a large amount of output information will make users feel confused). It also uses system resources more than what we ought to.
+At this time and for this reason, it is better to write the output information into the file temporarily, and then read the file and extract the required information when needed later.There are similar problems with the default standard input information. When we use the mail command to send mail in Linux system, the program needs to read the text of the mail.
+By default, the input data from the keyboard is used as the text, which will make the script enter interactive mode, because reading the keyboard information requires manual input.
+For example, if at this time the default input mode can be changed, instead of reading the data from the keyboard, the data can be read from the file prepared in advance, so that the mail program can automatically read the file content and send the mail automatically when needed without manual interaction.In this way, the automation effect of the script will be a better experience.
+Output in Linux systems
+In Linux system, the output can be divided into standard output and standard error output.The file descriptor of standard output is 1, and that of standard error output is

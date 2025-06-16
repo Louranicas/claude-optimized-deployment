@@ -1,0 +1,140 @@
+# Security Chapter Extract
+Book: Iqbal H. Sarker - AI-Driven Cybersecurity and Threat Intelligence_ Cyber Automation, Intelligent Decision-Making and Explainability (2024, Springer) - libgen.li
+Chapter: 2013 - These are deﬁned as below: 
+• Tactics: This typically represents high-level objectives, i.e., the goal of an 
+ATT&CK technique or sub-technique. For example, an attacker might want to 
+control a network by gaining the credential access. 
+• Techniques: This typically represents speciﬁc methods that are used to achieve 
+those objectives, i.e., how an attacker achieves their tactical goal. For example, 
+an attacker uses a credential dumping method to achieve the above goal. 
+• Sub-techniques: This includes additional details or variations of the technique 
+providing a more speciﬁc description of the behavior an adversary uses to 
+achieve their goal. For example, an attacker might attempt to retrieve credential 
+information from the Local Security Authority Subsystem or Active Directory 
+database.
+32 2 Cybersecurity Background Knowledge: Terminologies, Attack Frameworks. . .
+Overall, we can say that MITRE ATT&CK is a knowledge base that helps in 
+simulating cyber adversaries’ tactics and techniques and then demonstrates how to 
+detect and prevent them. It identiﬁes tactics that indicate an attack is in progress, 
+rather than focusing on the results of an attack or an indicator of compromise 
+(IoC). To better protect an organization and defend against cyber threats, ATT&CK 
+amasses information that can assist in understanding how attackers behave or the 
+tactics used by attackers.
+Security Relevance Score: 11
+Word Count: 1084
+Extracted: 2025-06-13 23:40:24
+
+---
+
+These are deﬁned as below: 
+• Tactics: This typically represents high-level objectives, i.e., the goal of an 
+ATT&CK technique or sub-technique. For example, an attacker might want to 
+control a network by gaining the credential access. 
+• Techniques: This typically represents speciﬁc methods that are used to achieve 
+those objectives, i.e., how an attacker achieves their tactical goal. For example, 
+an attacker uses a credential dumping method to achieve the above goal. 
+• Sub-techniques: This includes additional details or variations of the technique 
+providing a more speciﬁc description of the behavior an adversary uses to 
+achieve their goal. For example, an attacker might attempt to retrieve credential 
+information from the Local Security Authority Subsystem or Active Directory 
+database.
+32 2 Cybersecurity Background Knowledge: Terminologies, Attack Frameworks. . .
+Overall, we can say that MITRE ATT&CK is a knowledge base that helps in 
+simulating cyber adversaries’ tactics and techniques and then demonstrates how to 
+detect and prevent them. It identiﬁes tactics that indicate an attack is in progress, 
+rather than focusing on the results of an attack or an indicator of compromise 
+(IoC). To better protect an organization and defend against cyber threats, ATT&CK 
+amasses information that can assist in understanding how attackers behave or the 
+tactics used by attackers. 
+2.4.1 MITRE ATT&CK Matrices 
+Although MITRE ATT&CK originally emphasizes threats against Windows enter-
+prise systems, it now includes coverage for Linux, mobile, macOS, and ICS. Thus, 
+MITRE ATT&CK organizes adversary tactics and techniques into matrices, each of 
+which contains tactics and techniques related to attacks on particular domains. They 
+are as follows: 
+• Enterprise Matrix: The Enterprise Matrix is the core matrix that covers tactics 
+and techniques for different platforms and operating systems within a traditional 
+enterprise network. Thus Windows, macOS, Linux, and cloud environments are 
+included in this Enterprise Matrix. Each cell in the matrix represents a speciﬁc 
+technique for a given tactic and platform. 
+• Mobile Matrix: The Mobile Matrix emphasizes tactics and techniques relevant 
+to mobile devices such as smartphones and tablets. Thus, this matrix helps 
+in understanding the speciﬁc threats and attack techniques targeting mobile 
+platforms. 
+• ICS Matrix: The ICX Matrix’s tactics and techniques for attack are directed 
+toward the machinery, devices, sensors, and networks that are utilized to 
+automate or control activities for industries, utilities, transportation systems, and 
+other critical service providers. Security professionals and businesses operating 
+in the industrial sector can beneﬁt from using this matrix to understand and 
+resolve cybersecurity issues speciﬁc to ICS environments. 
+2.4.2 MITRE ATT&CK T actics 
+Each MITRE ATT&CK tactic represents a speciﬁc adversarial goal, which is close 
+to the stages or phases of a cyberattack. Through the tactics, the attacker typically 
+wants to accomplish their speciﬁc goal at a given time. For example, ATT&CK 
+tactics covered by the Enterprise Matrix include [ 9]: 
+• Reconnaissance: This includes gathering the necessary information to plan for 
+an attack. 
+• Resource development: This includes establishing relevant resources needed for 
+an attack or to support attack operations.
+2.4 MITRE ATT&CK 33
+• Initial access: This includes penetrating the target network/system or gaining 
+access to the victim’s network or systems. 
+• Execution: This includes running malicious code or malware on the compro-
+mised network or systems. 
+• Persistence: This includes maintaining access in that compromised network or 
+systems. 
+• Privilege escalation: This includes attempting to gain higher-level privileges or 
+access, e.g., moving from user to administrator-level access. 
+• Defense evasion: This includes taking actions to avoid detection once inside a 
+system. 
+• Credential access: This includes attempting to steal usernames, passwords, and 
+other login credentials. 
+• Discovery: This includes gathering information about the compromised net-
+work/systems or researching the target environment to learn what resources can 
+be accessed or controlled to support a planned attack. 
+• Lateral movement: This includes gaining access to additional resources or 
+moving from one system to another within the compromised environment. 
+• Collection: Gathering data related to the attack or to support the high-level attack 
+goal. 
+• Command and control: This includes establishing control over the victim’s 
+network/systems and communicating with compromised network/systems from 
+outside, i.e., enabling the attacker to control the system. 
+• Exﬁltration: This includes stealing the data from the compromised system, i.e., 
+the victim’s data. 
+• Impact: This includes interrupting, damaging, corrupting, or destroying data 
+or business processes, in other words, making networks/systems and data 
+unavailable to the victim. 
+The tactics and techniques may vary from matrix to matrix on particular domains. 
+For example, the Mobile Matrix deﬁned earlier does not include Reconnaissance 
+and Resource Development tactics but includes other tactics such as Network 
+Effects and Remote Service Effects, which are not found in the Enterprise Matrix 
+[9]. 
+In summary, “MITRE ATT&CK” and the “cyber kill chain” are two frameworks 
+commonly used in the ﬁeld of cybersecurity to understand, analyze, and respond 
+to cyber threats. While the cyber kill chain focuses on the sequential stages of 
+an attack and is often used for preventive measures, MITRE ATT&CK is a more 
+comprehensive framework covering a broader range of tactics and techniques used 
+by adversaries across different platforms. Another approach, Attack Trees, provide a 
+structured way to analyze attack scenarios, can be used to security threat modeling, 
+stemming from dependency analysis. Similar other frameworks in the area, for 
+example, STRIDE (spooﬁng identity, tampering with data, repudiation, information 
+disclosure, denial of service, and elevation of privilege), a model of threats, can 
+help reason and ﬁnd threats to a system, while DREAD (Damage, Reproducibility, 
+Exploitability, Affected users, Discoverability), a risk assessment model, can be
+34 2 Cybersecurity Background Knowledge: Terminologies, Attack Frameworks. . .
+used to evaluate and prioritize security vulnerabilities based on their potential 
+impact [ 11]. Organizations can customize and leverage these frameworks together 
+to enhance the overall cybersecurity posture according to their requirements and 
+assets. 
+2.5 Cybersecurity Life Cycle 
+The cybersecurity life cycle, sometimes referred to as the cybersecurity framework 
+or process, is a structured approach for managing and maintaining the cybersecurity 
+controls within an organization. To safeguard their data, infrastructure, and informa-
+tion systems from cyber threats and vulnerabilities, organizations typically conduct 
+a cycle that consists of several stages or processes. Certain steps and stages may 
+differ signiﬁcantly according to their unique objectives and requirements across 
+sectors. According to NIST [ 10] a common representation of the cybersecurity 
+frame work typically includes identify, protect, detect, respond, and recover phases. 
+In addition to these ﬁve core functions, govern directs an understanding of organi-
+zational context and how an organization will implement the other ﬁve functions, as 
+shown in Fig. 2.

@@ -1,0 +1,94 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 5 - As per Nmap’s official documentation, T4 leverages the following values:
+Security Relevance Score: 8
+Word Count: 1795
+Extracted: 2025-06-13 23:40:38
+
+---
+
+As per Nmap’s official documentation, T4 leverages the following values:
+
+--max-rtt-timeout 1250ms
+--min-rtt-timeout 100ms
+--initial-rtt-timeout 500ms
+--max-retries 6
+Sets the TCP scan delay to 10ms
+
+While the T5 flag has the following equivalency:
+
+--max-rtt-timeout 300ms
+--min-rtt-timeout 50ms
+--initial-rtt-timeout 250ms
+--max-retries 2
+--host-timeout 15m
+--script-timeout 10m
+Sets the TCP scan delay to 5ms
+
+You can see that the difference between T4 and T5 is quite significant. So much so that the breakneck speed comes with a significant drawback in accuracy. For this reason, in most cases, using T4 or specifying your performance parameters with the previous flags is optimal. Going fast and collecting data is important but ensuring that the data is accurate is paramount.
+Two other flags that are sometimes mentioned when discussing performance are --min-rate and --max-rate. These are used to manually specify the rate at which packets are sent by Nmap and can be used to either speed up or slow down scans. While this does work well for slowing scans down to avoid detection, it is not the best way to speed them up. Increasing the speed in this way tends to lead to a tremendous decrease in accuracy due to dropped packets. Nmap has an adaptive retransmission algorithm that constantly adjust packet transmission rates based on network latency, and increasing the transmission rate above what the network can handle is detrimental to the integrity of the scan. While there are ways to mitigate this, such as limiting the number of retries per host, it is generally recommended to avoid these flags and increase performance in other ways.
+Case Study: Real-World Account of Pentesting a Very Large Environment
+When starting a new internal pentest, there are a few initial steps that we almost always do in the same order. We first passively analyze the network traffic on the local subnet with Wireshark to determine if there are any protocols that may be susceptible to poisoning (NBNS, LLMNR). This layer two (of the OSI Model) analysis will often also allow us to determine what type of network infrastructure is in the environment, for example, the presence of Cisco Discovery Protocol (CDP). Next, we typically use a passive ARP scanner such as NetDiscover to determine what type of devices are on the subnet that the penetration testing appliance is on. We follow this by switching from passively gathering information to actively scanning on the local subnet first, then transition into discovery and analysis of the rest of the provided scope.
+ In most cases, it is best for the client to put the penetration testing device on the same subnet and VLAN as normal user workstations as opposed to something more specific such as a management or ancillary subnet. This better emulates a scenario in which a malicious actor had breached the external perimeter via a compromised user. However, clients do not always follow this recommendation.
+One internal network pentesting engagement was particularly memorable for two main reasons. The client provided the scope as five separate /16 subnets, and the subnet that the pentesting appliance was placed on (my starting point) had only one other device on it, which was a printer. As a result, it was necessary to begin discovering other subnets that had active clients on them as quickly as possible.
+First, five different target files were created, each one with one of the /16 subnets written in a range that would scan only the gateways (subnet1.txt, subnet2.txt … and so on). A simple spreadsheet was also created to help with the organization of which /24s were active within each of the /16s. Taking the extra time to make sure the data could be organized effectively would pay off substantially.
+It was then time to start scanning the first /16, and the technique chosen was a ping scan optimized for speed over all else:
+Nmap -sn -n --defeat-rst-ratelimit --max-rtt-timeout 250ms --max-retries 2 --host-timeout 2m --min-hostgroup 2048 -iL subnet1.txt -oG - | awk '/Up$/{print $2}' | > Ping_Sweep1.txt
+This scan proved to be a mistake, taking nearly two days of frustration before realizing it was far too aggressive. The settings were tuned higher than even a -T5 scan, especially with only a 2-minute host timeout specification. As a result, only a small handful of successful responses were received on each subnet. The network latency caused most of the packets to be lost, but because some did return successfully, it wasn’t immediately apparent that there was an error.
+The parameters were substantially reduced by simply replacing most of the custom fields with -T4 and tried again on the same subnets:
+Nmap -sn -n --defeat-rst-ratelimit -T4 -iL subnet1.txt -oG - | awk '/Up$/{print $2}' | > Ping_Sweep1.txt
+This time, many more gateways responded; more than 30 subnets were identified in the first /16, as opposed to only 3 or 4 the first time around. As a test case to determine the best speed for the other 4 /16s, this scan was run a third time with the -T5 setting. Again, it returned only a small handful of results, similar to the first try.
+In this case, T4 worked well in the client’s environment, but anything more aggressive resulted in a dramatic loss of accuracy and would compromise the integrity and thoroughness of the entire pentest. This taught a valuable lesson that the same optimized scans cannot be used during every pentest; each environment is different and needs to be treated differently. This is why it is so important to understand how the tools work and, whenever possible, avoid relying on checklist-style operations.
+Challenge: Optimizing a Custom Scan for Speed
+While there is not a good (and legal) way to practice scanning huge subnets within your lab environment, you can experiment with different scan profiles and options and take note of the time that it takes for a scan to return.
+First, run a simple service scan on all the targets within your lab environment without specifying any performance-related flags. Take note of the accuracy of the information and the time it took to return results. Next, start adding and experimenting with different combinations of the performance flags discussed in this chapter to determine how fast you can scan in your environment before the accuracy of results is impacted.
+NOTE: Use the -d (debug) flag to see exactly what the scan is doing.
+Once you have a scan profile that is working well, experiment with adding different options for additional functionality, such as adding an operating system in addition to service scanning, adding verbosity, including NSE scripts, and so on. Note down the scan options you use and the time they take to return.
+This exercise will help you understand the impact of adding and removing options on the overall scan length: Does including verbosity slow the scan down by 5%? Or is it more like 50%? How much does skipping host discovery increase the speed?
+Conclusion
+Very large networks certainly add a degree of complexity to a penetration test, but it is not an insurmountable challenge. With a well-thought-out playbook, large scopes can be systematically reduced in size and complexity and rebuilt with the hosts that are reachable. While this requires some pre-planning, it can be sequenced and turned into a checklist of sorts that can be replicated in most environments.
+Choosing which flags and what values to assign to optimize performance, on the other hand, is a skill that takes a lot of practice. Making the wrong selection can result in scans taking so long to return information that the rest of the penetration test, beyond mapping the attack surface, is rushed. Conversely, wrong selections can also result in incomplete datasets that may provide an inaccurate picture of the attack surface. As a result, performance optimization efforts with Nmap straddle the line between an intermediate and advanced level of skill. Additionally, scanning extremely aggressively can impact the availability of the network, which would undoubtedly violate the rules of engagement.
+As with most penetration testing engagements, the biggest challenge is time. Malicious actors who have gained access to an enterprise network can spend many weeks or even months quietly aggregating information before identifying their path of attack. Pentesters, on the other hand, have only a few weeks at most, and that includes the time it takes to furnish a detailed report outlining what was found. Beyond that, it is fairly uncommon for a pentester to work on only one engagement at a time, further reducing the amount of time available. With these considerations, a pentester must be able to operate in a very efficient manner, and being stuck waiting for hours for scan results to return is certainly not optimally efficient.
+In the next chapter, we will explore two additional tools that integrate extremely well with Nmap, especially in larger-scoped environments. These tools, Zenmap and Legion, provide a graphical wrapper on top of Nmap, which can help pentesters visualize and sort the data returned by Nmap. The ability to ingest scan results and provide a more user-friendly way of interacting with the data is critical, especially as those datasets get progressively larger in enterprise environments. Beyond that visualization, we will also see how Legion can be leveraged to trigger additional tools and tests based on the results from those Nmap scans in a semi-autonomous manner.
+Points to Remember
+
+One of the biggest challenges with large networks is that there are so few opportunities to practice specific skills outside of a live enterprise penetration test. This makes planning of truly understanding what your tools are doing essential.
+Understanding subnetting is a fundamental prerequisite for penetration testing. CIDR notation is ubiquitous in the industry and understanding the differences between the level of effort in pentest 5 × /24s versus 2 × /16s is essential.
+Even with the scope reduced as much as reasonably possible, there is still a need to optimize scans for speed in large enterprise networks to get the results quickly enough for comprehensive endpoints analysis.
+Optimizing the performance of Nmap scans requires an intermediate to advanced level of skill, and goes beyond simply setting the timing value.
+Increasing the speed too much can result in a significant loss of accuracy and potentially impact the availability of the network, violating the rules of engagement.
+
+Multiple Choice Questions
+
+Which of the following subnets contain the most possible IP addresses?
+
+/32
+/28
+/26
+/20
+Which of the following options would you use to skip host discovery?
+
+-sn
+-pn
+-n
+-nn
+Specifying -T5 sets a --host-timeout value of what?
+
+15m
+10m
+5m
+2m
+Which of the following is not a drawback of overly aggressive scanning?
+
+Loss of accuracy
+Potential network availability disruption
+Potential host availability disruption
+Rapid results
+By default, how many times will Nmap retry a target port without response before moving on?
+
+2
+5
+10
+15
+
+Answers

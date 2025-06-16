@@ -1,0 +1,451 @@
+{
+  "timestamp": "2025-06-07T00:07:32.967636",
+  "test_summary": {
+    "total_tests": 71,
+    "passed": 59,
+    "failed": 5,
+    "warnings": 7
+  },
+  "errors": [
+    {
+      "category": "configuration",
+      "test_name": "toml_parsing",
+      "error_type": "MISSING_DEPENDENCY",
+      "message": "toml module not available",
+      "severity": "MEDIUM",
+      "timestamp": "2025-06-07T00:07:33.028342"
+    },
+    {
+      "category": "rust_compilation",
+      "test_name": "server_development",
+      "error_type": "COMPILATION_ERROR",
+      "message": "error: failed to parse manifest at `/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/rust_src/Cargo.toml`\n\nCaused by:\n  can't find library `development_mcp_server`, rename file to `src/lib.rs` or specify lib.path\n",
+      "severity": "HIGH",
+      "timestamp": "2025-06-07T00:07:33.301577"
+    },
+    {
+      "category": "rust_compilation",
+      "test_name": "server_bash_god",
+      "error_type": "COMPILATION_ERROR",
+      "message": "error: failed to parse manifest at `/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/Cargo.toml`\n\nCaused by:\n  no targets specified in the manifest\n  either src/lib.rs, src/main.rs, a [lib] section, or [[bin]] section must be present\n",
+      "severity": "HIGH",
+      "timestamp": "2025-06-07T00:07:33.319883"
+    },
+    {
+      "category": "rust_compilation",
+      "test_name": "server_devops",
+      "error_type": "COMPILATION_ERROR",
+      "message": "error: current package believes it's in a workspace when it's not:\ncurrent:   /home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/devops/rust_src/Cargo.toml\nworkspace: /home/louranicas/projects/claude-optimized-deployment/Cargo.toml\n\nthis may be fixable by adding `mcp_learning_system/servers/devops/rust_src` to the `workspace.members` array of the manifest located at: /home/louranicas/projects/claude-optimized-deployment/Cargo.toml\nAlternatively, to keep it out of the workspace, add the package to the `workspace.exclude` array, or add an empty `[workspace]` table to the package's manifest.\n",
+      "severity": "HIGH",
+      "timestamp": "2025-06-07T00:07:33.337840"
+    },
+    {
+      "category": "rust_compilation",
+      "test_name": "server_quality",
+      "error_type": "COMPILATION_ERROR",
+      "message": "error: package `half v2.6.0` cannot be built because it requires rustc 1.81 or newer, while the currently active rustc version is 1.75.0\nEither upgrade to rustc 1.81 or newer, or use\ncargo update half@2.6.0 --precise ver\nwhere `ver` is the latest version of `half` supporting rustc 1.75.0\n",
+      "severity": "HIGH",
+      "timestamp": "2025-06-07T00:07:33.439014"
+    }
+  ],
+  "warnings": [
+    {
+      "category": "dependencies",
+      "test_name": "optional_sklearn",
+      "message": "sklearn not available (optional)",
+      "timestamp": "2025-06-07T00:07:33.023002"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "optional_torch",
+      "message": "torch not available (optional)",
+      "timestamp": "2025-06-07T00:07:33.023042"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "optional_pandas",
+      "message": "pandas not available (optional)",
+      "timestamp": "2025-06-07T00:07:33.023077"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "optional_redis",
+      "message": "redis not available (optional)",
+      "timestamp": "2025-06-07T00:07:33.023110"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "optional_prometheus_client",
+      "message": "prometheus_client not available (optional)",
+      "timestamp": "2025-06-07T00:07:33.023143"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "optional_toml",
+      "message": "toml not available (optional)",
+      "timestamp": "2025-06-07T00:07:33.023176"
+    },
+    {
+      "category": "stress_testing",
+      "test_name": "integration_structure",
+      "message": "Module directory missing",
+      "timestamp": "2025-06-07T00:07:33.084083"
+    }
+  ],
+  "successes": [
+    {
+      "category": "file_structure",
+      "test_name": "directory_rust_core",
+      "message": "Directory exists",
+      "timestamp": "2025-06-07T00:07:32.967675"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "directory_python_learning",
+      "message": "Directory exists",
+      "timestamp": "2025-06-07T00:07:32.967692"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "directory_servers",
+      "message": "Directory exists",
+      "timestamp": "2025-06-07T00:07:32.967704"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "directory_stress_testing",
+      "message": "Directory exists",
+      "timestamp": "2025-06-07T00:07:32.967714"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "directory_learning_core",
+      "message": "Directory exists",
+      "timestamp": "2025-06-07T00:07:32.967724"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "directory_config",
+      "message": "Directory exists",
+      "timestamp": "2025-06-07T00:07:32.967733"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "directory_monitoring",
+      "message": "Directory exists",
+      "timestamp": "2025-06-07T00:07:32.967743"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "file_rust_core_Cargo.toml",
+      "message": "File exists",
+      "timestamp": "2025-06-07T00:07:32.967754"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "file_python_learning_requirements.txt",
+      "message": "File exists",
+      "timestamp": "2025-06-07T00:07:32.967762"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "file_config_config.yaml",
+      "message": "File exists",
+      "timestamp": "2025-06-07T00:07:32.967770"
+    },
+    {
+      "category": "file_structure",
+      "test_name": "file_README.md",
+      "message": "File exists",
+      "timestamp": "2025-06-07T00:07:32.967778"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "critical_yaml",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:32.977284"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "critical_json",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:32.977293"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "critical_os",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:32.977295"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "critical_sys",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:32.977297"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "critical_pathlib",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:32.977298"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "critical_asyncio",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:32.993808"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "critical_subprocess",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:32.993814"
+    },
+    {
+      "category": "dependencies",
+      "test_name": "optional_numpy",
+      "message": "Available",
+      "timestamp": "2025-06-07T00:07:33.022946"
+    },
+    {
+      "category": "configuration",
+      "test_name": "yaml_parsing",
+      "message": "YAML config parsed successfully",
+      "timestamp": "2025-06-07T00:07:33.028272"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning_structure",
+      "message": "Module structure exists",
+      "timestamp": "2025-06-07T00:07:33.028374"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.core",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.029827"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.algorithms",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.031710"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.orchestrator",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.033507"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.shared_memory",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.034932"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.patterns",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.037876"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.metrics",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.039923"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.learning",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.041926"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "mcp_learning.utils",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.043255"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_development_learning",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.044604"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_development_style_classifier",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.045443"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_development_embeddings",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.046403"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_development_server",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.047640"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_development_dependency_predictor",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.048656"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_development___init__",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.048731"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_development_integration",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.049570"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_bash_god_learning",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.050867"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_bash_god_server",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.052512"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_bash_god_command_predictor",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.053776"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_bash_god_context_analyzer",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.055288"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_bash_god___init__",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.055361"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_bash_god_safety_learner",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.056747"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_bash_god_chain_optimizer",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.058236"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_devops_learning",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.060404"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_devops___init__",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.060443"
+    },
+    {
+      "category": "python_imports",
+      "test_name": "server_quality_quality_learning",
+      "message": "Syntax valid",
+      "timestamp": "2025-06-07T00:07:33.062733"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "adaptive_learning",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.064438"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "cross_instance",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.066535"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "learning_core",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.067096"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "models",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.068742"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "optimization",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.071890"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "pattern_recognition",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.075271"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "persistence",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.079539"
+    },
+    {
+      "category": "learning_core",
+      "test_name": "prediction_engine",
+      "message": "Module syntax valid",
+      "timestamp": "2025-06-07T00:07:33.084034"
+    },
+    {
+      "category": "stress_testing",
+      "test_name": "scenarios_structure",
+      "message": "Module structure exists",
+      "timestamp": "2025-06-07T00:07:33.084107"
+    },
+    {
+      "category": "stress_testing",
+      "test_name": "benchmarks_structure",
+      "message": "Module structure exists",
+      "timestamp": "2025-06-07T00:07:33.084131"
+    },
+    {
+      "category": "stress_testing",
+      "test_name": "monitoring_structure",
+      "message": "Module structure exists",
+      "timestamp": "2025-06-07T00:07:33.084148"
+    },
+    {
+      "category": "stress_testing",
+      "test_name": "validators_structure",
+      "message": "Module structure exists",
+      "timestamp": "2025-06-07T00:07:33.084164"
+    },
+    {
+      "category": "rust_compilation",
+      "test_name": "rust_core",
+      "message": "Compilation successful",
+      "timestamp": "2025-06-07T00:07:33.282262"
+    }
+  ]
+}

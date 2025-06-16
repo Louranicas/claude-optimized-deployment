@@ -1,0 +1,1403 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan (editor), Mehak Khurana (editor), Vania Vieira Es - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, Wiley) - libgen.li
+Chapter: 4002 - Wileyalsopublishesitsbooksinavarietyofelectronicformats.Somecontentthatappearsin
+printmaynotbeavailableinelectronicformats.FormoreinformationaboutWileyproducts,
+visitourwebsiteatwww.wiley.com.
+Library of Congress Cataloging-in-Publication Data Applied for:
+HardbackISBN:9781394196449
+CoverDesign:Wiley
+CoverImage:©YuichiroChino/GettyImages
+Setin9.5/12.5ptSTIXTwoTextbyStraive,Chennai,India
+k
+k k
+kThis work is dedicated to the cybersecurity professionals, academicians, researchers,
+and enthusiasts who strive to make the digital world a safer place for all. Dedicated
+to those on the front lines of cybersecurity, tirelessly safeguarding our digital
+landscapes, and to the relentless pursuit of knowledge that fuels our collective
+defense against evolving threats. Their commitment inspired the editors to push their
+boundaries of understanding and fortify the resilience of interconnected society.
+k
+k k
+k
+k
+k k
+kvii
+Contents
+About the Editors xvii
+List of Contributors xxi
+Preface xxv
+Acknowledgment xxvii
+Disclaimer xxix
+Note for Readers xxxi
+Introduction xxxiii
+Part I Artiﬁcial Intelligence (AI) in Cybersecurity
+Analytics: Fundamental and Challenges 1
+1 Analysis of Malicious Executables and Detection
+Techniques 3
+Geetika Munjal and Tushar Puri
+Security Relevance Score: 28
+Word Count: 4531
+Extracted: 2025-06-13 23:40:26
+
+---
+
+Wileyalsopublishesitsbooksinavarietyofelectronicformats.Somecontentthatappearsin
+printmaynotbeavailableinelectronicformats.FormoreinformationaboutWileyproducts,
+visitourwebsiteatwww.wiley.com.
+Library of Congress Cataloging-in-Publication Data Applied for:
+HardbackISBN:9781394196449
+CoverDesign:Wiley
+CoverImage:©YuichiroChino/GettyImages
+Setin9.5/12.5ptSTIXTwoTextbyStraive,Chennai,India
+k
+k k
+kThis work is dedicated to the cybersecurity professionals, academicians, researchers,
+and enthusiasts who strive to make the digital world a safer place for all. Dedicated
+to those on the front lines of cybersecurity, tirelessly safeguarding our digital
+landscapes, and to the relentless pursuit of knowledge that fuels our collective
+defense against evolving threats. Their commitment inspired the editors to push their
+boundaries of understanding and fortify the resilience of interconnected society.
+k
+k k
+k
+k
+k k
+kvii
+Contents
+About the Editors xvii
+List of Contributors xxi
+Preface xxv
+Acknowledgment xxvii
+Disclaimer xxix
+Note for Readers xxxi
+Introduction xxxiii
+Part I Artiﬁcial Intelligence (AI) in Cybersecurity
+Analytics: Fundamental and Challenges 1
+1 Analysis of Malicious Executables and Detection
+Techniques 3
+Geetika Munjal and Tushar Puri
+1.1 Introduction 3
+1.2 MaliciousCodeClassificationSystem 5
+1.3 LiteratureReview 5
+1.4 MalwareBehaviorAnalysis 8
+1.5 ConventionalDetectionSystems 11
+1.6 ClassifyingExecutablesbyPayloadFunction 12
+1.7 ResultandDiscussion 13
+1.8 Conclusion 15
+References 16
+2 Detection and Analysis of Botnet Attacks Using Machine
+Learning Techniques 19
+Supriya Raheja
+2.1 Introduction 19
+2.2 LiteratureReview 20
+k
+k k
+kviii Contents
+2.3 BotnetArchitecture 21
+2.3.1 BotnetLifeCycle 23
+2.3.2 BotnetDetectionTechniques 23
+2.4 MethodologyAdopted 24
+2.4.1 DatasetUsed 24
+2.4.2 MachineLearningAlgorithmsUsed 25
+2.5 ExperimentalSetup 27
+2.5.1 EvaluationMetrics 28
+2.6 ResultsandDiscussions 28
+2.7 ConclusionandFutureWork 30
+References 30
+3 Artiﬁcial Intelligence Perspective on Digital Forensics 33
+Bhawna and Shilpa Mahajan
+3.1 Introduction 33
+3.2 LiteratureSurvey 34
+3.3 PhasesofDigitalForensics 35
+3.4 DemystifyingArtificialIntelligenceintheDigitalWorld 36
+3.4.1 ArtificialNarrowIntelligence 37
+3.4.2 ArtificialGeneralIntelligence 37
+3.4.3 ArtificialSuperIntelligence 38
+3.5 ApplicationofMachineLearninginDigitalForensics
+Investigations 39
+3.6 ImplementationofArtificialIntelligenceinForensics 40
+3.7 PatternRecognitionUsingArtificialIntelligence 40
+3.8 ApplicationsofAIinCriminalInvestigations 42
+3.8.1 BombingScenarios 42
+3.8.2 GunFires 43
+3.9 Conclusion 43
+References 43
+4 Review on Machine Learning-based Trafﬁc Rules
+Contravention Detection System 45
+Jahnavi and Urvashi
+4.1 Introduction 45
+4.2 TechnologiesInvolvedinSmartTrafficMonitoring 47
+4.2.1 DeviceInvolvingSensors 47
+4.2.2 WirelessNetwork 48
+4.2.3 ComputerVision 49
+4.3 LiteratureReview 50
+k
+k k
+kContents ix
+4.4 ComparisonofResults 59
+4.5 ConclusionandFutureScope 59
+References 59
+5 Enhancing Cybersecurity Ratings Using Artiﬁcial Intelligence
+and DevOps Technologies 63
+Vishwas Pitre, Ashish Joshi, Satya Saladi, and Suman Das
+5.1 Introduction 63
+5.2 LiteratureReview 66
+5.3 ProposedMethodology 67
+5.4 Results 75
+5.4.1 FirstNotificationRegardingIssuesFlaggedbyCybersecurityRating
+Platform 75
+5.4.1.1 WheneverAnyIssuesAreFlaggedtotheCybersecurityRating
+Platform 75
+5.4.2 CheckingFalsePositiveandTruePositive 75
+5.4.2.1 ValidateandClosetheReportedFindings–ACaseofFalsePositive
+ReportedIssue 75
+5.4.2.2 MitigatingVulnerabilitiesinRealtimewiththeProposedSystem 76
+5.5 ConclusionandFutureScopeofWork 84
+References 86
+Part II Cyber Threat Detection and Analysis Using
+Artiﬁcial Intelligence and Big Data 87
+6 Malware Analysis Techniques in Android-Based Smartphone
+Applications 89
+Geetika Munjal, Avi Chakravarti, and Utkarsh Sharma
+6.1 Introduction 89
+6.1.1 AndroidSecurityArchitecture 89
+6.1.2 AndroidAttackSurface 90
+6.1.3 AndroidMalware 92
+6.2 MalwareAnalysisTechniques 93
+6.2.1 StaticAnalysis 93
+6.2.1.1 CodeAnalysisBasedTools 94
+6.2.1.2 CodeCloneDetectionMethod 94
+6.2.1.3 MethodsBasedonAPICallsandPermissions 96
+6.2.1.4 AnalysisofAPIFunctionCallsandPermissions 96
+6.2.1.5 RiskSignals-BasedDetection 96
+6.2.1.6 OtherMethods 97
+k
+k k
+kxContents
+6.2.2 DynamicAnalysis 98
+6.2.2.1 SystemCallMonitoring 98
+6.2.2.2 ProcessingofNaturalLanguage 98
+6.2.2.3 SystemCallLogs 99
+6.2.2.4 Crowdroid 100
+6.2.3 MonitoringofSystem-LevelBehaviors 100
+6.2.4 MonitoringofUser-SpaceLevelBehaviors 101
+6.2.4.1 RepassDroid 101
+6.2.4.2 MalwareDetectionUsingDynamicallyGeneratedDataandMachine
+Learning 101
+6.3 HybridAnalysis 102
+6.4 Result 102
+6.5 Conclusion 103
+References 104
+7 Cyber Threat Detection and Mitigation Using Artiﬁcial
+Intelligence – A Cyber-physical Perspective 107
+Dalmo Stutz, Joaquim T. de Assis, Asif A. Laghari, Abdullah A. Khan,
+Anand Deshpande, Dhanashree Kulkarni, Andrey Terziev,
+Maria A. de Jesus, and Edwiges G.H. Grata
+7.1 Introduction 107
+7.2 TypesofCyberThreats 109
+7.3 CyberThreatIntelligence(CTI) 116
+7.3.1 CTIProcess–IntelligenceCycle 117
+7.3.2 CTITypes 118
+7.3.3 CTIBenefits 118
+7.3.4 FundamentalCTIElements 119
+7.4 MaterialsandMethods 119
+7.5 Cyber-PhysicalSystemsRelyingonAI(CPS-AI) 121
+7.6 ExperimentalAnalysis 126
+7.6.1 RequestTimeAnalysisComparisonoftheCPS-AI 127
+7.6.2 AnalyzingtheResultsofaSimulation 127
+7.6.3 AssessmentoftheProposedCPS-AIFramework’sPerformance 127
+7.6.4 ReliabilityBreakdownoftheCPS-AIFramework 128
+7.6.5 OverallPerformanceoftheCPS-AI 128
+7.7 Conclusion 129
+References 129
+k
+k k
+kContents xi
+8 Performance Analysis of Intrusion Detection System Using
+ML Techniques 135
+Paridhi Pasrija, Utkarsh Singh, and Mehak Khurana
+8.1 Introduction 135
+8.2 LiteratureSurvey 136
+8.3 MLTechniques 137
+8.3.1 RandomForest 137
+8.3.2 GradientBoosting 138
+8.3.3 SupportVectorMachine(SVM) 138
+8.3.4 k-NearestNeighbors(kNN) 138
+8.3.5 Density-BasedSpatialClusteringofApplicationswith
+Noise(DBSCAN) 139
+8.4 OverviewofDataset 140
+8.5 ProposedApproach 142
+8.6 SimulationResults 143
+8.6.1 AccuracyComparison 144
+8.6.2 PrecisionandRecallAnalysis 145
+8.6.3 ComparativeAnalysis 148
+8.7 ConclusionandFutureWork 148
+References 149
+9 Spectral Pattern Learning Approach-based Student
+Sentiment Analysis Using Dense-net Multi Perception
+Neural Network in E-learning Environment 151
+Laishram Kirtibas Singh and R. Renuga Devi
+9.1 Introduction 151
+9.2 RelatedWork 152
+9.3 ProposedImplementation 153
+9.3.1 WordVectorCorrelationExtraction 154
+9.3.2 SpectralPatternLearning 155
+9.3.3 SpiderGeneticSequenceFeatureElevation 156
+9.3.4 DenseNetMulti-perceptionNeuralNetwork(DMPNN) 157
+9.4 ResultandDiscussion 159
+9.5 Conclusion 163
+References 163
+k
+k k
+kxii Contents
+10 Big Data and Deep Learning-based Tourism Industry
+Sentiment Analysis Using Deep Spectral Recurrent Neural
+Network 165
+Chingakham Nirma Devi and R. Renuga Devi
+10.1 Introduction 165
+10.2 RelatedWork 166
+10.3 MaterialsandMethod 168
+10.3.1 IndividualValueDecompositionAnalysis(IVDA)forPre-processing
+Stage 169
+10.3.2 ExtractingFeaturesUsingSpiderOptimizationtoSelecttheEffective
+FeaturesWeight(SO-EFW) 169
+10.3.3 SentimentAnalysisforReviewofPositiveandNegativeScore 170
+10.3.4 TrainedtheFeatureswithSoftmaxLogicalActivationFunction 171
+10.3.5 ClassificationUsingDeepSpectralRecurrentNeuralNetwork
+(DSRNN) 172
+10.4 ResultandDiscussion 173
+10.5 Conclusion 176
+References 177
+Part III Applied Artiﬁcial Intelligence Approaches in
+Emerging Cybersecurity Domains 179
+11 Enhancing Security in Cloud Computing Using Artiﬁcial
+Intelligence (AI) 181
+Dalmo Stutz, Joaquim T. de Assis, Asif A. Laghari, Abdullah A. Khan,
+Nikolaos Andreopoulos, Andrey Terziev, Anand Deshpande, Dhanashree
+Kulkarni, and Edwiges G.H. Grata
+11.1 Introduction 181
+11.2 Background 184
+11.2.1 Cybersecurity 184
+11.2.2 ArtificialIntelligence 184
+11.3 IdentificationFunction(IF) 185
+11.3.1 CSAssetManagement(CAM) 186
+11.3.2 BusinessEnvironment 187
+11.3.3 Governance 187
+11.3.4 RiskAssessment 188
+11.3.5 RiskManagementStrategy 190
+11.4 ProtectionFunction(PF) 191
+11.4.1 Controlling,Identity,Authentication,andAccess 191
+k
+k k
+kContents xiii
+11.4.2 AwarenessandTraining 192
+11.4.3 DataSecurity 193
+11.4.4 InformationProtection,Processes,andProcedures 194
+11.4.5 ProtectiveTechnologies 195
+11.5 DetectionFunction(DF) 196
+11.5.1 AnomaliesandEvents 196
+11.5.2 SecureandContinuousMonitoring 197
+11.5.3 DetectionProcesses 198
+11.6 ResponseFunction(RF) 200
+11.6.1 ResponsePlanning 201
+11.6.2 Communications 201
+11.6.3 Analysis 202
+11.6.4 Mitigation 203
+11.6.5 Improvements 204
+11.7 RecoveryFunction(RcF) 205
+11.8 Analysis,DiscussionandResearchGaps 205
+11.8.1 EmergingCSAreas 206
+11.8.2 DataRepresentation 207
+11.8.3 AdvancedAICS 208
+11.8.4 ExploringandDevelopingInnovativeInfrastructures 209
+11.9 Conclusion 209
+References 210
+12 Utilization of Deep Learning Models for Safe
+Human-Friendly Computing in Cloud, Fog, and Mobile Edge
+Networks 221
+Diego M.R. Tudesco, Anand Deshpande, Asif A. Laghari, Abdullah A. Khan,
+Ricardo T. Lopes, R. Jenice Aroma, Kumudha Raimond, Lin Teng, and
+Asiya Khan
+12.1 Introduction 221
+12.2 Human-CenteredComputing(HCC) 223
+12.3 ImprovingCybersecurityThroughDeepLearning(DL)Models:
+AI-HCCSystems 229
+12.3.1 InsertingDLinCloud,Fog,andEdgeComputing 229
+12.3.2 DLandHCI 233
+12.4 CaseStudies 234
+12.4.1 HCIUseCases 234
+12.4.2 CybersecurityandHCIUseCases 236
+12.5 Discussion 238
+12.5.1 HCC-AIAdvantages 239
+k
+k k
+kxiv Contents
+12.5.2 HCC-AICaveats 239
+12.6 Conclusion 239
+References 240
+13 Artiﬁcial Intelligence for Threat Anomaly Detection Using
+Graph Databases – A Semantic Outlook 249
+Edwiges G.H. Grata, Anand Deshpande, Ricardo T. Lopes, Asif A. Laghari,
+Abdullah A. Khan, R. Jenice Aroma, Kumudha Raimond, Shoulin Yin, and
+Awais Khan Jumani
+13.1 Introduction 249
+13.2 KGsinCybersecurity 252
+13.3 CSKGConstructionMethodologies 254
+13.3.1 CSKGBuildingFlow 255
+13.3.2 CSOntology 255
+13.3.3 CSEntitiesExtraction 256
+13.3.4 RelationsExtractionofCSEntities 257
+13.4 Datasets 258
+13.5 ApplicationScenarios 259
+13.5.1 CSAandSecurityAssessment 259
+13.5.2 CTs’Discovery 260
+13.5.3 AttackProbing 261
+13.5.4 CleverSecurityOperation 264
+13.5.5 SmartDecision-Making 265
+13.5.6 VulnerabilityPredictionandSupervision 266
+13.5.7 MalwareAcknowledgmentandAnalysis 267
+13.5.8 PhysicalSystemConnection 267
+13.5.9 SupplementaryReasoningTasks 268
+13.6 DiscussionandFutureTrendsonCSKG 269
+13.7 Conclusion 271
+References 271
+14 Security in Blockchain-Based Smart Cyber-Physical
+Applications Relying on Wireless Sensor and Actuators
+Networks 279
+Maria A. de Jesus, Asif A. Laghari, Abdullah A. Khan, Awais Khan Jumani,
+Mohammad Shabaz, Anand Deshpande, R. Jenice Aroma, Kumudha
+Raimond, and Asiya Khan
+14.1 Introduction 279
+14.2 Methodology 282
+14.2.1 WSAN-CenteredSolutions 282
+14.2.1.1 Benefits 283
+k
+k k
+kContents xv
+14.2.1.2 Challenges 283
+14.2.1.3 WSANs’Structure 284
+14.2.1.4 CharacteristicsofWSAN 284
+14.2.1.5 WSANsApplications 285
+14.2.1.6 WSANRequirements 286
+14.2.2 Blockchain-BasedSolutions 287
+14.2.3 HybridSolutions 292
+14.3 GIBCS:AnOverview 292
+14.4 BlockchainLayer 294
+14.4.1 WSAN-BasedNetworkModel 294
+14.4.1.1 WSANOverview 294
+14.4.1.2 ProblemStatement 295
+14.5 TrustManagement 296
+14.5.1 AuthenticationModule 296
+14.5.2 AuthorizationModule 296
+14.5.3 TrustDatabaseModule 297
+14.5.4 AccessDecisionControl(ACD) 298
+14.5.5 MonitoringandEvaluationModule(MEM) 298
+14.6 BlockchainforSecureMonitoringBack-End 298
+14.7 Blockchain-EnabledCybersecurity:DiscussionandFuture
+Directions 300
+14.8 Conclusions 301
+References 302
+15 Leveraging Deep Learning Techniques for Securing the
+Internet of Things in the Age of Big Data 311
+Keshav Kaushik
+15.1 IntroductiontotheIoTSecurity 311
+15.2 RoleofDeepLearninginIoTSecurity 316
+15.3 DeepLearningArchitectureforIoTSecurity 319
+15.4 FutureScopeofDeepLearninginIoTSecurity 322
+15.5 Conclusion 323
+References 323
+Index 327
+k
+k k
+k
+k
+k k
+kxvii
+About the Editors
+Dr. Shilpa Mahajan is a distinguished Certi-
+fied Ethical Hacker (CEHv11) and Cisco Certi-
+fied Instructor with a notable career spanning
+over 16years in research and education. She is
+currently serving as an Associate Professor at
+the NorthCap University. Dr. Mahajan holds a
+Ph.D. in Wireless Sensor Networks from Guru
+Nanak Dev University, Amritsar, and graduated
+withdistinctionfromPunjabEngineeringCollege,
+Chandigarh. Her extensive contributions include
+authoring numerous papers published in presti-
+gious international journals, books, conferences,
+and holding patents. In her current role, she guides doctoral scholars and suc-
+cessfully supervises M.Tech and B.Tech projects. Dr. Mahajan has designed
+courses focusing on Computer Networks, Network Security, and Cryptography.
+Sheactivelyparticipatesinvariousacademicactivities,servingasaresourceper-
+sonforFacultyDevelopmentPrograms(FDPs),workshops,guestlectures,invited
+talks,andpaneldiscussions.Dr.Mahajan’sexpertiseisunderscoredbyherproac-
+tive involvement in chairing sessions at conferences, highlighting her standing
+withintheacademiccommunity.Notably,shecoordinatedtheATALFDPonWeb
+Security in 2022 and organized EDPs for CCNA Modules. Remarkably, she has
+contributedasaneditorforesteemedpublishersincludingSpringer,CRCPress,
+Wiley,andseveralothers.HercontributionsextendtotheestablishmentofaCisco
+labattheNorthCapUniversity,Gurgaon,inJanuary2014.RecognizedbyCisco
+Networking Academy for her active participation over five years, Dr. Mahajan’s
+dedicationandexpertisecontinuetoshapetheacademiclandscapeinthefieldsof
+CybersecurityandInformationSecurity.
+k
+k k
+kxviii About the Editors
+Dr. Mehak Khurana isanaccomplishedandded-
+icated Certified Ethical Hacker (CEHv11) with an
+illustrious career spanning over 13years in the
+fieldsofresearchandteaching.Dr.MehakKhurana
+is currently leveraging her extensive expertise as
+anAssociateProfessorattheNorthCapUniversity,
+contributing to the academic and practical realms
+ofCybersecurityandInformationSecurity.Heraca-
+demic journey is marked by exceptional achieve-
+ments, includingthe attainmentof a Ph.D. degree
+specializing in Information Security and Cryptog-
+raphy.Complementingthis,shewashonoredwith
+a silver medal for her M.Tech degree in Information Technology from USICT,
+GGSIPU.HerspecializationliesinCybersecurity,InformationSecurity,andCryp-
+tography.Shehasleftanindeliblemarkonacademiathroughherprolificpublica-
+tionsinrenownedjournals,conferencesbooks,andpatents.Shedemonstratedher
+commitment to aligning education with industry best practices; she introduced
+and designed cutting-edge courses in Penetration Testing, Secure Coding, Soft-
+ware Vulnerabilities, and Web and Mobile Security. Her mentorship extends to
+guidingB.Tech.,M.Tech.projects,andPh.D.scholars,nurturingthepotentialof
+futureleadersinthefield.SheconvenedtheInternationalConferenceonCyber
+SecurityandDigitalForensicsincollaborationwithSpringerin2021.Sheserved
+asavaluableresourcepersonforvariousFacultyDevelopmentPrograms(FDPs),
+workshops,guestlectures,invitedtalks,panelists,etc.Heractiveinvolvementin
+chairing sessions at various conferences underscores her expertise and promi-
+nenceintheacademiccommunity.Sheeditedbooksforesteemedpublisherssuch
+asSpringer,CRCPress,Wiley,andeditedmanymore.Furthermore,herroleasa
+reviewerforreputablejournalsandaTechnicalProgramCommittee(TPC)mem-
+ber for various international conferences highlights her commitment to foster-
+ing excellence. Her contributions have earned her recognition as the Emerging
+Women Leader in Cybersecurity Sector in 2023 by StarDiVvaz Women Awards,
+presentedbyDr.RajshriSingh,IPS,IGPHaryanaStateCrime.Likewise,herselec-
+tionasoneofthetopthreefinalistsfortheCyberjutsuawardbyWomencyberjutsu
+inVirginia,US,underscoresherstandingasaprominentCyberEducator.
+k
+k k
+kAbout the Editors xix
+Dr. Vania Vieira Estrela has ample experience
+teachingpostgraduateandundergraduatecourses.
+She holds a B.Sc. degree from the Federal Univer-
+sityofRiodeJaneiro(UFRJ)inElectricalandCom-
+puterEngineering(ECE),anM.Sc.fromtheTech-
+nologicalInstituteofAeronautics(ITA),Brazil,and
+M.Sc.inECEatNorthwesternUniversity,USA,and
+a Ph.D. in ECE from the Illinois Institute of Tech-
+nology (IIT), Chicago, IL, USA. She has taught at
+DePaul University, USA, and Universidade Estad-
+ualdoNorteFluminense(UENF),Brazil.Shewas
+a visiting professor at the Polytechnic Institute of
+Rio de Janeiro (IPRJ)/State University of Rio de Janeiro (UERJ) in Brazil. She
+works at Universidade Federal Fluminense’s (UFF) Department of Telecommu-
+nications.Shehasproposedandparticipatedinvariouspedagogicalprojectsfor
+thespecialitiesof“ComputerEngineering”atUENF,“ComputerTechnology”at
+UniversidadeEstadualdaZonaOeste(UEZO)/UERJ,and“MaterialScienceand
+EngineeringwithEmphasisonPolymers”alsoatUEZO/UERJ.Researchinterests
+include Cyber-Physical Systems, Signal/Image/Video Processing, Multimedia,
+Biomedical Engineering, Neuroscience, Electronic Instrumentation, Computer
+Architecture, Unmanned Aerial Systems, Modeling/Simulation, Sustainable
+Projects, Smart Designs, Inverse Problems, Communications, Motion Estima-
+tionandUnderstanding,ArtificialIntelligence,andGeoprocessing.Sheeditsand
+reviewsforseveralprestigiouspublishers.SheisengagedinHumanitarianEngi-
+neering,TechnologyTransfer,STEAMEducation,EnvironmentalIssues,Digital
+Inclusion,andallUNSustainableDevelopmentGoals(SDGs).Shehasservedas
+editorofmorethan15booksandspecialissues.Shehasservedonaplethoraof
+technicalandorganizationalcommitteesandisamemberofIEEE.
+k
+k k
+k
+k
+k k
+kxxi
+List of Contributors
+Nikolaos Andreopoulos
+ComputerScienceDepartment
+TechnologicalInstituteofIceland
+Reykjavík
+Iceland
+Joaquim T. de Assis
+InstitutoPolitecnicodoRiodeJaneiro
+NovaFriburgo
+RJ
+Brazil
+Avi Chakravarti
+AmitySchoolofEngineeringand
+Technology
+AmityUniversity
+Noida
+UttarPradesh
+India
+Suman Das
+InformationSecurity
+ZensarTechnologies
+Kolkata
+IndiaAnand Deshpande
+ElectronicsandCommunication
+Engineering
+AngadiInstituteofTechnologyand
+Management
+Belagavi
+India
+Chingakham Nirma Devi
+DepartmentofComputerScience
+VelsInstituteofScience
+TechnologyandAdvancedStudies
+(VISTAS)
+Chennai
+India
+Edwiges G.H. Grata
+DepartmentofTelecommunications
+FederalFluminenseUniversity(UFF)
+Niterói
+RJ
+Brazil
+k
+k k
+kxxii List of Contributors
+Jahnavi
+DepartmentofComputerScience
+Dr.B.R.AmbedkarNationalInstitute
+ofTechnology
+Jalandhar
+India
+R. Jenice Aroma
+DepartmentofCSE
+KarunyaInstituteofTechnologyand
+Sciences
+KarunyaUniversity
+Coimbatore
+India
+Maria A. de Jesus
+DepartmentofTelecommunications
+FederalFluminenseUniversity(UFF)
+Niterói
+RJ
+Brazil
+Ashish Joshi
+InformationSecurity
+ZensarTechnologies
+Pune
+India
+Awais Khan Jumani
+DepartmentofComputerScience
+SindhMadressa-tul-IslamUniversity
+Karachi
+Sindh
+Pakistan
+Keshav Kaushik
+SchoolofComputerScience
+UniversityofPetroleumandEnergy
+Studies
+Dehradun
+Uttarakhand
+IndiaAbdullah A. Khan
+ResearchLabofArtificialIntelligence
+andInformationSecurity
+FacultyofComputing
+ScienceandInformationTechnology
+BenazirBhuttoShaheedUniversity
+Karachi
+Sindh
+Pakistan
+Asiya Khan
+SchoolofEngineering
+ComputingandMathematics(Faculty
+ofScienceandEngineering)
+UniversityofPlymouth
+Plymouth
+UK
+Mehak Khurana
+TheNorthCapUniversity
+Gurugram
+India
+Dhanashree Kulkarni
+DepartmentofComputerScienceand
+Engineering
+AngadiInstituteofTechnologyand
+Management
+Belagavi
+India
+Asif A. Laghari
+SindhMadresstulIslamUniversity
+Karachi
+Sindh
+Pakistan
+k
+k k
+kList of Contributors xxiii
+Ricardo T. Lopes
+FederalUniversityofRiodeJaneiro
+(COPPE/UFRJ)
+NuclearEngineeringLaboratory(LIN)
+RiodeJaneiro
+RJ
+Brazil
+Shilpa Mahajan
+DepartmentofComputerScience
+TheNorthCapUniversity
+Gurgaon
+India
+Geetika Munjal
+AmitySchoolofEngineeringand
+Technology
+AmityUniversity
+Noida
+UttarPradesh
+India
+Paridhi Pasrija
+TheNorthCapUniversity
+Gurugram
+India
+Vishwas Pitre
+InformationSecurity
+ZensarTechnologies
+Pune
+India
+Tushar Puri
+AmitySchoolofEngineeringand
+Technology
+AmityUniversity
+Noida
+UttarPradesh
+IndiaSupriya Raheja
+AmityUniversity
+Noida
+India
+Kumudha Raimond
+DepartmentofComputerScienceand
+Engineering
+KarunyaInstituteofTechnologyand
+Sciences
+Coimbatore
+India
+R. Renuga Devi
+DepartmentofComputerScienceand
+Applications(MCA)
+SRMInstituteofScienceand
+Technology
+Ramapuram
+Chennai
+India
+Satya Saladi
+InformationSecurity
+ZensarTechnologies
+Hyderabad
+India
+Mohammad Shabaz
+ChitkaraUniversityInstituteof
+EngineeringandTechnology
+ChitkaraUniversity
+Rajpura
+Punjab
+India
+Bhawna
+DepartmentofComputerScience
+TheNorthCapUniversity
+Gurgaon
+India
+k
+k k
+kxxiv List of Contributors
+Utkarsh Sharma
+AmitySchoolofEngineeringand
+Technology
+AmityUniversity
+Noida
+UttarPradesh
+India
+Laishram Kirtibas Singh
+DepartmentofComputerScience
+VelsInstituteofScience
+TechnologyandAdvancedStudies
+(VISTAS)
+Chennai
+India
+Utkarsh Singh
+TheNorthCapUniversity
+Gurugram
+India
+Dalmo Stutz
+CentroFederaldeEducação
+TecnológicaCelsoSuckowdaFonseca
+(CEFET)atNovaFriburgo
+NovaFriburgo
+RJ
+Brazil
+Lin Teng
+SoftwareCollege
+ShenyangNormalUniversity
+Shenyang
+ChinaAndrey Terziev
+TerziA
+Sofia
+Bulgaria
+Diego M.R. Tudesco
+DepartmentofTelecommunications
+FederalFluminenseUniversity(UFF)
+Niterói
+RJ
+Brazil
+Urvashi
+DepartmentofComputerScienceand
+Engineering
+Dr.B.R.AmbedkarNationalInstitute
+ofTechnology
+Jalandhar
+India
+Shoulin Yin
+ShenyangNormalUniversity
+Shenyang
+LiaoningProvince
+China
+k
+k k
+kxxv
+Preface
+Intheever-evolvingdigitallandscape,thefusionofartificialintelligence(AI)with
+therealmofcybersecurityhasintroducedaformidableally.AI’suniquecapabil-
+ities in processing vast data volumes, recognizing intricate patterns, and swiftly
+adaptingtoemergingthreatshavemarkedthedawnofaneweraincyberdefense.
+AsAIcontinuestoseamlesslyintegrateintoourcybersecuritystrategies,itplays
+a pivotal role in our ongoing battle against the ever-shifting landscape of cyber
+threats.
+Thedigitallandscapeisrapidlyevolving,andwithit,thenatureofcyberthreats.
+Thisbookaddressesapressingneed–tobridgetheknowledgegapbetweenthe
+potentcapabilitiesofAIanditspracticalapplicationsinfortifyingcybersecurity.
+Ouraimistoprovidereaderswithacomprehensiveguidetounderstand,imple-
+ment,andharnessthepowerofAIinsafeguardingdigitalecosystems.Collecting
+insightsfromseasonedcybersecurityprofessionalsandAIexperts,thisbookseeks
+todemystifytheworldofAIincybersecurity.Itaimstoserveasavaluableresource
+forcybersecurityprofessionalslookingtoenhancetheirdefenses,studentseager
+toexploretheexcitingintersectionofAIandcybersecurity,andindividualscon-
+cerned about their online security. Another aim of this book is to empower our
+readers with knowledge and tools to shield against evolving cyber threats and
+inspireinnovationinthefield.
+This book offers a comprehensive exploration of the synergy between AI and
+cybersecurity.ItdelvesintotherealmofAI-poweredtools,techniques,andprac-
+ticesthatempowerorganizationsandindividualstostayaheadofmaliciousactors.
+ThescopeofthebookencompassesAIapplicationsinintrusiondetection,threat
+identification,andriskassessment,amongothers.Itprovidespracticalguidance,
+real-world case studies, and a holistic view of the evolving landscape of cyber
+threatsandtheinnovativesolutionsAIofferstomitigatethem.Whilewestriveto
+coverawidespectrumofAItechniquestailoredforcyberdefense,itisimportant
+torecognizethatthefieldofAIandcybersecurityisdynamicandever-evolving.
+Thisbookdoesnotclaimtobeanexhaustiveencyclopedia;rather,itservesasa
+k
+k k
+kxxvi Preface
+snapshotofthestateofthefieldatthetimeofitswriting.Astechnologyprogresses,
+newchallengesandsolutionswillarise,andourunderstandingofthesubjectwill
+continuetoevolve.
+Thisbookbuildsupontheexistingbodyofliteraturethatexplorestheintegra-
+tionofAIandcybersecurity,acknowledgingthepioneeringworkofresearchers
+andprofessionalsinthisfield.Itprovidesacomprehensiveoverviewofthecurrent
+landscapewhileofferingfreshperspectivesandinsights.
+In closing, this collaborative effort reflects the dedication of experts passion-
+ateaboutsecuringourdigitalworld.ThefusionofAIandcybersecurityhasthe
+potential to reshape the future of digital security. We hope this book empowers
+thereaderstoharnessthispotentialandbecomeaguardianofthedigitalrealm.
+Shilpa Mahajan
+TheNorthCapUniversity,India
+Mehak Khurana
+TheNorthCapUniversity,India
+Vania Vieira Estrela
+FluminenseFederalUniversity,Brazil
+k
+k k
+kxxvii
+Acknowledgment
+Heartfeltgratitudetothecontributorsandexpertswhoseunwaveringdedication
+has shaped this book. Their invaluable insights and expertise have played an
+instrumentalroleinbringingthiscollaborativeefforttofruition.
+k
+k k
+k
+k
+k k
+kxxix
+Disclaimer
+Thepublisherandtheauthormakenorepresentationsorwarrantieswithrespect
+to the accuracy or completeness of the contents of this work and specifically
+disclaim all warranties, including without limitation warranties of fitness for a
+particular purpose. No warrantymay be created or extended by sales or promo-
+tionalmaterials.Theadviceandstrategiescontainedhereinmaynotbesuitable
+for every situation. This work is sold with the understanding that the publisher
+is not engaged in rendering legal, accounting, or other professional services.
+If professional assistance is required, the services of a competent professional
+personshouldbesought.Neitherthepublishernortheauthorshallbeliablefor
+damagesarisingherefrom.ThefactthatanorganizationorWebsiteisreferredto
+inthisworkasacitationand/orapotentialsourceoffurtherinformationdoesnot
+meanthattheauthororthepublisherendorsestheinformationtheorganization
+or Website may provide or recommendations it may make. Further, readers
+shouldbeawarethatInternetWebsiteslistedinthisworkmayhavechangedor
+disappearedbetweenwhenthisworkwaswrittenandwhenitisread.
+k
+k k
+k
+k
+k k
+kxxxi
+Note for Readers
+DearReaders,
+Thisbookisacollaborativeeffortaimedatprovidingyouwithacomprehensive
+understanding of the intricate world of cybersecurity analytics. The intention
+of the authors/editors is to equip you with insights, strategies, and practical
+knowledgethatwillempoweryouinnavigatingthecomplexitiesofcyberthreats.
+Throughout these chapters, you’ll find a blend of theoretical concepts and
+hands-on approaches, all crafted to enhance your understanding and profi-
+ciency in addressing contemporary cybersecurity challenges. Whether you are
+a seasoned cybersecurity professional, a student entering the field, or simply
+someonepassionateabouttheevolvingdigitallandscape,wehopeyoufindthis
+bookbothinformativeandinspiring.
+k
+k k
+k
+k
+k k
+kxxxiii
+Introduction
+In the realm of cybersecurity, where digital landscapes are in constant flux, the
+unceasingevolutionofcyberthreatsposesanever-growingchallenge.Navigating
+this intricate web of potential risks requires a comprehensive understanding of
+the various facets of cybersecurity and the implementation of effective detec-
+tion and mitigation strategies. This book, “Applying Artificial Intelligence in
+Cybersecurity Analytics and Cyber Threat Detection,” takes a deep dive into
+the dynamic world of cybersecurity analytics, emphasizing the pressing need
+for innovative approaches to counteract a diverse array of cyber threats. The
+chapters within this book are carefully curated to offer a nuanced exploration
+of techniques, methodologies, and practical applications designed to fortify our
+defensesagainstmaliciousactivitiesinthedigitalspace.
+Asweembarkonthisexploration,theaimistoequipreaderswithaprofound
+understandingofthemultifacetedlandscapeofcybersecurity,encompassingnot
+onlythetraditionalformsofthreatsbutalsothemorecontemporaryandsophis-
+ticatedchallengesthatemergewithtechnologicaladvancements.Eachchapteris
+craftedtoprovideinsights,analyses,andactionablestrategies,offeringaholistic
+viewofcyberthreatdetectionandmitigation.Thedynamicnatureofthecyberse-
+curitylandscapenecessitatesanadaptiveandinformedapproach.Therefore,this
+bookservesasacompendiumofknowledge,drawingonthecollectiveexpertise
+ofcontributorswhobringreal-worldexperienceandpracticalinsightstothefore-
+front.Itisintendedforcybersecurityprofessionalsseekingtoenhancetheirskills,
+studentsenteringthefield,andanyoneintriguedbytheever-evolvinglandscape
+ofdigitalsecurity.
+Aswetraversethroughthefollowingpages,thegoalistoshedlightoneffective
+strategies, methodologies, and practices that go beyond mere detection. The
+emphasis lies in understanding the intricacies of cyberthreats, enhancing the
+analytical capabilities of security practitioners, and fostering a proactive stance
+k
+k k
+kxxxiv Introduction
+against potential risks. In closing, the collective wisdom encapsulated in these
+chapters aims to empower readers with the knowledge and tools needed to
+navigatethecomplexitiesofcybersecurityanalytics.Byfosteringadeeperunder-
+standingofcyberthreatsandeffectivedetectionmechanisms,wecancollectively
+contributetofortifyingthedigitalrealmsweinhabit.
+k
+k k
+k1
+Part I
+Artiﬁcial Intelligence (AI) in Cybersecurity Analytics:
+Fundamental and Challenges
+k
+k k
+k
+k
+k k
+k3
+1
+Analysis of Malicious Executables and Detection
+Techniques
+Geetika Munjal and Tushar Puri
+Amity School of Engineering and Technology, Amity University, Noida, Uttar Pradesh, India
+1.1 Introduction
+Aninstructionsetcreatedtoharmasystemisknownasmalware,whichisshort
+for malicious software [1]. The production of malware is increasing, making it
+morechallengingforsecurityfirmstoidentifyit.Traditionally,securityfirmsand
+antivirusvendorsemployedantivirussoftwaretodistinguishbetweendangerous
+andcleandata.Mostofthesetoolscomparethemaliciousprogramstoadatabase
+of well-known malware signatures using a signature-based method to identify
+them[2,3].Thesignatureofanexecutablefileservesasitsdistinctiveidentifier,
+andsignaturescanbegeneratedusingstatic,dynamic,andhybridmethodologies.
+However, this technique’s drawback is that it is ineffective at detecting new
+malwaresamples.Duetothecontinuousincreaseinthequantityofnewmalware
+samples,thesesignaturesmustbecontinuallyupdated[3].
+Staticanalysis,themethodthatextractsfeaturesfromaprogram’sbinarycode
+byexaminingitandbuildingmodelsthatillustratethefeatures,wasdevelopedto
+counterthesetactics.Thesetechniquesareusedtodistinguishbetweenhazardous
+andusefulfiles.However,staticanalysisiseasilyevadedsincemalwareauthors
+utilize numerous code obfuscation techniques, like metamorphic and polymor-
+phicapproaches.Despiteprovidingvaluableinsightintothebehaviorofprograms,
+functions,andparameters,staticanalysiscanstillbeunreliable[1].
+Dynamicanalysis,ontheotherhand,implementsthesoftwareinsideasecure
+environment to observe its behavior. This method exposes the code obfuscation
+strategiesusedbymalwareauthorsandworkswellwithcompressedfiles.How-
+ever, dynamic analysis needs to be carried out within a secure environment to
+preventsystemdamageandcanbetime-consuming.Additionally,malwaremay
+behavedifferentlyinavirtual(secure)environmentcomparedtoanactualenvi-
+ronment,leadingtoanincorrectlogofbehavior[4].
+ApplyingArtificialIntelligenceinCybersecurityAnalyticsandCyberThreatDetection ,FirstEdition.
+EditedbyShilpaMahajan,MehakKhurana,and
+©2024JohnWiley&Sons,Inc.Published2024by
+k
+k k
+k41 Analysis of Malicious Executables and Detection Techniques
+Combiningstaticanddynamicanalysistechniquescanresultinamoreeffec-
+tive and reliable malware detection strategy. The main categories of executable
+malicious code (MC) are (i) MC that has been injected, such as worms that
+use buffer overflow exploits to inject their code into active software processes,
+(ii) dynamically generated malware (MC), and (iii) obfuscated malware (MC),
+which includes, viruses, Trojan horses, and worms that cloak their code via
+data manipulations and obscure computations to avoid detection and analysis.
+Polymorphic viruses or Trojans are an example of obfuscated malware [1].
+Static feature-based analysis seems to be effective and efficient, as it enables
+network detection when the algorithm is loaded into memory [5, 6]. However,
+when the malicious file or code is compressed or encrypted, it becomes more
+challenging to detect. As a result, dynamic feature analysis must first unpack
+or decrypt the CPU instructions before being executed. Dynamic analysis for
+detecting network malware may not be practical due to the rapidity of network
+traffic[1].
+Maliciousexecutablesareclassifiedintothreetypesbasedonhowmalwareis
+transmitted:viruses,Trojanhorses,andworms[7].Theyinfectalready-running
+programs,causingthemtobecome“infected”andspreadtootherprogramswhen
+theyarerun.Worms,ontheotherhand,arestandaloneprogramsthatpropagate
+throughout a network, usually by taking advantage of bugs in the software that
+isoperatingonnetworkedmachines.Trojanhorsesdisguisethemselvesaslegiti-
+mateapplicationswhilecarryingoutharmfultasks.Maliciousexecutablesaren’t
+reallyusuallyeasilycategorizedandcanbehaveinavarietyofways.Virusdetec-
+tion tools, including McAfee Virus Scan are extensively used, and Dell suggests
+NortonAntivirusforanyandallnewcomputers[7].Althoughthetitlesofthese
+programs include the term “virus,” some also detect worms and Trojan horses.
+This approach of looking for recognized patterns of MC, called signature-based
+detection,iseffectiveindetectingpreviouslyknownthreats[8].However,itisnot
+alwayseffectiveagainstnewandunknownthreats[9].Inresponsetotheselim-
+itations, a new approach to virus detection called behavior-based detection has
+emerged.Basedontheirbehavior,thisstrategyemploysartificialintelligence(AI)
+anddeeplearning(DL)algorithmstodiscoverandcategorizenewandunknown
+risks[10].
+Behavior-baseddetectionreliesonmonitoringtheactionsofapieceofsoftware,
+lookingforsignsofmaliciousbehavior[8].Ifapieceofsoftwareisbehavingina
+waythatisdeemedsuspicious,itcanbeclassifiedasapotentialthreatandfurther
+analyzed.Thisapproachismoreproactiveandeffectiveagainstnewandunknown
+threats than traditional signature-based detection [11]. In recent years, AI and
+machine learning (ML) algorithms have become more sophisticated, making it
+possibletoautomaticallydetectmalwareinreal-timeandwithouthumaninter-
+vention[12].
+k
+k k
+k1.3 Literature Review 5
+1.2 Malicious Code Classiﬁcation System
+Astaticanalysisapproachisproposedtoautomatethediscoveryandcategoriza-
+tionofthetypeoffilewithoutexecutingit,usingaMCclassificationmodel.The
+classificationsystemtakesallfiles,includingMC,normalfiles,andsourcefiles,
+asinputdata.Duringthepre-processingstep,theportableexecutable(PE)infor-
+mationextractionmoduleandthepictureproductionmoduleareusedtoproduce
+inputdatathatisusedintheclassificationstage.Inthesubsequentclassification
+step,avarietyofalgorithms,includingconvolutionalneuralnetwork(CNN),ran-
+domforest,gradientboosting,anddecisiontreealgorithms,areusedtodecideif
+theinputismalicious.ThefinalclassificationofMCisachievedbyintegratingthe
+resultsfromeachmodel.Theclassificationoutcomesarestoredinadatabasethat
+includesinformationaboutthedataalongwithasinglevalueindicatingwhether
+ornotthedataisharmful.Thesystemusesalearningmodelthathasbeendevel-
+opedusingdifferentalgorithmsasapreparationstep.Theinputfileisprocessed
+and converted into input data for the model by extracting hash values, PE data,
+andperformingimageconversion.
+HashExtraction:Theinputdataisfirsttransformedintoaneigenvaluefromits
+hashvaluetodetermineiftheinputdataisduplicated.Inthedatabaseupdatestep,
+theclassificationoutcomeofnewlyentereddataisincorporatedintothedatabase,
+andduplicatedataisupdatedusingtheextractedhashvalueasaprimarykey.
+DataextractionfromPE:TheheaderandsectionsofthePEstructurecontain
+the necessary data for PE files to function correctly in Windows. The capability
+to identify installed dynamic link libraries (DLLs) as well as the functions they
+perform using the import address table (IAT) inside the PE Header enables the
+extractionofmalignancy-relateddatafromPEstructureswithouttheneedtoexe-
+cuteMC.IfthefilecontainsaPEstructure,theheaderandsectionportionsmay
+be used to extract 55 characteristics, including entropy and packers. The binary
+file’spackinginformationislocatedusingtheYetAnotherReverseEngineering
+Framework(YARA)ruleconfiguration,usingsignaturestorecognizeandcatego-
+rizeMCtypes.Theimagecreationmodulevisualizesandconvertstheinputfile
+forCNNbytransformingtheinputdataintoaone-dimensionalvector[13].
+1.3 Literature Review
+Inthefieldofmalwaredetection,twomajortechniqueshavebeenemployed:static
+analysisanddynamicanalysis.TheapplicationofMLmethodshasbeenproposed
+to improve the performance of malware detection. Schultz et al. [1] introduced
+a method of using ML to detect new malicious executables by using three dis-
+tinct byte sequences, readable texts, and PE as static features. The method was
+k
+k k
+k61 Analysis of Malicious Executables and Detection Techniques
+testedon4266differentfilesandachievedanaccuracyof97.11%usingtheBayes
+algorithmforclassification.Usukhbayaretal.[2]presentedaframeworkthatuti-
+lized three static features, including data from the PE Header, application pro-
+gramming interface (API) function calls made by DLLs, and DLLs. They chose
+thesubsetofcharacteristicsusingdataminingtechniqueslikeinformationgain
+andtestedthreedifferentclassificationmethodologies:Svms,NaiveBayes(NB),
+and J48 where maximum accuracy was obtained by J48 at 98%. Tzu-Yen Wang
+etal.[3]useddatacontainedinthePEHeaderstodetectmalware.Theirdataset
+consistedof9771differentprograms,includingbackdoors,emailworms,Trojan
+horses,andviruses.Theaccuracyratesforviruses,emailworms,Trojanhorses,
+andbackdoorswere97.19%,93.96%,84.11%,and89.54%,respectively,demonstrat-
+ing high detection rates for email worms and viruses. With the advancement of
+dynamic malware analysis, researchers have shifted from static feature extrac-
+tion to dynamic analysis. Tian et al’s use of Weka classifiers to extract dynamic
+characterestics (API call sequences) out of an executable file operating in a vir-
+tualenvironmenttoseparatemalwarefromtrustworthysoftwareandidentifythe
+malwarefamily.Thedatasetincluded1824executables,andtheaccuracywas97%.
+Wangetal.[5]alsoproposedtheuseofdynamicanalysisformalwaredetection,
+usingsimilaritymatricesofdynamicextractiontechnologiesonadatasetof104
+files.Theyachievedanaccuracyof93%.Santosetal.[14]proposedahybridstrat-
+egythatcombinedthestaticanddynamicfeaturesofanexecutablefile.Byusing
+a semi-supervised learning method, in which only 50% of the training data was
+labeled,theyachievedanaccuracyof88%.PE-MinerwassuggestedbyShafiqetal.
+[13]asatechniqueforfindingPEmalware.Theycollected189characteristicsfirst
+fromPEfilesegmentsandusedfeatureselection/reductionmethodslikeprincipal
+componentanalysis(PCA)tochoosethemostpertinentfeatures.Thetechnique
+wasevaluatedusingfivesupervisedalgorithmsIbk,J48,NB,RIPPER,andSMO
+onsevendistincttypesofdangerousexecutables.Theidentificationofvirusespro-
+ducedthehighestresults(99%truepositiverateand0.5%falsepositiverate).
+Lo,Pablo,andCarlos[8]investigatedthebareminimumrequirementsforPE
+malwaredetectionandconcludedthatbyusinganassemblyclassificationschema,
+theycoulddetectmalwarewith99%accuracyusingninefeatures.However,their
+basefeaturepoolwascreatedusingthird-partysoftware,VirusTotal,andthesys-
+temwasnotevaluatedagainstvariousmalwaredetectiontechniques.PEfilesare
+executable files that typically run on the Windows platform and have the .exe
+or .dll extension. The executable code text part, the data sections (.bss, .rdata,
+and.data),theresourcesection(.rsrc),theexportsection(.edata),andtheimport
+sectionareallportionsthatmakeupaPEfile(.idata),amongothers.ThePEfile
+formatisdefinedbyMicrosoftandisdocumentedinthePEandcommonobject
+fileformat(COFF)specifications,whichcanbefoundinthemicrosoftdeveloper
+network(MSDN)library.Thepointofentry(thestartinglocationofthescripttobe
+Table 1.1 Comparison of existing malware detection approaches.
+Features Kirin STREAM SmartDroid AMDetector
+Method
+usedBNFnotationspecifications
+Actionstringsandstatic
+permissionlabelsare
+equivalentEmulationofmachine
+learninginputusing
+monkeyGUI-basedtrigger
+circumstancesActivitycall
+graphsandfunctioncall
+graphsAnalysisofanattacktree
+hybrid
+Advantages Decentperformanceand
+easeofimplementationSuitedforextensive
+research.Platformfor
+distributedexperimentationWhiledynamicanalysis
+looksatsensitivebehaviors,
+staticanalysispinpoints
+activityswitchconnections.
+Thereisasubstantial
+amountofcodingforthe
+detectionRulesarearrangedthrough
+theuseofanattacktreeto
+getpreciseand
+programmableoutcomes.
+Whiledynamicanalysis
+verifiesthesmallerruleset,
+staticanalysislooksfor
+possibleassaults.triggers
+dependingoncomponents
+Drawbacks Ninerulesarenotenough.
+Therealbehaviorofan
+applicationcannotbe
+adequatelymodeledby
+staticauthorizationfeaturesUserinteractionisnot
+faithfullysimulatedbythe
+Monkeytool.Theclassifiers
+producealotoffalse
+positiveresultsOtherthanactivity,thereis
+notriggerforcomponents
+suchasserviceand
+broadcastManuallydevelopedrulesA
+detaileddynamicanalysis
+takesalongtime
+Detection
+resultTenofthe311appsdidnot
+passtherules.Fiveofthem
+areconsidereddangerous,
+theotherfiveareseentobe
+reasonableBayesnetLogisticTPR:
+81.25%68.75%FPR:31.03%
+15.86%AUI-basedtriggersituation
+thattriggersabehaviormay
+beseenonSmartDroid.Itis
+unabletoexposetrigger
+circumstancesthatare
+logic-basedorindirect,
+thoughTPR:88.14%FPR:1.80%
+Accuracy:96.57%
+k
+k k
+k81 Analysis of Malicious Executables and Detection Techniques
+run),thenumberofsections,thesizeoftheadditionalheader,andothercrucial
+details about the file are all contained in the PE file header. Information about
+eachportionofthefileisprovidedinthesectiontable,includingthename,virtual
+size,virtualaddress,andrawdatasize.Thetextsectioncontainstheexecutable
+codeofthefile,whichismachinecodethatthecomputercanexecutedirectly.The
+datasectionscontaininitializedanduninitializeddatausedbytheprogram.The
+resourcesectioncontainsinformationabouttheresourcesusedbytheprogram,
+suchasicons,bitmaps,anddialogboxes.Theexportsectioncontainsinformation
+aboutthefunctionsandvariablesthatareexportedfromthefile,allowingother
+filestocallthem.Informationonthevariablesandfunctionsloadedfromother
+filesisprovidedintheimportsection,whichisneededbytheprogram.Overall,
+thePEfileformatprovidesawayforWindowstoefficientlyloadandexecutepro-
+grams,makingitanimportantcomponentoftheWindowsoperatingsystem.
+Table1.1comparesfourexistingmalwaredetectionapproaches,namelyKirin,
+STREAM,SmartDroid,andAMDetector.Itincludesinformationonthemethods
+used, advantages, drawbacks, and detection results of each approach. The data
+showsvaryinglevelsofperformanceandlimitationsinthedifferentapproaches.
+1.4 Malware Behavior Analysis
+The categorization of malicious executable files can be based on a wide range
+of factors, including execution time, network activity, registry access frequency,
+number of accessed files, and more. However, the most promising approach is
+to categorize executable files based on an examination of their behavior. Such a
+classificationwillallowfortheidentificationofclasseslinkedtothefundamental
+conceptsdrivingthefunctionalityandintentofmalicioussoftware.Todifferenti-
+atebetweentheseclasses,clusteringalgorithmsshouldfeeddatathataccurately
+describesthebehaviorofexecutablefiles.Itisrecommendedthatthisinformation
+beobtainedbysequencingthecallstoWinAPIfunctions.Toanalyzethebehavior
+of each file, executables are run in a virtual environment, and the API call logs
+ofeachfilearesaved.Thesefeaturesarethencombinedafterstaticanddynamic
+featureshavebeenextracted.MLclassifiersusetheintegratedfeaturesetasinput
+toidentifyfilesasmaliciousorbenign.TheheaderandsectionsofthePEstruc-
+turecontainthedatanecessaryforPEfilestooperateonWindows.TheDLLthat
+wasloadedandthefunctionbeingutilizedmaybothbeidentifiedusingtheIAT
+within PE Header. Thus, information about malignancy may be obtained from
+PEcomponentswithouttheneedtoexecutetheMC[5].Iftheinformationhasa
+PEstructure,theheaderandsectionpartsofafilehavebeenutilizedtoextracta
+totalof55features,includingentropyandpackers.ByusingYARArulesetting,the
+file’spackinginformationcannowbefoundwithinthebinaryfile.TheYARArule
+k
+k k
+k1.4 Malware Behavior Analysis 9
+comprisestoolsthatcategorizedifferentkindsofmaliciousprogramsdepending
+ontheirsignaturesandcanidentifythem.Themaliciousnessofcodecanbecate-
+gorizedusingconventionaltechniquesifthepatternsarecomparedandfoundto
+bemalicious.
+Therehavebeenvarioustechniquesproposedandimplementedtopreventmali-
+cious program executions at the client side and on cloud hosts. In this section,
+wewillreviewsomeofthemostnotabletechniquesandtheirlimitations.Forest
+et al. [6] introduced a process-level anomaly detection method for buffer over-
+flow and symbolic link attacks. The authors differentiated typical and unusual
+featuresusingbriefSystemCallsequencesproducedbyanactiveprivilegedpro-
+cess.ResearchersexaminedtheexecutionofprocedureSystemCallsequencesand
+identifiedtypicalbehavior.Leeetal.[15]distinguishedbetweentypicalandabnor-
+malpatternsinUNIXprocesses.UsingaMLapproach,theydiscoveredabusesand
+intrusions in UNIX processes and demonstrated RIPPER, a rule-based training
+technique,wasusedbythemtoanalyzeinformationobtainedfromUNIXsend-
+mailsoftware.
+AtechniqueforidentifyingintrusionsbasedoninvasiveSystemCallswasput
+outbyWarrenderetal.[16]Theycapturedthekernel’sSystemCallpatternsand
+gained knowledge of over four distinct techniques for locating intrusions based
+ontheSystemCallsequences,identifyingprivilegedprocesses,andstudyingtheir
+normalbehavior.AnartificialneuralsystemwasutilizedbyGhoshetal.[17]to
+learnthenormalSystemCallpatternofUNIXprogramexecution.Theyusedthe
+DefenseAdvancedResearchProjectsAgency(DARP)datasettoestablishprofiles
+forover150differentprogramsandtrainedaneuralnetworkforeachprogramto
+recognizeunusualbehavior.Liaoetal.[18]developedanovelmethodforidentify-
+ingtypicalprogrambehaviorbyusingthefrequenciesofSystemCallsandclassify-
+ingitasordinaryorintrusivebehaviorusingaK-nearestneighbor(KNN)classifier.
+Qingetal.[10]basedtheirmethodonroughsettheory.TheytooktheSystemCall
+sequencesproducedduringaprocess’sregularexecutionsandextractedruleswith
+thesmallestpossiblesizetobuildamodeloftheprocess’stypicalbehavior.Then,
+basedonthenormalbehavioralmodeloftheconstructedprocess,theyemployed
+acrudesetconceptalgorithmtodetectintrusions.Sunetal.[18]recommended
+Collabra, which provides a filtration layer within the cloud to protect the cloud
+andthehostsfromillegalaccess.Atechniqueforautomatedintrusionassessment
+inthecloudwasputoutbyArshadetal.[11].Theycategorizedallattacksbased
+onthreesecurityattributes:availability,confidentiality,andintegrity.Theyused
+supervisedandunsupervisedlearningtechniquestocreatetrainingdatasetsand
+mappedSystemCallstothesethreeattributesbasedonthetypeofattack.However,
+ademonstrationoftheapproachismissing.
+UsingfrequentSystemCallsequences,Haietal.[12]presentedanautomated
+methodforcloud-basedintrusiondetection.TheyusedaHiddenMarkovmodel
+k
+k k
+k10 1 Analysis of Malicious Executables and Detection Techniques
+(HMM)todetectpotentialthreatsandanautomatedminingalgorithmtoextract
+frequently occurring System Call sequences. This approach, however, demands
+continuallearninganddetectionresources,andtheruleextractionprocessiscom-
+putationallychallenging.Sebastianetal.[19]proposedamethodofintrospection
+fordetectingkernelrootkits.Basedonalterationstothesystemstate,theywere
+abletolocaterootkits.Thesystemstatewasexaminedusingabottom-upmethod-
+ology,startingfromabinaryrepresentationdowntothekernelobjectlevel.The
+authorsweresuccessfulinidentifyingkernelrootkitsusingtheirmethod.How-
+ever,theanalysisandreportingarecomplex,andthemethodisnotarchitecturally
+independentbecauseitisbasedonthekernellevel.Intrusiondetectionincloud
+environmentsisacrucialaspectofensuringthesecurityofcloud-basedsystems.
+ThetraditionalapproachtointrusiondetectioninvolvestheuseofSystemCalls
+and process states to gauge the similarity of the system to itself. However, this
+approachhasseverallimitationsandcanbeineffectiveindetectingslow-moving
+threats. In this context, measures for self-similarity are used to identify abnor-
+malitiesinKwonetal.’s[20]proposedself-similarity-basedstrategyforintrusion
+detectionwithinthecloud.
+The self-similarity measure is computed using cosine similarity, making it a
+system-wide strategy. However, this approach is not always accurate enough to
+identify attacks that occur gradually. Kong et al. [21] proposed an alternative
+approach, Ad-joint, which uses an Ad-joint to monitor the kernel state of the
+protectedsystem.Thisapproachprovidestwolayersofsecuritybutalsoincreases
+the demand for additional resources. Despite the efforts made to date, several
+research gaps still exist in the field of intrusion detection in the cloud. For
+instance,previoustechniqueshavenotbeeneffectivelyappliedtonewersystems
+suchasthecloud,whichrequiresadistributedarchitecturewithsynchronization,
+log collection, alerts, and response mechanisms. Additionally, the cost–benefit
+analysis of using the self-similarity-based approach in cloud infrastructure does
+notsupportthesolution’seffectivenessinidentifyinganomalousprograms.
+WhenitcomestoidentifyingmaliciousSystemCallsinsidethehostoperating
+system,theconventionalsystemcallpatternmethodisdifficultandinefficient.It
+permitstheidentificationofsuspectsystemcallpatternswithouthavingtolookat
+particularapplicationsorprocesses.Itsefficacyishoweverconstrainedbythefact
+thatsystemcallpatternsthatwererecognizedasunusualoncethetrainingcould
+occasionallyoccuraspartofatypicalexecutionscenario.
+By saving processing and data gathering resources, methods that use the
+rate in System Calls for unexpected behavior detection can achieve respectable
+efficiency. These techniques might not always catch assaults nevertheless,
+especially if the attacker uses the same frequency in system call sequences but
+in a different order to trick the detection system. Additionally, the research
+on such systems [22] indicated that virtual machine monitor (VMM) layer
+k
+k k
+k1.5 Conventional Detection Systems 11
+detectionishypervisor-dependent,renderingdistributedsolutionssusceptibleto
+client-side IDS instance failure [14]. Additionally, system-wide intrusion detec-
+tion systems are less effective than program-wide intrusion detection systems
+andcannotdetectslow-movingthreats,wheretheprobabilityofunusualsystem
+call sequence behavior indicating an intrusion is low. Despite the advances in
+intrusion detection in the cloud, there is still a need for effective and efficient
+solutions that can address the limitations of the existing approaches. Further
+research is necessary to address the research gaps and improve the efficacy of
+intrusiondetectionincloudenvironments.
+1.5 Conventional Detection Systems
+Malwarescanners[23]aretoolsthatattempttoidentifymaliciousexecutablefiles
+by comparing them to a known set of patterns. They typically search through
+eachlineofcodeinthefile,lookingforauniquesignaturerepresentedasahash
+codeor string. Extractingthesesignatures isa challengingandtime-consuming
+process, and modern malware can evade scanners by changing their patterns
+dynamically. To overcome this, scanners are developing more sophisticated
+algorithms that use ML, such as analyzing machine instructions or API calls
+[7,22].Forinstance,systemsthatusemachineinstructionstrainclassifiersusing
+features derived from op-codes. These systems may use op-code sequences to
+extractfeaturessuchasfrequency,histogram,andothers.Byexaminingop-codes,
+they typically label any potentially malicious behavior in a cloud application as
+benign.Thismaynotaccuratelyreflectreality,asthebehaviorcouldbelegitimate
+maliciousaccesstodatabases,rootfilesystems,ornetworksinacertainsituation.
+Toconfirmwhetherthefileissafe,thesuspectfileistemporarilymonitoredand
+isolated in a simulated environment, and marked as safe if its behavior appears
+reasonablebasedonestablishedmetrics.
+Intrusiondetectionsystemsareusedtopreventexternalattacksonanorgani-
+zation’scomputernetworks.Theycategorizemaliciouscommunicationsbymon-
+itoringincomingpacketsforirregularitiesattheentrancetoalocalareanetwork
+[24].However,thesesystemsoftenpresumethatthetrustedperimeterissecure
+andmaynotdetectmaliciousactivityfrominsiders[23].Theyoperatesimilarly
+tomalwarescannersbydetectingknownrulesorpatterns,withsophisticatedsys-
+temsusingMLtodetectmoreadvancednetworkattacks.Theyrelyoninspecting
+packetheadersand,insomecases,packetcontents.
+FromaMLperspective,signature-basedmechanismsclassifymaliciousfeature
+vectors by comparing the current feature vector with a labeled set that has
+alreadybeenrecorded[25].Asaresult,theyareineffectiveagainst0-dayattacks.
+Also, behavior-based mechanisms can be adapted, as they estimate the most
+k
+k k
+k12 1 Analysis of Malicious Executables and Detection Techniques
+recentfeaturevectorsandlearnfromaprovideddataset.Therehavebeenmany
+studiesintheliteraturethatuseMLmethodsinmaliciousbehaviorrecognition
+systems, with most of them focusing on network communications intrusion
+detection systems [22, 26]. Feature vectors are extracted from various sources,
+forinstance,usercommandpatterns,logentries,informationaboutlower-layer
+systems, and CPU and memory use [24]. ML-based detection systems often
+employattributessuchasAPIcallsandmachinecommands[10].Thesesystems
+classify malware into categories such as viruses, worms, backdoors, and Trojan
+horses.
+In the domain of malware analysis, techniques are divided into two types:
+signature-based and behavior-based [27]. Signature-based techniques search for
+unique patterns in malicious files, such as distinct raw byte patterns or regular
+expressions. In contrast, during code execution, behavior-based techniques get
+particularfeaturevaluesthroughruntimeactionsandlogs.
+1.6 Classifying Executables by Payload Function
+Inthisresearch,thefocusisontheclassificationofmaliciousexecutablesbased
+ontheirpayloadfunctions,ratherthanontheirdetection.Thegoalistodetermine
+ifclassificationtechniquescandeterminethetypeofmaliciousexecutable,such
+as whether it opens a backdoor, is sent in bulk, or is an executable virus. This
+aspectoftheresearchisparticularlybeneficialforcomputerforensicsexperts.The
+firststepintheprocessistheidentificationandcatalogingofthecharacteristics
+ofmaliciousexecutablepayloads.Achallengeencounteredinthisprocessisthat
+manyexecutablesfitintomultiplecategories,makingthemmulti-classexamples,
+whichisacommonproblemindocumentclassificationandbioinformatics.For
+instance,anexecutablemaybothlogkeystrokesandopenabackdoor,makingit
+fallintoboththekeyloggerandbackdoorcategories.
+Onesolutiontothisissueistocombinecompoundclasseswithsimpleclasses,
+suchasbackdoor +keylogger.Thiscanbeachievedbyusingone-versus-allclassi-
+fication,whereallexecutablesarecategorizedintogroupsbasedontheircapabil-
+ities.Forexample,allbackdoor-capableexecutablesregardlessofanyadditional
+features,includingkeylogging,wouldbeputinsidethebackdoorclass,whereas
+everyotherexecutablewouldbeputinsideanon-backdoorclass.
+The following stage is to develop a detector for something like the backdoor
+category, and thereafter carry out the same procedure for the other classes. The
+totalpredictionoftheprogrammaybedeterminedbyapplyingeverydetectorand
+reportingeveryclassifier’sprediction.Forinstance,ifthebackdoororkeylogger
+detectorsbothidentifyhits,theexecutable’soverallforecastwould’vebeenback-
+door+keylogger.
+k
+k k
+k1.7 Result and Discussion 13
+1.7 Result and Discussion
+Ithasbeenobservedthatthedetectionmethodsusedmayhavesimplydeveloped
+theabilitytorecognizesomeobfuscationtechniques,suchasruntimecompres-
+sion,butaslongasthesetechniquesarelinkedtomaliciousexecutables,thisdoes
+not provide a serious problem. Alternative data extraction techniques were also
+investigated.Oneconceptwastocreateanauditofmachineinstructionsandexe-
+cutethemaliciousexefilesina“sandbox.”However,thisstrategywasabandoned
+owing to a number of drawbacks, including a lack of auditing tools, challenges
+managing a large number of interactive programs, and an inability to identify
+maliciousactivityattheconclusionoflengthyprograms.Additionally,somedan-
+gerous programs have the ability to recognize when they are running inside a
+virtualmachine(VM)andtheneitherstoprunningoravoidrunningdestructive
+code.
+Our research has practical implications in two areas of commercial applica-
+tions.Thefirstisthedevelopmentofasystemfordetectingmaliciousexecutables,
+similar to the MECS system. This system would require storage of a large set of
+bothknownmaliciousexecutablesandbenignexecutablesinserversoftware.The
+computation-intensivetaskofcreatingclassifiersfromsuchalgorithmsformea-
+suringinformationgainandassessingcategorizationtechniqueswouldneedtobe
+used,andthedatawouldneedtobeprocessedsequentially,inparallel,orboth.To
+createaprediction,theclientprogramwouldjustneedtocollectthetopn-grams
+out of an executable and utilize the classifier. Through the internet, the classi-
+fiermightberemotelyupdated.Itisvitalfortheservertotestseveraltechniques
+aswellasfortheclienttohandleanyviableclassifierssincethebest-performing
+techniquemaychangewithnewtrainingdata.Thesemethods,whencombined
+with signature-based methods, could provide a more effective way of detecting
+maliciousexecutablesthanwhatiscurrentlypossible.
+Thesecondsystemisfocusedonservingcomputerforensicexperts.Althoughit
+isuncertainifthestatisticalpropertiesofanexecutablearepredictiveofitsfunc-
+tion,thereisevidencethathighdetectionratescanbeachievedwhenpredicting
+itsfunction.
+In today’s digital world, where files and information are exchanged over net-
+worksandtheinternet,networkmalwaredetectionisofutmostimportance.Using
+thenetworkanalysisprogramBroIDS[16],PEfilesmaybeextractedfromincom-
+ingpacketsthatareroutedthroughtherouterandintotheinternalnetwork.Then,
+thepertinentcharacteristicsareextractedusingthefeatureextractionmodule.Fol-
+lowingtheextractionofthefeaturesandrepresentationofthefile,thefilemaybe
+passedtowardthemalwareanalysisengine,whichalreadyhasthetraininglearn-
+ing algorithm stored in memory. If malware is found, a warning will be created
+andforwardedtotheoperator.
+Table 1.2 Displaying malware families with the speciﬁc malware.
+Malware family Spyware Adware Cookies Trapdoor Trojan Horse Sniffers Spam Botnet Logic bomb Worm Virus
+Pattern ✓✓✓✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓
+Obfuscated ✓✓✓✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓
+Polymorphic ✓✓✓✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓
+Toolkit ✓✓✓✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓
+Network ✓✓✓✓ ✗ ✓✓✓ ✓ ✗✗
+Remoteexecutionthroughwe ✓✓✓✓ ✓ ✓ ✓ ✓ ✗✗ ✗
+PC ✗✗✗✗ ✗ ✗ ✗ ✗ ✓✓ ✓
+Network ✓✓✓✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓
+Removabledisks ✓✓✓✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓
+Internetdownloads ✓✓✓✓ ✓ ✓ ✓ ✓ ✓ ✓ ✓
+Breachingconfidentiality ✓ ✗ ✓ ✗ ✓✓ ✗✗ ✗ ✗ ✗
+Inconveniencingusers ✗ ✓ ✗✗ ✗ ✗ ✓ ✗✗ ✗ ✗
+Denyingservices ✗✗✗ ✓ ✗✗ ✓✓ ✓ ✓ ✓
+Datacorruption ✗✗✗ ✓ ✗✗ ✓✓ ✓ ✗ ✓

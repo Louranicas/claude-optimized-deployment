@@ -1,0 +1,160 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 4 - , “Data Ingestion and Normalization”.
+Validating and testing the onboarding process
+Prior to thoroughly integrating the onboarded data into your Splunk environment, it is necessary to validate and test the data onboarding process to ensure that the data is correctly ingested, parsed, and normalized.
+You can use Splunk’s Search application to confirm that events from the custom application log are being accurately ingested and that extracted fields correspond to your expectations. In addition, you can use the Data Model Audit dashboard in the Common Information Model application to verify that the data is mapped accurately to the selected data model.
+If any issues are discovered during validation and testing, you can modify your configuration files and data input settings as necessary, and then retest until the data onboarding process is operating as expected.
+By incorporating field extractions, event types, and lookups, we can improve the data integration process for our custom application log. These techniques will help provide additional context and enrich the data that Splunk receives.
+Field extractions
+Using the props.conf file, we have already extracted the loglevel and log_message fields from the previous example. To provide additional context, let’s extract the UserID and Query fields as well.
+The following field extractions should be added to the props.conf file:
+[my_app_log]
+…
+EXTRACT-user_id = UserID:\s(?<UserID>\d+)
+EXTRACT-db_query = Query:\s(?<Query>[^,]+)
+Now, the UserID and Query fields will also be extracted from the log events.
+Event types
+Splunk’s data search and analysis are facilitated by event types, which categorize events based on specific criteria. Using the sample log data, we can construct event types for user login events, failed database queries, and warnings for excessive memory consumption.
+Update the eventtypes.conf file with the following definitions for event types:
+[user_login]
+search = sourcetype=my_app_log log_message=”User logged in”
+[failed_db_query]
+search = sourcetype=my_app_log log_message=”Failed database query”
+[high_memory_usage]
+search = sourcetype=my_app_log log_message=”High memory usage”
+Now, you can use these event types to easily filter events by category in your searches.
+Lookups
+Lookups are used to enrich data by incorporating fields from external sources. In this example, let’s suppose we have a CSV file named user_info.csv containing user information with the columns UserID, Username, and Department:
+UserID,Username,Department
+123,jdoe,IT
+124,asmith,HR
+125,jbrown,Finance
+We can use a lookup to add Username and Department information to log events based on the UserID field.
+Navigate to Settings > Lookups > Lookup table files > Add new to upload the CSV file to Splunk. Select the CSV file and specify the desired destination app and file name.
+Security Relevance Score: 14
+Word Count: 1760
+Extracted: 2025-06-13 23:40:44
+
+---
+
+, “Data Ingestion and Normalization”.
+Validating and testing the onboarding process
+Prior to thoroughly integrating the onboarded data into your Splunk environment, it is necessary to validate and test the data onboarding process to ensure that the data is correctly ingested, parsed, and normalized.
+You can use Splunk’s Search application to confirm that events from the custom application log are being accurately ingested and that extracted fields correspond to your expectations. In addition, you can use the Data Model Audit dashboard in the Common Information Model application to verify that the data is mapped accurately to the selected data model.
+If any issues are discovered during validation and testing, you can modify your configuration files and data input settings as necessary, and then retest until the data onboarding process is operating as expected.
+By incorporating field extractions, event types, and lookups, we can improve the data integration process for our custom application log. These techniques will help provide additional context and enrich the data that Splunk receives.
+Field extractions
+Using the props.conf file, we have already extracted the loglevel and log_message fields from the previous example. To provide additional context, let’s extract the UserID and Query fields as well.
+The following field extractions should be added to the props.conf file:
+[my_app_log]
+…
+EXTRACT-user_id = UserID:\s(?<UserID>\d+)
+EXTRACT-db_query = Query:\s(?<Query>[^,]+)
+Now, the UserID and Query fields will also be extracted from the log events.
+Event types
+Splunk’s data search and analysis are facilitated by event types, which categorize events based on specific criteria. Using the sample log data, we can construct event types for user login events, failed database queries, and warnings for excessive memory consumption.
+Update the eventtypes.conf file with the following definitions for event types:
+[user_login]
+search = sourcetype=my_app_log log_message=”User logged in”
+[failed_db_query]
+search = sourcetype=my_app_log log_message=”Failed database query”
+[high_memory_usage]
+search = sourcetype=my_app_log log_message=”High memory usage”
+Now, you can use these event types to easily filter events by category in your searches.
+Lookups
+Lookups are used to enrich data by incorporating fields from external sources. In this example, let’s suppose we have a CSV file named user_info.csv containing user information with the columns UserID, Username, and Department:
+UserID,Username,Department
+123,jdoe,IT
+124,asmith,HR
+125,jbrown,Finance
+We can use a lookup to add Username and Department information to log events based on the UserID field.
+Navigate to Settings > Lookups > Lookup table files > Add new to upload the CSV file to Splunk. Select the CSV file and specify the desired destination app and file name.
+
+
+
+Figure 3.7: Lookup table files configuration
+Alternately, the query can be defined in the transforms.conf file:
+[user_info_lookup]
+filename = user_info.csv
+Then, define the lookup in the props.conf file:
+[my_app_log]
+…
+LOOKUP-user_info = user_info_lookup UserID OUTPUT Username Department
+Now, based on the UserID field, the log events will be enriched with Username and Department information, providing additional context for analysis.
+Having implemented field extractions, event types, and lookups, you can now use the enriched data to create more sophisticated Splunk searches, visualizations, and alerts. Here are some examples of how you can search using the newly created event types and query data:
+
+Count the number of user login events by department:
+eventtype=user_login | stats count by Department
+Identify the most common failed database queries:
+eventtype=failed_db_query | stats count by Query | sort -count
+Find high memory usage events and display the username and department associated with the user who was logged in during that time:
+eventtype=high_memory_usage | table _time, UserID, Username, Department, log_message
+
+These examples illustrate how field extractions, event types, and lookups can considerably enhance the data onboarding process in Splunk by supplying richer context and more precise event categorization. By employing these techniques, you can obtain a deeper understanding of your data and strengthen your cybersecurity posture.
+Please note that the SPL queries provided in this chapter are formulated to be generic and illustrative. They do not specify any particular index, allowing for broader applicability. If you wish to experiment with these examples, you may adapt them to your specific use case, for instance, by using index= `<your_index>` or any other index that is suitable to your environment.
+Example of data onboarding via scripted input:
+Scripted inputs are a powerful technique for ingesting data into Splunk through the use of custom scripts. They become particularly useful when you need to collect data from an API, perform data manipulation or transformation, or collect data from a source not supported by Splunk’s built-in data inputs.
+Consider an example of importing OpenWeatherMap API data into Splunk.
+First, obtain an API key for OpenWeatherMap by registering for a free account at https://home.openweathermap.org/users/sign_up.
+Next, create a Python script (for example, weather_data.py) that retrieves weather data from the OpenWeatherMap API:
+import requests
+import json
+import sys
+import os
+api_key = “YOUR_API_KEY”
+city_name = “San Francisco”
+base_url = f”http://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api_key}”
+response = requests.get(base_url)
+data = response.json()
+if data[“cod”] != “404”:
+weather_data = {
+“city”: data[“name”],
+“country”: data[“sys”][“country”],
+“temperature”: data[“main”][“temp”],
+“humidity”: data[“main”][“humidity”],
+“pressure”: data[“main”][“pressure”],
+“weather”: data[“weather”][0][“description”],
+}
+
+print(json.dumps(weather_data))
+else:
+print(“City not found.”)
+Replace “YOUR_API_KEY” with your actual API key obtained from OpenWeatherMap.
+Make the script executable by running the following command:
+chmod +x weather_data.py
+Now, create a new scripted input in Splunk to run the weather_data.py script by following these steps:
+
+In the Splunk Web interface, navigate to Settings > Data inputs.
+Click Scripts > New Local Script.
+Set the Name field to weather_data.py and the Source name override field to weather_data.
+
+
+
+Figure 3.8: Lookup table files configuration
+In the Script field, provide the full path to your desired Python script. Please ensure that your script is located in the splunk/bin directory of your Splunk installation. Once placed in the correct directory, navigate through the user interface to locate and select your script. For example, if you have a script named weather_data.py, ensure it is stored in the splunk/bin directory, and then select it from the UI.
+Set the Interval to the desired frequency for running the script (for example, 3600 seconds for hourly updates).
+Choose the appropriate app context and click Next.
+Review the input settings and click Submit to create the scripted input.
+
+Once the scripted input has been configured, the weather_data.py script will be executed at the interval specified, and the weather data will be ingested into Splunk. You can now search and analyze meteorological data using the weather_data sourcetype in Splunk.
+To display the most recent weather information for San Francisco, for instance, you can use the following search query:
+sourcetype=weather_data | head 1 | table _time, city, country, temperature, humidity, pressure, weather | city=”San Francisco”
+This example illustrates how to construct a scripted input in Splunk for importing data from an external API. Scripted inputs can be used for a variety of data sources and formats, allowing you to exploit Splunk’s complete capacity for data analysis and visualization.
+Conclusion
+This chapter provided insightful information on the significance of properly configuring and managing data inputs to extract meaningful information from various data sources. Following an introduction to the concept of configuring inputs and data sources, the chapter explored the various categories of data sources. It delved deeper into the complexities of configuring data inputs and comprehending their importance within the data processing pipeline.
+The chapter also discussed the significance of effectively managing data inputs, which is crucial for preserving data quality, consistency, and precision. Data onboarding is the first stage in integrating new data sources into the system, ensuring a smooth flow of information and minimizing potential data pipeline bottlenecks.
+Now that a solid foundation has been established in configuring inputs and data sources, it is essential to concentrate on the subsequent phases of the data pipeline. Importing data from various sources into the system, and then transforming and normalizing it to ensure consistency and compatibility with other data sets will be the focus of the following chapter.
+In the upcoming chapter, you will learn about various data ingestion techniques, their advantages and disadvantages, and how to choose the most appropriate technique for your particular use case. In addition, the chapter will discuss the significance of data normalization in the context of data processing, analysis, and visualization, guiding you on how to effectively normalize data to improve its usability and extract valuable insights.
+Points to Remember
+
+Identify pertinent data sources: In the context of cybersecurity, it is crucial to capture data from security devices, systems, and applications, such as firewalls, IDS/IPS, antivirus software, and network devices. This provides extensive visibility into your environment and aids in the identification of potential hazards and vulnerabilities.
+Use secure communication channels: When configuring inputs and data sources, ensure that secure communication channels such as encrypted protocols (for example, TLS, SSL) are used to safeguard sensitive data during transmission from unauthorized access or tampering.
+Correctly configure log and event collection: Ensure that logs and events from data sources are collected at the appropriate level of granularity to provide useful data for analysis. This includes enabling logging on devices and applications and adjusting logging levels accordingly.
+Implement data retention policies: For historical analysis, trend identification, and incident response, it is essential to retain data for a sufficient period. Establish data retention policies that strike a balance between storage needs and the requirement for historical data in cybersecurity investigations.
+Configure data parsing and normalization: For effective analysis and correlation of data from diverse sources, it is essential to parse the data into a consistent format. This facilitates the analysis and correlation of events, resulting in a speedier detection and response to threats.
+Monitor data quality and integrity: Examine and validate the accuracy and completeness of the collected data regularly. This increases the efficacy of your security measures by ensuring that your cybersecurity tools and processes are functioning with reliable data.
+Test and validate configurations: After configuring inputs and data sources, test and validate the configuration to ensure that data is collected, parsed, and normalized appropriately. This assists in identifying any issues or voids in data collection that could have an effect on your cybersecurity posture.
+Maintain current data sources and inputs: Regularly assess and update the configuration of data sources and inputs to adapt to changes in your environment, such as new devices, applications, or system updates. This guarantees continuous visibility into your security landscape.
+Comprehend compliance requirements: Be cognizant of any regulatory or industry compliance requirements pertaining to data collection, storage, and analysis. Configure your inputs and data sources accordingly to maintain compliance and meet these requirements.
+Educate your team: Ensure that your cybersecurity team is well-versed in configuring and administering data sources and inputs. This allows them to utilize data effectively for threat detection, analysis, and response

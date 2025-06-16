@@ -1,0 +1,99 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 2023 - It took several calls to find someone who answered the phone (speaking live is always more effective than leaving voicemails), but eventually, one associate fell for the ploy. We walked this individual through the steps of navigating to an innocent-sounding hyperlink we provided, downloading a remote access software, and inputting a connection code that we provided. In a matter of only a few minutes, we had gained remote access to their workstation; there was no need to try and figure out how to bypass email security controls since we never sent anything. We instructed that employee to get a coffee while we were troubleshooting the issue with their workstation.
+The remote access software had two very handy features that we utilized almost immediately: the first was the ability to blank the client's screen (which we warned them would happen so that they were not alarmed) and the second was file transfer capabilities. After blanking their screen, we searched for any VPN profile files, which we were able to find stored on OneDrive. We exfiltrated the VPN information, then un-blanked their screen, and told them that they were all set. After a mutual thank you for your time, we ended the call, now in possession of the proverbial keys to the castle, and they hung up none-the-wiser of what had happened.
+We were then able to establish a VPN connection to their corporate network from our own penetration testing appliance. With initial access achieved, the next stage of the red teaming followed a very similar pathway to traditional internal-network penetration testing; the main difference being a meticulously stealthy approach to discovery.
+We began by analyzing the local subnet to avoid routing through an IDS; but even though it was the local subnet, an abundance of caution was still used to remain undetected:
+Nmap -T2 –-randomize-hosts -Pn -f –-data-length 5 -ttl 58 -p 21,25,80,443,8080,8443,4786 –-open 10.10.10.2-254 -oX result_local.xml
+There is a lot happening in that scan, so let’s break it down. We are running a slow-speed (-T2) scan of the local subnet, excluding the common gateways. We disabled host discovery via ICMP (-Pn), fragmented the packets (-f), and appended 5 bits of random data onto each one (--data-length 5). We randomized the host selection order (--randomize-hosts) and set a custom time to live (-ttl). Finally, we manually selected only seven interesting ports to be scanned for each endpoint (-p) and instructed Nmap to only print open ports (--open) and save the results as a .xml file (-oX).
+Even with scanning only seven ports, this scan took nearly an hour to complete. However, it returned something spectacular. One endpoint on the subnet was an outdated Cisco Catalyst switch with port 4786, also known as Cisco Smart Install in an open state. For a network pentester, this is nearly as exciting as finding vulnerable NBNS traffic on the network. Within minutes, we leveraged an open-source tool called Siet.py to pull the configuration file from that switch. While a malicious actor would likely modify the config and push it back to the switch and trigger a restart, which was outside the rules of engagement, as it would cause a network disruption. However, what we could glean from the configuration file was the hashed password of the switch admin account, a breakdown of subnets in use, as well as the SNMP community strings being employed.
+This password hash was successfully cracked offline, revealing a relatively weak administrator password. While we had both the user and password in plaintext, it was not an active directory account, so the usage possibilities were limited at this point.
+Continuing the discovery, we determined that we needed to expand the analysis to other subnets that were identified in the Catalyst switch config. These became the target list for the next stage of scans, which was done against no more than 2 x /24 subnets at a time:
+Nmap -T2 –-randomize-hosts -Pn -f –-data-length 5 -ttl 58 –-exclude-port 22,139,445 -iL targets1.txt -oX results1.xml
+The only real difference between this scan and the first one is that, this time, rather than specifying a few specific ports, we are instead excluding ones that often lead to detection (--exclude-port).
+We repeated this scan, switching in additional subnets, for the next several hours before calling it a day. The next morning, when we went to resume the activity, we found that the VPN connection had been severed. Evidently, the blue team had detected the scans at some point, quickly investigated, and contained the threat (us). It was a frankly impressive response time when we looked at the logs of when the connection was severed, and made a point of praising that response process in the formal report.
+This engagement was insightful to the client for a number of reasons:
+Security Relevance Score: 13
+Word Count: 1533
+Extracted: 2025-06-13 23:40:38
+
+---
+
+It took several calls to find someone who answered the phone (speaking live is always more effective than leaving voicemails), but eventually, one associate fell for the ploy. We walked this individual through the steps of navigating to an innocent-sounding hyperlink we provided, downloading a remote access software, and inputting a connection code that we provided. In a matter of only a few minutes, we had gained remote access to their workstation; there was no need to try and figure out how to bypass email security controls since we never sent anything. We instructed that employee to get a coffee while we were troubleshooting the issue with their workstation.
+The remote access software had two very handy features that we utilized almost immediately: the first was the ability to blank the client's screen (which we warned them would happen so that they were not alarmed) and the second was file transfer capabilities. After blanking their screen, we searched for any VPN profile files, which we were able to find stored on OneDrive. We exfiltrated the VPN information, then un-blanked their screen, and told them that they were all set. After a mutual thank you for your time, we ended the call, now in possession of the proverbial keys to the castle, and they hung up none-the-wiser of what had happened.
+We were then able to establish a VPN connection to their corporate network from our own penetration testing appliance. With initial access achieved, the next stage of the red teaming followed a very similar pathway to traditional internal-network penetration testing; the main difference being a meticulously stealthy approach to discovery.
+We began by analyzing the local subnet to avoid routing through an IDS; but even though it was the local subnet, an abundance of caution was still used to remain undetected:
+Nmap -T2 –-randomize-hosts -Pn -f –-data-length 5 -ttl 58 -p 21,25,80,443,8080,8443,4786 –-open 10.10.10.2-254 -oX result_local.xml
+There is a lot happening in that scan, so let’s break it down. We are running a slow-speed (-T2) scan of the local subnet, excluding the common gateways. We disabled host discovery via ICMP (-Pn), fragmented the packets (-f), and appended 5 bits of random data onto each one (--data-length 5). We randomized the host selection order (--randomize-hosts) and set a custom time to live (-ttl). Finally, we manually selected only seven interesting ports to be scanned for each endpoint (-p) and instructed Nmap to only print open ports (--open) and save the results as a .xml file (-oX).
+Even with scanning only seven ports, this scan took nearly an hour to complete. However, it returned something spectacular. One endpoint on the subnet was an outdated Cisco Catalyst switch with port 4786, also known as Cisco Smart Install in an open state. For a network pentester, this is nearly as exciting as finding vulnerable NBNS traffic on the network. Within minutes, we leveraged an open-source tool called Siet.py to pull the configuration file from that switch. While a malicious actor would likely modify the config and push it back to the switch and trigger a restart, which was outside the rules of engagement, as it would cause a network disruption. However, what we could glean from the configuration file was the hashed password of the switch admin account, a breakdown of subnets in use, as well as the SNMP community strings being employed.
+This password hash was successfully cracked offline, revealing a relatively weak administrator password. While we had both the user and password in plaintext, it was not an active directory account, so the usage possibilities were limited at this point.
+Continuing the discovery, we determined that we needed to expand the analysis to other subnets that were identified in the Catalyst switch config. These became the target list for the next stage of scans, which was done against no more than 2 x /24 subnets at a time:
+Nmap -T2 –-randomize-hosts -Pn -f –-data-length 5 -ttl 58 –-exclude-port 22,139,445 -iL targets1.txt -oX results1.xml
+The only real difference between this scan and the first one is that, this time, rather than specifying a few specific ports, we are instead excluding ones that often lead to detection (--exclude-port).
+We repeated this scan, switching in additional subnets, for the next several hours before calling it a day. The next morning, when we went to resume the activity, we found that the VPN connection had been severed. Evidently, the blue team had detected the scans at some point, quickly investigated, and contained the threat (us). It was a frankly impressive response time when we looked at the logs of when the connection was severed, and made a point of praising that response process in the formal report.
+This engagement was insightful to the client for a number of reasons:
+
+It demonstrated a social engineering technique that was not covered in their end-user security awareness training (vishing).
+It demonstrated the speed at which a malicious actor could take over network infrastructure (the Catalyst switch).
+It demonstrated a highly capable blue team with an efficient playbook for triaging alerts and containing threats.
+
+ NOTE: In retrospect, it would have been wiser to scan only a small handful of ports at a time when transitioning to other subnets rather than simply excluding a few.
+Challenge: Evading Detection in Your Lab Environment
+Recreate the sequence of scans outlined in the Purple Teaming section (and copied below for your convenience) from the vantage point of both inside your lab environment and from your host machine. Compare and contrast the point at which you notice the detection in Wazuh, and then craft your own custom scan that strikes a balance between sufficient obfuscation and efficient speed:
+Nmap -iL targets.txt
+Nmap -T2 -iL targets.txt
+Nmap -T2 –-randomize-hosts -Pn -f –-data-length 5 -ttl 58
+Nmap -T2 –-randomize-hosts -Pn -f –-data-length 5 -ttl 58 –-exclude-port 22
+Next, analyze the difference with the complex scan from the section on IDS and Firewall Evasion:
+Nmap -f --data-length 5 --randomize-hosts -T2 -Pn --exclude-ports 22,139, 445 --host-timeout 5m --max-retries 3
+Challenge: Breaking Down Complex Scans
+Analyze the following three complex scans and try to break down what each scan is doing, as well as the scenario in which you would consider using it.
+Assume in each of the following scans your IP address is 10.12.50.16:
+Nmap -f --data-length 5 --randomize-hosts -T2 -Pn --exclude-ports 22,139, 445 --host-timeout 5m --max-retries 3 -iL targets.txt -oX results.xml
+Nmap -T4 --randomize-hosts -Pn --exclude-host 10.12.50.16 10.12.50.2-254 –host-timeout -oX results.xml
+Nmap -D 10.12.50.15, 10.12.15.17, 10.12.15.41 --exclude-host 10.12.50.16, 10.12.50.1, 10.12.50.255 --randomize-hosts 10.12.50.0/24
+Conclusion
+In this chapter, we have explored many individual flags and techniques that can be chained together to obfuscate your scanning activity from detection. By manipulating both the signature of the tool as well as the heuristics of its operation, Nmap offers numerous options for evasion. These flags and techniques are considered to be at an advanced practitioner level, requiring not only a high level of fundamental knowledge in how Nmap and port scanning work to understand their functionality, but also an understanding of their relatively niche use cases. Finding the sweet spot between a sufficient amount of obfuscation and a functional level of speed to complete the engagement within the set timeline is a delicate balancing act that requires experience, experimentation, and finesse.
+In the next chapter, we will wrap up our deep dive into Nmap skills by exploring the intricacies of the Nmap Scripting Engine (NSE). This chapter will bring all of the skills we have been working on full circle and provide you with the tools and opportunity to create entirely new functions for Nmap that suit your particular workflow and use case.
+Points to Remember
+
+Effective obfuscation is a combination of modifying the signature of Nmap as well as the way that the scan functions. Both elements need to be considered and employed for optimal success.
+Adding advanced obfuscation and timing modification requires a delicate balance between using just enough stealth to suffice while still scanning quickly enough to avoid losing data.
+Obfuscation is primarily a concern in red teaming and purple teaming engagements rather than traditional penetration testing.
+Nmap can be effectively used to progressively test detection capabilities during purple teaming scenarios.
+Bypassing detection gets progressively more difficult as security products become more adept at identifying malicious activity. This moving target is why an intricate understanding of how Nmap functions is pivotal to success in this regard.
+
+Multiple Choice Questions
+
+Which of the following ports has a higher probability of detection?
+
+80
+53
+21
+445
+Which of the following scans will fragment individual packets, append random data to the end of them, and throttle speed?
+
+-f --randomize-hosts
+-T4 -f –randomize-hosts --discovery-ignore-rst
+--data-length 5 --script firewalk.nse
+-f --data-length 10 -T2
+Which of the following is not a concern when employing decoy scanning?
+
+Causing an SYN flood
+Causing panic in a production environment
+Reducing the speed of results
+Selecting non-existent hosts
+Which of the following is not a common mistake that leads to detection?
+
+Scanning the gateway
+Scanning to slowly
+Scanning too quickly
+Obfuscating only the signature
+Which type of engagements are you most likely to employ advanced obfuscation techniques? (select all that apply)
+
+Network Penetration Test
+Red Teaming
+Web Application Penetration Test
+Purple Teaming
+
+Answers

@@ -1,0 +1,117 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 156 - We can gather the same information actively with Nmap, as we can passively with Shodan.io. The difference is that using Nmap would establish a direct connection and thus require explicit permission to do so. Whereas Shodan.io already has that information archived, and by searching for the server on Shodan, there is no direct connection made with 45.33.32.156, thus classifying it as passive:
+Security Relevance Score: 21
+Word Count: 2253
+Extracted: 2025-06-13 23:40:38
+
+---
+
+We can gather the same information actively with Nmap, as we can passively with Shodan.io. The difference is that using Nmap would establish a direct connection and thus require explicit permission to do so. Whereas Shodan.io already has that information archived, and by searching for the server on Shodan, there is no direct connection made with 45.33.32.156, thus classifying it as passive:
+
+
+
+Figure 1.9: Utilizing Shodan.io to passively gather information on open ports
+Beyond the legal ramifications, one must also consider the potential impact on systems that could occur when leveraging Nmap in a production environment. While quite uncommon for Nmap to cause a major service disruption or to restart a system on its own, there are hundreds of custom Nmap scripts (more on these later) that can be used to amplify the base capabilities of Nmap. Some of these scripts are completely safe to use without concern, but others do have a very real chance to cause system impact.
+As a penetration tester one of the cardinal rules is to always avoid doing anything that will impact the CIA triad. The CIA triad is an acronym that stands for confidentiality, integrity, and availability. This is a very common, and very important concept in information security as it relates to data. In the case of Nmap, the part of the triad to be most concerned with is the availability of systems. By running unsafe arguments, untested scripts, or scanning legacy systems too aggressively, it is possible to take down production systems, leading to a bad day for your client (and a very bad day for you too):
+
+
+
+Figure 1.10: CIA Triad
+As such, it is your legal responsibility to ensure you have permission to scan each and every target within your scope of work, and it is your ethical responsibility to ensure you understand what those scans are doing to avoid impacting the CIA triad.
+Vulnerability Scans Versus Penetration Tests
+Within the cyber security community, different companies will classify different actions differently. To some company standards, a penetration test is a largely automated process using commercial tools like Nessus and Sn3per. To others, it is a highly involved and intricate process focusing on the use of both automated and manual techniques. To ensure that there is a mutual understanding of the terminology used throughout the book, we will take a moment to lay out how this book defines vulnerability scans and penetration tests.
+A vulnerability scanner is a tool that is used by security teams to enumerate a particular system by analyzing the operating system, open ports, services, and versions of those services to first establish a common platform enumeration (CPE). Once a CPE is known, then the scanner will automate the process of sorting through tens of thousands of common vulnerabilities and exposures (CVEs) to identify if the system is vulnerable to any particular vulnerabilities. Many vulnerability scanners will go beyond just CPE information and also attempt proof-of-concept exploitation of things like default credentials, public SNMP communities, cross-site scripting (XSS), various forms of injection, and so on.
+Vulnerability scanning is a widely used practice that is often done across particular systems or networks on a reoccurring basis to identify any new critical vulnerabilities, or determine major changes in the environment. An inherent flaw in vulnerability scans that must be understood is that they are all prone to both false positive and false negative findings.
+While many vulnerability scanners are commercial products that can be extremely costly, most are fundamentally very similar to one another in functioning. To get some hands-on experience with vulnerability scanners, consider installing the community edition of OpenVas from https://greenbone.github.io/docs/latest/background.html#architecture:
+
+
+
+Figure 1.11: Greenbone (OpenVas) Community Edition Running in Virtual Box
+Penetration testing on the other hand is a significantly more involved process. Fundamentally, a penetration test seeks to enumerate a real-world malicious actor using known malicious actor tactics, techniques, and procedures (TTPs) to actively exploit the target systems or network. Conducting a high-quality penetration test involves highly detailed reconnaissance and attack surface mapping, identifying vulnerabilities, and exploiting those vulnerabilities to cause a cascading compromise within the environment, ultimately demonstrating the potential impact of a malicious actor targeting those systems.
+NOTE: Many vulnerability scanners, both open source and commercial, actually leverage Nmap under the hood to establish the CPE information. In fact, Nmap can actually be used on its own for vulnerability scanning with some custom NSE scripts.
+For the purposes of this book, there are two specific types of penetration tests we will be discussing, external network pentests and internal network pentests. Both of which we will discuss from a black box perspective, meaning that we, as the testers, do not have any knowledge of the client organization beyond the scope provided in the RoE. We have neither been whitelisted by any security systems, nor have any accounts been provisioned. Additionally, we will be actively trying to avoid detection by the client’s blue team to truly simulate a sophisticated malicious actor.
+To accomplish this, a penetration tester will almost always follow an industry-recognized framework to ensure the test is completed to an acceptable standard. Several guidelines and frameworks exist such as the Penetration Testing Execution Standard1 (PTES) or NIST SP 800-1152 (Technical Guide to Information Security Testing and Assessment).
+Additionally, it is becoming more and more common within the industry to also map penetration testing activities and resulting security findings to additional industry frameworks such as MITRE ATT&CK3 or the Lockheed Martin Cyber Kill Chain. The ATT&CK framework by MITRE is a fantastic knowledge base of real-world malicious actors TTPs organized into fourteen different ‘tactics’ (Reconnaissance, Resource Development, Initial Access, Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, and Impact). Lockheed Martin’s Cyber Kill Chain is slightly different in that it illustrates the logical progression of an advanced persistent threat (APT) from reconnaissance to actions on objectives. Throughout this book, we will be leveraging both frameworks as a way to categorize the Nmap techniques that are employed.
+Applying Nmap to Red and Purple Teaming
+Red teaming is considered as an advanced form of penetration testing where the concept of emulating a real malicious actor is taken to a higher level by reducing restrictions. For example, most penetration tests are focused entirely on technical vulnerabilities and (unless deliberately included in scope) do not include social engineering. This is one area where true red teaming differs, as the options available to the red team are generally more robust.
+Another key difference is that during red teaming engagements, the blue team (defenders) are actively threat hunting trying to detect, block, and contain the red team (attackers). While this may sound similar to the way avoiding detection is described in penetration testing, there is an important distinction to be made. Typically, during a penetration test, the blue team would not block the pentester’s IP, evict them from systems upon discovery, or change firewall rules mid-engagement. That would inherently minimize the potential insight into what vulnerabilities exist within the environment. When I conduct penetration tests, I encourage clients to send me evidence of when their blue team detects my actions so that I can feature that detection capability in the report. That is very different from the blue team actively trying to thwart my efforts.
+The goal of a red teaming engagement isn’t only to illustrate the most significant vulnerabilities within the environment as it is with a penetration test. While that is part of it, the real value of red teaming comes from the client being able to truly assess the holistic maturity of their security program from end-user security awareness to their incident response capability to their ability to contain threats within the network.
+We will discuss numerous methods of modifying Nmap scans to enumerate systems and identify vulnerabilities while using stealth tactics to avoid detection from the blue team. While this is believed to be an important best practice within a penetration test, it is essential in a red teaming engagement.
+Purple teaming is another advanced form of security assessment that very often contains elements akin to penetration testing within it. During a purple team engagement, the red team and the blue team will collaborate closely together, often in real-time, to identify what actions or activities the blue team can detect the red team doing. Doing this collaboratively not only provides the opportunity for both sides to learn from each other but also allows the blue team to understand their thresholds for detection.
+Nmap has proven to be an immensely helpful tool during purple team engagements because the scans themselves can do so many different things, in so many different ways. For example, I may begin with an extremely obvious port scan with all default settings to make sure the blue team can detect that activity. Then progressively add more and more obfuscation techniques until a scan that bypasses detection is reached. Once that point is established, then I can collaborate with the blue team on how to adjust their IDS, EDR, or firewall settings to set more insight into that particular tactic.
+Considering that Nmap can accomplish far more than just port scanning, that means it can generate more indicators of compromise (IoCs) within the client’s network. This allows savvy purple teamers to craft numerous scenarios which align to different TTPs all while using Nmap.
+Conclusion
+So far, we have discussed the core of what Nmap is and a very high-level overview of what it is capable of. With a baseline understanding of networking concepts, we will begin by understanding the fundamentals before expanding into progressively more nuanced and advanced skills.
+We also considered the legal and ethical implications of employing such a tool, and how, when used properly, it can provide tremendous insight to clients. The potential for unintended consequences negatively impacting a client’s environment necessitates an ethical penetration tester to take the time to understand what the scans are doing and how they are doing it. Without understanding the fundamentals of networking and how different scan types may work on different layers of the OSI model, or modify the traditional three-way handshake, it will be impossible to truly build the expertise. In other words, without understanding the ‘why’ and the ‘how’ of what the tool is doing, the potential for unintended consequences will always be present.
+By considering different types of security assessments such as vulnerability scanning, penetration testing, red teaming, and purple teaming, we established a common lexicon that will allow you to begin to understand what types of scans would be beneficial in certain engagements and hazardous in others. This concept will be continuously reinforced through numerous case studies of real-world security assessments as well as with hands-on challenges.
+All of the information within this chapter can be considered the foundation on which we will progressively build your Nmap expertise on top of. In the next chapter, we will build a simple but highly functional home lab environment that will provide countless opportunities to gain hands-on experience with penetration testing tools, concepts, and techniques. This lab is made to be a miniature replica of enterprise environments that are often seen during real-world penetration tests, and by leveraging and learning in a realistic lab environment your skills will be reinforced.
+Points to Remember
+
+Nmap is an extremely powerful open-source tool that can be used for port scanning, vulnerability scanning, exploitation, penetration testing, red teaming, purple teaming, and more.
+By utilizing different flags, options, and scripts the way that Nmap functions can be highly customized to suit the needs of the penetration tester.
+Port scanning is a form of active reconnaissance that requires explicit permission from the system owner to be performed legally.
+Vulnerability scanning, penetration testing, red teaming, and purple teaming are all very different types of security assessments with different techniques, purposes, and outcomes. While Nmap can be utilized in each one of these assessments, how it is used would be vastly different.
+The way to get the most out of this book is to read the chapters, thoughtfully consider the case studies, and then practice the techniques by completing the challenges in a lab environment.
+
+Multiple Choice Questions
+
+This type of engagement involves a close collaboration between the offensive and defensive security teams:
+
+Penetration Test
+Purple Teaming
+Vulnerability Scan
+Red Teaming
+The objective of a penetration test is to identify every possible vulnerability in a system or environment.
+
+True
+False
+An organization wants to get a holistic view of its entire security program including detection, incident response, and containment protocols. Which would be the best security assessment to provide this insight?
+
+Vulnerability Scan
+Purple Teaming
+Penetration Test
+Red Teaming
+An Nmap scan is an example of:
+
+Passive Reconnaissance
+Active Reconnaissance
+Which component of the CIA Triad is most likely to be impacted by Nmap scanning?
+
+Confidentiality
+Integrity
+Availability
+Which document defines the scope of an engagement and provides permission for conducting active testing?
+
+RoE
+IDS
+EDR
+IoC
+Which framework is designed to illustrate the phases of attack by an APT from reconnaissance to actions on objective?
+
+ATT&CK
+Cyber Kill Chain
+OSI Model
+TCP/IP
+Which port status most commonly indicates possible interference from an IPS or firewall?
+
+Open
+Closed
+Filtered
+Unfiltered
+Open | Filtered
+Closed | Filtered
+Which layer of the OSI model is associated with TCP?
+
+Application Layer
+Data Link Layer
+Transport Layer
+Session Layer
+This type of penetration test takes the perspective of a malicious actor with no inside knowledge of the client’s infrastructure or attack surface:
+
+White Box
+Black Box
+Red Box
+Purple Box
+
+Answers

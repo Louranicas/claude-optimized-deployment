@@ -1,0 +1,79 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 5 - An In-depth Analysis of Intrusion Detection Systems with an Emphasis on Multi-Access Edge Computing and Machine Learning
+Shruti Saxena and Nikunj Tahilramani
+DOI: 10.1201/9781032714813-5
+Security Relevance Score: 15
+Word Count: 1105
+Extracted: 2025-06-13 23:40:52
+
+---
+
+An In-depth Analysis of Intrusion Detection Systems with an Emphasis on Multi-Access Edge Computing and Machine Learning
+Shruti Saxena and Nikunj Tahilramani
+DOI: 10.1201/9781032714813-5
+
+
+5.1 Introduction
+The Internet of Things (IoT) and Industrial IoT (IIoT) are revolutionizing various aspects of our lives [1]. IoT connects everyday objects equipped with sensors and software [2], enabling data exchange. IIoT [1], a specialized form of IoT, focuses on industrial applications to boost efficiency. Both IoT and IIoT share a four-layer architecture. The perception layer embeds sensors in objects to capture real-world data. This data travels via the network layer, which uses communication protocols and infrastructure for secure transmission. The processing layer analyzes and stores the data using databases and servers. Finally, the application layer uses the processed data to drive actions through applications and services, leading to automation, optimization, and informed decisions. IoT and IIoT devices bring innovation but also expose us to new security threats. Attackers can steal data, disrupt operations, or overwhelm systems [3] (see Table 5.1 for details).
+
+
+TABLE 5.1 Common Attacks in IoT
+
+
+Attacks [3]
+Mode of Attack Initiation
+
+
+
+
+Spoofing
+Impersonation
+
+
+Jamming
+Fake Signaling
+
+
+Man-In-the-Middle
+Eavesdropping Packets
+
+
+Privacy Leakage Attack
+Authentication Storage
+
+
+Mirai Botnet Attack
+Malware Implant on Devices
+
+
+AI-Based Attacks
+Creates AI-powered Tools
+
+
+
+
+Traditional IDSs struggle to protect complex IoT environments [4]. Deploying IDSs at the network edge, a concept enabled by edge computing, offers a solution. Edge computing [5] processes data closer to its source, reducing latency and improving overall performance. Critically for security, edge computing allows IDSs to be closer to the data, enabling faster threat detection and a quicker response to security breaches [5]. However, deploying IDSs at the edge also presents challenges [5].
+Traditional IDS algorithms are hampered by edge devices’ limited processing power and memory [5]. Strong privacy protections are necessary since IoT devices collect a lot of personal data. Compatibility in IDS development is hindered by the variety of IoT devices and protocols [6]. On the other hand, edge IDSs provide superior scalability for expanding IoT networks [6], improve privacy by processing data locally [6], and identify and respond to attacks more quickly, minimizing damage [6].
+Machine learning empowers computers to learn and adapt without explicit programming, making it ideal for IDSs. These IDSs can analyze network traffic, device logs, and sensor data to identify patterns of malicious activity, helping detect new and evolving threats. While IoT/IIoT offers vast potential, securing these devices is crucial [2]. Robust security measures, edge computing, and machine learning are essential for maximizing the benefits of IoT/IIoT while minimizing security risks.
+
+
+5.2 Intrusion Detection Systems
+Intrusion detection systems (IDSs) [4] act as security guards for computer systems and networks, constantly monitoring for malicious activity. They function in three main stages: monitoring, analysis, and detection.
+
+Monitoring Stage: During this phase, data about network traffic or host activity is gathered. Various methods, including network sniffing, log file analysis, and agent-based monitoring, can be employed for this purpose.
+Analysis Stage: In this stage, the collected data undergoes analysis to discern patterns or anomalies indicative of potential malicious activity. Techniques for this analysis encompass signature-based detection, anomaly-based detection, and machine learning.
+Detection Stage: During this stage, a decision is made regarding the occurrence of an intrusion. If an intrusion is identified, the IDS can initiate actions, including generating alerts and implementing measures such as blocking the attacker’s access to the network.
+
+
+5.2.1 Historical Perspective
+IDS has evolved significantly over the past 30 years. Early models relied on predefined attack signatures but struggled with new threats [5]. Axelsson’s 2000 survey [7] identified limitations in both host-based and network-based IDSs, particularly their reliance on local data for analysis. Researchers explored intelligent techniques for IDS, including fuzzy logic and neural networks. Mitchell and Chen [5] surveyed IDSs for wireless environments, finding anomaly-based approaches suitable for mobile telephony. However, they noted challenges like high false positive rates that could degrade user experience. IDS has come a long way in 30 years. Early, signature-based systems struggled as attackers grew more cunning. The goal of recent research has been to improve detection accuracy and adaptability by integrating machine learning (ML) with IDS. Though the subject of ML-based IDS application in resource-constrained IoT contexts is still in its infancy, these systems use enormous datasets to train models that can identify known as well as unknown threats.
+Modern IDS fall into two main categories, that is, NIDS and HIDS.
+
+Network Intrusion Detection Systems (NIDSs)
+NIDS monitors network traffic to identify suspicious activity, including unusual traffic patterns or unauthorized access attempts [5]. Typically deployed at network boundaries, such as firewalls or routers, NIDS safeguard entire networks from external threats.
+Host-based Intrusion Detection Systems (HIDSs)
+HIDS focuses on individual host systems, such as servers, desktops, or laptops, to detect malicious activity within the system itself. Deployed on critical systems [8], HIDS monitors for signs of compromise, such as unauthorized file modifications or unusual process executions [8].
+
+The shift from signature-based to more advanced detection methods has been necessitated by the escalating sophistication of cyber threats [9]. While NIDS provides network-wide protection against external threats, HIDS offers targeted monitoring of specific host systems to identify internal anomalies [9]. This dual approach reflects the contemporary need for robust intrusion detection capabilities in the face of evolving cybersecurity challenges. Deploying NIDS in IoT environments introduces distinctive challenges stemming from the resource limitations of IoT devices and the heterogeneity inherent in IoT networks [5]. Nonetheless, the adoption of edge computing, a distributed computing paradigm, holds the potential to address these challenges effectively. By positioning computation and data storage in proximity to the network edge, edge computing facilitates the implementation of resource-efficient NIDS capable of adapting to the varied protocols prevalent in IoT networks [10]. This approach enhances the feasibility of intrusion detection in IoT environments, paving the way for more adaptive and efficient security solutions [10].
+However, NIDS in IoT faces challenges due to resource constraints and network diversity [5]. Edge computing, with its distributed processing near the network edge, offers a solution [5]. By placing computation and storage closer to devices, edge computing allows for resource-efficient NIDS that adapt to various IoT protocols. This paves the way for more feasible and adaptable security solutions in IoT environments. ML is transforming NIDS [10]. ML algorithms analyze vast amounts of network traffic, device logs, and sensor data to identify suspicious patterns. This allows them to adapt to new attack methods, unlike signature-based approaches. By integrating ML, NIDS becomes more agile and effective in detecting and responding to evolving cybersecurity threats [10]. NIDS can be broadly categorized into four main types based on their detection approach, as further detailed in Figure 5.

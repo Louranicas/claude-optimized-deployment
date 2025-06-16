@@ -1,0 +1,134 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-security-config
+  namespace: claude-deployment
+data:
+  security-context.yaml: |
+    # Default security context for all containers
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 65534  # nobody user
+      runAsGroup: 65534 # nobody group
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    
+    # Pod security context
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65534
+      runAsGroup: 65534
+      fsGroup: 65534
+      seccompProfile:
+        type: RuntimeDefault
+  
+  apparmor-profile.yaml: |
+    # AppArmor profile configuration
+    annotations:
+      container.apparmor.security.beta.kubernetes.io/api: runtime/default
+      container.apparmor.security.beta.kubernetes.io/worker: runtime/default
+      container.apparmor.security.beta.kubernetes.io/monitor: runtime/default
+  
+  selinux-context.yaml: |
+    # SELinux context configuration
+    seLinuxOptions:
+      level: "s0:c123,c456"
+      role: "object_r"
+      type: "container_t"
+      user: "system_u"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: claude-deployment-tls-secret
+  namespace: claude-deployment
+type: kubernetes.io/tls
+data:
+  tls.crt: # Base64 encoded certificate
+  tls.key: # Base64 encoded private key
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-admission-config
+  namespace: claude-deployment
+data:
+  admission-controller.yaml: |
+    apiVersion: admissionregistration.k8s.io/v1
+    kind: ValidatingAdmissionWebhook
+    metadata:
+      name: claude-deployment-security-validator
+    webhooks:
+    - name: security.claude-deployment.io
+      clientConfig:
+        service:
+          name: claude-deployment-admission-webhook
+          namespace: claude-deployment
+          path: "/validate"
+      rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+      admissionReviewVersions: ["v1", "v1beta1"]
+      sideEffects: None
+      failurePolicy: Fail
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-deployment-falco-config
+  namespace: claude-deployment
+data:
+  falco.yaml: |
+    rules_file:
+      - /etc/falco/falco_rules.yaml
+      - /etc/falco/falco_rules.local.yaml
+      - /etc/falco/k8s_audit_rules.yaml
+      - /etc/falco/rules.d
+    
+    time_format_iso_8601: true
+    json_output: true
+    json_include_output_property: true
+    
+    log_stderr: true
+    log_syslog: true
+    log_level: info
+    
+    priority: debug
+    
+    outputs:
+      rate: 1
+      max_burst: 1000
+    
+    syslog_output:
+      enabled: false
+    
+    file_output:
+      enabled: true
+      keep_alive: false
+      filename: /var/log/falco/events.log
+    
+    stdout_output:
+      enabled: true
+    
+    webserver:
+      enabled: true
+      listen_port: 8765
+      k8s_healthz_endpoint: /healthz
+      ssl_enabled: false
+    
+    grpc:
+      enabled: false
+    
+    grpc_output:
+      enabled: false

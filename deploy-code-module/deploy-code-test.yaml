@@ -1,0 +1,67 @@
+# Deploy-Code Configuration File
+# Minimal configuration for testing
+
+infrastructure:
+  environment: "development"
+  cluster_name: "code-cluster-dev"
+  network:
+    port_range: 
+      start: 30000
+      end: 32000
+    service_mesh:
+      enabled: false
+      provider: "istio"
+  storage:
+    root_path: "/opt/code"
+    data_path: "/opt/code/data"
+    logs_path: "/opt/code/logs"
+
+services:
+  code-api:
+    enabled: true
+    service_type: "api"
+    container_image: "code-api:latest"
+    replicas: 1
+    resources:
+      cpu_cores: 2.0
+      memory_mb: 1024
+      storage_gb: 10
+      gpu_count: 0
+    ports:
+      - name: "http"
+        container_port: 8080
+        host_port: 8080
+        protocol: "tcp"
+    environment:
+      LOG_LEVEL: "info"
+      NODE_ENV: "production"
+    dependencies: []
+    health_check:
+      endpoint: "/health"
+      interval_seconds: 30
+      timeout_seconds: 5
+      retries: 3
+
+deployment:
+  strategy_type: "sequential"
+  max_parallel: 5
+  rollback_on_failure: true
+  phases:
+    - name: "infrastructure"
+      services: []
+      wait_for_ready: true
+      timeout_seconds: 300
+    - name: "core-services"
+      services: ["code-api"]
+      wait_for_ready: true
+      timeout_seconds: 600
+
+monitoring:
+  prometheus_enabled: true
+  prometheus_port: 9090
+  metrics_interval_seconds: 30
+
+security:
+  tls_enabled: false
+  mutual_tls: false
+  rbac_enabled: true

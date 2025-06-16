@@ -1,0 +1,104 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 7 - 8, helps with the installation of these additional modules.The chapter ends with a reference of the main aliases. These shortcuts save a lot of typing when using PowerShell interactively and allow for efficiency similar to what is available on Linux.
+Prerequisites for This Chapter
+By its nature, reading this chapter makes sense only if you’re familiar with the basic PowerShell concepts presented in Chapter 4, Section 4.4, such as chaining cmdlets using the pipe operator (|).
+Security Relevance Score: 3
+Word Count: 1813
+Extracted: 2025-06-13 23:41:06
+
+---
+
+8, helps with the installation of these additional modules.The chapter ends with a reference of the main aliases. These shortcuts save a lot of typing when using PowerShell interactively and allow for efficiency similar to what is available on Linux.
+Prerequisites for This Chapter
+By its nature, reading this chapter makes sense only if you’re familiar with the basic PowerShell concepts presented in Chapter 4, Section 4.4, such as chaining cmdlets using the pipe operator (|).
+
+7.1    Directories and Files
+You can use the following commands to set your home directory (My Documents) as the working directory, create a new directory there, and change it. Later, you can leave the new directory and then delete it.    
+> Set-Location                # set the home directory as working directory> Get-Location                # show its location  Path  ----  C:\Users\kofler> New-Item -ItemType "directory" subdir   # create new directory> Set-Location subdir        # now subdir is the working directory> Set-Location ..            # get back into your home directory> Remove-Item subdir         # delete subdir 
+For all cmdlets used in this listing, aliases or functions are available that allow for the completion of these actions with less typing. Since I recommend avoiding these shorthand notations in your own scripts, I always use the original cmdlet name in all further examples in this chapter.
+> cd              # cd is an alias for Set-Location> pwd             # pwd is an alias for Get-Location> md subdir       # md is an alias for the mkdir function> cd subdir> cd ..> rmdir subdir    # rmdir is an alias for Remove-Item 
+New-Item also enables you to create a group of nested directories. Although directories are separated by \ in Windows, cmdlets also accept / as the directory separator.
+> New-Item -ItemType "directory" images\2023\12> New-Item -ItemType "directory" images/2023/12  # equivalent 
+7.1.1    Listing, Copying, Moving, and Deleting Files
+In the following listing, the tst directory is created first. In that directory, the current time is stored in the now.txt file. This file is copied first, then the copy is renamed. Get-ChildItem lists the text files that now exist. Remove-Item cleans up again at the end.
+                                # creates the tst directory> New-Item -ItemType "directory" tst> Set-Location tst              # changes there> Get-Date > now.txt            # saves date and time                                # to now.txt> Copy-Item now.txt copy.txt    # creates a copy of now.txt> Move-Item copy.txt backup.txt # renames the copy> Get-ChildItem *.txt           # lists all *.txt files  Mode        LastWriteTime   Length  Name  ----        -------------   ------  ----  -a---    24.01.2023 12:29       40  backup.txt  -a---    24.01.2023 12:29       40  now.txt> Remove-Item *.txt             # deletes all *.txt files 
+Note that files or directories that are deleted using Remove-Item do not go to the recycle bin but are instead irrevocably deleted!
+To test whether a file exists, you can use Test-Path. The cmdlet returns True or False. 
+> Test-Path file1.txt  False 
+You can use Copy-Item or Move-Item to process multiple files at once. However, keep in mind that the source files must either be specified as a pattern or be separated by commas. Note that it is not allowed to list multiple files without commas! You can use ‐Recurse to copy entire directory trees. If the target directory does not exist yet (for example, dir2 in the previous example), it will be created automatically.
+> Copy-Item *.txt another-directory    # OK> Copy-Item file1.txt, file2.txt a-d   # also OK> Copy-Item file1.txt file2.txt a-d    # Error!> Copy-Item -Recurse dir1 dir2         # OK 
+Get-ChildItem or its short versions dir, gci, and ls (only on Windows) lists files and directories in the specified or current directory. With the -Recurse option, the cmdlet also takes all subdirectories into account. With the -File option, Get-ChildItem determines only files; with -Directory, only directories.
+By default, in addition to the filename, the Get-ChildItem displays the mode, the time of the last modification, and the file size. Behind the scenes, however, Get-ChildItem returns objects with much richer data. It is up to you to evaluate this data. In the following example, Where-Object only considers *.exe files in the Downloads directory that are larger than 1 MB. Select-Object selects the filename, size, and time of the last access from the result objects. The -gt option stands for greater than.  
+> Get-ChildItem Downloads\*.exe |  Where-Object {$_.Length -gt 1000000} |  Select-Object Name, Length, LastAccessTime  Name                              Length   LastAccessTime  ----                              ------   --------------  emacs-28.1-installer.exe        47972467   22.01.2023 08:09:58  npp.8.4.4.Installer.x64.exe      4533912   24.01.2023 08:44:01  VSCodeUserSetup-x64-1.69.2.exe  81424833    2.02.2023 12:47:04  ... 
+
+Universal Items
+In this section, I have presented New-Item, Copy-Item, and so on as commands for manipulating files and directories. In fact, these cmdlets are much more flexible and, depending on the context or options you choose, can also process completely different objects, such as registry entries or certificates.
+
+7.1.2    Reading and Writing Text
+Get-Content (alias cat) outputs the specified file completely in the terminal:
+> Get-Content todo.md 
+For longer files, scrolling through the text using the cursor keys is convenient. On Linux, less is certainly one of the most frequently called commands—all the more surprising then that PowerShell offers only rudimentary functions in this regard: Out-Host -Paging allows you to scroll one line further with (Enter) and one page further with (Space), but there is no way back, let alone a search function.
+> Get-Content tst.csv | Out-Host -Paging 
+Using Out-Host (alias oh). you can also study extensive cmdlet results page by page:
+> Get-Process | Out-Host -Paging 
+Ultimately, it is quite easy to look only at the first or last result objects of a cmdlet:
+# view the first five / the last ten processes> Get-Process | Select-Object -First 5> Get-Process | Select-Object -Last 10 
+To save the results of a cmdlet in a text file, you can simply use output redirection. Note that the underlying objects will not be saved—only the text that you usually see in the terminal.
+> Get-Process > processes.txt 
+Set-Content enables you to write a string into a text file. If the file already exists, it will be overwritten. You should pay attention to the correct order of the parameters; alternatively, you can use options.
+> Set-Content out.txt "some text"> Set-Content -Value "some text 2" out.txt  # equivalent 
+To add text to an existing file, you can use Add-Content, as in the following example: 
+> Add-Content out.txt 'second line' 
+Clear-Content deletes the content of a file. However, the file itself remains intact (file size: 0 bytes). Clear-Content raises an error if the specified file does not exist.
+> Clear-Content out.txt 
+7.1.3    Inputting and Outputting Text
+To input text in a script, you must use Read-Host. Note that the cmdlet automatically adds a colon to the passed text. To output a string again (with or without variables), you can use Write-Output (alias echo):
+> $firstname = Read-Host "First name"  First name: Michael> Write-Output $firstname  Michael> Write-Output "Hello, $firstname!"  Hello, Michael! 
+
+
+
+
+
+
+
+
+
+7.2    Finding Files
+To search for files that have certain properties, you can proceed as in the previous example: Create a result list via Get-ChildItem and then use Where-Object to select the objects that match your expectations. The condition must be formulated in curly brackets. Within this formulation, $_ refers to the object currently being processed.
+In the following listing, we first create a variable that contains the date from 60 days ago. Get-ChildItem searches the current directory and all subdirectories for all *.pdf files. Where-Object, which can be abbreviated quite elegantly with ?, filters out the PDF documents that were created or modified in the last 2 months. (-ge stands for greater than or equal to.)
+> $twoMonthsAgo = (Get-Date).AddDays(-60)> Get-ChildItem -Recurse *.pdf |  ? {$_.LastWriteTime -ge $twoMonthsAgo} 
+You can also combine multiple conditions. The next command searches the Downloads directory for files larger than 1 MB that have not been read for about 2 months:
+> Get-ChildItem -Recurse Downloads |  ? {$_.Length -gt 100000 -and     $_.LastAccessTime -lt $twoMonthsAgo} 
+If you want to include multiple file identifiers, a best practice is to use the -Include option and pass the desired file types, separated by commas:
+> Get-ChildItem -Recurse -Include *.png, *.jpg, *.jpeg, *.tif ... 
+Alternatively, you can use -Exclude to exclude from the result files that match the specified pattern. Note that -Include and -Exclude only work in combination with -Recurse.
+7.2.1    Searching Text Files
+Get-ChildItem, combined with Where-Object, only considers the metadata of files (i.e., name, type, size, etc.) but not the content. Select-String allows you to search text files. In the simplest case, you can apply Select-String directly to files. The following command finds all logging files in the current directory that contain the error text in uppercase and lowercase:
+> Select-String error *.log 
+However, unlike Get-ChildItem, Select-String does not provide any recursive file search options. Thus, the two commands are often combined. In the following example, Get-ChildItem searches for *.txt files in the current directory and in all subdirectories. Select-String looks at the contents of these files and lists all occurrences.
+> Get-ChildItem -Recurse -Include *.txt | Select-String license  init/readme.txt:6:This work is licensed under ..., see  init/readme.txt:7:https://creativecommons.org/licenses/by/4.0/ 
+Usually, you’re not interested in the match details, but just want to see a list of files that have been found. Each Select-String result is a MatchInfo object. Its Path property contains the filename. By forming groups of such MatchInfo objects and then displaying the name of each group, you can get only the filenames:
+> Get-ChildItem -recurse *.txt | Select-String license |  Group-Object Path | Select-Object Name  init/readme.txt  other/gpl.txt  ... 
+The behavior of Select-String can be influenced by various options. I want to mention only the most important four here:
+
+
+-CaseSensitive makes the search pattern case sensitive.
+
+
+-List shows only the first match of the search pattern. This option provides clearer results when a large number of matches is found. This option also speeds up the evaluation if, as in the previous example, only the files that contain a hit are to be listed.
+
+
+-NotMatch returns matches (without -List, for each line) that do not contain the search pattern.
+
+
+-Quiet returns only True or False, depending on whether the pattern was recognized.
+
+
+Select-String cannot count the number of matches. For a single file, you can evaluate the Matches property of the resulting object. The following statement counts how many times an error occurs in the access.log file:
+> (Select-String error access.log).Matches.Count 
+A more difficult task is to list the number of hits for multiple files. The perhaps obvious way to apply Select-String with Matches.Count in a pipeline is not allowed and leads to an error message:
+> Get-ChildItem *.log | (Select-String error).Matches.Count  ParseError:  Expressions are only allowed as the first element of a pipeline 
+ForEach-Object leads the way to this goal: It allows you to perform an action for each file found. In the following example, Write-Host outputs the name of the file. Then, Select-String determines the number of error texts:
+> Get-ChildItem *.log | ForEach-Object -Process {    Write-Host -NoNewline $_.Name " -> "    (Select-String error $_).Matches.Count  }  error.log  -> 231  ... 
+The search pattern passed to Select-String is evaluated as a regular expression (see

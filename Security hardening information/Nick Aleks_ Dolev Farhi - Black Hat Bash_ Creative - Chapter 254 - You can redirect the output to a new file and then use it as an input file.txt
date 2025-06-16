@@ -1,0 +1,21 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 254 - You can redirect the output to a new file and then use it as an input file.
+Security Relevance Score: 4
+Word Count: 308
+Extracted: 2025-06-13 23:40:57
+
+---
+
+You can redirect the output to a new file and then use it as an input file.
+
+
+Possible Subdomains
+Say you’re performing a penetration test against a company with the parent domain example.com. In this engagement, you’re not restricted to any specific IP address or domain name, which means that any asset you find on this parent domain during the information-gathering stage is considered in scope.
+Companies tend to host their services and applications on dedicated subdomains. These subdomains can be anything, but more often than not, companies use names that make sense to humans and are easy to enter into a web browser. For example, you might find the help-desk portal at helpdesk.example.com, the monitoring system at monitoring.example.com, the continuous integration system at jenkins.example.com, the email server at mail.example.com, and the file transfer server at ftp.example.com.
+How can we generate a list of possible subdomains for a target? Bash makes this easy. First, we’ll need a list of common subdomains. You can find such a list built into Kali at /usr/share/wordlists/amass/subdomains-top1mil-110000.txt or /usr/share/wordlists/amass/bitquark_subdomains_top100K.txt. To look for wordlists on the internet, you could use the following Google search query to search for files on GitHub provided by community members: subdomain wordlist site:gist.github.com. This will search GitHub for code snippets (also called gists) containing the words subdomain wordlist.
+For the purposes of this example, we’ll use subdomains-1000.txt, which is included with this chapter’s files in the book’s GitHub repository. Download this subdomain list and save it in your home directory. The file contains one subdomain per line without an associated parent domain. You’ll have to join each subdomain with the target’s parent domain to form a fully qualified domain name. As in the previous section, we’ll show multiple strategies for accomplishing this task: using a while loop and using sed.
+
+NOTE
+
+You can download this chapter’s resources from https://github.com/dolevf/Black-Hat-Bash/blob/master/ch

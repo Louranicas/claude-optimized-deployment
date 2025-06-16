@@ -1,0 +1,18 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 10 - 7).
+Security Relevance Score: 2
+Word Count: 242
+Extracted: 2025-06-13 23:41:06
+
+---
+
+7). For this reason, I will keep introducing you to new cmdlets through my examples.
+Fortunately, PowerShell is equipped with excellent help features. Get-Help <command> (extended by the -Examples, -Detailed, or -Full options as required) returns comprehensive help texts for any command. If you additionally pass the -Online option, the help text will be displayed in the web browser.
+The first time Get-Help is called, PowerShell may indicate that the local help files are incomplete. The solution to this problem is to run Update-Help -UICulture en-US once. The -UICulture option is necessary because most help texts are only available in English. However, download errors often occur despite this option because, for some (often smaller) modules, no help texts are available at all.
+If you’re looking for a command, Get-Command will always help. Without further options, it simply provides a list of all commands. Using Select-String, you can then filter the almost endless output. The following command generates a sorted list of all commands that contain the search term VM, which obviously control virtual machines:
+> Get-Command | Select-String VM | Sort-Object  Add-NetEventVmNetworkAdapter  Add-NetEventVmSwitch  ... 
+Get-Command offers a lot more search options. Check out Get-Help Get-Command -Examples!
+
+Searching for Uninstalled Commands
+Get-Command only considers cmdlets and functions that are already installed. However, countless PowerShell extension modules can be installed. The fastest way to discover a command hidden in an extension is to use Find-Command. More tips on using add-on modules are provided in

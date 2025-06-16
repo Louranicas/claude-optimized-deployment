@@ -1,0 +1,204 @@
+version: '3.8'
+
+services:
+  # Rust Core Service
+  rust-core:
+    build:
+      context: ./rust_core
+      dockerfile: Dockerfile
+    container_name: mcp-rust-core
+    environment:
+      - RUST_LOG=info
+      - RUST_BACKTRACE=1
+      - CONFIG_PATH=/app/config/config.toml
+    volumes:
+      - shared-memory:/dev/shm
+      - learning-data:/data
+      - ./config:/app/config:ro
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '4'
+        reservations:
+          memory: 2G
+          cpus: '2'
+    networks:
+      - mcp-learning
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Python Learning Service
+  python-learning:
+    build:
+      context: ./python_learning
+      dockerfile: Dockerfile
+    container_name: mcp-python-learning
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - CONFIG_PATH=/app/config/config.yaml
+      - SHARED_MEMORY_PATH=/dev/shm/mcp_learning_shared.mem
+    volumes:
+      - shared-memory:/dev/shm
+      - learning-data:/data
+      - ./config:/app/config:ro
+      - model-cache:/app/models
+    depends_on:
+      - rust-core
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '2'
+        reservations:
+          memory: 2G
+          cpus: '1'
+    networks:
+      - mcp-learning
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Redis for Celery
+  redis:
+    image: redis:7-alpine
+    container_name: mcp-redis
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - mcp-learning
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./python_learning
+      dockerfile: Dockerfile
+    container_name: mcp-celery-worker
+    command: celery -A mcp_learning.orchestrator worker --loglevel=info --concurrency=4
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - shared-memory:/dev/shm
+      - learning-data:/data
+      - model-cache:/app/models
+    depends_on:
+      - redis
+      - python-learning
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'
+    networks:
+      - mcp-learning
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mcp-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - mcp-learning
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mcp-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - mcp-learning
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: mcp-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "8443:443"
+      - "8080:80"
+    depends_on:
+      - rust-core
+      - python-learning
+    networks:
+      - mcp-learning
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+volumes:
+  shared-memory:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=4g,uid=1000,gid=1000
+  learning-data:
+    driver: local
+  model-cache:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  mcp-learning:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

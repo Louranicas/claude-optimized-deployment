@@ -15,6 +15,20 @@ import logging
 from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
 from src.mcp.servers import MCPServer
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError,
+    ConfigurationError
+)
+
+__all__ = [
+    "S3StorageMCPServer"
+]
+
+
 logger = logging.getLogger(__name__)
 
 

@@ -1,0 +1,1328 @@
+openapi: 3.0.3
+info:
+  title: CBC (Code Base Crawler) REST API
+  description: |
+    REST API gateway for the Code Base Crawler system, providing access to HTM storage,
+    NAM validation, tool execution, and code analysis capabilities.
+    
+    The CBC system is built on Rust core with Python FFI bindings and provides:
+    - HTM (Hybrid Tensor Memory) storage for semantic search
+    - NAM/ANAM validation with 67 axioms (Λ01-Λ67)
+    - Advanced tool system with multi-agent coordination
+    - Security framework with comprehensive auditing
+  version: 1.0.0
+  contact:
+    name: CBC API Support
+    url: https://github.com/cbc-api/support
+    email: support@cbc-api.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.cbc.example.com/v1
+    description: Production server
+  - url: https://staging-api.cbc.example.com/v1
+    description: Staging server
+  - url: http://localhost:8000
+    description: Local development server
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Check the health status of the CBC API service
+      operationId: healthCheck
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: Service unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /analyze:
+    post:
+      summary: Analyze Code
+      description: |
+        Analyze code for quality, security, complexity, and NAM compliance.
+        Supports multiple programming languages and provides comprehensive analysis.
+      operationId: analyzeCode
+      tags:
+        - Analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+            examples:
+              python_code:
+                summary: Python code analysis
+                value:
+                  code: |
+                    def calculate_fibonacci(n):
+                        if n <= 1:
+                            return n
+                        return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)
+                    
+                    print(calculate_fibonacci(10))
+                  language: python
+                  check_quality: true
+                  check_security: true
+                  check_nam_compliance: true
+              rust_code:
+                summary: Rust code analysis
+                value:
+                  code: |
+                    fn main() {
+                        let numbers = vec![1, 2, 3, 4, 5];
+                        let sum: i32 = numbers.iter().sum();
+                        println!("Sum: {}", sum);
+                    }
+                  language: rust
+                  check_quality: true
+                  check_security: false
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Code analysis failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /crawl:
+    post:
+      summary: Crawl Directory
+      description: |
+        Crawl a directory or repository to analyze code files and extract embeddings.
+        Results are automatically stored in HTM storage for semantic search.
+      operationId: crawlDirectory
+      tags:
+        - Crawling
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrawlRequest'
+      responses:
+        '200':
+          description: Crawling completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlResponse'
+        '400':
+          description: Invalid crawl request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Directory not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /search:
+    post:
+      summary: Semantic Search
+      description: |
+        Perform semantic search across indexed code using embeddings and resonance scoring.
+        Returns files with similar semantic content based on the query.
+      operationId: semanticSearch
+      tags:
+        - Search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+            examples:
+              function_search:
+                summary: Search for specific functionality
+                value:
+                  query: "database connection handling with error retry"
+                  limit: 10
+                  min_resonance: 0.7
+                  languages: ["python", "rust"]
+              pattern_search:
+                summary: Search for design patterns
+                value:
+                  query: "singleton pattern implementation"
+                  limit: 5
+                  min_resonance: 0.8
+      responses:
+        '200':
+          description: Search completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Invalid search request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /embeddings:
+    post:
+      summary: Store Embedding
+      description: Store a code embedding with metadata in HTM storage
+      operationId: storeEmbedding
+      tags:
+        - HTM Storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreEmbeddingRequest'
+      responses:
+        '201':
+          description: Embedding stored successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreEmbeddingResponse'
+        '400':
+          description: Invalid embedding data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Get Embedding
+      description: Retrieve a stored embedding by key
+      operationId: getEmbedding
+      tags:
+        - HTM Storage
+      parameters:
+        - name: key
+          in: query
+          required: true
+          description: Unique key for the embedding
+          schema:
+            type: string
+            example: "src/main.py"
+      responses:
+        '200':
+          description: Embedding retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbeddingData'
+        '404':
+          description: Embedding not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tools:
+    get:
+      summary: List Available Tools
+      description: Get list of all available tools in the system
+      operationId: listTools
+      tags:
+        - Tools
+      responses:
+        '200':
+          description: Tools list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolListResponse'
+
+  /tools/{toolName}/execute:
+    post:
+      summary: Execute Tool
+      description: Execute a specific tool with provided arguments
+      operationId: executeTool
+      tags:
+        - Tools
+      parameters:
+        - name: toolName
+          in: path
+          required: true
+          description: Name of the tool to execute
+          schema:
+            type: string
+            example: "filesystem_crawler"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolExecutionRequest'
+      responses:
+        '200':
+          description: Tool executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolExecutionResponse'
+        '400':
+          description: Invalid tool arguments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Tool not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '408':
+          description: Tool execution timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /validation/axioms:
+    get:
+      summary: List Available Axioms
+      description: Get list of all NAM/ANAM axioms available for validation
+      operationId: listAxioms
+      tags:
+        - NAM Validation
+      responses:
+        '200':
+          description: Axioms list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AxiomListResponse'
+
+  /validation/validate:
+    post:
+      summary: Validate NAM Compliance
+      description: |
+        Validate an operation or code against NAM/ANAM axioms.
+        Returns resonance score, ethical tension, and compliance status.
+      operationId: validateNAM
+      tags:
+        - NAM Validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+      responses:
+        '200':
+          description: Validation completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Invalid validation request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /agents:
+    get:
+      summary: List Active Agents
+      description: Get list of all active agents in the multi-agent system
+      operationId: listAgents
+      tags:
+        - Multi-Agent
+      responses:
+        '200':
+          description: Agents list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+
+    post:
+      summary: Create Agent
+      description: Create a new agent with specified capabilities
+      operationId: createAgent
+      tags:
+        - Multi-Agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '201':
+          description: Agent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentInfo'
+        '400':
+          description: Invalid agent configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /agents/{agentId}/tasks:
+    post:
+      summary: Delegate Task to Agent
+      description: Delegate a specific task to an agent
+      operationId: delegateTask
+      tags:
+        - Multi-Agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Unique identifier of the agent
+          schema:
+            type: string
+            example: "analyzer_001"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+      responses:
+        '200':
+          description: Task completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Invalid task request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '408':
+          description: Task execution timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /metrics:
+    get:
+      summary: Get System Metrics
+      description: Retrieve system performance and usage metrics
+      operationId: getMetrics
+      tags:
+        - System
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "ValidationError"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Code contains syntax errors"
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: "2024-01-01T12:00:00Z"
+
+    HealthStatus:
+      type: object
+      required:
+        - healthy
+        - version
+        - uptime_seconds
+      properties:
+        healthy:
+          type: boolean
+          description: Overall health status
+          example: true
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+        uptime_seconds:
+          type: number
+          format: float
+          description: Service uptime in seconds
+          example: 3600.5
+        components:
+          type: object
+          additionalProperties:
+            type: boolean
+          description: Health status of individual components
+          example:
+            htm_storage: true
+            nam_validator: true
+            tool_registry: true
+        memory_usage:
+          type: object
+          properties:
+            htm_bytes:
+              type: integer
+              description: HTM storage memory usage
+            agent_bytes:
+              type: integer
+              description: Agent system memory usage
+            total_bytes:
+              type: integer
+              description: Total memory usage
+
+    AnalysisRequest:
+      type: object
+      required:
+        - code
+        - language
+      properties:
+        code:
+          type: string
+          description: Source code to analyze
+          example: |
+            def fibonacci(n):
+                if n <= 1:
+                    return n
+                return fibonacci(n-1) + fibonacci(n-2)
+        language:
+          type: string
+          description: Programming language
+          enum: [python, rust, javascript, typescript, java, cpp, go]
+          example: "python"
+        check_quality:
+          type: boolean
+          description: Perform quality analysis
+          default: true
+        check_security:
+          type: boolean
+          description: Perform security analysis
+          default: true
+        check_nam_compliance:
+          type: boolean
+          description: Check NAM/ANAM compliance
+          default: false
+
+    AnalysisResponse:
+      type: object
+      required:
+        - success
+        - analysis
+      properties:
+        success:
+          type: boolean
+          description: Analysis success status
+          example: true
+        analysis:
+          type: object
+          properties:
+            language:
+              type: string
+              example: "python"
+            syntax_valid:
+              type: boolean
+              example: true
+            complexity_score:
+              type: number
+              format: float
+              example: 15.5
+            quality_score:
+              type: number
+              format: float
+              example: 85.0
+            line_count:
+              type: integer
+              example: 42
+            function_count:
+              type: integer
+              example: 5
+            class_count:
+              type: integer
+              example: 2
+        security_issues:
+          type: array
+          items:
+            type: string
+          description: List of security issues found
+          example: ["Use of eval() function detected"]
+        nam_compliant:
+          type: boolean
+          description: NAM/ANAM compliance status
+          example: true
+        resonance_score:
+          type: number
+          format: float
+          description: Resonance score (0.0 to 1.0)
+          example: 0.75
+        ethical_tension:
+          type: number
+          format: float
+          description: Ethical tension score
+          example: 0.15
+
+    CrawlRequest:
+      type: object
+      required:
+        - path
+      properties:
+        path:
+          type: string
+          description: Directory or repository path to crawl
+          example: "/path/to/codebase"
+        include_patterns:
+          type: array
+          items:
+            type: string
+          description: File patterns to include
+          example: ["*.py", "*.rs", "*.js"]
+        exclude_patterns:
+          type: array
+          items:
+            type: string
+          description: File patterns to exclude
+          example: ["*test*", "*node_modules*", "*target*"]
+        extract_embeddings:
+          type: boolean
+          description: Extract and store embeddings
+          default: true
+        max_depth:
+          type: integer
+          description: Maximum directory depth
+          default: 10
+        follow_symlinks:
+          type: boolean
+          description: Follow symbolic links
+          default: false
+
+    CrawlResponse:
+      type: object
+      required:
+        - success
+        - files_processed
+      properties:
+        success:
+          type: boolean
+          description: Crawling success status
+          example: true
+        files_processed:
+          type: integer
+          description: Number of files processed
+          example: 150
+        files_indexed:
+          type: integer
+          description: Number of files indexed in HTM
+          example: 142
+        languages_detected:
+          type: array
+          items:
+            type: string
+          description: Programming languages detected
+          example: ["python", "rust", "javascript"]
+        total_lines:
+          type: integer
+          description: Total lines of code processed
+          example: 15420
+        average_complexity:
+          type: number
+          format: float
+          description: Average complexity score
+          example: 25.5
+        processing_time_ms:
+          type: number
+          format: float
+          description: Processing time in milliseconds
+          example: 5420.5
+
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Search query
+          example: "database connection error handling"
+        limit:
+          type: integer
+          description: Maximum number of results
+          default: 10
+          minimum: 1
+          maximum: 100
+        min_resonance:
+          type: number
+          format: float
+          description: Minimum resonance score
+          default: 0.5
+          minimum: 0.0
+          maximum: 1.0
+        languages:
+          type: array
+          items:
+            type: string
+          description: Filter by programming languages
+          example: ["python", "rust"]
+        include_metadata:
+          type: boolean
+          description: Include file metadata in results
+          default: true
+
+    SearchResponse:
+      type: object
+      required:
+        - results
+        - total_found
+        - query_time_ms
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+          description: Search results
+        total_found:
+          type: integer
+          description: Total number of results found
+          example: 25
+        query_time_ms:
+          type: number
+          format: float
+          description: Query execution time in milliseconds
+          example: 45.2
+        query_embedding:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Generated query embedding
+          minItems: 768
+          maxItems: 768
+
+    SearchResult:
+      type: object
+      required:
+        - file_path
+        - similarity
+        - resonance_score
+      properties:
+        file_path:
+          type: string
+          description: Path to the matching file
+          example: "src/database/connection.py"
+        similarity:
+          type: number
+          format: float
+          description: Similarity score (0.0 to 1.0)
+          example: 0.85
+        resonance_score:
+          type: number
+          format: float
+          description: Resonance score (0.0 to 1.0)
+          example: 0.78
+        metadata:
+          type: object
+          properties:
+            language:
+              type: string
+              example: "python"
+            line_count:
+              type: integer
+              example: 120
+            complexity_score:
+              type: number
+              format: float
+              example: 35.5
+            dependencies:
+              type: array
+              items:
+                type: string
+              example: ["sqlalchemy", "psycopg2"]
+            semantic_tags:
+              type: array
+              items:
+                type: string
+              example: ["database", "connection", "error_handling"]
+
+    StoreEmbeddingRequest:
+      type: object
+      required:
+        - key
+        - embedding
+        - metadata
+      properties:
+        key:
+          type: string
+          description: Unique key for the embedding
+          example: "src/main.py"
+        embedding:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Embedding vector (768 dimensions)
+          minItems: 768
+          maxItems: 768
+        metadata:
+          type: object
+          required:
+            - language
+          properties:
+            language:
+              type: string
+              example: "python"
+            line_count:
+              type: integer
+              example: 150
+            complexity_score:
+              type: number
+              format: float
+              example: 25.5
+            dependencies:
+              type: array
+              items:
+                type: string
+              example: ["numpy", "torch"]
+            semantic_tags:
+              type: array
+              items:
+                type: string
+              example: ["machine_learning", "data_processing"]
+
+    StoreEmbeddingResponse:
+      type: object
+      required:
+        - success
+        - storage_id
+      properties:
+        success:
+          type: boolean
+          description: Storage success status
+          example: true
+        storage_id:
+          type: string
+          description: Unique storage identifier
+          example: "emb_12345678"
+        key:
+          type: string
+          description: The key used for storage
+          example: "src/main.py"
+
+    EmbeddingData:
+      type: object
+      required:
+        - key
+        - embedding
+        - metadata
+        - timestamp
+      properties:
+        key:
+          type: string
+          description: Embedding key
+          example: "src/main.py"
+        embedding:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Embedding vector
+          minItems: 768
+          maxItems: 768
+        metadata:
+          type: object
+          description: Associated metadata
+        timestamp:
+          type: string
+          format: date-time
+          description: Storage timestamp
+          example: "2024-01-01T12:00:00Z"
+
+    ToolListResponse:
+      type: object
+      required:
+        - tools
+      properties:
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolInfo'
+          description: Available tools
+
+    ToolInfo:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          description: Tool name
+          example: "filesystem_crawler"
+        description:
+          type: string
+          description: Tool description
+          example: "Crawl filesystem and analyze files"
+        input_types:
+          type: array
+          items:
+            type: string
+          description: Supported input types
+          example: ["directory", "file_path"]
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: Tool capabilities
+          example: ["code_analysis", "embedding_extraction"]
+        resource_requirements:
+          type: object
+          properties:
+            memory_mb:
+              type: integer
+              example: 256
+            cpu_cores:
+              type: integer
+              example: 1
+            estimated_duration_ms:
+              type: integer
+              example: 5000
+
+    ToolExecutionRequest:
+      type: object
+      required:
+        - arguments
+      properties:
+        arguments:
+          type: object
+          additionalProperties: true
+          description: Tool-specific arguments
+          example:
+            path: "/path/to/analyze"
+            pattern: "*.py"
+            recursive: true
+        timeout_seconds:
+          type: number
+          format: float
+          description: Execution timeout
+          default: 30.0
+        memory_limit_mb:
+          type: integer
+          description: Memory limit in MB
+          default: 512
+
+    ToolExecutionResponse:
+      type: object
+      required:
+        - success
+        - execution_time_ms
+      properties:
+        success:
+          type: boolean
+          description: Execution success status
+          example: true
+        output:
+          description: Tool output (type varies by tool)
+          example:
+            files_found: 42
+            languages: ["python", "rust"]
+        error:
+          type: string
+          description: Error message if failed
+          example: "Path not found"
+        execution_time_ms:
+          type: number
+          format: float
+          description: Execution time in milliseconds
+          example: 1250.5
+        memory_used_mb:
+          type: integer
+          description: Memory used in MB
+          example: 128
+
+    AxiomListResponse:
+      type: object
+      required:
+        - axioms
+      properties:
+        axioms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AxiomInfo'
+          description: Available NAM/ANAM axioms
+
+    AxiomInfo:
+      type: object
+      required:
+        - id
+        - name
+        - category
+      properties:
+        id:
+          type: string
+          description: Axiom identifier
+          example: "AX_NO_HARM"
+        name:
+          type: string
+          description: Axiom name
+          example: "NonMaleficence"
+        category:
+          type: string
+          description: Axiom category
+          enum: [foundational, ethical, consciousness, relational, emergence, transcendent, meta]
+          example: "ethical"
+        description:
+          type: string
+          description: Axiom description
+          example: "Avoid causing harm"
+        lambda_number:
+          type: string
+          description: Lambda notation
+          example: "Λ11"
+        weight:
+          type: number
+          format: float
+          description: Axiom weight
+          example: 1.0
+
+    ValidationRequest:
+      type: object
+      required:
+        - axiom_ids
+      properties:
+        axiom_ids:
+          type: array
+          items:
+            type: string
+          description: Axioms to validate
+          example: ["AX_NO_HARM", "AX_BENEFICENCE"]
+        context_axioms:
+          type: array
+          items:
+            type: string
+          description: Context axioms for validation
+          example: ["AX_LOVE_FORCE", "AX_EMPATHY_BRIDGE"]
+        action_description:
+          type: string
+          description: Description of the action being validated
+          example: "Analyzing user code for security vulnerabilities"
+
+    ValidationResponse:
+      type: object
+      required:
+        - batch_valid
+        - overall_resonance
+        - overall_tension
+        - results
+      properties:
+        batch_valid:
+          type: boolean
+          description: Overall validation status
+          example: true
+        overall_resonance:
+          type: number
+          format: float
+          description: Overall resonance score
+          example: 0.85
+        overall_tension:
+          type: number
+          format: float
+          description: Overall ethical tension
+          example: 0.15
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AxiomValidationResult'
+          description: Individual axiom validation results
+        processing_time_ms:
+          type: number
+          format: float
+          description: Validation processing time
+          example: 25.5
+
+    AxiomValidationResult:
+      type: object
+      required:
+        - axiom_id
+        - is_valid
+        - resonance_score
+        - ethical_tension
+      properties:
+        axiom_id:
+          type: string
+          description: Axiom identifier
+          example: "AX_NO_HARM"
+        is_valid:
+          type: boolean
+          description: Validation result
+          example: true
+        resonance_score:
+          type: number
+          format: float
+          description: Resonance score for this axiom
+          example: 0.88
+        ethical_tension:
+          type: number
+          format: float
+          description: Ethical tension for this axiom
+          example: 0.12
+        details:
+          type: string
+          description: Validation details
+          example: "Axiom validation passed with high resonance"
+
+    AgentListResponse:
+      type: object
+      required:
+        - agents
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentInfo'
+          description: Active agents
+
+    AgentInfo:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - capabilities
+      properties:
+        id:
+          type: string
+          description: Agent unique identifier
+          example: "analyzer_001"
+        name:
+          type: string
+          description: Agent name
+          example: "Code Analyzer"
+        status:
+          type: string
+          enum: [active, idle, busy, error]
+          description: Agent status
+          example: "active"
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: Agent capabilities
+          example: ["code_analysis", "ast_parsing", "complexity_calculation"]
+        memory_usage_mb:
+          type: integer
+          description: Current memory usage in MB
+          example: 256
+        tasks_completed:
+          type: integer
+          description: Number of completed tasks
+          example: 142
+        uptime_seconds:
+          type: number
+          format: float
+          description: Agent uptime in seconds
+          example: 3600.5
+
+    CreateAgentRequest:
+      type: object
+      required:
+        - name
+        - capabilities
+      properties:
+        name:
+          type: string
+          description: Agent name
+          example: "Security Analyzer"
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: Agent capabilities
+          example: ["security_analysis", "vulnerability_detection"]
+        memory_limit_mb:
+          type: integer
+          description: Memory limit in MB
+          default: 512
+        timeout_seconds:
+          type: number
+          format: float
+          description: Default task timeout
+          default: 30.0
+
+    TaskRequest:
+      type: object
+      required:
+        - task_type
+        - arguments
+      properties:
+        task_type:
+          type: string
+          description: Type of task to execute
+          example: "analyze_security"
+        arguments:
+          type: object
+          additionalProperties: true
+          description: Task arguments
+          example:
+            code: "import os; os.system('rm -rf /')"
+            language: "python"
+        timeout_seconds:
+          type: number
+          format: float
+          description: Task timeout
+          default: 30.0
+        priority:
+          type: string
+          enum: [low, normal, high, critical]
+          description: Task priority
+          default: "normal"
+
+    TaskResponse:
+      type: object
+      required:
+        - success
+        - task_id
+        - execution_time_ms
+      properties:
+        success:
+          type: boolean
+          description: Task execution success
+          example: true
+        task_id:
+          type: string
+          description: Unique task identifier
+          example: "task_12345"
+        output:
+          description: Task output (type varies by task)
+          example:
+            security_issues: ["Dangerous system call detected"]
+            severity: "high"
+        error:
+          type: string
+          description: Error message if failed
+        execution_time_ms:
+          type: number
+          format: float
+          description: Task execution time
+          example: 850.5
+        memory_used_mb:
+          type: integer
+          description: Memory used in MB
+          example: 64
+
+    MetricsResponse:
+      type: object
+      required:
+        - timestamp
+        - system_metrics
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Metrics timestamp
+          example: "2024-01-01T12:00:00Z"
+        system_metrics:
+          type: object
+          properties:
+            memory_usage_mb:
+              type: integer
+              example: 1024
+            cpu_usage_percent:
+              type: number
+              format: float
+              example: 25.5
+            htm_storage_size_mb:
+              type: integer
+              example: 2048
+            embeddings_stored:
+              type: integer
+              example: 15420
+            active_agents:
+              type: integer
+              example: 5
+            requests_per_minute:
+              type: number
+              format: float
+              example: 125.5
+            average_response_time_ms:
+              type: number
+              format: float
+              example: 85.2
+
+tags:
+  - name: System
+    description: System health and metrics operations
+  - name: Analysis
+    description: Code analysis and quality assessment
+  - name: Crawling
+    description: Directory and repository crawling
+  - name: Search
+    description: Semantic search operations
+  - name: HTM Storage
+    description: HTM storage and embedding operations
+  - name: Tools
+    description: Tool execution and management
+  - name: NAM Validation
+    description: NAM/ANAM axiom validation
+  - name: Multi-Agent
+    description: Multi-agent coordination and task delegation

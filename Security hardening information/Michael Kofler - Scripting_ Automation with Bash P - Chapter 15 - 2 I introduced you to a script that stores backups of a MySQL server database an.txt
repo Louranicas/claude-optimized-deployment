@@ -1,0 +1,98 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 15 - 2, I introduced you to a script that stores backups of a MySQL server database and web server directory in a local directory. With just a little effort, you can improve this script to compress the local files first and then upload them to an AWS bucket. Because the script is quite short, I have printed the entire code again here. Let me also briefly point out a few special features:
+Security Relevance Score: 2
+Word Count: 1213
+Extracted: 2025-06-13 23:41:06
+
+---
+
+2, I introduced you to a script that stores backups of a MySQL server database and web server directory in a local directory. With just a little effort, you can improve this script to compress the local files first and then upload them to an AWS bucket. Because the script is quite short, I have printed the entire code again here. Let me also briefly point out a few special features:
+
+
+The encryption commands are wrapped in functions.
+
+
+The functions are called in a pipe: mysqldump creates the backup, gzip compresses it, and mycrypt encrypts it. Only the result is saved in a file. This approach avoids the time-consuming creation of intermediate files.
+
+
+Similarly, tar creates a compressed archive. -f - forwards it to standard output. mycrypt encrypts it and again saves the result to a file.
+
+
+When calling aws, I specified the full path of the command in each case, so that the script works without errors even when automated by cron.
+
+
+Unlike the usual cp command where you can copy multiple files to a destination directory (i.e., cp file1 file2 file3 dir), aws s3 cp accepts only one source file. For this reason, I must call the command for each file separately.
+
+
+# Sample file lamp-backup-to-aws.shBACKUPDIR=/localbackupDB=wpDBUSER=wpbackupuserWPDIR=/var/www/html/wordpressBUCKET=s3://your.bucket.namefunction mycrypt {  gpg -c -q --batch --cipher-algo AES256 --compress-algo none \      --passphrase-file /etc/mykey}function myuncrypt {  gpg -d --batch --no-tty -q --cipher-algo AES256 \      --compress-algo none --passphrase-file /etc/mykey}# MySQL backupweekday=$(date +%u)dbfile=$BACKUPDIR/wp-db-$weekday.sql.gz.cryptmysqlopt='--single-transaction'mysqldump -u $DBUSER $mysqlopt $DB | gzip -c | mycrypt > $dbfile# backup of the WordPress fileshtmlfile=$BACKUPDIR/wp-html-$weekday.tar.gz.crypttar czf - -C $WPDIR . | mycrypt > $htmlfile# upload to an AWS bucket/usr/local/bin/aws s3 cp $dbfile   $BUCKET/usr/local/bin/aws s3 cp $htmlfile $BUCKET 
+
+Checking the Recovery
+When your backup script is ready, you should make sure to test if you can restore your data from the backups!
+
+
+
+
+
+
+
+
+
+
+20.3    AWS PowerShell Module
+Basically, there is nothing wrong with calling the AWS CLI described earlier (i.e., the aws command) in PowerShell scripts. But an even more elegant way is available: Amazon provides several modules for various AWS services. These modules are referred to as AWS Tools for PowerShell. The modules are excellently maintained and usually updated once or twice a week. Because the AWS Tools for PowerShell return real PowerShell objects, you can often express your scripts more clearly than with by using AWS CLI.
+You can easily install the tools using Install-Module, and not only on Windows, by the way, but also on Linux and macOS:
+> Install-Module AWS.Tools.Common> Install-Module AWS.Tools.S3 
+20.3.1    Getting Started
+As with the AWS CLI, I assume in the following sections that there is an AWS user with sufficient access rights to one or more buckets. You must now specify its access key and secret key via Set-AWSCredentials. You can also specify a profile name. This step allows you to use separate access data for different scripts. By using -StoreAs default, you can create a default profile.
+> Set-AWSCredential -AccessKey AKxxx -SecretKey xxxx `   -StoreAs MyProfile 
+On Windows, access data is stored encrypted in the following file:
+C:\Users\<name>\AppData\Local\AWSToolkit\RegisteredAccounts.json 
+On Linux and macOS, the location is .aws/credentials as for the AWS CLI; the keys are stored in plain text.
+To test if the configuration worked, you must run Get-S3Bucket. The cmdlet lists your buckets.
+> Get-S3Bucket -ProfileName MyProfile> Get-S3Bucket                         # for the default profile 
+In the remaining examples, I will assume that you have set up a profile named default. If not the case, you must add the -ProfileName option with your profile name to all cmdlets. Alternatively, you can preset the desired profile at the beginning of a session or script using Set-AWSCredential:
+> Set-AWSCredential -ProfileName MyProfile 
+If you want to know in which region your buckets are located, you must run Get-S3BucketLocation. Note that the cmdlet will return an empty result if the bucket is in the US-East (North Virginia) region (us-east-1).
+> Get-S3Bucket | ForEach-Object {    $name = $_.BucketName    $region = Get-S3BucketLocation -BucketName $name    Write-Output "$name : $region"  }  my.first.bucket : eu-central-1  my.other.bucket : eu-west-2  ... 
+The content of a bucket is displayed via Get-S3Object, which might be a bit more detailed than you need:
+> Get-S3Object -BucketName my.first.bucket -Region eu-central-1  ChecksumAlgorithm : {}  ETag              : "b81e..."  BucketName        : my.first.bucket  Key               : duplicati1.png  LastModified      : 13.05.2019 21:36:35  Owner             : Amazon.S3.Model.Owner  Size              : 31729  StorageClass      : STANDARD  ChecksumAlgorithm : {}  ETag              : "ab98"  ... 
+Probably you’re only interested in the filenames (Key property). Also, only in rare cases will you really need all the files from a bucket. (In fact, the cmdlet returns a maximum of 1,000 hits.) The following command returns only the names of all files starting with dir1/:
+> Get-S3Object -BucketName my.first.bucket -KeyPrefix 'dir1/' |  Select-Object Key 
+Unfortunately, Get-S3Object does not provide a way to filter files by other criteria. As long as you do not exceed the 1,000-file limit, you must determine all filenames and then apply Filter-Object. The following command displays the names of all files ending with .txt:
+> Get-S3Object -BucketName my.first.bucket |  Select-Object Key |  Where-Object { $_.Key -like '*.txt' } 
+Relatively often, you may find that Get-S3Object or various other cmdlets return the following error message: The bucket you’re attempting to access must be addressed using the specified endpoint.
+The error indicates that you forgot the -Region option and AWS does not know where your bucket is located. Since constantly specifying the -Region option is annoying, you can set the default region for the current session or for your script via Set-DefaultAWSRegion.
+> Set-DefaultAWSRegion -Region eu-central-1 
+20.3.2    Copying Files
+Probably the most common task when using AWS S3 is to upload and download files to and from the cloud. Write-S3Object and Read-S3Object are used for this purpose:
+
+
+The first command uploads a local file to a bucket. The key name in the bucket matches that of the local file.
+
+
+The second command uploads another file but assigns a different name to the file in the bucket (-Key option).
+
+
+The third command downloads the readme.txt file from the bucket and saves the file locally as local-file.txt.
+
+
+The fourth command downloads all files whose key starts with dir1/ into the current directory.
+
+
+> Write-S3Object -BucketName my.first.bucket -File local-file.txt> Write-S3Object -BucketName my.first.bucket -File local.txt `                 -Key dir1/tst.txt> Read-S3Object  -BucketName my.first.bucket -Key  readme.txt `                 -File local-file.txt> Read-S3Object  -BucketName my.first.bucket -KeyPrefix dir1/ `                 -Folder . 
+You can use Remove-S3Object to delete files in the bucket:
+> Remove-S3Object -BucketName my.first.bucket -Key readme.txt 
+In addition to the cmdlets listed so far, the AWS Tools for PowerShell provide countless other functions to choose from. A reference of all S3 cmdlets can be found at https://docs.aws.amazon.com/powershell/latest/reference/items/S3_cmdlets.html.
+In view of the abundance of cmdlets, the absence of a very important function is confusing: No cmdlet in AWS Tools for PowerShell corresponds to the aws s3 sync CLI command. If you want to synchronize a local directory with a bucket, I recommend you use the CLI in PowerShell scripts as well.
+
+
+
+
+
+
+
+
+
+20.4    Example: Offloading Large Files from a Website to the Cloud
+The starting point for the following example is your own website. The goal is to swap out the very large PDF files linked there to the cloud. Thus, the website should continue to be operated with its own server. However, when visitors click on a PDF download link, that file is should be downloaded from AWS S

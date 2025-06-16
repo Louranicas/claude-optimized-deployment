@@ -190,7 +190,7 @@ impl KnowledgeGraph {
             .collect();
         
         // Sort by distance
-        related.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        related.sort_by(|a, b| a.1.partial_cmp(&b.1).expect("Unexpected None/Error"));
         
         related
     }
@@ -343,7 +343,7 @@ impl KnowledgeGraph {
             .collect();
         
         // Sort by similarity (descending)
-        similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).expect("Unexpected None/Error"));
         similarities.truncate(top_k);
         
         similarities

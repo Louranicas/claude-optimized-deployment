@@ -1,0 +1,266 @@
+# Standard Health Checks Configuration
+
+health_checks:
+  # HTTP Health Checks
+  - name: "http_health_api"
+    type: "http"
+    description: "Check API endpoint health"
+    timeout_seconds: 15
+    retry_attempts: 3
+    retry_delay_seconds: 2
+    critical: true
+    tags: ["http", "api", "core"]
+    config:
+      url: "http://localhost:8000/health"
+      method: "GET"
+      expected_status: [200]
+      expected_body: "healthy"
+      headers:
+        User-Agent: "MCP-Health-Check/1.0"
+        Accept: "application/json"
+
+  - name: "http_ready_api"
+    type: "http"
+    description: "Check API readiness endpoint"
+    timeout_seconds: 10
+    retry_attempts: 2
+    critical: true
+    tags: ["http", "api", "readiness"]
+    config:
+      url: "http://localhost:8000/ready"
+      method: "GET"
+      expected_status: [200]
+
+  - name: "http_metrics"
+    type: "http"
+    description: "Check metrics endpoint availability"
+    timeout_seconds: 10
+    retry_attempts: 1
+    critical: false
+    tags: ["http", "metrics"]
+    config:
+      url: "http://localhost:9090/metrics"
+      method: "GET"
+      expected_status: [200]
+
+  # TCP Connectivity Checks
+  - name: "tcp_api_port"
+    type: "tcp"
+    description: "Check API port connectivity"
+    timeout_seconds: 10
+    retry_attempts: 3
+    critical: true
+    tags: ["tcp", "connectivity", "api"]
+    config:
+      host: "localhost"
+      port: 8000
+
+  - name: "tcp_metrics_port"
+    type: "tcp"
+    description: "Check metrics port connectivity"
+    timeout_seconds: 5
+    retry_attempts: 2
+    critical: false
+    tags: ["tcp", "connectivity", "metrics"]
+    config:
+      host: "localhost"
+      port: 9090
+
+  - name: "tcp_database"
+    type: "tcp"
+    description: "Check database connectivity"
+    timeout_seconds: 15
+    retry_attempts: 3
+    critical: true
+    tags: ["tcp", "database"]
+    config:
+      host: "{{ env('DB_HOST') or 'localhost' }}"
+      port: "{{ env('DB_PORT') or 5432 }}"
+
+  - name: "tcp_redis"
+    type: "tcp"
+    description: "Check Redis connectivity"
+    timeout_seconds: 10
+    retry_attempts: 3
+    critical: true
+    tags: ["tcp", "cache", "redis"]
+    config:
+      host: "{{ env('REDIS_HOST') or 'localhost' }}"
+      port: "{{ env('REDIS_PORT') or 6379 }}"
+
+  # Command-based Health Checks
+  - name: "process_running"
+    type: "command"
+    description: "Check if main process is running"
+    timeout_seconds: 5
+    retry_attempts: 2
+    critical: true
+    tags: ["process", "system"]
+    config:
+      command: ["pgrep", "-f", "python.*mcp"]
+      expected_exit_code: 0
+
+  - name: "disk_space"
+    type: "command"
+    description: "Check available disk space"
+    timeout_seconds: 10
+    retry_attempts: 1
+    critical: false
+    tags: ["system", "disk"]
+    config:
+      command: ["df", "-h", "/"]
+      expected_exit_code: 0
+      working_directory: "/"
+
+  - name: "memory_usage"
+    type: "command"
+    description: "Check memory usage"
+    timeout_seconds: 5
+    retry_attempts: 1
+    critical: false
+    tags: ["system", "memory"]
+    config:
+      command: ["free", "-m"]
+      expected_exit_code: 0
+
+  - name: "docker_status"
+    type: "command"
+    description: "Check Docker daemon status"
+    timeout_seconds: 15
+    retry_attempts: 2
+    critical: false
+    tags: ["docker", "infrastructure"]
+    config:
+      command: ["docker", "info"]
+      expected_exit_code: 0
+
+  - name: "kubernetes_status"
+    type: "command"
+    description: "Check Kubernetes cluster connectivity"
+    timeout_seconds: 20
+    retry_attempts: 2
+    critical: false
+    tags: ["kubernetes", "infrastructure"]
+    config:
+      command: ["kubectl", "cluster-info"]
+      expected_exit_code: 0
+
+  # File System Health Checks
+  - name: "filesystem_root"
+    type: "file_system"
+    description: "Check root filesystem health"
+    timeout_seconds: 10
+    retry_attempts: 1
+    critical: true
+    tags: ["filesystem", "system"]
+    config:
+      path: "/"
+      check_readable: true
+      check_writable: false
+      min_free_space_mb: 1000  # 1GB minimum
+
+  - name: "filesystem_tmp"
+    type: "file_system"
+    description: "Check temporary directory health"
+    timeout_seconds: 5
+    retry_attempts: 1
+    critical: false
+    tags: ["filesystem", "temp"]
+    config:
+      path: "/tmp"
+      check_readable: true
+      check_writable: true
+      min_free_space_mb: 500  # 500MB minimum
+
+  - name: "filesystem_logs"
+    type: "file_system"
+    description: "Check log directory health"
+    timeout_seconds: 5
+    retry_attempts: 1
+    critical: false
+    tags: ["filesystem", "logs"]
+    config:
+      path: "/var/log"
+      check_readable: true
+      check_writable: true
+      min_free_space_mb: 100  # 100MB minimum
+
+  - name: "config_file_exists"
+    type: "file_system"
+    description: "Check configuration file exists"
+    timeout_seconds: 5
+    retry_attempts: 1
+    critical: true
+    tags: ["filesystem", "config"]
+    config:
+      path: "/app/config/production.yaml"
+      check_readable: true
+
+# Environment-specific overrides
+environment_overrides:
+  production:
+    # Stricter timeouts and more retries in production
+    global_timeout: 30
+    global_retries: 5
+    
+    # Additional production checks
+    additional_checks:
+      - name: "load_balancer_health"
+        type: "http"
+        config:
+          url: "https://api.example.com/health"
+          expected_status: [200]
+          
+      - name: "ssl_certificate"
+        type: "command"
+        config:
+          command: ["openssl", "s_client", "-connect", "api.example.com:443", "-servername", "api.example.com"]
+          expected_exit_code: 0
+  
+  development:
+    # Relaxed settings for development
+    global_timeout: 60
+    global_retries: 1
+    
+    # Skip some checks in development
+    skip_checks:
+      - "ssl_certificate"
+      - "load_balancer_health"
+    
+    # Modified thresholds
+    check_overrides:
+      filesystem_root:
+        min_free_space_mb: 100  # Less strict in development
+      filesystem_tmp:
+        min_free_space_mb: 50
+
+# Check groups for easier management
+check_groups:
+  core:
+    description: "Essential health checks for basic functionality"
+    checks:
+      - "http_health_api"
+      - "tcp_api_port"
+      - "process_running"
+      - "filesystem_root"
+    
+  connectivity:
+    description: "Network and service connectivity checks"
+    checks:
+      - "tcp_database"
+      - "tcp_redis"
+      - "http_metrics"
+    
+  system:
+    description: "System resource and health checks"
+    checks:
+      - "disk_space"
+      - "memory_usage"
+      - "filesystem_tmp"
+      - "filesystem_logs"
+    
+  infrastructure:
+    description: "Infrastructure service checks"
+    checks:
+      - "docker_status"
+      - "kubernetes_status"

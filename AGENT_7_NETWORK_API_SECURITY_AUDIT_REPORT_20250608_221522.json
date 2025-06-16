@@ -1,0 +1,1673 @@
+{
+  "audit_metadata": {
+    "audit_id": "ab10d5fd-857a-4c7f-ac00-f9265c3100c3",
+    "timestamp": "2025-06-08T22:15:22.671066",
+    "duration_minutes": 0.0007983833333333333,
+    "auditor": "Agent 7 - Network & API Security Specialist",
+    "scope": "Network Configuration and API Security Assessment"
+  },
+  "executive_summary": {
+    "overall_security_posture": "POOR",
+    "total_findings": 30,
+    "critical_findings": 0,
+    "high_findings": 8,
+    "configs_analyzed": 12,
+    "key_strengths": [
+      "Comprehensive configuration coverage",
+      "No critical vulnerabilities detected",
+      "Security headers properly configured"
+    ],
+    "critical_weaknesses": [
+      "Hardcoded secrets in configuration"
+    ],
+    "immediate_actions": [
+      "Address high-severity security issues within 48 hours",
+      "Remove hardcoded credentials and secrets",
+      "Update TLS/SSL configuration"
+    ],
+    "compliance_summary": {
+      "owasp_api": "Partial",
+      "owasp_web": "Partial",
+      "cis_benchmarks": "Basic",
+      "nist_framework": "Basic"
+    }
+  },
+  "risk_assessment": {
+    "overall_risk_level": "MEDIUM",
+    "risk_score": 35.0,
+    "total_findings": 30,
+    "findings_by_severity": {
+      "critical": 0,
+      "high": 8,
+      "medium": 9,
+      "low": 13
+    },
+    "top_risk_categories": [
+      {
+        "category": "Secret Management",
+        "count": 7
+      },
+      {
+        "category": "Monitoring Gaps",
+        "count": 3
+      },
+      {
+        "category": "Network Exposure",
+        "count": 2
+      },
+      {
+        "category": "Weak SSL Protocol",
+        "count": 1
+      },
+      {
+        "category": "Network Policy",
+        "count": 1
+      }
+    ],
+    "risk_factors": [
+      "Multiple high-severity security issues",
+      "Hardcoded secrets detected",
+      "Code-level security vulnerabilities",
+      "Unnecessary network exposure"
+    ]
+  },
+  "compliance_assessment": {
+    "owasp_api_top_10": {
+      "compliance_score": 80.0,
+      "violations": {
+        "API1_Broken_Object_Level_Authorization": false,
+        "API2_Broken_User_Authentication": false,
+        "API3_Excessive_Data_Exposure": false,
+        "API4_Lack_of_Resources_Rate_Limiting": true,
+        "API5_Broken_Function_Level_Authorization": false,
+        "API6_Mass_Assignment": false,
+        "API7_Security_Misconfiguration": false,
+        "API8_Injection": false,
+        "API9_Improper_Assets_Management": false,
+        "API10_Insufficient_Logging_Monitoring": true
+      },
+      "total_violations": 2,
+      "compliant": true
+    },
+    "owasp_web_top_10": {
+      "compliance_score": 80.0,
+      "violations": {
+        "A01_Broken_Access_Control": false,
+        "A02_Cryptographic_Failures": true,
+        "A03_Injection": false,
+        "A04_Insecure_Design": false,
+        "A05_Security_Misconfiguration": false,
+        "A06_Vulnerable_Components": false,
+        "A07_Identification_Authentication_Failures": false,
+        "A08_Software_Data_Integrity_Failures": false,
+        "A09_Security_Logging_Monitoring_Failures": true,
+        "A10_Server_Side_Request_Forgery": false
+      },
+      "total_violations": 2,
+      "compliant": true
+    },
+    "cis_benchmarks": {
+      "compliance_score": 40.0,
+      "implemented_controls": {
+        "access_control": false,
+        "secure_configuration": true,
+        "continuous_monitoring": true,
+        "controlled_use_of_admin_privileges": false,
+        "maintenance_monitoring_analysis_of_audit_logs": false
+      },
+      "compliant": false
+    },
+    "nist_framework": {
+      "overall_score": 14.0,
+      "function_scores": {
+        "identify": 20,
+        "protect": 20,
+        "detect": 30,
+        "respond": 0,
+        "recover": 0
+      },
+      "compliant": false
+    }
+  },
+  "detailed_findings": {
+    "network_configuration": {
+      "docker_compose_analysis": {
+        "docker-compose.mcp-production.yml": {
+          "file": "docker-compose.mcp-production.yml",
+          "services": {
+            "mcp-typescript-api": {
+              "image": "mcp-typescript-server:latest",
+              "ports": [
+                "3000:3000"
+              ],
+              "environment": [
+                "NODE_ENV=production",
+                "MCP_DATABASE_URL=postgresql://mcp_user:${DB_PASSWORD}@postgres:5432/mcp_db",
+                "MCP_REDIS_URL=redis://redis:6379/0",
+                "MCP_JWT_SECRET=${JWT_SECRET}",
+                "MCP_LOG_LEVEL=info",
+                "MCP_RATE_LIMIT_REQUESTS=1000",
+                "MCP_RATE_LIMIT_WINDOW=3600"
+              ],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": true
+            },
+            "mcp-learning-system": {
+              "image": "mcp-learning-system:latest",
+              "ports": [
+                "8001:8001"
+              ],
+              "environment": [
+                "PYTHONPATH=/app:/app/python_learning:/app/learning_core",
+                "MCP_ENV=production",
+                "MCP_DATABASE_URL=postgresql://mcp_user:${DB_PASSWORD}@postgres:5432/mcp_db",
+                "MCP_REDIS_URL=redis://redis:6379/1",
+                "MCP_ML_CACHE_SIZE=512",
+                "MCP_LEARNING_MODE=adaptive",
+                "OMP_NUM_THREADS=4"
+              ],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": true
+            },
+            "mcp-rust-server": {
+              "image": "mcp-rust-server:latest",
+              "ports": [
+                "8002:8002"
+              ],
+              "environment": [
+                "RUST_LOG=info",
+                "MCP_ENV=production",
+                "MCP_BIND_ADDRESS=0.0.0.0:8002",
+                "MCP_WORKER_THREADS=4",
+                "MCP_MAX_CONNECTIONS=1000",
+                "MCP_DATABASE_URL=postgresql://mcp_user:${DB_PASSWORD}@postgres:5432/mcp_db"
+              ],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": true
+            },
+            "mcp-devops-server": {
+              "image": "mcp-devops-server:latest",
+              "ports": [
+                "8003:8003"
+              ],
+              "environment": [
+                "PYTHONPATH=/app",
+                "MCP_ENV=production",
+                "MCP_SERVER_PORT=8003",
+                "MCP_REDIS_URL=redis://redis:6379/2"
+              ],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": false
+            },
+            "mcp-quality-server": {
+              "image": "mcp-quality-server:latest",
+              "ports": [
+                "8004:8004"
+              ],
+              "environment": [
+                "PYTHONPATH=/app",
+                "MCP_ENV=production",
+                "MCP_SERVER_PORT=8004",
+                "MCP_REDIS_URL=redis://redis:6379/3"
+              ],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": false
+            },
+            "redis": {
+              "image": "redis:7-alpine",
+              "ports": [
+                "6379:6379"
+              ],
+              "environment": [],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": true
+            },
+            "postgres": {
+              "image": "postgres:15-alpine",
+              "ports": [
+                "5432:5432"
+              ],
+              "environment": [
+                "POSTGRES_DB=mcp_db",
+                "POSTGRES_USER=mcp_user",
+                "POSTGRES_PASSWORD=${DB_PASSWORD}",
+                "POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+              ],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": false
+            },
+            "prometheus": {
+              "image": "prom/prometheus:latest",
+              "ports": [
+                "9090:9090"
+              ],
+              "environment": [],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": false
+            },
+            "grafana": {
+              "image": "grafana/grafana:latest",
+              "ports": [
+                "3001:3000"
+              ],
+              "environment": [
+                "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}",
+                "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource"
+              ],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": false
+            },
+            "nginx": {
+              "image": "nginx:1.25-alpine",
+              "ports": [
+                "80:80",
+                "443:443"
+              ],
+              "environment": [],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": false
+            }
+          },
+          "networks": {
+            "mcp-frontend": {
+              "driver": "bridge",
+              "ipam": {
+                "config": [
+                  {
+                    "subnet": "172.20.0.0/24"
+                  }
+                ]
+              },
+              "external": false
+            },
+            "mcp-backend": {
+              "driver": "bridge",
+              "ipam": {
+                "config": [
+                  {
+                    "subnet": "172.21.0.0/24"
+                  }
+                ]
+              },
+              "external": false
+            },
+            "mcp-data": {
+              "driver": "bridge",
+              "ipam": {
+                "config": [
+                  {
+                    "subnet": "172.22.0.0/24"
+                  }
+                ]
+              },
+              "external": false
+            }
+          },
+          "security_issues": [
+            "Bridge network mcp-frontend may allow container escape",
+            "Bridge network mcp-backend may allow container escape",
+            "Bridge network mcp-data may allow container escape"
+          ],
+          "exposed_ports": [
+            {
+              "service": "mcp-typescript-api",
+              "port": "3000:3000",
+              "host_port": "3000"
+            },
+            {
+              "service": "mcp-learning-system",
+              "port": "8001:8001",
+              "host_port": "8001"
+            },
+            {
+              "service": "mcp-rust-server",
+              "port": "8002:8002",
+              "host_port": "8002"
+            },
+            {
+              "service": "mcp-devops-server",
+              "port": "8003:8003",
+              "host_port": "8003"
+            },
+            {
+              "service": "mcp-quality-server",
+              "port": "8004:8004",
+              "host_port": "8004"
+            },
+            {
+              "service": "redis",
+              "port": "6379:6379",
+              "host_port": "6379"
+            },
+            {
+              "service": "postgres",
+              "port": "5432:5432",
+              "host_port": "5432"
+            },
+            {
+              "service": "prometheus",
+              "port": "9090:9090",
+              "host_port": "9090"
+            },
+            {
+              "service": "grafana",
+              "port": "3001:3000",
+              "host_port": "3001"
+            },
+            {
+              "service": "nginx",
+              "port": "80:80",
+              "host_port": "80"
+            },
+            {
+              "service": "nginx",
+              "port": "443:443",
+              "host_port": "443"
+            }
+          ]
+        },
+        "docker-compose.monitoring.yml": {
+          "file": "docker-compose.monitoring.yml",
+          "services": {
+            "prometheus": {
+              "image": "prom/prometheus:latest",
+              "ports": [
+                "127.0.0.1:9090:9090"
+              ],
+              "environment": [
+                "NODE_OPTIONS=--max-old-space-size=6144 --gc-interval=100 --optimize-for-size"
+              ],
+              "security_opt": [],
+              "read_only": false
+            },
+            "grafana": {
+              "image": "grafana/grafana:latest",
+              "ports": [
+                "127.0.0.1:3000:3000"
+              ],
+              "environment": [
+                "GF_SECURITY_ADMIN_USER=admin",
+                "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}",
+                "GF_USERS_ALLOW_SIGN_UP=false",
+                "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource",
+                "NODE_OPTIONS=--max-old-space-size=6144 --gc-interval=100 --optimize-for-size"
+              ],
+              "security_opt": [],
+              "read_only": false
+            },
+            "jaeger": {
+              "image": "jaegertracing/all-in-one:latest",
+              "ports": [
+                "127.0.0.1:5775:5775/udp",
+                "127.0.0.1:6831:6831/udp",
+                "127.0.0.1:6832:6832/udp",
+                "127.0.0.1:5778:5778",
+                "127.0.0.1:16686:16686",
+                "127.0.0.1:14268:14268",
+                "127.0.0.1:14250:14250",
+                "127.0.0.1:9411:9411",
+                "127.0.0.1:4317:4317",
+                "127.0.0.1:4318:4318"
+              ],
+              "environment": [
+                "COLLECTOR_ZIPKIN_HOST_PORT=:9411",
+                "COLLECTOR_OTLP_ENABLED=true"
+              ],
+              "security_opt": [],
+              "read_only": false
+            },
+            "alertmanager": {
+              "image": "prom/alertmanager:latest",
+              "ports": [
+                "127.0.0.1:9093:9093"
+              ],
+              "environment": [],
+              "security_opt": [],
+              "read_only": false
+            },
+            "node-exporter": {
+              "image": "prom/node-exporter:latest",
+              "ports": [
+                "127.0.0.1:9100:9100"
+              ],
+              "environment": [],
+              "security_opt": [
+                "no-new-privileges:true"
+              ],
+              "read_only": false
+            },
+            "pushgateway": {
+              "image": "prom/pushgateway:latest",
+              "ports": [
+                "127.0.0.1:9091:9091"
+              ],
+              "environment": [],
+              "security_opt": [],
+              "read_only": false
+            },
+            "cadvisor": {
+              "image": "gcr.io/cadvisor/cadvisor:latest",
+              "ports": [
+                "127.0.0.1:8080:8080"
+              ],
+              "environment": [],
+              "security_opt": [],
+              "read_only": false
+            }
+          },
+          "networks": {
+            "monitoring": {
+              "driver": "bridge",
+              "ipam": {},
+              "external": false
+            }
+          },
+          "security_issues": [
+            "Bridge network monitoring may allow container escape"
+          ],
+          "exposed_ports": [
+            {
+              "service": "prometheus",
+              "port": "127.0.0.1:9090:9090",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "grafana",
+              "port": "127.0.0.1:3000:3000",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:5775:5775/udp",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:6831:6831/udp",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:6832:6832/udp",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:5778:5778",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:16686:16686",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:14268:14268",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:14250:14250",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:9411:9411",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:4317:4317",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "jaeger",
+              "port": "127.0.0.1:4318:4318",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "alertmanager",
+              "port": "127.0.0.1:9093:9093",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "node-exporter",
+              "port": "127.0.0.1:9100:9100",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "pushgateway",
+              "port": "127.0.0.1:9091:9091",
+              "host_port": "127.0.0.1"
+            },
+            {
+              "service": "cadvisor",
+              "port": "127.0.0.1:8080:8080",
+              "host_port": "127.0.0.1"
+            }
+          ]
+        }
+      },
+      "kubernetes_configs": {
+        "k8s/network-policies.yaml": {
+          "file": "k8s/network-policies.yaml",
+          "resources": [
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-default-deny-all",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-api-ingress",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-api-egress",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-database-policy",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-redis-policy",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-monitoring-policy",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-worker-policy",
+              "namespace": "claude-deployment"
+            }
+          ],
+          "security_policies": [],
+          "network_policies": [
+            {
+              "name": "claude-deployment-default-deny-all",
+              "namespace": "claude-deployment",
+              "pod_selector": {},
+              "policy_types": [
+                "Ingress",
+                "Egress"
+              ],
+              "ingress_rules": 0,
+              "egress_rules": 0,
+              "security_assessment": [
+                "Overly broad pod selector"
+              ]
+            },
+            {
+              "name": "claude-deployment-api-ingress",
+              "namespace": "claude-deployment",
+              "pod_selector": {
+                "matchLabels": {
+                  "app": "claude-deployment-api"
+                }
+              },
+              "policy_types": [
+                "Ingress"
+              ],
+              "ingress_rules": 1,
+              "egress_rules": 0,
+              "security_assessment": [
+                "No egress restrictions"
+              ]
+            },
+            {
+              "name": "claude-deployment-api-egress",
+              "namespace": "claude-deployment",
+              "pod_selector": {
+                "matchLabels": {
+                  "app": "claude-deployment-api"
+                }
+              },
+              "policy_types": [
+                "Egress"
+              ],
+              "ingress_rules": 0,
+              "egress_rules": 4,
+              "security_assessment": [
+                "No ingress restrictions"
+              ]
+            },
+            {
+              "name": "claude-deployment-database-policy",
+              "namespace": "claude-deployment",
+              "pod_selector": {
+                "matchLabels": {
+                  "app": "claude-deployment-db"
+                }
+              },
+              "policy_types": [
+                "Ingress",
+                "Egress"
+              ],
+              "ingress_rules": 1,
+              "egress_rules": 1,
+              "security_assessment": []
+            },
+            {
+              "name": "claude-deployment-redis-policy",
+              "namespace": "claude-deployment",
+              "pod_selector": {
+                "matchLabels": {
+                  "app": "claude-deployment-redis"
+                }
+              },
+              "policy_types": [
+                "Ingress",
+                "Egress"
+              ],
+              "ingress_rules": 1,
+              "egress_rules": 1,
+              "security_assessment": []
+            },
+            {
+              "name": "claude-deployment-monitoring-policy",
+              "namespace": "claude-deployment",
+              "pod_selector": {
+                "matchLabels": {
+                  "app": "claude-deployment-monitoring"
+                }
+              },
+              "policy_types": [
+                "Ingress",
+                "Egress"
+              ],
+              "ingress_rules": 1,
+              "egress_rules": 2,
+              "security_assessment": []
+            },
+            {
+              "name": "claude-deployment-worker-policy",
+              "namespace": "claude-deployment",
+              "pod_selector": {
+                "matchLabels": {
+                  "app": "claude-deployment-worker"
+                }
+              },
+              "policy_types": [
+                "Egress"
+              ],
+              "ingress_rules": 0,
+              "egress_rules": 4,
+              "security_assessment": [
+                "No ingress restrictions"
+              ]
+            }
+          ],
+          "security_issues": []
+        },
+        "k8s/mcp-services.yaml": {
+          "file": "k8s/mcp-services.yaml",
+          "resources": [
+            {
+              "name": "mcp-security-scanner-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-security-scanner-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-sast-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-sast-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-supply-chain-security-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-supply-chain-security-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-s3-storage-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-s3-storage-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-cloud-storage-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-cloud-storage-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-slack-notifications-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-slack-notifications-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-communication-hub-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-communication-hub-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-infrastructure-commander-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-infrastructure-commander-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-typescript-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-typescript-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-gateway",
+              "namespace": "mcp-production",
+              "type": "LoadBalancer",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 80,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "https",
+                  "port": 443,
+                  "targetPort": 3000,
+                  "protocol": "TCP"
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090,
+                  "protocol": "TCP"
+                }
+              ],
+              "security_assessment": [
+                "External LoadBalancer exposure"
+              ]
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-gateway",
+              "namespace": "mcp-production"
+            },
+            {
+              "name": "mcp-headless-service",
+              "namespace": "mcp-production",
+              "type": "ClusterIP",
+              "ports": [
+                {
+                  "name": "http",
+                  "port": 3000,
+                  "targetPort": 3000
+                },
+                {
+                  "name": "metrics",
+                  "port": 9090,
+                  "targetPort": 9090
+                }
+              ],
+              "security_assessment": []
+            },
+            {
+              "kind": "Service",
+              "name": "mcp-headless-service",
+              "namespace": "mcp-production"
+            },
+            {
+              "kind": "PersistentVolumeClaim",
+              "name": "mcp-cloud-storage-pvc",
+              "namespace": "mcp-production"
+            },
+            {
+              "kind": "PersistentVolumeClaim",
+              "name": "mcp-shared-cache-pvc",
+              "namespace": "mcp-production"
+            },
+            {
+              "kind": "PersistentVolumeClaim",
+              "name": "mcp-logs-pvc",
+              "namespace": "mcp-production"
+            }
+          ],
+          "security_policies": [],
+          "network_policies": [],
+          "security_issues": []
+        },
+        "k8s/security-policy.yaml": {
+          "file": "k8s/security-policy.yaml",
+          "resources": [
+            {
+              "kind": "Pod",
+              "name": "claude-deployment-pod",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "NetworkPolicy",
+              "name": "claude-deployment-netpol",
+              "namespace": "claude-deployment"
+            },
+            {
+              "kind": "PodSecurityPolicy",
+              "name": "claude-deployment-psp",
+              "namespace": null
+            },
+            {
+              "kind": "ClusterRole",
+              "name": "claude-deployment-psp-user",
+              "namespace": null
+            },
+            {
+              "kind": "ClusterRoleBinding",
+              "name": "claude-deployment-psp-all-serviceaccounts",
+              "namespace": null
+            }
+          ],
+          "security_policies": [
+            {
+              "name": "claude-deployment-psp",
+              "privileged": false,
+              "allowPrivilegeEscalation": false,
+              "runAsUser": {
+                "rule": "MustRunAsNonRoot"
+              },
+              "capabilities": [],
+              "security_assessment": []
+            }
+          ],
+          "network_policies": [
+            {
+              "name": "claude-deployment-netpol",
+              "namespace": "claude-deployment",
+              "pod_selector": {
+                "matchLabels": {
+                  "app": "claude-deployment"
+                }
+              },
+              "policy_types": [
+                "Ingress",
+                "Egress"
+              ],
+              "ingress_rules": 1,
+              "egress_rules": 3,
+              "security_assessment": []
+            }
+          ],
+          "security_issues": []
+        }
+      },
+      "nginx_configuration": {
+        "containers/networking/nginx.conf": {
+          "file": "containers/networking/nginx.conf",
+          "security_headers": {
+            "X-Frame-Options": true,
+            "X-Content-Type-Options": true,
+            "X-XSS-Protection": true,
+            "Strict-Transport-Security": true,
+            "Content-Security-Policy": true
+          },
+          "ssl_configuration": {
+            "protocols": "TLSv1.2 TLSv1.3"
+          },
+          "rate_limiting": {
+            "zones": [
+              "$binary_remote_addr zone=api:10m rate=10r/s",
+              "$binary_remote_addr zone=login:10m rate=1r/s"
+            ]
+          },
+          "security_issues": [],
+          "cors_config": {
+            "allow_origin": "*"
+          }
+        }
+      },
+      "network_policies": {}
+    },
+    "api_security": {
+      "api_files_analyzed": {
+        "src/api/base.py": {
+          "file": "src/api/base.py",
+          "authentication_methods": [
+            "API_KEY"
+          ],
+          "security_features": [
+            "Rate Limiting",
+            "Hashing",
+            "Session Management"
+          ],
+          "vulnerabilities": [],
+          "best_practices": [
+            "Input Sanitization",
+            "Error Handling",
+            "Logging",
+            "Type Hints",
+            "Async/Await",
+            "Context Managers"
+          ]
+        },
+        "src/security/mcp_security_core.py": {
+          "file": "src/security/mcp_security_core.py",
+          "authentication_methods": [
+            "JWT",
+            "API_KEY",
+            "OAuth"
+          ],
+          "security_features": [
+            "Rate Limiting",
+            "Input Validation",
+            "XSS Protection",
+            "SQL Injection Protection",
+            "Encryption",
+            "Hashing",
+            "Session Management"
+          ],
+          "vulnerabilities": [],
+          "best_practices": [
+            "Input Sanitization",
+            "Error Handling",
+            "Logging",
+            "Type Hints",
+            "Async/Await",
+            "Context Managers"
+          ]
+        },
+        "src/security/mcp_secure_server.py": {
+          "file": "src/security/mcp_secure_server.py",
+          "authentication_methods": [
+            "JWT"
+          ],
+          "security_features": [
+            "Rate Limiting",
+            "Input Validation",
+            "Encryption",
+            "Hashing",
+            "Session Management"
+          ],
+          "vulnerabilities": [
+            "MD5 Usage"
+          ],
+          "best_practices": [
+            "Input Sanitization",
+            "Error Handling",
+            "Logging",
+            "Type Hints",
+            "Async/Await",
+            "Context Managers"
+          ]
+        }
+      },
+      "authentication_mechanisms": {},
+      "input_validation": {},
+      "rate_limiting": {},
+      "security_middleware": {}
+    },
+    "monitoring_logging": {
+      "monitoring_configs": {
+        "docker-compose.monitoring.yml": {
+          "file": "docker-compose.monitoring.yml",
+          "tools_detected": [
+            "Prometheus",
+            "Grafana",
+            "Jaeger",
+            "AlertManager"
+          ],
+          "security_metrics": [],
+          "alerting_configured": true,
+          "issues": [
+            "No security-specific monitoring detected"
+          ]
+        },
+        "monitoring/prometheus.yml": {
+          "file": "monitoring/prometheus.yml",
+          "tools_detected": [
+            "Prometheus",
+            "AlertManager"
+          ],
+          "security_metrics": [],
+          "alerting_configured": true,
+          "issues": [
+            "No security-specific monitoring detected"
+          ]
+        },
+        "monitoring/grafana-datasources.yml": {
+          "file": "monitoring/grafana-datasources.yml",
+          "tools_detected": [
+            "Prometheus",
+            "Jaeger",
+            "AlertManager"
+          ],
+          "security_metrics": [],
+          "alerting_configured": true,
+          "issues": [
+            "No security-specific monitoring detected"
+          ]
+        }
+      },
+      "logging_configs": {},
+      "alerting_rules": {},
+      "security_monitoring": {}
+    }
+  },
+  "security_findings": {
+    "critical": [],
+    "high": [
+      {
+        "id": "1c3c7f6c-de84-4cd3-b7cd-b6adc594a439",
+        "timestamp": "2025-06-08T22:15:22.635935",
+        "severity": "high",
+        "category": "Secret Management",
+        "title": "Hardcoded secret in mcp-typescript-api",
+        "description": "Environment variable contains secret: MCP_DATABASE_URL",
+        "recommendation": "Use Docker secrets or external secret management",
+        "evidence": {}
+      },
+      {
+        "id": "b48e3471-7be3-4db0-80cd-cb05dd3bee56",
+        "timestamp": "2025-06-08T22:15:22.635996",
+        "severity": "high",
+        "category": "Secret Management",
+        "title": "Hardcoded secret in mcp-typescript-api",
+        "description": "Environment variable contains secret: MCP_JWT_SECRET",
+        "recommendation": "Use Docker secrets or external secret management",
+        "evidence": {}
+      },
+      {
+        "id": "05ef01af-de86-4649-8f4e-3d4093e1c53a",
+        "timestamp": "2025-06-08T22:15:22.636031",
+        "severity": "high",
+        "category": "Secret Management",
+        "title": "Hardcoded secret in mcp-learning-system",
+        "description": "Environment variable contains secret: MCP_DATABASE_URL",
+        "recommendation": "Use Docker secrets or external secret management",
+        "evidence": {}
+      },
+      {
+        "id": "5787ab0e-1bf3-48cc-966d-c52ad949160b",
+        "timestamp": "2025-06-08T22:15:22.636059",
+        "severity": "high",
+        "category": "Secret Management",
+        "title": "Hardcoded secret in mcp-rust-server",
+        "description": "Environment variable contains secret: MCP_DATABASE_URL",
+        "recommendation": "Use Docker secrets or external secret management",
+        "evidence": {}
+      },
+      {
+        "id": "ffd2f9f5-80d6-4663-a12a-4827ddff53c2",
+        "timestamp": "2025-06-08T22:15:22.636142",
+        "severity": "high",
+        "category": "Secret Management",
+        "title": "Hardcoded secret in postgres",
+        "description": "Environment variable contains secret: POSTGRES_PASSWORD",
+        "recommendation": "Use Docker secrets or external secret management",
+        "evidence": {}
+      },
+      {
+        "id": "0c3c305a-b5c1-4145-8c2e-b68fb1a88163",
+        "timestamp": "2025-06-08T22:15:22.636199",
+        "severity": "high",
+        "category": "Secret Management",
+        "title": "Hardcoded secret in grafana",
+        "description": "Environment variable contains secret: GF_SECURITY_ADMIN_PASSWORD",
+        "recommendation": "Use Docker secrets or external secret management",
+        "evidence": {}
+      },
+      {
+        "id": "f1289df5-ba3e-4000-82b0-f18f56714bc1",
+        "timestamp": "2025-06-08T22:15:22.640427",
+        "severity": "high",
+        "category": "Secret Management",
+        "title": "Hardcoded secret in grafana",
+        "description": "Environment variable contains secret: GF_SECURITY_ADMIN_PASSWORD",
+        "recommendation": "Use Docker secrets or external secret management",
+        "evidence": {}
+      },
+      {
+        "id": "b6d512cf-3e36-4b8c-b67a-9db52d83521a",
+        "timestamp": "2025-06-08T22:15:22.660665",
+        "severity": "high",
+        "category": "Weak SSL Protocol",
+        "title": "Weak SSL protocol TLSv1 enabled",
+        "description": "SSL configuration includes weak protocol: TLSv1",
+        "recommendation": "Remove weak SSL protocols, use only TLSv1.2 and TLSv1.3",
+        "evidence": {}
+      }
+    ],
+    "medium": [
+      {
+        "id": "38993597-305b-4eb6-84ba-23273028fe8a",
+        "timestamp": "2025-06-08T22:15:22.636217",
+        "severity": "medium",
+        "category": "Network Exposure",
+        "title": "Privileged port 80 exposed in nginx",
+        "description": "Service nginx exposes privileged port 80",
+        "recommendation": "Consider using non-privileged ports or reverse proxy",
+        "evidence": {}
+      },
+      {
+        "id": "092e34e5-f604-44f4-9b49-a5c68d37b72c",
+        "timestamp": "2025-06-08T22:15:22.636236",
+        "severity": "medium",
+        "category": "Network Exposure",
+        "title": "Privileged port 443 exposed in nginx",
+        "description": "Service nginx exposes privileged port 443",
+        "recommendation": "Consider using non-privileged ports or reverse proxy",
+        "evidence": {}
+      },
+      {
+        "id": "12329fe6-2dae-4aef-b1a5-71b8b9a00185",
+        "timestamp": "2025-06-08T22:15:22.640899",
+        "severity": "medium",
+        "category": "Network Policy",
+        "title": "Broad network policy 'claude-deployment-default-deny-all'",
+        "description": "Network policy applies to all pods in namespace",
+        "recommendation": "Use specific pod selectors to limit policy scope",
+        "evidence": {}
+      },
+      {
+        "id": "185e26e4-8936-4f4d-8499-a9b7c15b785f",
+        "timestamp": "2025-06-08T22:15:22.654212",
+        "severity": "medium",
+        "category": "Service Exposure",
+        "title": "LoadBalancer service 'mcp-gateway'",
+        "description": "Service exposes endpoints externally via LoadBalancer",
+        "recommendation": "Ensure proper access controls and monitoring",
+        "evidence": {}
+      },
+      {
+        "id": "bb87d1a7-f813-4eec-9339-65e7d9a23e05",
+        "timestamp": "2025-06-08T22:15:22.660811",
+        "severity": "medium",
+        "category": "Permissive CORS",
+        "title": "Wildcard CORS origin configured",
+        "description": "Access-Control-Allow-Origin set to '*'",
+        "recommendation": "Specify exact allowed origins instead of wildcard",
+        "evidence": {}
+      },
+      {
+        "id": "07163012-a9ff-465e-beee-c53ef2f48aa8",
+        "timestamp": "2025-06-08T22:15:22.669736",
+        "severity": "medium",
+        "category": "Code Security",
+        "title": "MD5 Usage detected in src/security/mcp_secure_server.py",
+        "description": "Potential md5 usage vulnerability found",
+        "recommendation": "Review and fix md5 usage issue",
+        "evidence": {}
+      },
+      {
+        "id": "1cb695f6-cda4-48b6-87ca-943d4b1de38d",
+        "timestamp": "2025-06-08T22:15:22.670824",
+        "severity": "medium",
+        "category": "Monitoring Gaps",
+        "title": "Limited security monitoring in docker-compose.monitoring.yml",
+        "description": "No security metrics detected in monitoring configuration",
+        "recommendation": "Add security event monitoring and alerting",
+        "evidence": {}
+      },
+      {
+        "id": "5bbc7244-c9ef-44ec-83ac-0a3820f04a06",
+        "timestamp": "2025-06-08T22:15:22.670924",
+        "severity": "medium",
+        "category": "Monitoring Gaps",
+        "title": "Limited security monitoring in monitoring/prometheus.yml",
+        "description": "No security metrics detected in monitoring configuration",
+        "recommendation": "Add security event monitoring and alerting",
+        "evidence": {}
+      },
+      {
+        "id": "a33a3614-1a42-42ff-9d3c-f77b88e97a30",
+        "timestamp": "2025-06-08T22:15:22.670982",
+        "severity": "medium",
+        "category": "Monitoring Gaps",
+        "title": "Limited security monitoring in monitoring/grafana-datasources.yml",
+        "description": "No security metrics detected in monitoring configuration",
+        "recommendation": "Add security event monitoring and alerting",
+        "evidence": {}
+      }
+    ],
+    "low": [
+      {
+        "id": "24288b9d-aa46-4d79-851a-d413c2b51dc5",
+        "timestamp": "2025-06-08T22:15:22.636080",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container mcp-devops-server not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "8e5b7158-5a7c-439b-95dc-5d9766431250",
+        "timestamp": "2025-06-08T22:15:22.636102",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container mcp-quality-server not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "3b35bbb6-7239-477d-b5c5-76e8c8404b17",
+        "timestamp": "2025-06-08T22:15:22.636123",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container postgres not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "a27158e2-74ad-4481-ac9c-7863fbab44a7",
+        "timestamp": "2025-06-08T22:15:22.636162",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container prometheus not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "6d88d03d-738a-4795-aeb1-8166006ecfdf",
+        "timestamp": "2025-06-08T22:15:22.636179",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container grafana not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "7de1848a-7ed1-455f-84f1-61f6bf242fff",
+        "timestamp": "2025-06-08T22:15:22.636253",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container nginx not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "f7454948-1537-4f2c-bb8b-17821593c4d2",
+        "timestamp": "2025-06-08T22:15:22.640334",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container prometheus not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "ed3b34ca-0fbb-4b57-bc91-b525acddf1ee",
+        "timestamp": "2025-06-08T22:15:22.640395",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container grafana not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "3deeb9a7-71a8-4993-b03a-b2c1b80654d7",
+        "timestamp": "2025-06-08T22:15:22.640455",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container jaeger not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "88d5bf4d-5d1f-41e0-b4d2-c41d411a6987",
+        "timestamp": "2025-06-08T22:15:22.640478",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container alertmanager not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "c8ee62c4-5d07-48e9-bf49-f4eed6c934d7",
+        "timestamp": "2025-06-08T22:15:22.640497",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container node-exporter not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "01184947-7c85-4ec7-b13b-63de3d87dfb4",
+        "timestamp": "2025-06-08T22:15:22.640516",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container pushgateway not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      },
+      {
+        "id": "c00cba26-2dbe-4330-a4ae-862f9a1562c7",
+        "timestamp": "2025-06-08T22:15:22.640535",
+        "severity": "low",
+        "category": "Container Security",
+        "title": "Container cadvisor not read-only",
+        "description": "Container filesystem is writable",
+        "recommendation": "Enable read-only filesystem where possible",
+        "evidence": {}
+      }
+    ],
+    "info": []
+  },
+  "audit_metrics": {
+    "config_files_analyzed": 12,
+    "endpoints_discovered": 0,
+    "security_headers_checked": 0,
+    "vulnerabilities_found": 30,
+    "network_configs_reviewed": 4
+  },
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "category": "Security Hardening",
+      "title": "Strengthen Security Controls",
+      "description": "Implement missing security controls and fix high-severity issues",
+      "timeline": "1-2 weeks",
+      "effort": "Medium",
+      "impact": "High",
+      "affected_components": [
+        "Secret Management",
+        "Secret Management",
+        "Secret Management",
+        "Secret Management",
+        "Secret Management",
+        "Secret Management",
+        "Secret Management",
+        "Weak SSL Protocol"
+      ]
+    },
+    {
+      "priority": "MEDIUM",
+      "category": "Monitoring & Detection",
+      "title": "Enhance Security Monitoring",
+      "description": "Implement comprehensive security monitoring and alerting",
+      "timeline": "2-4 weeks",
+      "effort": "Medium",
+      "impact": "Medium",
+      "affected_components": [
+        "Monitoring",
+        "Logging",
+        "Alerting"
+      ]
+    },
+    {
+      "priority": "MEDIUM",
+      "category": "Configuration Management",
+      "title": "Security Configuration Review",
+      "description": "Regular review and hardening of security configurations",
+      "timeline": "4-6 weeks",
+      "effort": "Low",
+      "impact": "Medium",
+      "affected_components": [
+        "Network",
+        "API",
+        "Infrastructure"
+      ]
+    },
+    {
+      "priority": "LOW",
+      "category": "Documentation & Training",
+      "title": "Security Documentation Update",
+      "description": "Update security procedures and conduct team training",
+      "timeline": "6-8 weeks",
+      "effort": "Low",
+      "impact": "Low",
+      "affected_components": [
+        "Documentation",
+        "Training",
+        "Procedures"
+      ]
+    }
+  ],
+  "remediation_plan": {
+    "immediate_actions": [],
+    "short_term_goals": [
+      {
+        "goal": "Resolve high-severity security issues",
+        "timeline": "2 weeks",
+        "owner": "Security Team",
+        "priority": "P1"
+      },
+      {
+        "goal": "Implement security monitoring",
+        "timeline": "4 weeks",
+        "owner": "DevOps Team",
+        "priority": "P2"
+      }
+    ],
+    "long_term_objectives": [
+      {
+        "objective": "Achieve OWASP compliance",
+        "timeline": "8 weeks",
+        "owner": "Security Team",
+        "priority": "P2"
+      },
+      {
+        "objective": "Implement automated security testing",
+        "timeline": "12 weeks",
+        "owner": "DevOps Team",
+        "priority": "P3"
+      }
+    ],
+    "resource_requirements": {
+      "security_engineer": "0.5 FTE for 2 months",
+      "devops_engineer": "0.3 FTE for 1 month",
+      "developer_time": "20 hours for critical fixes",
+      "tools_budget": "$5,000 for security tools",
+      "training_budget": "$2,000 for team training"
+    },
+    "success_metrics": [
+      "Zero critical vulnerabilities",
+      "Less than 5 high-severity findings",
+      "90%+ OWASP compliance score",
+      "Security monitoring coverage > 95%",
+      "Monthly security assessments implemented"
+    ]
+  }
+}

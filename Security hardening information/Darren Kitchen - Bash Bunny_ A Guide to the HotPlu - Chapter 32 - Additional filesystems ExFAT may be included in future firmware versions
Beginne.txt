@@ -1,0 +1,113 @@
+# Security Chapter Extract
+Book: Darren Kitchen - Bash Bunny_ A Guide to the HotPlug Attack Platform (2022, Hak5 LLC) - libgen.li
+Chapter: 32 - Additional filesystems (ExFAT) may be included in future firmware versions.
+Beginner Guides
+Writing Keystroke Injection Payloads for the Bash Bunny
+Computers trust humans. Humans interact with keyboards. Hence the Human Interface Device or HID 
+standard used by all modern USB keyboards. To a computer, if the device says it’s a keyboard — it’s a 
+keyboard.
+To pentesters, a small USB device pre-programmed to inject keystrokes into the victim computer covertly 
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+Security Relevance Score: 9
+Word Count: 976
+Extracted: 2025-06-13 23:40:20
+
+---
+
+Additional filesystems (ExFAT) may be included in future firmware versions.
+Beginner Guides
+Writing Keystroke Injection Payloads for the Bash Bunny
+Computers trust humans. Humans interact with keyboards. Hence the Human Interface Device or HID 
+standard used by all modern USB keyboards. To a computer, if the device says it’s a keyboard — it’s a 
+keyboard.
+To pentesters, a small USB device pre-programmed to inject keystrokes into the victim computer covertly 
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+hidden inside a regular flash-drive case is a recipe for social engineering success. Hence the popular Hak5 
+USBRubberDucky thedevicethatinventedkeystrokeinjectionattacks
+Building on this, the Bash Bunny directly interprets the Ducky Script language that has become synonymous
+with bad USB attacks. 
+With its HID attack mode, the Bash Bunny becomes a keyboard, and Ducky Script is processed with a quick 
+and easy QUACK command.
+GET SWITCH_POSITION 1
+LED ATTACK 2
+ATTACKMODE HID STORAGE 3
+RUN WIN powershell ".((gwmi win32_volume -f 'label=''BashBunny''').Name+'payloads\\$SWITCH_ 4
+LED FINISH 5
+As you can see from the above simple payload snippet, the Ducky Script tells the Bash Bunny to become 
+both a keyboard and a flash drive. Then, it injects keystrokes which instruct the Windows target to run a 
+powershell script saved on said flash drive. 
+Advanced attacks are enabled by combining HID attacks with the additional USB device supported by the 
+Bash Bunny – like gigabit Ethernet, Serial and Storage. Coupled with a scripting language that supports 
+conditions and logic using BASH, a new era of keystroke injection attacks are possible.
+Learn more about using Ducky Script for Keystroke Injection attacks from the Payload Development 
+section of the Bash Bunny documentation.
+Network Hijacking Attacks with the Bash Bunny
+Exploiting local network attack vectors, the Bash Bunny emulates specialized Ethernet adapters. That 
+means the target computer sees the Bash Bunny not as an ordinary flash drive, but as a USB Ethernet 
+Adapter connected to a network. It's a network of two – the Bash Bunny and your target – and once 
+connected, you'll have direct access to the target bypassing any would-be firewalls, countermeasures or 
+intrusion detection systems from the legitimate LAN.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+This is done in such a way that allows the Bash Bunny to be recognized on the victim computer as the 
+fastest network, without drivers, automatically – locked or unlocked. As a 2 gigabit adapter with an 
+authoritative DHCP server, the Bash Bunny obtains a low metric. This means that the computer will instantly 
+trust the Bash Bunny with its network traffic — enabling a plethora of automated pocket network attacks 
+undetectable by the existing infrastructure.
+These bring-your-own-network attacks are cross-platform, with the Bash Bunny exploiting Mac, Linux, and 
+Android computers with its ECM Ethernet attack mode, and Windows computers with its Microsoft 
+proprietary RNDIS Ethernet attack mode.
+Using these methods, attack like  for example are able to steal hashed credentials from locked 
+computers in seconds. Plug the Bash Bunny into a computer, wait a few seconds and when the light is 
+green – the trap is clean!QuickCreds
+Let's take a look at how the Bash Bunny pulls off this simple and effective attack.
+First we issue the Ethernet attack mode specific for our target. If it's Windows, we'll want to use 
+RNDIS_ETHERNET. If it's a Mac or Linux target, we'll want to use ECM_ETHERNET. Even better - if we're 
+not sure, simply use AUTO_ETHERNET which will try both.
+# Use RNDIS for Windows. Mac/*nix use ECM_ETHERNET. Try AUTO_ETHERNET for both. 1
+ATTACKMODE RNDIS_ETHERNET 2
+#ATTACKMODE ECM_ETHERNET 3
+#ATTACKMODE AUTO_ETHERNET 4
+5
+# Set variables for the target's computer name and IP address. 6
+GET TARGET_HOSTNAME 7
+GET TARGET_IP 8
+In the above example, we also grab variables for the target's hostname and IP address, which is useful for 
+naming the logs that we lovingly call loot.
+# Run Responder with specified options 1
+python Responder.py -I usb0 $RESPONDER_OPTIONS & 2
+3
+# Wait until NTLM log is found 4
+until [ -f logs/*NTLM* ] 5
+do6
+     # Ima just loop here until NTLM logs are found 7
+  sleep 1 8
+done9
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+Then we simply run Responder on the usb0 interface - which is the network directly connected to the target 
+using the Ethernet attack mode above. Finally, we wait until the NTLM hashes are captured. Easy!
+With a full TCP/IP stack and all common Linux-based tools at your disposal, the possibilities for pocket 
+network attacks are endless!
+Top 5 Bash Bunny Exfiltration Payloads to "steal files"
+As anyone in IT knows, two is one — one is none. It’s important to backup your documents. As a penetration 
+testers know, exfiltration is a fancy word for an involuntary backup. To that end, the Bash Bunny features at 
+storage attack mode capable of intelligent exfiltration, with gigs of high speed USB flash storage. It’s perfect 
+for binary injection, staged payloads and more.
+It’s also the most convenient way to configure the Bash Bunny, with an dedicated access to its USB Flash 
+Storage. Just slide the payload switch to arming mode and plug the Bash Bunny into your computer or 
+smartphone. As a standard flash drive, it’s simple to navigate and configure. Modify payloads on the fly by 
+editing simple text files. Assign payloads to switch positions by copying files. Browse the entire payload 
+library right from the flash storage. Even review captured data from the “loot” folder. It couldn’t be more 
+straightforward.
+TOP 5 EXFILTRATION PAYLOADS
+These are just some of our favorite exfiltration payloads. For the complete listing, check out the 
+.Bash Bunny 
+payload highlights
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+1.USB EXFILTRATOR
+USB Exfiltrator on Hak5 PayloadHub
+Exfiltrates files from the users Documents folder Saves to the loot folder on the Bash Bunny USB Mass 
+Storage partition named by the victim hostname, date and timestamp.

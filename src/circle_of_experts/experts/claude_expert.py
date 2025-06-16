@@ -23,6 +23,13 @@ from src.circle_of_experts.models.query import ExpertQuery
 from src.core.retry import retry_api_call, RetryConfig, RetryStrategy
 from src.core.circuit_breaker import circuit_breaker, CircuitBreakerConfig, get_circuit_breaker_manager
 from src.core.ssrf_protection import SSRFProtectedSession, get_ssrf_protector, STRICT_SSRF_CONFIG
+from src.core.secrets_manager import get_api_key, SecretNotFoundError
+
+__all__ = [
+    "BaseExpertClient",
+    "ClaudeExpertClient"
+]
+
 
 logger = logging.getLogger(__name__)
 
@@ -99,10 +106,17 @@ class ClaudeExpertClient(BaseExpertClient):
         Initialize Claude client.
         
         Args:
-            api_key: Anthropic API key (or from env ANTHROPIC_API_KEY)
+            api_key: Anthropic API key (or from secrets manager/env)
             model: Model to use (opus, sonnet, or haiku)
         """
-        super().__init__(api_key or os.getenv("ANTHROPIC_API_KEY"))
+        # Try to get API key from various sources
+        if not api_key:
+            try:
+                api_key = get_api_key("anthropic")
+            except SecretNotFoundError:
+                api_key = os.getenv("ANTHROPIC_API_KEY")
+                
+        super().__init__(api_key)
         self.model = model
         self.client = AsyncAnthropic(api_key=self.api_key) if self.api_key else None
         
@@ -152,11 +166,17 @@ Response format:
         
         # Add query-specific context
         if query.query_type == "review":
-            base_prompt += "\n\nFocus on code quality, best practices, and potential improvements."
+            base_prompt += "
+
+Focus on code quality, best practices, and potential improvements."
         elif query.query_type == "architectural":
-            base_prompt += "\n\nConsider scalability, maintainability, and system design principles."
+            base_prompt += "
+
+Consider scalability, maintainability, and system design principles."
         elif query.query_type == "optimization":
-            base_prompt += "\n\nPrioritize performance metrics and efficiency improvements."
+            base_prompt += "
+
+Prioritize performance metrics and efficiency improvements."
         
         return base_prompt
     
@@ -181,7 +201,9 @@ Response format:
             messages = [
                 {
                     "role": "user",
-                    "content": f"{query.content}\n\nContext: {json.dumps(query.context)}"
+                    "content": f"{query.content}
+
+Context: {json.dumps(query.context)}"
                 }
             ]
             
@@ -276,7 +298,8 @@ Response format:
     def _extract_recommendations(self, content: str) -> List[str]:
         """Extract recommendations from response."""
         recommendations = []
-        lines = content.split('\n')
+        lines = content.split('
+')
         
         in_recommendations = False
         for line in lines:
@@ -302,7 +325,8 @@ Response format:
     def _extract_code_snippets(self, content: str) -> List[Dict[str, str]]:
         """Extract code snippets from response."""
         snippets = []
-        lines = content.split('\n')
+        lines = content.split('
+')
         
         i = 0
         while i < len(lines):
@@ -319,7 +343,8 @@ Response format:
                 if code_lines:
                     snippets.append({
                         "language": language or "text",
-                        "code": '\n'.join(code_lines),
+                        "code": '
+'.join(code_lines),
                         "title": f"Example {len(snippets) + 1}"
                     })
             i += 1
@@ -329,7 +354,8 @@ Response format:
     def _extract_limitations(self, content: str) -> List[str]:
         """Extract limitations or caveats from response."""
         limitations = []
-        lines = content.split('\n')
+        lines = content.split('
+')
         
         for line in lines:
             line = line.strip()

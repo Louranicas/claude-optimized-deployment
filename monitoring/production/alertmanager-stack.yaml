@@ -1,0 +1,530 @@
+# Production AlertManager Stack with Alert Rules
+---
+# AlertManager ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'alerts@claude-deployment.com'
+      smtp_auth_username: '${SMTP_USERNAME}'
+      smtp_auth_password: '${SMTP_PASSWORD}'
+      slack_api_url: '${SLACK_WEBHOOK_URL}'
+      
+    templates:
+    - '/etc/alertmanager/templates/*.tmpl'
+    
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'default'
+      routes:
+      # Critical alerts go to on-call immediately
+      - match:
+          severity: critical
+        receiver: 'critical-alerts'
+        group_wait: 0s
+        repeat_interval: 5m
+      
+      # High severity alerts
+      - match:
+          severity: high
+        receiver: 'high-alerts'
+        group_wait: 30s
+        repeat_interval: 15m
+      
+      # Medium severity alerts
+      - match:
+          severity: medium
+        receiver: 'medium-alerts'
+        group_wait: 5m
+        repeat_interval: 1h
+      
+      # Database alerts
+      - match:
+          service: postgres
+        receiver: 'database-alerts'
+      
+      # API alerts
+      - match:
+          service: claude-deployment-api
+        receiver: 'api-alerts'
+    
+    inhibit_rules:
+    # Inhibit warning alerts if critical alerts are firing
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'warning'
+      equal: ['alertname', 'cluster', 'service']
+    
+    # Inhibit high alerts if critical alerts are firing
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'high'
+      equal: ['alertname', 'cluster', 'service']
+    
+    receivers:
+    - name: 'default'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-general'
+        title: 'Claude Deployment Alert'
+        text: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          {{ end }}
+    
+    - name: 'critical-alerts'
+      email_configs:
+      - to: 'oncall@claude-deployment.com'
+        subject: 'CRITICAL: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-critical'
+        title: '🚨 CRITICAL ALERT 🚨'
+        text: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          {{ end }}
+      pagerduty_configs:
+      - routing_key: '${PAGERDUTY_INTEGRATION_KEY}'
+        description: 'Critical alert: {{ .GroupLabels.alertname }}'
+    
+    - name: 'high-alerts'
+      email_configs:
+      - to: 'devops@claude-deployment.com'
+        subject: 'HIGH: {{ .GroupLabels.alertname }}'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-high'
+        title: '⚠️ High Severity Alert'
+    
+    - name: 'medium-alerts'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-medium'
+        title: 'ℹ️ Medium Severity Alert'
+    
+    - name: 'database-alerts'
+      email_configs:
+      - to: 'dba@claude-deployment.com'
+        subject: 'Database Alert: {{ .GroupLabels.alertname }}'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-database'
+        title: '🗃️ Database Alert'
+    
+    - name: 'api-alerts'
+      email_configs:
+      - to: 'api-team@claude-deployment.com'
+        subject: 'API Alert: {{ .GroupLabels.alertname }}'
+      slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-api'
+        title: '🔌 API Alert'
+
+---
+# Prometheus Alert Rules
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: monitoring
+data:
+  claude-deployment-alerts.yml: |
+    groups:
+    - name: claude-deployment-api
+      rules:
+      # API is down
+      - alert: APIDown
+        expr: up{job="claude-deployment-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: claude-deployment-api
+        annotations:
+          summary: "Claude Deployment API is down"
+          description: "API instance {{ $labels.instance }} has been down for more than 1 minute"
+      
+      # High error rate
+      - alert: HighErrorRate
+        expr: claude_deployment:api_error_rate_5m > 0.05
+        for: 5m
+        labels:
+          severity: high
+          service: claude-deployment-api
+        annotations:
+          summary: "High API error rate"
+          description: "API error rate is {{ $value | humanizePercentage }} for instance {{ $labels.instance }}"
+      
+      # High response time
+      - alert: HighResponseTime
+        expr: claude_deployment:api_latency_p95_5m > 2
+        for: 5m
+        labels:
+          severity: high
+          service: claude-deployment-api
+        annotations:
+          summary: "High API response time"
+          description: "API P95 response time is {{ $value }}s for instance {{ $labels.instance }}"
+      
+      # Low request rate (potential issue)
+      - alert: LowRequestRate
+        expr: claude_deployment:api_request_rate_5m < 1
+        for: 10m
+        labels:
+          severity: medium
+          service: claude-deployment-api
+        annotations:
+          summary: "Low API request rate"
+          description: "API request rate is {{ $value }} req/s, which may indicate an issue"
+      
+      # Too many pods restarting
+      - alert: HighPodRestartRate
+        expr: increase(kube_pod_container_status_restarts_total{namespace="claude-deployment-prod"}[1h]) > 3
+        for: 5m
+        labels:
+          severity: high
+          service: claude-deployment-api
+        annotations:
+          summary: "High pod restart rate"
+          description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+    
+    - name: claude-deployment-infrastructure
+      rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: claude_deployment:cpu_utilization_5m > 85
+        for: 10m
+        labels:
+          severity: high
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on instance {{ $labels.instance }}"
+      
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: claude_deployment:memory_utilization_5m > 90
+        for: 5m
+        labels:
+          severity: high
+          service: infrastructure
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% on instance {{ $labels.instance }}"
+      
+      # Disk space running low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 15
+        for: 5m
+        labels:
+          severity: high
+          service: infrastructure
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk space is {{ $value }}% available on {{ $labels.instance }}"
+      
+      # Node down
+      - alert: NodeDown
+        expr: up{job="kubernetes-nodes"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Kubernetes node is down"
+          description: "Node {{ $labels.instance }} has been down for more than 1 minute"
+    
+    - name: claude-deployment-database
+      rules:
+      # Database down
+      - alert: DatabaseDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database {{ $labels.instance }} is down"
+      
+      # High connection usage
+      - alert: HighDatabaseConnections
+        expr: claude_deployment:db_connections_active / 200 > 0.8
+        for: 5m
+        labels:
+          severity: high
+          service: postgres
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection usage is {{ $value | humanizePercentage }}"
+      
+      # Slow queries
+      - alert: SlowDatabaseQueries
+        expr: claude_deployment:db_query_duration_p95_5m > 5
+        for: 10m
+        labels:
+          severity: medium
+          service: postgres
+        annotations:
+          summary: "Slow database queries detected"
+          description: "P95 query duration is {{ $value }}s"
+      
+      # Replication lag (if using read replicas)
+      - alert: DatabaseReplicationLag
+        expr: pg_stat_replication_lag_bytes > 100*1024*1024
+        for: 5m
+        labels:
+          severity: high
+          service: postgres
+        annotations:
+          summary: "High database replication lag"
+          description: "Replication lag is {{ $value | humanizeBytes }}"
+    
+    - name: claude-deployment-redis
+      rules:
+      # Redis down
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance {{ $labels.instance }} is down"
+      
+      # High memory usage
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: high
+          service: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+      
+      # Too many connections
+      - alert: RedisTooManyConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: medium
+          service: redis
+        annotations:
+          summary: "Redis has too many connections"
+          description: "Redis has {{ $value }} connections"
+    
+    - name: claude-deployment-security
+      rules:
+      # Certificate expiration
+      - alert: CertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 7*24*3600
+        for: 1h
+        labels:
+          severity: high
+          service: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+      
+      # Failed authentication attempts
+      - alert: HighFailedAuthAttempts
+        expr: increase(failed_auth_attempts_total[5m]) > 50
+        for: 2m
+        labels:
+          severity: medium
+          service: security
+        annotations:
+          summary: "High number of failed authentication attempts"
+          description: "{{ $value }} failed authentication attempts in the last 5 minutes"
+
+---
+# AlertManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app: alertmanager
+    component: core
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+        component: core
+    spec:
+      serviceAccountName: alertmanager
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.26.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - '--config.file=/etc/alertmanager/alertmanager.yml'
+        - '--storage.path=/alertmanager'
+        - '--web.listen-address=:9093'
+        - '--web.external-url=http://alertmanager:9093'
+        - '--cluster.listen-address=0.0.0.0:9094'
+        - '--cluster.peer=alertmanager-0.alertmanager:9094'
+        - '--cluster.peer=alertmanager-1.alertmanager:9094'
+        - '--log.level=info'
+        ports:
+        - name: web
+          containerPort: 9093
+          protocol: TCP
+        - name: cluster
+          containerPort: 9094
+          protocol: TCP
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: config
+          mountPath: /etc/alertmanager
+          readOnly: true
+        - name: storage
+          mountPath: /alertmanager
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: web
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: web
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: alertmanager-config
+      - name: storage
+        persistentVolumeClaim:
+          claimName: alertmanager-storage
+      nodeSelector:
+        kubernetes.io/os: linux
+
+---
+# AlertManager Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  labels:
+    app: alertmanager
+    component: core
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 9093
+    targetPort: web
+    protocol: TCP
+  - name: cluster
+    port: 9094
+    targetPort: cluster
+    protocol: TCP
+  selector:
+    app: alertmanager
+
+---
+# AlertManager Headless Service for clustering
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-headless
+  namespace: monitoring
+  labels:
+    app: alertmanager
+    component: core
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: web
+    port: 9093
+    targetPort: web
+    protocol: TCP
+  - name: cluster
+    port: 9094
+    targetPort: cluster
+    protocol: TCP
+  selector:
+    app: alertmanager
+
+---
+# AlertManager ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alertmanager
+  namespace: monitoring
+
+---
+# AlertManager PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alertmanager-storage
+  namespace: monitoring
+  labels:
+    app: alertmanager
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: gp3
+  resources:
+    requests:
+      storage: 5Gi

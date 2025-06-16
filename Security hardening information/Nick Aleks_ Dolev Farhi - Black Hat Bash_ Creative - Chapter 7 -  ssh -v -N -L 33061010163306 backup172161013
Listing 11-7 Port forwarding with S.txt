@@ -1,0 +1,24 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 7 - $ ssh -v -N -L 3306:10.1.0.16:3306 backup@172.16.10.13
+Listing 11-7: Port forwarding with SSH
+This command uses local port forwarding (-L) and the syntax local_port:remote_ip:remote_port, followed by the intermediate host through which the forwarding will be done. After executing this command, you’ll be prompted to enter the password for the backup user on p-jumpbox-01. As a reminder, the password is backup.
+Once the command successfully executes, Kali will start listening locally on port 3306. Verify that port 3306 is listening by using the following command:
+$ netstat -atunp | grep 3306
+Security Relevance Score: 3
+Word Count: 120
+Extracted: 2025-06-13 23:40:57
+
+---
+
+$ ssh -v -N -L 3306:10.1.0.16:3306 backup@172.16.10.13
+Listing 11-7: Port forwarding with SSH
+This command uses local port forwarding (-L) and the syntax local_port:remote_ip:remote_port, followed by the intermediate host through which the forwarding will be done. After executing this command, you’ll be prompted to enter the password for the backup user on p-jumpbox-01. As a reminder, the password is backup.
+Once the command successfully executes, Kali will start listening locally on port 3306. Verify that port 3306 is listening by using the following command:
+$ netstat -atunp | grep 3306
+
+--snip--
+tcp   0   0 127.0.0.1:3306   0.0.0.0:*   LISTEN 86790/ssh
+--snip—
+
+Any traffic destined to 127.0.0.1:3306 on Kali will be sent to c-db-02 (10.1.0.16) on port 3306 via the intermediate host p-jumpbox-

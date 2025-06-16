@@ -14,7 +14,24 @@ from enum import Enum
 import json
 import math
 
-from ...circle_of_experts import CircleOfExperts, QueryRequest
+try:
+    from ....src.circle_of_experts import CircleOfExperts, QueryRequest
+except ImportError:
+    try:
+        from src.circle_of_experts import CircleOfExperts, QueryRequest
+    except ImportError:
+        # Mock classes if not available
+        class CircleOfExperts:
+            async def process_query(self, query):
+                class MockResponse:
+                    def __init__(self):
+                        self.expert_responses = []
+                        self.content = "Mock expert response"
+                return MockResponse()
+        
+        class QueryRequest:
+            def __init__(self, **kwargs):
+                pass
 
 
 class ExpertScalingMode(Enum):

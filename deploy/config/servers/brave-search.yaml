@@ -1,0 +1,84 @@
+# Brave Search MCP Server Configuration
+
+name: brave-search
+server_type: search
+description: "Brave Search API integration for web search capabilities"
+
+base_config:
+  # Server settings
+  enabled: true
+  timeout_seconds: 30
+  retry_attempts: 3
+  retry_delay_seconds: 1
+  
+  # API configuration
+  api:
+    base_url: "https://api.search.brave.com/res/v1"
+    version: "v1"
+    rate_limit_per_minute: 100
+    max_results_per_query: 20
+  
+  # Search settings
+  search:
+    default_count: 10
+    default_language: "en"
+    default_country: "US"
+    safe_search: "moderate"
+    
+    # Search types
+    web_search: true
+    image_search: true
+    news_search: true
+    local_search: true
+  
+  # Caching
+  cache:
+    enabled: true
+    ttl_seconds: 300  # 5 minutes
+    max_entries: 1000
+  
+  # Monitoring
+  monitoring:
+    health_check_enabled: true
+    health_check_interval: 60
+    metrics_enabled: true
+    
+  # Security
+  security:
+    api_key_required: true
+    request_validation: true
+    response_sanitization: true
+
+environment_overrides:
+  production:
+    timeout_seconds: 15
+    retry_attempts: 2
+    api:
+      rate_limit_per_minute: 500
+    cache:
+      ttl_seconds: 600  # 10 minutes
+      max_entries: 5000
+    monitoring:
+      health_check_interval: 30
+  
+  development:
+    timeout_seconds: 60
+    retry_attempts: 5
+    api:
+      rate_limit_per_minute: 50
+    cache:
+      enabled: false
+    monitoring:
+      health_check_interval: 120
+    security:
+      request_validation: false
+
+templates:
+  api_key: "{{ env.brave_api_key }}"
+  base_url: "{{ config.api.base_url }}"
+  timeout: "{{ config.timeout_seconds }}"
+
+validation_rules:
+  - "required:api_key"
+  - "required:api.base_url"
+  - "format:timeout_seconds:^[0-9]+$"

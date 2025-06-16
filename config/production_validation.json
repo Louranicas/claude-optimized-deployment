@@ -1,0 +1,66 @@
+{
+  "environment": "production",
+  "validation_scope": "comprehensive",
+  "api_urls": [
+    "https://api.mcp-production.com",
+    "http://localhost:3000"
+  ],
+  "primary_urls": [
+    "https://api.mcp-production.com"
+  ],
+  "secondary_urls": [
+    "https://api-secondary.mcp-production.com"
+  ],
+  "namespace": "mcp-production",
+  "security_requirements": {
+    "min_security_score": 95,
+    "max_critical_vulnerabilities": 0,
+    "max_high_vulnerabilities": 2,
+    "required_security_controls": [
+      "runAsNonRoot",
+      "readOnlyRootFilesystem", 
+      "networkPolicies",
+      "rbac",
+      "secretsEncryption"
+    ]
+  },
+  "performance_requirements": {
+    "min_availability": 99.9,
+    "max_response_time_p95_ms": 2000,
+    "min_throughput_rps": 1000,
+    "max_error_rate_percent": 1.0
+  },
+  "compliance_frameworks": [
+    "SOC2",
+    "GDPR",
+    "OWASP_TOP_10"
+  ],
+  "required_documentation": [
+    "README.md",
+    "docs/PRODUCTION_DEPLOYMENT_GUIDE.md",
+    "docs/OPERATIONS_RUNBOOK.md",
+    "docs/ARCHITECTURE.md",
+    "CONTRIBUTING.md",
+    "LICENSE"
+  ],
+  "required_automation": [
+    "ci_cd_pipeline",
+    "automated_testing",
+    "security_scanning",
+    "deployment_automation",
+    "rollback_capability"
+  ],
+  "monitoring_requirements": {
+    "prometheus_metrics": true,
+    "grafana_dashboards": true,
+    "alerting_rules": true,
+    "log_aggregation": true,
+    "health_checks": true
+  },
+  "disaster_recovery": {
+    "backup_frequency_hours": 24,
+    "rto_minutes": 30,
+    "rpo_minutes": 60,
+    "cross_region_backup": true
+  }
+}

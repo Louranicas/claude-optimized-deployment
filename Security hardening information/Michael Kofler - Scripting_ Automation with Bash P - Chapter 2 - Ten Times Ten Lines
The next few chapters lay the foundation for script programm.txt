@@ -1,0 +1,328 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 2 - Ten Times Ten Lines
+The next few chapters lay the foundation for script programmin g. Depending on the
+language you want to work in and your pr evious knowledge, you might skip some of
+these chapters. But if you prefer linear read ing, there are many pages describing theory
+and syntax before the much more exciting scripts follow. That’s why in this chapter I’m
+going to present ten short scripts, each a ma ximum of ten lines of code, as an appetizer,
+so to speak.
+If you’re at the start of your scripting ca reer, you won’t understand, or will only begin
+to understand, how these scripts work. But th at does not matter! Each script ends with
+a cross-reference to a chapter in which a similar script  or a more extensive variant is
+explained. At this point, th e sole purpose is to prove to  you what great possibilities
+even tiny scripts can offer.
+I know from many years of experience: No thing is duller than imparting knowledge
+where the goal is unclear. This problem is exactly what I want to avoid. The knowledge
+from this book should enable  you to solve everyday IT ta sks with minimal code effort—
+just like the ten exam ples in this chapter!
+Longer Scripts
+Don’t get me wrong! Of course, “real” scripts are often much longer and often contain
+100 or 200 lines. Such scripts then perform more complex tasks, validate the input
+parameters, display help texts, and. I just want to illustrate in this chapter how far you
+can get with only ten lines of code and wi thout special functions for code minimiza-
+tion, which make code difficult to understand.
+2.1    Markdown Spell Checker (Bash)
+I don’t write my books in Microsoft Word but use Markdown syntax and work in an edi-
+tor without a spell checker. This approach may seem old-fashioned to you, but I can
+assure you that my writing process is quite efficient.
+However, certain typos and spelling errors keep happening to me. So that I don’t drive
+my proofreaders to despair, before I start proofreading, I apply a script that replaces
+certain words in all chapter files.
+2 Ten Times Ten Lines
+40The following Bash script re ads the entries from the corrections.txt  file line by line in
+the first loop and forms a sed command for each entry (see Chapter 9 , Section 9.3 ). In
+the second loop, th e script applies sed to all files passed to the script. This loop creates a
+backup of the original file ( -i.bak  option).
+#!/bin/bash
+# Sample file correct.sh
+sedcmd=""while read -r findtxt replacetxt; do
+    sedcmd+="s/$findtxt/$replacetxt/g;"
+done < corrections.txtfor filename in $*; do
+    echo "Correct file $filename"
+    sed -i.bak "$sedcmd" $filenamedone
+The call of the script looks as follows:
+$ ./correct.sh *.md
+If you like, you can convince yourself of  the function’s correctness by calling diff
+test.md  test.md.bak . The corrections.txt  file simply contains search and replace words
+separated by spaces, with the wrong spelling  in the first column and the correct spell-
+ing in the second one:
+Addin Add-in
+Github GitHubcommited committed
+diffrence difference
+acommodate accommodatecalender calendar
+...
+2.2    Sorting Images by Date (PowerShell)
+Recently, I received several thousand photos from my siblings to create a photo album.
+Fortunately, most of the photos came from the digital age: For this reason, most photos
+were image files that contained exchangeable  image file format (Exif) information with
+the date they had been taken. To enable a quick overview of the photos across time, I
+wanted to move the images into different directories based on th e month in which the
+photos had been taken (e.g., 2015-03  for photos taken in March 2015).
+This task can be performed by a PowerShell sc ript that requires th e ExifTool program to
+be installed first (see Chapter 16 , Section 16.2 ).
+412.3 Converting a JSON File to XML Format (Python)
+The first loop goes through all the parameters passed to the script, for instance, *.jpg
+and *.jpeg  if the script was started in the form .\sort-images.ps1  *.jpg  *.jpeg . The sec-
+ond loop processes the files corresponding to the pattern, uses ExifTool to determine
+the date they were taken, and form ats this information in the form yyyy-mm . If neces-
+sary, New-Item  creates the corresponding directory. Finally, Move-Item  moves the image
+file to that directory.
+# Sample file sort-images.ps1
+foreach ($arg in $args) {
+foreach ($file in Get-Item $arg) {
+$yearmonth = exiftool -s3 -d '%Y-%m' `
+-DateTimeOriginal $file
+if ($yearmonth) {
+$targetdir = New-Item -ItemType Directory `
+-Path $yearmonth -Force
+Move-Item $file $targetdir
+}
+}
+}
+2.3    Converting a JSON File to XML Format (Python)
+Let’s say we have a file called employees.json , which is a JSON file with the following
+structure:
+[
+{
+"emp_no" : 10001 },"birth_date" : "1953-09-02",
+"first_name" : "Georgi",
+'last-name': "Facello",...
+}, ...
+We need to form an XML file from the JSON file, and the XML file should look as follows:
+<?xml version="1.0"?>
+<employees>
+<employee no='10001' birth_date='1953-09-02'>Georgi
+Facello</employee>
+...
+</employees>
+This scenario is exactly the kind of task Python is designed for! The with  keyword opens
+the source file and the target file. The code json.load  reads the JSON file and turns it
+2 Ten Times Ten Lines
+42into a Python list of dictionaries (where each list entry is a dictionary with employee
+data). The for loop runs through all list elemen ts and brings the employee number,
+date of birth, and name into the desired XML format.
+# Sample file json2xml.py
+import jsonfmt = " <employee no='%s' birth_date='%s'>%s %s</employee>\n"
+with open('employee.json', 'r') as jsonfile, \
+open('employee.xml', 'w') as xmlfile:
+data = json.load(jsonfile)
+xmlfile.write('<?xml version="1.0"?>\n<employees>\n')
+for item in data:
+xmlfile.write(fmt % (item['emp_no'],
+item['birth_date'], item['first_name'],
+item['last_name']))
+xmlfile.write('</employees>\n')
+For basic principles on handling JSON and XML files, see Chapter 10 .
+2.4    Daily Server Backups (Bash)
+Let’s say we have a web application runnin g on a LAMP server (Linux, Apache, MySQL/
+MariaDB, PHP). In this scenario, the contents  of the database and the directory contain-
+ing the web application files should be backed  up once a day. This process can be per-
+formed automatically via the following brief Bash script:
+# Sample file lamp-backup.sh
+dbfile="/localbackup/sql.gz"
+mysqldump -u backupuser --single-transaction dbname | \
+gzip -c > $dbfile
+htmlfile="/localbackup/html.tar.gz"
+tar czf $htmlfile -C /var/www/html/applicationdir .
+The mysqldump  command requires the existence of a /root/.my.cnf  configuration file in
+which the password for the backup user is st ored. To run the script every night at 4:30
+am with root  privileges, you must add the following line to /etc/crontab  (see also Chap-
+ter 11 , Section 11.1 ):
+# in /etc/crontab
+3 04***r o o t /path/to/lamp-backup.sh
+Basic principles and tips for designing backup scripts are described in Chapter 15 . I will
+show you how to encrypt your backups and upload them to the cloud in Chapter 20 ,
+Section 20.2 .
+432.5 Web Scraping (Python)
+2.5    Web Scraping (Python)
+Web scraping is the art of extracting info rmation from a web page , such as the current
+price from a product page. In this script, we’ll extract the current version number from
+a webpage (in our case, the Git homepage at https://git-scm.com ) and extract the link to
+the release notes as well.
+Figure 2.1  Git Homepage Showing the Current Versio n Number in the Bottom-Right Corner
+A look into the HTML code of the web page reveals the following code snippet:
+...
+<div class="monitor">
+<h4> Latest source Release </h4><span class="version">
+2.40.0
+</span><a href="https://raw.github.com/git/git/master/Documentation/\
+RelNotes/2.40.0.txt">Release Notes</a>
+...
+Our next Python script requ ires that you install two modules beforehand. Depending
+on your operating system, you’ll need to use pip or pip3  for this step:
+Security Relevance Score: 4
+Word Count: 1442
+Extracted: 2025-06-13 23:40:21
+
+---
+
+Ten Times Ten Lines
+The next few chapters lay the foundation for script programmin g. Depending on the
+language you want to work in and your pr evious knowledge, you might skip some of
+these chapters. But if you prefer linear read ing, there are many pages describing theory
+and syntax before the much more exciting scripts follow. That’s why in this chapter I’m
+going to present ten short scripts, each a ma ximum of ten lines of code, as an appetizer,
+so to speak.
+If you’re at the start of your scripting ca reer, you won’t understand, or will only begin
+to understand, how these scripts work. But th at does not matter! Each script ends with
+a cross-reference to a chapter in which a similar script  or a more extensive variant is
+explained. At this point, th e sole purpose is to prove to  you what great possibilities
+even tiny scripts can offer.
+I know from many years of experience: No thing is duller than imparting knowledge
+where the goal is unclear. This problem is exactly what I want to avoid. The knowledge
+from this book should enable  you to solve everyday IT ta sks with minimal code effort—
+just like the ten exam ples in this chapter!
+Longer Scripts
+Don’t get me wrong! Of course, “real” scripts are often much longer and often contain
+100 or 200 lines. Such scripts then perform more complex tasks, validate the input
+parameters, display help texts, and. I just want to illustrate in this chapter how far you
+can get with only ten lines of code and wi thout special functions for code minimiza-
+tion, which make code difficult to understand.
+2.1    Markdown Spell Checker (Bash)
+I don’t write my books in Microsoft Word but use Markdown syntax and work in an edi-
+tor without a spell checker. This approach may seem old-fashioned to you, but I can
+assure you that my writing process is quite efficient.
+However, certain typos and spelling errors keep happening to me. So that I don’t drive
+my proofreaders to despair, before I start proofreading, I apply a script that replaces
+certain words in all chapter files.
+2 Ten Times Ten Lines
+40The following Bash script re ads the entries from the corrections.txt  file line by line in
+the first loop and forms a sed command for each entry (see Chapter 9 , Section 9.3 ). In
+the second loop, th e script applies sed to all files passed to the script. This loop creates a
+backup of the original file ( -i.bak  option).
+#!/bin/bash
+# Sample file correct.sh
+sedcmd=""while read -r findtxt replacetxt; do
+    sedcmd+="s/$findtxt/$replacetxt/g;"
+done < corrections.txtfor filename in $*; do
+    echo "Correct file $filename"
+    sed -i.bak "$sedcmd" $filenamedone
+The call of the script looks as follows:
+$ ./correct.sh *.md
+If you like, you can convince yourself of  the function’s correctness by calling diff
+test.md  test.md.bak . The corrections.txt  file simply contains search and replace words
+separated by spaces, with the wrong spelling  in the first column and the correct spell-
+ing in the second one:
+Addin Add-in
+Github GitHubcommited committed
+diffrence difference
+acommodate accommodatecalender calendar
+...
+2.2    Sorting Images by Date (PowerShell)
+Recently, I received several thousand photos from my siblings to create a photo album.
+Fortunately, most of the photos came from the digital age: For this reason, most photos
+were image files that contained exchangeable  image file format (Exif) information with
+the date they had been taken. To enable a quick overview of the photos across time, I
+wanted to move the images into different directories based on th e month in which the
+photos had been taken (e.g., 2015-03  for photos taken in March 2015).
+This task can be performed by a PowerShell sc ript that requires th e ExifTool program to
+be installed first (see Chapter 16 , Section 16.2 ).
+412.3 Converting a JSON File to XML Format (Python)
+The first loop goes through all the parameters passed to the script, for instance, *.jpg
+and *.jpeg  if the script was started in the form .\sort-images.ps1  *.jpg  *.jpeg . The sec-
+ond loop processes the files corresponding to the pattern, uses ExifTool to determine
+the date they were taken, and form ats this information in the form yyyy-mm . If neces-
+sary, New-Item  creates the corresponding directory. Finally, Move-Item  moves the image
+file to that directory.
+# Sample file sort-images.ps1
+foreach ($arg in $args) {
+foreach ($file in Get-Item $arg) {
+$yearmonth = exiftool -s3 -d '%Y-%m' `
+-DateTimeOriginal $file
+if ($yearmonth) {
+$targetdir = New-Item -ItemType Directory `
+-Path $yearmonth -Force
+Move-Item $file $targetdir
+}
+}
+}
+2.3    Converting a JSON File to XML Format (Python)
+Let’s say we have a file called employees.json , which is a JSON file with the following
+structure:
+[
+{
+"emp_no" : 10001 },"birth_date" : "1953-09-02",
+"first_name" : "Georgi",
+'last-name': "Facello",...
+}, ...
+We need to form an XML file from the JSON file, and the XML file should look as follows:
+<?xml version="1.0"?>
+<employees>
+<employee no='10001' birth_date='1953-09-02'>Georgi
+Facello</employee>
+...
+</employees>
+This scenario is exactly the kind of task Python is designed for! The with  keyword opens
+the source file and the target file. The code json.load  reads the JSON file and turns it
+2 Ten Times Ten Lines
+42into a Python list of dictionaries (where each list entry is a dictionary with employee
+data). The for loop runs through all list elemen ts and brings the employee number,
+date of birth, and name into the desired XML format.
+# Sample file json2xml.py
+import jsonfmt = " <employee no='%s' birth_date='%s'>%s %s</employee>\n"
+with open('employee.json', 'r') as jsonfile, \
+open('employee.xml', 'w') as xmlfile:
+data = json.load(jsonfile)
+xmlfile.write('<?xml version="1.0"?>\n<employees>\n')
+for item in data:
+xmlfile.write(fmt % (item['emp_no'],
+item['birth_date'], item['first_name'],
+item['last_name']))
+xmlfile.write('</employees>\n')
+For basic principles on handling JSON and XML files, see Chapter 10 .
+2.4    Daily Server Backups (Bash)
+Let’s say we have a web application runnin g on a LAMP server (Linux, Apache, MySQL/
+MariaDB, PHP). In this scenario, the contents  of the database and the directory contain-
+ing the web application files should be backed  up once a day. This process can be per-
+formed automatically via the following brief Bash script:
+# Sample file lamp-backup.sh
+dbfile="/localbackup/sql.gz"
+mysqldump -u backupuser --single-transaction dbname | \
+gzip -c > $dbfile
+htmlfile="/localbackup/html.tar.gz"
+tar czf $htmlfile -C /var/www/html/applicationdir .
+The mysqldump  command requires the existence of a /root/.my.cnf  configuration file in
+which the password for the backup user is st ored. To run the script every night at 4:30
+am with root  privileges, you must add the following line to /etc/crontab  (see also Chap-
+ter 11 , Section 11.1 ):
+# in /etc/crontab
+3 04***r o o t /path/to/lamp-backup.sh
+Basic principles and tips for designing backup scripts are described in Chapter 15 . I will
+show you how to encrypt your backups and upload them to the cloud in Chapter 20 ,
+Section 20.2 .
+432.5 Web Scraping (Python)
+2.5    Web Scraping (Python)
+Web scraping is the art of extracting info rmation from a web page , such as the current
+price from a product page. In this script, we’ll extract the current version number from
+a webpage (in our case, the Git homepage at https://git-scm.com ) and extract the link to
+the release notes as well.
+Figure 2.1  Git Homepage Showing the Current Versio n Number in the Bottom-Right Corner
+A look into the HTML code of the web page reveals the following code snippet:
+...
+<div class="monitor">
+<h4> Latest source Release </h4><span class="version">
+2.40.0
+</span><a href="https://raw.github.com/git/git/master/Documentation/\
+RelNotes/2.40.0.txt">Release Notes</a>
+...
+Our next Python script requ ires that you install two modules beforehand. Depending
+on your operating system, you’ll need to use pip or pip3  for this step:
+
+2 Ten Times Ten Lines
+44$ pip install requests
+$ pip install beautifulsoup4
+The mini program downloads th e HTML code and uses the Beautiful  Soup  library  to
+look for the span  tag. Its text  property returns the desire d version number. To deter-
+mine the link to the release notes, parent  accesses the layer above it (in this case, the div
+tag with the monitor  class), while find  looks for the first a tag in it.
+import requests
+from bs4 import BeautifulSoupresponse = requests.get("https://git-scm.com/downloads")
+dom = BeautifulSoup(response.content, 'html.parser')
+version = dom.find('span', class_='version')print("Git version:", version.text.strip())url = version.parent.find('a')print("What's new:", url.attrs['href'])
+As I finished writing this chapter, I ran this script, which delivered the following output:
+Git version: 2.40.0What's new: https://raw.github.com/git/git/master/Documentation/\
+RelNotes/2.40.0.txt
+Note that this script only wo rks as long as the structure of  the Git project page does not
+change. I’ll discuss this basic problem of web scraping as well as  various programming
+techniques in the Bash, PowerShell, and Python languages in

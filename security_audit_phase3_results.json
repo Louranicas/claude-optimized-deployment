@@ -1,0 +1,163 @@
+{
+  "audit_timestamp": "2025-06-07T07:10:41.940632",
+  "phase": "Phase 3: Infrastructure Security Assessment",
+  "vulnerabilities": [
+    {
+      "file": "./docker-compose.monitoring.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'grafana'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./mcp_learning_system/docker-compose.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'grafana'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./infrastructure/logging/docker-compose.logging.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'elasticsearch'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./infrastructure/logging/docker-compose.logging.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'logstash'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./infrastructure/logging/docker-compose.logging.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'kibana'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./infrastructure/logging/docker-compose.logging.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'filebeat'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./infrastructure/logging/docker-compose.logging.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'curator'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./src/monitoring/docker-compose.monitoring.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'grafana'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./src/monitoring/docker-compose.monitoring.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'postgres'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./rust_core/security_audit_env/mcp_learning_system/docker-compose.yml",
+      "type": "DOCKER_COMPOSE_SECRET",
+      "severity": "CRITICAL",
+      "details": "Hardcoded secret in service 'grafana'",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./.env.production",
+      "type": "SECRETS_IN_GIT",
+      "severity": "CRITICAL",
+      "details": ".env file tracked in git",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./.env.example",
+      "type": "SECRETS_IN_GIT",
+      "severity": "CRITICAL",
+      "details": ".env file tracked in git",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./.env.development",
+      "type": "SECRETS_IN_GIT",
+      "severity": "CRITICAL",
+      "details": ".env file tracked in git",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "./.env.database.example",
+      "type": "SECRETS_IN_GIT",
+      "severity": "CRITICAL",
+      "details": ".env file tracked in git",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "src/core/logging_config.py",
+      "type": "LOGGING_SENSITIVE_DATA",
+      "severity": "HIGH",
+      "details": "Potential sensitive data logging",
+      "cvss_score": 7.5
+    },
+    {
+      "file": "src/core/logging_config.py",
+      "type": "DEBUG_MODE_ENABLED",
+      "severity": "MEDIUM",
+      "details": "Debug mode may be enabled",
+      "cvss_score": 5.3
+    },
+    {
+      "file": "monitoring/alertmanager.yml",
+      "type": "LOGGING_SENSITIVE_DATA",
+      "severity": "HIGH",
+      "details": "Potential sensitive data logging",
+      "cvss_score": 7.5
+    },
+    {
+      "file": "src/api/",
+      "type": "MISSING_API_VERSIONING",
+      "severity": "MEDIUM",
+      "details": "No API versioning implementation found",
+      "cvss_score": 5.3
+    }
+  ],
+  "tests_performed": [
+    {
+      "test": "Docker Security Assessment",
+      "files_checked": 5,
+      "issues_found": 10
+    },
+    {
+      "test": "Kubernetes Security Assessment",
+      "files_checked": 10,
+      "issues_found": 0
+    },
+    {
+      "test": "Secrets Management Assessment",
+      "issues_found": 4
+    },
+    {
+      "test": "Logging Security Assessment",
+      "issues_found": 3
+    },
+    {
+      "test": "API Security Assessment",
+      "issues_found": 1
+    }
+  ],
+  "summary": {
+    "critical": 14,
+    "high": 2,
+    "medium": 2,
+    "low": 0
+  },
+  "total_vulnerabilities": 18
+}

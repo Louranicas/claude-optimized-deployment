@@ -1,0 +1,719 @@
+# Security Chapter Extract
+Book: MARK A RUSSO CISSP-ISSAP CEH IFPC - The Threat Hunt Process (THP) Roadmap_ A Pathway for Advanced Cybersecurity Active Measures (2019, Independently published) - libgen.li
+Chapter: 3 - Incident Response 
+– Indicators of Compromise (IOC) provided by the
+CTI or like external organization has identified a potential threat vector
+or actual attack. IR will direct hunt resources as appropriate to initiate a
+hunt. 
+This is the primary source and de facto leader over the THP.
+Security Relevance Score: 11
+Word Count: 2184
+Extracted: 2025-06-13 23:40:26
+
+---
+
+Incident Response 
+– Indicators of Compromise (IOC) provided by the
+CTI or like external organization has identified a potential threat vector
+or actual attack. IR will direct hunt resources as appropriate to initiate a
+hunt. 
+This is the primary source and de facto leader over the THP.
+ 
+Hunt
+Hunts are typically focused against external attackers but may also include
+“insider threat” activities. Using the inputs, a CyA will initiate a THP
+activity/hunt upon direction. The hunt consists of selecting the proper tools
+to use, collecting the data from the tools, analyzing the results, and
+documenting the outcomes. Analysts will make use of either existing tools,
+or by creation or procurement of new tools to fulfill the needs of the hunt.
+Gaps in tool capabilities should be documented and reviewed by corporate
+or agency leadership.  This may include Senior IR Personnel or specialized
+experts to include the assigned Chief Information Security Officer (CISO). 
+CyA perform an iterative process by querying the selected tools, reviewing
+the data, filtering out known or non-malicious behavior and re-querying the
+data. This continues until malicious activities are found.
+ 
+Base
+ 
+Hunts
+Base hunts are typically internally focused on compliance from within the
+IT environment. It is defined as repeatable searches based on an analytical
+methodology that produces low-fidelity results (i.e., results that require
+analyst review and cannot be fully automated as a rule). These hunts will
+reside in the MHTDB. Base hunts, for example, may leverage tools such
+as FireEye HX® technology.  This technology obtains endpoint
+intelligence that may include, but is not limited to, Windows Services
+listing, Windows Scheduled Task listing, Windows Registry Run keys,
+and the Windows Application Compatibility Cache. The tool will help to
+determine whether any alteration or manipulation of these key services
+and may lead to follow-on review and correction by trained personnel.
+ 
+ 
+ 
+Upon completion of a review of the data, analysts will document the
+outcomes of their findings.
+ 
+Outcomes
+All hunts will end in one of three outcomes. Based on the outcome of the
+hunt, an analyst will document the results accordingly and distribute to
+other functions and processes as necessary.
+1
+. 
+Nothing
+ 
+Discovered
+No indication of active compromise or behavior violating identified best
+practices, acceptable use, or organizational policies discovered during the
+hunt.
+2
+. 
+Something Found:
+ 
+Non-Malicious
+Violation(s) of acceptable use or organizational policy discovered during
+the hunt.
+3
+. 
+Something Found:
+ 
+Malicious
+An active or historic compromise, which may currently or have previously
+placed, IT assets, or its data at risk, is discovered.
+ 
+ 
+ 
+Conduct Review
+ 
+To ensure that the hunt team’s analysts remain focused on
+relevant and important hunts, analysts must evaluate completed hunts and
+move all hunts possible to the business case development.
+ 
+ 
+Should the hunt become a base
+ 
+hunt?
+Does the analyst believe the logic utilized provides repeatable and low-
+fidelity results that serve as a good starting point for future hunts, the logic
+used should be documented in the MHTDB? Is the malicious actor from
+within the organization or has unique access? This would warrant
+initiating a follow-on base hunt for active or potential follow-on intrusions
+requiring continual monitoring.
+ 
+Can the hunt become a
+ 
+rule?
+If 
+an analyst determines that a hunt may become a rule, documentation of
+the hunt should be delivered to the business case development process.
+The information should be formulated into a rule that can be applied to
+monitoring and alert devices
+[5]
+ on the network. This too should be
+transferred to the MHTDB. The hunt team is responsible for documenting
+the methodology followed within the MHTDB and providing this
+information to the 
+business case process personnel.
+ 
+Is the hunt
+ 
+effective?
+Hunts may lose their effectiveness over time, and a determination of
+focusing resources on an activity may divert from other important hunt
+priorities. There are several reasons a hunt may lose its effectiveness or
+further need to be pursued:
+Creation of a rule covering the same activity
+ 
+set may address the threat
+Completed patching against a known
+ 
+vulnerability may partially or
+totally mitigate the need for the hunt
+Improved automated tools or policies may also mitigate the threat
+Determination that the hunted activity no longer presents a threat
+ 
+Hunting can consume a significant amount of time, and analysts must
+ensure that their resources remain focused on real and active threats.
+Whenever a CyA determines that a hunt can no longer provide effective
+results, documentation of the reasoning must be included in the MHTDB
+for the retirement of the hunt.
+ 
+Event/Incident Outputs
+ 
+Based on the outcome of the hunt, an analyst will
+document the results within the MHTDB. The outcomes (reports) will be
+distributed as inputs to the IR function or business case development
+processes and provide necessary feedback to improve the analytical
+reports provided by the CTI function.
+ 
+Incident
+ 
+Response
+If the hunt began from information collected from an IR function,
+providing feedback to that team helps improve its output. The IR team will
+be notified immediately following the verification of a malicious event in
+an information system or network.
+ 
+Business Case Development
+Upon determination that a high-fidelity, repeatable search has been found
+to be effective in detecting anomalous or malicious activity, the logic will
+be delivered to the business case development process for creating or
+modifying current automated rules.
+ 
+Cyber Threat
+ 
+Intelligence (CTI)
+If the hunt began from information collected from the CTI function,
+providing feedback to that team helps improve their analysis. The hunt
+process provides feedback relative to the provided intelligence including
+the results of the hunt. It also supports the hunt by determining whether
+additional information is required to continue, and whether any information
+gained from the hunt could lead to additional and useable intelligence. Any
+such additional intelligence would directly contribute to the value and
+improvement of a CTI intelligence product or report.
+ 
+THP Decision Tree Activities
+ 
+Hunt Request (Externally-focused)
+:
+ A pure hunt request is typically
+focused on outside threats that have been detected or anticipated based upon
+IOCs. This includes actual threats to operations within the agency’s IT
+environment.
+ 
+The following flowchart shows the 
+hunt request
+ workflow.
+
+
+Roadmap Details
+ 
+Hunt – Responsibility-Accountability-Consulted-Information (RACI)
+Matrix
+ 
+1.1
+Hunt Request
+ 
+Input
+Trigger Events: One of the following reactive or proactive
+triggers will prompt the initiation of the hunt request process:
+Cyber Threat Intelligence: 
+IOCs provided by the CTI
+function whether internally/externally sourced, include, for
+example, Communities of Interest (CoI), Government
+Partners, Law Enforcement, etc.
+Business Case Development: 
+Feedback on a rule creation
+request received by the business case development process
+where it is determined that a hunt would be appropriate
+based upon input.
+Incident Response: 
+IOCs provided by an IR function as
+part of, or resulting from, incident response
+ 
+activities.
+ 
+ 
+ 
+ 
+ 
+ 
+RACI
+ 
+R
+ 
+Hunt
+Team
+Responsible for analyzing the hunt request and
+determining whether appropriate details have been
+received to evaluate the request.
+ 
+A
+ 
+Hunt
+Team
+Lead
+ 
+Accountable to ensure that the hunt request is
+given proper consideration and analysis.
+ 
+C
+ 
+Trigger
+Source(s)
+ 
+ 
+Consulted to provide detailed context regarding the
+hunt.
+ 
+I
+ 
+Trigger
+Source(s)
+ 
+Informed of the next stage of analysis.
+ 
+Details
+Hunt teams analyze a hunt request made by the trigger
+source(s) and determines if there is appropriate information to
+evaluate the hunt request.
+ 
+Output
+Hunt request requiring evaluation
+ 
+ 
+ 
+1.2
+Begin Hunt?
+Input
+Hunt request requiring
+evaluation
+ 
+ 
+ 
+ 
+RACI
+ 
+R
+ 
+Hunt Team
+ 
+A
+ 
+Hunt Team
+Lead
+ 
+ 
+C
+ 
+Trigger
+Source(s)
+ 
+ 
+ 
+I
+ 
+Trigger
+Source(s)
+ 
+Details
+The hunt team evaluates
+the hunt request and
+better determines
+whether to initiate a hunt
+in coordination with IR
+personnel. The
+following criteria are
+used to determine if a
+hunt is to be initiated
+immediately or if further
+evaluation is required
+from an input source:
+Cyber Threat
+Intelligence
+Watchlists
+The CTI team maintains
+access to various
+sources of intelligence
+feeds that provide high-
+confidence for identified
+IOCs. Current
+whitelisted sources
+include, for example,
+iSight Threat
+Intelligence®.
+The hunt team initiates
+a hunt based upon
+indicators received from
+a threat intelligence
+source. (
+Again, in
+coordination and at the
+direction of the IR
+team
+).
+ 
+IOC - Recommendation
+to Hunt
+The CTI function will
+provide IOCs to the hunt
+team and issue a
+recommendation to hunt
+when a moderate-to-high
+level of analyst
+confidence is obtained.
+ 
+ 
+ 
+IOC – No
+Recommendation to Hunt
+The CTI function will
+periodically provide
+IOCs to the hunt team
+that do not include a
+recommendation to hunt
+when a low-to-moderate
+level of analyst
+confidence is obtained.
+The hunt team performs
+further evaluation when
+an IOC with no
+recommendation to hunt
+is received from the CTI
+function.
+ 
+Business Case
+Development
+The business case
+development function
+may periodically
+provide IOCs and
+complementary courses
+of action to the hunt
+team. This may result in
+new rule request
+development effort. 
+This is based upon
+recommendation and
+approval by the IR team
+where the business case
+(use case) development
+function deems a hunt
+may be appropriate.
+The hunt team performs
+further evaluation when
+an IOC hunt suggestion
+is received.
+ 
+Incident Response
+The IR function may
+direct an IOC hunt as
+part of, or resulting
+from, incident response
+activities.
+The hunt team initiates
+a hunt anytime an IOC
+or other intelligence
+regarding threat
+activities are received
+from recognized
+intelligence (CTI) or
+support activity.  The
+hunt team will 
+initiate a hunt at the
+direction of the IR
+function.
+ 
+The following
+evaluation criteria are
+used by the hunt team to
+determine if a hunt
+should be initiated, or if
+further evaluation of a
+hunt request is required:
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+IOC Criteria
+Source
+ 
+Source has a
+history of
+providing
+high-
+confidence
+indicators.
+Ease of Search
+ 
+The capability
+exists to
+search for the
+specific type
+and format of
+IOC.
+ 
+ 
+Relevance
+The IOC is
+associated
+with malicious
+activity
+targeting
+industry peers
+or other
+relevant
+groups.
+The IOC is
+related to
+technologies,
+applications,
+systems, etc.,
+that are
+currently
+deployed.
+ 
+ 
+ 
+Exposure
+The IOC is
+associated
+with malicious
+activity
+exploiting
+known
+vulnerabilities
+that exist
+within the
+environment.
+The infection
+vector of the
+associated
+malicious
+activity is
+related and
+relevant to the
+regular
+activities or its
+users (e.g.,
+watering hole
+attacks on a
+popular public
+websites).
+ 
+ 
+Existing Coverage
+Existing
+deployed
+security
+solutions are
+confirmed, or
+unlikely, to
+have detection
+rules for the
+IOC.
+ 
+ 
+Impact
+The IOC is
+associated
+with high-
+impact activity
+that may cause
+significant
+compromise to
+information or
+systems (e.g.,
+Advance
+Persistent
+Threats
+(APT),
+hacktivism,
+remote access
+tools,
+credential
+harvesters,
+etc.)
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1.3
+Determine Search Timelines
+ 
+ 
+Input
+ 
+Initiation of a new hunt
+ 
+ 
+ 
+ 
+ 
+ 
+RACI
+ 
+R
+ 
+IR Team
+Lead
+Responsible for analyzing the IOC and available
+supporting information to determine the
+appropriate search timeline. IR Team will
+determine the approximate amount of time and
+resources to ensure proper coverage of the hunt
+activity.
+ 
+ 
+ 
+Accountable to ensure that the hunt timeline is
+A
+Hunt Team
+Lead
+appropriately scoped, monitored, and met.
+ 
+C
+ 
+Trigger
+Source(s)
+Consulted to provide input on the hunt timeline.
+ 
+ 
+I
+ 
+ 
+Trigger
+Source(s)
+ 
+ 
+Informed of the next stage of analysis.
+Details
+The IR team determines the search timeline for the hunt based
+on the following criteria for each respective input source:
+Cyber Threat Intelligence
+Watchlist
+The search timeline for an IOC originating from a threat
+intelligence feed should align with the recommendation
+issued by the IOC source. A default of a ninety (90) days
+should be used if no recommended search timeline has been
+suggested by the IOC source.
+ 
+ 
+ 
+IOC - Recommendation to Hunt
+The search timeline for an IOC with a recommendation to
+hunt from the CTI function should be determined by the CTI
+function and included with the hunt request.
+ 
+ 
+IOC –Recommendation to Hunt Has Not Been Included
+A default of a ninety (90) days should be used for an IOC
+originating from the CTI function with no recommendation to
+hunt included.
+ 
+Business Case Development
+A default of a ninety (90) days should be used for an IOC
+originating from the case development function.
+ 
+Incident Response
+The search timeline for an IOC from the IR function should
+be determined by the IR function and included with the hunt
+request.
+ 
+Output
+Hunt request search timelines established.
+ 
+ 
+ 
+ 
+ 
+1.4
+Hunt Based upon IOC Type
+ 
+ 
+Input
+ 
+ 
+Hunt request with established search timeline
+ 
+ 
+ 
+ 
+ 
+RACI
+ 
+R
+ 
+Hunt Team
+Analyst
+ 
+Responsible for performing the hunt.
+ 
+A
+ 
+Hunt Team
+Lead
+Accountable to ensure that the hunt is
+appropriately performed.
+ 
+C
+ 
+Hunt Team
+ 
+Consulted regarding the hunt methodology as
+required.
+ 
+ 
+I
+ 
+Hunt Team
+ 
+Informed of the hunt details to ensure
+coordination.
+ 
+Details
+The hunt team analysts perform the hunt based on the
+established search timelines and IOC type and follows the
+analyst procedures.
+ 
+The following guidance is used to perform the hunt for each
+respective IOC type (all historical searches are to be limited to
+the established search timelines). If an analyst directs access a
+security device is not feasible, interrogation of SIEM or a
+centralized log management system may be leveraged for
+hunting purposes.
+ 
+ 
+ 
+Hunt Guidance
+ 
+ 
+IOC
+Type
+ 
+Email
+Perform a search using the email security
+solution where the specific indicator (e.g.,
+subject, sender, message body, etc.) matches the
+IOC.
+ 
+File
+Create a new indicator on, for example, FireEye
+HX® with one or more of the following file
+conditions (as applicable/available) that match the
+IOC:
+ 
+1
+. 
+File path: 
+equal, contains, 
+or
+ 
+matches
+2
+. 
+SHA-256
+[7]
+: 
+equal
+3
+. 
+File size (in bytes): 
+equal
+ 
+IP
+Address

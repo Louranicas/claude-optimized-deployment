@@ -1,0 +1,12 @@
+[package]
+name = "claude_optimized_deployment_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "claude_optimized_deployment_rust"
+crate-type = ["cdylib"]
+path = "src/lib_minimal.rs"
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }

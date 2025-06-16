@@ -1,0 +1,44 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 10 - , Section 10.4). The only new feature at this point is the Invoke-RestMethod cmdlet for downloading the XML file, which I’ll introduce in more detail in Chapter 18.
+# Sample file get-exchange-rate.ps1# download and analyze XML document$csv = "chf-rates.csv"$url = "https://www.ecb.europa.eu/stats/eurofxref/         eurofxref-daily.xml"$ecb = Invoke-RestMethod $url$date = $ecb.Envelope.Cube.Cube.time$rate = ($ecb.Envelope.Cube.Cube.Cube |           Where-Object {$_.currency -eq 'CHF'}).rate# if needed, create CSV fileif (!(Test-Path $csv)) {    "date;chf_rate" | Out-File $csv}# add current rateAdd-Content $csv "$date;$rate" 
+Now, you just need to register the script with Microsoft Windows Task Scheduler for the daily call. Since the rates are usually updated around 4 pm Central European Time, a convenient time for the daily call is between 5 pm and 6 pm.
+Since the ECB calculates exchange rates only on business days, the CSV file will contain doubles if executed daily. If you want, you can enhance the script to check if there is already an entry for the date contained in $date before you use Add-Content.
+Security Relevance Score: 2
+Word Count: 878
+Extracted: 2025-06-13 23:41:06
+
+---
+
+, Section 10.4). The only new feature at this point is the Invoke-RestMethod cmdlet for downloading the XML file, which I’ll introduce in more detail in Chapter 18.
+# Sample file get-exchange-rate.ps1# download and analyze XML document$csv = "chf-rates.csv"$url = "https://www.ecb.europa.eu/stats/eurofxref/         eurofxref-daily.xml"$ecb = Invoke-RestMethod $url$date = $ecb.Envelope.Cube.Cube.time$rate = ($ecb.Envelope.Cube.Cube.Cube |           Where-Object {$_.currency -eq 'CHF'}).rate# if needed, create CSV fileif (!(Test-Path $csv)) {    "date;chf_rate" | Out-File $csv}# add current rateAdd-Content $csv "$date;$rate" 
+Now, you just need to register the script with Microsoft Windows Task Scheduler for the daily call. Since the rates are usually updated around 4 pm Central European Time, a convenient time for the daily call is between 5 pm and 6 pm.
+Since the ECB calculates exchange rates only on business days, the CSV file will contain doubles if executed daily. If you want, you can enhance the script to check if there is already an entry for the date contained in $date before you use Add-Content.
+
+
+
+
+
+
+
+
+
+11.5    Tracking File System Changes
+Relatively often, a scenario arises where, instead of executing actions at a predefined time, they should be executed when files change or when new files are added. The script that runs most often in my daily work monitors all Markdown files in a local directory. As soon as a file changes, the script calls various commands to create an updated PDF from the Markdown file with a preview of the chapter I'm working on. This Bash script has the following structure:
+# Sample file run-pandoc.shwhile true; do    for mdfile in *.md; do        pdffile=${mdfile%.md}.pdf        if [ $mdfile -nt $pdffile ]; then            echo $mdfile            pandoc ... $mdfile -o $pdffile        fi    done    sleep 1done 
+This script is easy to understand: while true forms an infinite loop. As a result, the script runs until it is stopped via (Ctrl) + (C). for mdfile runs through all *.md files and then checks with the -nt operator (newer than) whether the Markdown file is newer than the corresponding PDF file. In this case, the name of the Markdown file is output, and a new PDF file is created using pandoc, which is a command to convert documents between different formats (see https://pandoc.org).
+A crucial component of the script is sleep, which causes the script to pause for 1 second after each run. (Depending on the purpose of monitoring the directory, a longer pause is also conceivable.) Without sleep, the script would completely utilize a CPU. If you use sleep, however, the CPU load caused by the script is negligible.
+This task can be solved just as elegantly with PowerShell. The only difference is the if condition, which also contains an additional test that checks whether the PDF file exists at all. If the PDF file doesn’t exist, the comparison of LastWriteTimeUtc would result in an error. Bash is a bit more laid back in this regard.  
+# Sample file run-pandoc.ps1while($true) {    foreach($mdfile in Get-ChildItem -Path *.md) {        $pdffile = $mdfile.FullName.Replace(".md", ".pdf")        if(!(Test-Path $pdffile) -or            ($mdfile.LastWriteTimeUtc -gt             (Get-Item $pdffile).LastWriteTimeUtc))        {            Write-Host $mdfile.Name            C:\path\to\pandoc.exe $mdfile.FullName -o $pdffile        }    }    Start-Sleep -Seconds 1} 
+11.5.1    inotify
+The scripts presented earlier are only useful if the number of files to be monitored is small. Isn’t there any better solution? Yes, depending on the operating system and programming language you use.
+At this point, I will focus on using the inotify function, which is a Linux kernel function for monitoring the file system. You can use this function to register a directory, and you will subsequently always be notified when changes occur in this directory.
+To use inotify in Python scripts, you first must install the pyinotify module with the following command:
+$ pip[3] install pyinotify 
+To this function, you must create a WatchManager object. By using add_watch, you can specify which file or directory you want to monitor, which events you want to process (in this case, IN_CLOSE_WRITE, that is, closing a file after a change) and which function will then be called. Then, you pass the WatchManager object to the Notifier. Using loop, you start the event processing. As in our earlier example, loop also initiates an infinite loop. So, the script runs until you stop it via (Ctrl) + (C).
+The runPandoc function is responsible for calling the pandoc command. However, it must first be tested whether the modified file is a Markdown file at all. (Unfortunately, you cannot pass patterns like *.md to add_watch.) For this purpose, the ev parameter (like event) is analyzed, which contains details about the event that occurred.
+# Sample file run-pandoc.pyimport pyinotify, subprocess# this function is called by pyinotifydef runPandoc(ev):    if ev.name.endswith('.md'):        mdfile = ev.name        pdffile = mdfile.replace('.md', '.pdf')        cmd = 'pandoc %s -o %s' % (mdfile, pdffile)        print(cmd)        subprocess.run(cmd, shell=True)wm = pyinotify.WatchManager()wm.add_watch('.', pyinotify.IN_CLOSE_WRITE, runPandoc)notifier = pyinotify.Notifier(wm)notifier.loop() 
+In Bash scripts, you can use the inotify functions with the inotifywait and inotifywatch commands, but you must first install the inotify-tools package. Some simple application examples are documented at https://github.com/inotify-tools/inotify-tools/wiki#inotifywait.
+11.5.2    Alternatives to inotify
+On macOS, the file system events (FSEvents) API provides similar functions. In scripts, the easiest way to use FSEvents is with the fswatch command. This command can be installed using brew, as described at https://github.com/emcrisostomo/fswatch.
+Another monitoring option is provided by the launchd program. For a simple use case, see this Stack Overflow post: https://stackoverflow.com/a/

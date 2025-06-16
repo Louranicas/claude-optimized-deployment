@@ -1,0 +1,127 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 5779 - 6.1    Directories and Files
+Dealing with directories is simple: You can change directories using the cd command. If you do not pass a parameter to cd, you’ll be taken to your home directory. The cd ... command takes you to the parent directory, while cd - allows you to go to the last active directory.
+pwd displays the path of the current directory, and mkdir creates a new directory. A particularly useful option for mkdir is -p which allows you to create an entire chain of directories, for example, mkdir -p dir/subdir/subsubdir. The option also avoids error messages if directories already exist. 
+rmdir deletes a directory, but only if the directory is empty. You can delete directories including their contents via rm -r, but you should be careful with it! This command works recursively and also deletes all subdirectories. In general, the deletion of files and directories cannot be undone! 
+$ cd                   # change to the home directory$ pwd/home/kofler$ mkdir subdir         # create new directory$ cd subdir            # change there$ cd ..                # back to the home directory$ rmdir subdir         # delete subdir again 
+Linux beginners must first learn to orient themselves in the branched directory tree. Note that you need root privileges to modify system files (for example, in the /etc directory). See Section 6.4 for more information on this topic.
+Security Relevance Score: 2
+Word Count: 659
+Extracted: 2025-06-13 23:41:06
+
+---
+
+6.1    Directories and Files
+Dealing with directories is simple: You can change directories using the cd command. If you do not pass a parameter to cd, you’ll be taken to your home directory. The cd ... command takes you to the parent directory, while cd - allows you to go to the last active directory.
+pwd displays the path of the current directory, and mkdir creates a new directory. A particularly useful option for mkdir is -p which allows you to create an entire chain of directories, for example, mkdir -p dir/subdir/subsubdir. The option also avoids error messages if directories already exist. 
+rmdir deletes a directory, but only if the directory is empty. You can delete directories including their contents via rm -r, but you should be careful with it! This command works recursively and also deletes all subdirectories. In general, the deletion of files and directories cannot be undone! 
+$ cd                   # change to the home directory$ pwd/home/kofler$ mkdir subdir         # create new directory$ cd subdir            # change there$ cd ..                # back to the home directory$ rmdir subdir         # delete subdir again 
+Linux beginners must first learn to orient themselves in the branched directory tree. Note that you need root privileges to modify system files (for example, in the /etc directory). See Section 6.4 for more information on this topic.
+
+
+
+
+Directory
+
+
+Contents
+
+
+
+
+
+
+/boot
+
+
+System files for the boot process
+
+
+
+
+/dev
+
+
+Device files for hardware components
+
+
+
+
+/etc
+
+
+System settings
+
+
+
+
+/home
+
+
+User directories
+
+
+
+
+/mnt
+
+
+External file systems and data carriers
+
+
+
+
+/proc
+
+
+Process information (virtual file system)
+
+
+
+
+/usr
+
+
+Programs and libraries
+
+
+
+
+/tmp
+
+
+Temporary files (lost on reboot)
+
+
+
+
+/var
+
+
+Variable data (web files, databases, mail server log files)
+
+
+
+
+Table 6.1    
+            Important Linux Directories
+6.1.1    Listing, Copying, Moving, and Deleting Files
+ls lists files. When you add the -l option, the command displays a lot of additional information besides the filename, such as the size in bytes and the time of the last change. With the -a option, ls also takes into account so-called “hidden” directories and files whose name simply starts with a dot (for example .ssh with the configuration files of the ssh command).
+touch creates a new empty file. If the file already exists, only the time of the last change will be updated. 
+The cp old new command copies one file. cp file1 file2 file3 dir copies multiple files to another directory. When used as in cp -r olddir newdir, the command copies an entire directory tree (r as in recursive). cp -a olddir newdir serves the same purpose but leaves the access rights and the time of the last change unchanged. 
+mv works similar to cp: mv old new renames the file. mv file1 file2 dir moves the files to a new location. 
+rm irrevocably deletes the specified files. With the already mentioned -r option, the command works recursively, so it also deletes subdirectories and their contents. Proceed with caution! 
+$ mkdir tst              # creates a new directory$ cd tst                 # changes there$ date > now.txt         # saves date and time in now.txt$ cp now.txt copy.txt    # creates a copy of now.txt$ mv copy.txt backup.txt # gives the copy a different name$ ls *.txt               # lists all *.txt files  backup.txt now.txt$ rm *.txt               # deletes all *.txt files 
+
+
+
+
+
+
+
+
+
+6.2    Finding Files
+You can use find to search a directory including all subdirectories for files that have certain characteristics. Possible search criteria include the name, the file size or the date of the last modification. However, find never includes the content of the file.
+You need to pass the initial directory for the search to the command (or . for the current directory). The search criteria are formulated with countless options, whereby all criteria must apply simultaneously (logical AND operation). The following examples are merely a small indication of the capabilities of find. You can get much more information via man find. Some find commands are preceded by sudo, which will run the search in root mode (

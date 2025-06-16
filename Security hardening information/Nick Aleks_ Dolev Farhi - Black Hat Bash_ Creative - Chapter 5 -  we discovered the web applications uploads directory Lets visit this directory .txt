@@ -1,0 +1,57 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 5 - , we discovered the web application’s /uploads directory. Let’s visit this directory in the browser by navigating to http://172.16.10.10:8081/uploads. You should receive the error message in Figure 6-5.
+Security Relevance Score: 9
+Word Count: 1081
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we discovered the web application’s /uploads directory. Let’s visit this directory in the browser by navigating to http://172.16.10.10:8081/uploads. You should receive the error message in Figure 6-5.
+
+Figure 6-5: The ACME Hyper Branding /uploads directory error message
+
+It looks like we’ll need to add a filename to the URL as a parameter. Try appending python-webshell-check.jpg to the end of this /uploads URL endpoint and then visit it.
+The browser request should succeed, and the file should automatically download. We can verify whether the integrity of the malicious script was kept intact by the server by checking the contents of the downloaded file. Run the following bash command:
+$ cat ~/Downloads/python-webshell-check.jpg
+
+import subprocess
+
+# Basic python webshell checker
+result = subprocess.check_output('id', shell=True)
+
+print(result.decode('utf-8'))
+
+However, the web application doesn’t execute the Python file or run the id shell command. Instead, it ignores the file contents and serves the file as a download when we visit its full URL path.
+To execute malicious code, we’ll most likely need to rely on additional vulnerabilities in the application or server-side code that mishandle file uploads, perform insufficient validation, or incorrectly interpret the file’s content. By exploiting these vulnerabilities, we may be able to trick the server into executing the uploaded file as a script or executable.
+Another variation on this technique is using double extensions, whereby an attacker appends a second extension to a file to bypass file-type checks. For example, we could try renaming webshell.php to webshell.php.jpg. This trick might be able to bypass a control that checks only the last part of the file extension or relies solely on the file extension to determine the file type.
+
+
+Malicious Polyglot Files
+Polyglot files are a fascinating kind of file that different applications interpret in different ways. This versatility stems from their exploitation of the specific structure and parsing rules of various file formats.
+One way to create polyglot files is by manipulating the file headers, also known as file signatures or magic bytes, found at the beginning of the file. Operating systems and applications often use file headers to understand a file’s type so they can correctly interpret its data.
+Malicious polyglot files could potentially circumvent security measures that validate a file’s extension or content type. By skillfully creating the file headers, we can deceive systems into treating files as benign when in reality they contain harmful content.
+As an example, let’s consider the header for a JPEG image file. Ordinarily, JPEG files start with the standard magic byte signature of FF D8 FF E0, followed by additional bytes:
+FF D8 FF E0 00 10 4A 46 49 46 00 01
+We could try disguising the PHP web shell code as an innocent image file by cleverly appending the JPEG magic bytes to it, as demonstrated here:
+$ echo -e "\xFF\xD8\xFF\xE0\x00\x10\x4A\x46\x49\x00\x01<?php
+eval($_GET['cmd'];?>" > polyglot.php
+
+This bash command creates a malicious polyglot.php file with initial bytes suggesting that it is a JPEG file. After those bytes, however, we introduce PHP code. The injection will execute an eval() function using the cmd query parameter. You can use the file polyglot.php command to confirm the file’s type is a JPEG image data file.
+Many tools and libraries can help us manipulate image file headers. Examples include hex editors like HxD, Hex Fiend, and Bless and libraries like libjpeg and libpng. The powerful ImageMagick and ExifTool command line tools can also manipulate a wide range of image file formats.
+Certain conditions must exist for the malicious polyglot to work. First, when a user uploads the file, the server must interpret it as an image and save it successfully. Second, when the user requests the file, the PHP interpreter generating the response must recognize the file as a script and process it. In some cases, the file might need a.php extension to trigger PHP processing.
+
+
+Other Bypass Techniques
+In this section, we’ll briefly mention a few additional bypass techniques you could attempt.
+Null byte poisoning, also known as null byte injection or null character injection, is used to manipulate file-handling systems that rely on null-terminated strings. This technique takes advantage of the presence of the null byte \x00, which marks the end of a string in various programming languages.
+This attack injects the null byte into the filename string, causing it to be truncated and potentially leading to unintended behavior. For instance, an attacker could rename webshell.php to webshell.jpg%00.php, injecting the URL-encoded representation of the null byte into the filename right after the .jpg extension. When processing the filename, a server may interpret it as webshell.jpg, unaware of the presence of the null byte and the subsequent.php extension. However, when the server later processes the file, it could read the file as a PHP script and execute the web shell.
+Content-Type header manipulation, also known as MIME type spoofing, is a file upload control bypass technique that leverages the manipulation of the Content-Type header in the HTTP request sent during the file upload. By changing the header to an allowed content type, we can potentially bypass the server-side file checks. The attacker would capture their outbound upload request by using an HTTP intercepting proxy like Burp Suite to manipulate the Content-Type header before the request reaches the server.
+Now that we’ve covered a few techniques, we can explore them in the lab environment to try uploading and executing a web shell.
+
+
+
+Uploading Files with Burp Suite
+Let’s exploit the arbitrary file upload vulnerability on the p-web-01 server by using Burp Suite to manipulate the Content-Type HTTP header. Burp Suite is a popular security testing tool developed by PortSwigger that allows us to easily manipulate traffic being sent to web applications and view the responses they return.
+Burp Suite comes preinstalled in Kali. Start it by clicking the top-left corner of the Kali machine’s menu bar and searching for burp suite. This should open the Burp Suite graphical user interface (GUI) in a separate window. If this is your first time launching the application, it should prompt you to choose your license type and the type of project file you want to run. Create a temporary project with the default settings.
+Next, open the Burp Suite browser by navigating to the Proxy tab. Burp Suite allows you to temporarily halt all traffic between your client and remote web application by using its proxy intercept feature. We don’t need to enable this option currently, so ensure that its toggle button is set to Intercept Is Off, as shown in Figure 6-

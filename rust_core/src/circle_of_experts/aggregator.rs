@@ -181,7 +181,7 @@ fn build_consensus_text(
     // Take the most representative response as a base
     let base_response = responses
         .iter()
-        .max_by_key(|r| r.confidence)
+        .max_by(|a, b| a.confidence.partial_cmp(&b.confidence).unwrap_or(std::cmp::Ordering::Equal))
         .ok_or_else(|| CoreError::CircleOfExperts("No responses available".to_string()))?;
     
     // For now, return the highest confidence response

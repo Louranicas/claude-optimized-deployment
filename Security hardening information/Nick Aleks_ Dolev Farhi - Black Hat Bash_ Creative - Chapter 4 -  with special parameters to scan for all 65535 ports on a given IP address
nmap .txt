@@ -1,0 +1,65 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 4 - ) with special parameters to scan for all 65,535 ports on a given IP address:
+nmap -vv -T4 -p- -sV --max-retries 5 localhost
+This command is quite hard to remember. With aliases, we can make it more accessible on the command line or to our scripts. Here, we assign the command to the alias quicknmap:
+$ alias quicknmap="nmap -vv -T4 -p- -sV --max-retries 5 localhost"
+Now we can run the aliased command by using the name of the alias:
+$ quicknmap
+Starting Nmap (https://nmap.org) at 02-21 22:32 EST
+--snip--
+PORT    STATE SERVICE
+631/tcp open  ipp
+Security Relevance Score: 4
+Word Count: 469
+Extracted: 2025-06-13 23:40:57
+
+---
+
+) with special parameters to scan for all 65,535 ports on a given IP address:
+nmap -vv -T4 -p- -sV --max-retries 5 localhost
+This command is quite hard to remember. With aliases, we can make it more accessible on the command line or to our scripts. Here, we assign the command to the alias quicknmap:
+$ alias quicknmap="nmap -vv -T4 -p- -sV --max-retries 5 localhost"
+Now we can run the aliased command by using the name of the alias:
+$ quicknmap
+Starting Nmap (https://nmap.org) at 02-21 22:32 EST
+--snip--
+PORT    STATE SERVICE
+631/tcp open  ipp
+
+You can even assign an alias to your own scripts:
+$ alias helloworld="bash ~/scripts/helloworld.sh"
+Aliases aren’t permanent, but they can be. In the next section, you’ll learn how to use bash profiles to make permanent changes to your shell.
+
+
+Customizing the ~/.bashrc Profile
+We can use the ~/.bashrc file to load functions, variables, and just about any other custom bash code we desire into a new bash session. For example, we can create variables containing information we’ll frequently need to access, such as the IP address of a vulnerable host we’re testing.
+We could append the following to the end of the ~/.bashrc file, for instance. These lines define a few custom variables and save our aliased Nmap command:
+VULN_HOST=1.0.0.22
+VULN_ROUTER=10.0.0.254
+
+alias quicknmap="nmap -vv -T4 -p- -sV --max-retries 5 localhost"
+
+The next time you open a terminal, you’ll be able to access these values. Make these new values available immediately by using the source command to reimport the ~/.bashrc file:
+$ source ~/.bashrc
+
+$ echo ${VULN_HOST}
+10.0.0.22
+
+$ echo ${VULN_ROUTER}
+10.0.0.254
+
+Now you can use these variables even after you close the terminal and start a new session.
+
+
+Importing Custom Scripts
+Another way to introduce changes to your bash session is to create a dedicated script that contains pentesting-related customizations and then have the ~/.bashrc file import it by using the source command. To achieve this, create a ~/.pentest.sh file containing your new logic and then make a one-time modification to ~/.bashrc to import pentest.sh at the end of the file:
+source ~/.pentest.sh
+Note that you can also source a bash file by using the . (dot) command:
+. ~/.pentest.sh
+This command provides an alternative to source.
+
+
+Capturing Terminal Session Activity
+Penetration testing often involves having dozens of terminals open simultaneously, all running many tools that can produce a lot of output. When we find something of interest, we may need some of that output as evidence for later. To avoid losing track of an important piece of information, we can use some clever bash.
+The script command allows us to capture terminal session activity. One approach is to load a small bash script that uses script to save every session to a file for later inspection. The script might look like Listing 2-

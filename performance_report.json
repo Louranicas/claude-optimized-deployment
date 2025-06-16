@@ -1,0 +1,109 @@
+{
+  "summary": {
+    "total_operations": 5000,
+    "total_errors": 0,
+    "error_rate": 0.0,
+    "average_throughput": 1110.6594861916751,
+    "total_duration": 10.037332692008931,
+    "tests_run": 5
+  },
+  "highlights": {
+    "best_throughput": {
+      "test": "concurrent_operations",
+      "value": 2893.681422287278
+    },
+    "highest_latency": {
+      "test": "memory_allocation_patterns",
+      "p99_ms": 14.311904989881441
+    },
+    "highest_memory": {
+      "test": "memory_allocation_patterns",
+      "peak_mb": 1.568206787109375
+    }
+  },
+  "detailed_results": [
+    {
+      "test_name": "synthex_search_small",
+      "throughput_ops_per_sec": 348.33984570030134,
+      "latency_ms": {
+        "average": 2.869615665753372,
+        "p95": 3.0795929778832942,
+        "p99": 3.0906439933460206
+      },
+      "memory_mb": {
+        "used": 0.0,
+        "peak": 0.07776451110839844
+      },
+      "errors": 0,
+      "duration_sec": 2.870759726007236
+    },
+    {
+      "test_name": "synthex_search_large",
+      "throughput_ops_per_sec": 348.127532461088,
+      "latency_ms": {
+        "average": 2.8713968661031686,
+        "p95": 3.083210001932457,
+        "p99": 3.0893209914211184
+      },
+      "memory_mb": {
+        "used": 0.0,
+        "peak": 0.06185722351074219
+      },
+      "errors": 0,
+      "duration_sec": 1.436255261010956
+    },
+    {
+      "test_name": "mcp_message_throughput",
+      "throughput_ops_per_sec": 1736.1628207293054,
+      "latency_ms": {
+        "average": 0.5752155101654353,
+        "p95": 0.5945409939158708,
+        "p99": 0.6083059997763485
+      },
+      "memory_mb": {
+        "used": 0.0,
+        "peak": 0.10382652282714844
+      },
+      "errors": 0,
+      "duration_sec": 1.151965689001372
+    },
+    {
+      "test_name": "memory_allocation_patterns",
+      "throughput_ops_per_sec": 226.98580978040292,
+      "latency_ms": {
+        "average": 4.404702034080401,
+        "p95": 13.389672007178888,
+        "p99": 14.311904989881441
+      },
+      "memory_mb": {
+        "used": 6.1015625,
+        "peak": 1.568206787109375
+      },
+      "errors": 0,
+      "duration_sec": 4.405561744002625
+    },
+    {
+      "test_name": "concurrent_operations",
+      "throughput_ops_per_sec": 2893.681422287278,
+      "latency_ms": {
+        "average": 3.414260999416001,
+        "p95": 3.493616997729987,
+        "p99": 3.6053550138603896
+      },
+      "memory_mb": {
+        "used": 0.0,
+        "peak": 0.05488777160644531
+      },
+      "errors": 0,
+      "duration_sec": 0.17279027198674157
+    }
+  ],
+  "bottlenecks": [],
+  "optimization_opportunities": [
+    "Implement Rust acceleration for CPU-intensive operations",
+    "Use memory-mapped files for large data processing",
+    "Enable HTTP/2 for improved network performance",
+    "Implement circuit breakers to prevent cascade failures",
+    "Add distributed caching with Redis for frequent queries"
+  ]
+}

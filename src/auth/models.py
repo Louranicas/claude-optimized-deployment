@@ -12,6 +12,15 @@ import hmac
 from dataclasses import dataclass, field
 import bcrypt
 
+__all__ = [
+    "UserStatus",
+    "APIKeyStatus",
+    "User",
+    "UserRole",
+    "APIKey"
+]
+
+
 
 class UserStatus(Enum):
     """User account status."""
@@ -298,3 +307,12 @@ class APIKey:
 
 # Import timedelta after using it
 from datetime import timedelta
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    AuthenticationError,
+    AuthorizationError,
+    RateLimitError,
+    log_error
+)

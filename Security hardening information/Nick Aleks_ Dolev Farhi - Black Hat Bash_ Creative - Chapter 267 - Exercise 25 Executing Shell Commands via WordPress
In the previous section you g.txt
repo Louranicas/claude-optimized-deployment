@@ -1,0 +1,25 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 267 - Exercise 25: Executing Shell Commands via WordPress
+In the previous section, you gained access to a WordPress admin page. Can you find a way to execute shell commands on the host that is serving the blog platform? You can achieve this in various ways. Here are some examples:
+Security Relevance Score: 6
+Word Count: 259
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Exercise 25: Executing Shell Commands via WordPress
+In the previous section, you gained access to a WordPress admin page. Can you find a way to execute shell commands on the host that is serving the blog platform? You can achieve this in various ways. Here are some examples:
+
+Modify the PHP file of a theme through the WordPress Editor by adding a PHP-based web shell to its source code.
+Upload a custom plug-in that will compromise the underlying system.
+Install a plug-in from the WordPress.com Marketplace that offers the execution of shell commands as a feature.
+
+Once you’re able to execute shell commands, establish a reverse shell by using one of the methods you’ve learned so far.
+
+
+
+Compromising a Redis Server
+Earlier in this chapter, we identified a Redis server running on the c-redis-01 machine (10.1.0.14). Redis is a fast key-value database commonly used in software architecture for purposes such as caching. It’s often deployed without security protections such as passwords or ACLs that limit the commands clients can run on the database.
+We already know that the Redis server we’ve discovered isn’t password protected. When protected by passwords, Redis servers won’t allow unauthenticated clients to execute commands without supplying the correct password, and the INFO command we sent to the server for fingerprinting purposes wouldn’t have worked.
+Some versions of Redis are vulnerable to a trick that lets you write arbitrary files to the system by abusing its CONFIG SET command. Malware dubbed Kinsing has used this technique to compromise internet-facing Redis servers. The attack works as follows:

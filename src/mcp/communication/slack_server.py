@@ -27,6 +27,26 @@ from src.mcp.servers import MCPServer
 from src.core.retry import retry_network, RetryConfig
 from src.core.ssrf_protection import SSRFProtectedSession, get_ssrf_protector, MODERATE_SSRF_CONFIG
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError,
+    ValidationError,
+    ConfigurationError,
+    CircuitBreakerError,
+    RateLimitError
+)
+
+__all__ = [
+    "AlertPriority",
+    "RateLimitConfig",
+    "CircuitBreakerConfig",
+    "SlackNotificationMCPServer"
+]
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -517,9 +537,13 @@ class SlackNotificationMCPServer(MCPServer):
         severity_emoji = {"low": "ℹ️", "medium": "⚠️", "high": "🚨", "critical": "🔴"}
         
         return (
-            f"{severity_emoji.get(severity, '❓')} **{severity.upper()} ALERT**\n"
-            f"**Type**: {alert_type}\n**Title**: {title}\n"
-            f"**Description**: {description}\n"
+            f"{severity_emoji.get(severity, '❓')} **{severity.upper()} ALERT**
+"
+            f"**Type**: {alert_type}
+**Title**: {title}
+"
+            f"**Description**: {description}
+"
             f"**Time**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
         )
     
@@ -528,10 +552,16 @@ class SlackNotificationMCPServer(MCPServer):
     ) -> str:
         """Format escalation message."""
         return (
-            f"🔴 **ESCALATION: {escalation_level}**\n"
-            f"**Original Alert**: {title}\n**Type**: {alert_type}\n"
-            f"**Severity**: {severity}\n**Description**: {description}\n"
-            f"**Action Required**: Immediate attention needed\n"
+            f"🔴 **ESCALATION: {escalation_level}**
+"
+            f"**Original Alert**: {title}
+**Type**: {alert_type}
+"
+            f"**Severity**: {severity}
+**Description**: {description}
+"
+            f"**Action Required**: Immediate attention needed
+"
             f"**Escalated At**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
         )
     
@@ -695,176 +725,10 @@ class SlackNotificationMCPServer(MCPServer):
         self, component: str, status: str, message: str, incident_id: str = None
     ) -> Dict[str, Any]:
         """Update status board."""
-        status_message = f"**Status Update**\nComponent: {component}\nStatus: {status}\nMessage: {message}"
+        status_message = f"**Status Update**
+Component: {component}
+Status: {status}
+Message: {message}"
         
         if incident_id:
-            status_message += f"\nIncident ID: {incident_id}"
-        
-        result = await self._send_notification(
-            message=status_message,
-            channels=["slack", "teams"],
-            priority="high" if status in ["partial_outage", "major_outage"] else "medium",
-            metadata={"component": component, "status": status}
-        )
-        
-        return {"component": component, "status": status, "notification_sent": result["channels"]}
-    
-    async def _broadcast_deployment(
-        self, environment: str, service: str, version: str, status: str, details: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Broadcast deployment notification."""
-        status_emoji = {
-            "started": "🚀", "in_progress": "⏳", "completed": "✅", 
-            "failed": "❌", "rolled_back": "↩️"
-        }.get(status, "📦")
-        
-        deployment_message = (
-            f"{status_emoji} **Deployment {status.replace('_', ' ').title()}**\n"
-            f"Environment: {environment}\nService: {service}\nVersion: {version}"
-        )
-        
-        if details:
-            for key, value in details.items():
-                deployment_message += f"\n{key}: {value}"
-        
-        channels = ["slack"] if environment == "development" else ["slack", "teams", "email"]
-        
-        result = await self._send_notification(
-            message=deployment_message,
-            channels=channels,
-            priority="high" if status in ["failed", "rolled_back"] else "medium",
-            metadata={"deployment": True, "environment": environment, "service": service, "version": version}
-        )
-        
-        return {
-            "broadcast_sent": True,
-            "channels": result["channels"],
-            "environment": environment,
-            "service": service,
-            "version": version,
-            "status": status
-        }
-    
-    async def _escalate_incident(
-        self, incident_id: str, severity: str, description: str,
-        escalation_chain: List[Dict[str, Any]] = None, runbook_url: str = None
-    ) -> Dict[str, Any]:
-        """Escalate incident with notification chain."""
-        incident_message = (
-            f"🚨 **INCIDENT ESCALATION**\nIncident ID: {incident_id}\n"
-            f"Severity: {severity.upper()}\nDescription: {description}"
-        )
-        
-        if runbook_url:
-            incident_message += f"\nRunbook: {runbook_url}"
-        
-        chain = escalation_chain or self._get_default_escalation_policy(severity).get("levels", [])
-        
-        initial_result = await self._send_notification(
-            message=incident_message,
-            channels=["slack", "teams", "sms"] if severity == "critical" else ["slack", "teams"],
-            priority=severity,
-            metadata={"incident_id": incident_id}
-        )
-        
-        if chain:
-            escalation_task = asyncio.create_task(
-                self._handle_incident_escalation(incident_id, severity, description, chain, runbook_url)
-            )
-            self.escalation_timers[f"incident_{incident_id}"] = escalation_task
-        
-        return {
-            "incident_id": incident_id,
-            "initial_notification": initial_result["channels"],
-            "escalation_setup": bool(chain),
-            "severity": severity
-        }
-    
-    async def _handle_incident_escalation(
-        self, incident_id: str, severity: str, description: str,
-        escalation_chain: List[Dict[str, Any]], runbook_url: str = None
-    ):
-        """Handle incident escalation chain."""
-        for level in escalation_chain:
-            await asyncio.sleep(level.get("delay", 300))
-            
-            if f"incident_{incident_id}" not in self.escalation_timers:
-                break
-            
-            escalation_message = (
-                f"🔴 **INCIDENT ESCALATION - {level.get('name', 'Next Level')}**\n"
-                f"Incident ID: {incident_id}\nSeverity: {severity.upper()}\n"
-                f"Description: {description}\n"
-                f"Escalation Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
-            )
-            
-            if runbook_url:
-                escalation_message += f"\nRunbook: {runbook_url}"
-            
-            await self._send_notification(
-                message=escalation_message,
-                channels=level.get("channels", ["slack", "email"]),
-                priority="critical",
-                metadata={"incident_id": incident_id, "escalation_level": level.get("name")}
-            )
-    
-    async def _list_channels(self) -> Dict[str, Any]:
-        """List available communication channels."""
-        channels = []
-        
-        # List Slack channels if configured
-        if self.slack_token:
-            channels.append({
-                "type": "slack",
-                "name": "slack",
-                "status": "configured",
-                "capabilities": ["text", "attachments", "threads"]
-            })
-        
-        # List other configured channels
-        if self.smtp_config.get("host"):
-            channels.append({
-                "type": "email",
-                "name": "email",
-                "status": "configured",
-                "capabilities": ["text", "html", "attachments"]
-            })
-        
-        # Always available channels
-        channels.extend([
-            {
-                "type": "teams",
-                "name": "teams",
-                "status": "available",
-                "capabilities": ["text", "cards", "mentions"]
-            },
-            {
-                "type": "sms",
-                "name": "sms",
-                "status": "available",
-                "capabilities": ["text"]
-            },
-            {
-                "type": "webhook",
-                "name": "webhook",
-                "status": "available",
-                "capabilities": ["json", "custom"]
-            }
-        ])
-        
-        return {
-            "channels": channels,
-            "total": len(channels),
-            "configured": sum(1 for c in channels if c["status"] == "configured")
-        }
-    
-    async def close(self):
-        """Close the communication hub."""
-        for task in self.escalation_timers.values():
-            task.cancel()
-        if self._ssrf_session:
-            await self._ssrf_session.__aexit__(None, None, None)
-            self._ssrf_session = None
-        if self.session:
-            await self.session.close()
-            self.session = None
+            status_message += f"\nIncident ID: {incident_id}"\n\n        result = await self._send_notification(\n            message=status_message,\n            channels=["slack", "teams"],\n            priority="high" if status in ["partial_outage", "major_outage"] else "medium",\n            metadata={"component": component, "status": status}\n        )\n\n        return {"component": component, "status": status, "notification_sent": result["channels"]}\n\n    async def _broadcast_deployment(\n        self, environment: str, service: str, version: str, status: str, details: Dict[str, Any] = None\n    ) -> Dict[str, Any]:\n        """Broadcast deployment notification."""\n        status_emoji = {\n            "started": "🚀", "in_progress": "⏳", "completed": "✅",\n            "failed": "❌", "rolled_back": "↩️"\n        }.get(status, "📦")\n\n        deployment_message = (\n            f"{status_emoji} **Deployment {status.replace('_', ' ').title()}**\n"\n            f"Environment: {environment}\nService: {service}\nVersion: {version}"\n        )\n\n        if details:\n            for key, value in details.items():\n                deployment_message += f"\n{key}: {value}"\n\n        channels = ["slack"] if environment == "development" else ["slack", "teams", "email"]\n\n        result = await self._send_notification(\n            message=deployment_message,\n            channels=channels,\n            priority="high" if status in ["failed", "rolled_back"] else "medium",\n            metadata={"deployment": True, "environment": environment, "service": service, "version": version}\n        )\n\n        return {\n            "broadcast_sent": True,\n            "channels": result["channels"],\n            "environment": environment,\n            "service": service,\n            "version": version,\n            "status": status\n        }\n\n    async def _escalate_incident(\n        self, incident_id: str, severity: str, description: str,\n        escalation_chain: List[Dict[str, Any]] = None, runbook_url: str = None\n    ) -> Dict[str, Any]:\n        """Escalate incident with notification chain."""\n        incident_message = (\n            f"🚨 **INCIDENT ESCALATION**\nIncident ID: {incident_id}\n"\n            f"Severity: {severity.upper()}\nDescription: {description}"\n        )\n\n        if runbook_url:\n            incident_message += f"\nRunbook: {runbook_url}"\n\n        chain = escalation_chain or self._get_default_escalation_policy(severity).get("levels", [])\n\n        initial_result = await self._send_notification(\n            message=incident_message,\n            channels=["slack", "teams", "sms"] if severity == "critical" else ["slack", "teams"],\n            priority=severity,\n            metadata={"incident_id": incident_id}\n        )\n\n        if chain:\n            escalation_task = asyncio.create_task(\n                self._handle_incident_escalation(incident_id, severity, description, chain, runbook_url)\n            )\n            self.escalation_timers[f"incident_{incident_id}"] = escalation_task\n\n        return {\n            "incident_id": incident_id,\n            "initial_notification": initial_result["channels"],\n            "escalation_setup": bool(chain),\n            "severity": severity\n        }\n\n    async def _handle_incident_escalation(\n        self, incident_id: str, severity: str, description: str,\n        escalation_chain: List[Dict[str, Any]], runbook_url: str = None\n    ):\n        """Handle incident escalation chain."""\n        for level in escalation_chain:\n            await asyncio.sleep(level.get("delay", 300))\n\n            if f"incident_{incident_id}" not in self.escalation_timers:\n                break\n\n            escalation_message = (\n                f"🔴 **INCIDENT ESCALATION - {level.get('name', 'Next Level')}**\n"\n                f"Incident ID: {incident_id}\nSeverity: {severity.upper()}\n"\n                f"Description: {description}\n"\n                f"Escalation Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"\n            )\n\n            if runbook_url:\n                escalation_message += f"\nRunbook: {runbook_url}"\n\n            await self._send_notification(\n                message=escalation_message,\n                channels=level.get("channels", ["slack", "email"]),\n                priority="critical",\n                metadata={"incident_id": incident_id, "escalation_level": level.get("name")}\n            )\n\n    async def _list_channels(self) -> Dict[str, Any]:\n        """List available communication channels."""\n        channels = []\n\n        # List Slack channels if configured\n        if self.slack_token:\n            channels.append({\n                "type": "slack",\n                "name": "slack",\n                "status": "configured",\n                "capabilities": ["text", "attachments", "threads"]\n            })\n\n        # List other configured channels\n        if self.smtp_config.get("host"):\n            channels.append({\n                "type": "email",\n                "name": "email",\n                "status": "configured",\n                "capabilities": ["text", "html", "attachments"]\n            })\n\n        # Always available channels\n        channels.extend([\n            {\n                "type": "teams",\n                "name": "teams",\n                "status": "available",\n                "capabilities": ["text", "cards", "mentions"]\n            },\n            {\n                "type": "sms",\n                "name": "sms",\n                "status": "available",\n                "capabilities": ["text"]\n            },\n            {\n                "type": "webhook",\n                "name": "webhook",\n                "status": "available",\n                "capabilities": ["json", "custom"]\n            }\n        ])\n\n        return {\n            "channels": channels,\n            "total": len(channels),\n            "configured": sum(1 for c in channels if c["status"] == "configured")\n        }\n\n    async def close(self):\n        """Close the communication hub."""\n        for task in self.escalation_timers.values():\n            task.cancel()\n        if self._ssrf_session:\n            await self._ssrf_session.__aexit__(None, None, None)\n            self._ssrf_session = None\n        if self.session:\n            await self.session.close()\n            self.session = None\n

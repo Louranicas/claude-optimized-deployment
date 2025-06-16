@@ -1,0 +1,239 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 56 - Removing
+To completely remove the lab environment from your Kali machine, you can run the clean command. This will destroy all containers and their images:
+$ sudo make clean
+Security Relevance Score: 17
+Word Count: 1909
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Removing
+To completely remove the lab environment from your Kali machine, you can run the clean command. This will destroy all containers and their images:
+$ sudo make clean
+
+==== Cleanup Started ====
+Shutting down the lab...
+Cleaning up...
+OK: lab environment has been destroyed.
+
+After running the command, you should receive a confirmation that the lab environment has been destroyed.
+
+
+Rebuilding
+When we execute a rebuild, the lab will first shut down all running containers, delete volumes, and remove all container images before running a new deployment. To execute the rebuild, run the following command:
+$ sudo make rebuild
+If you rebuild the lab, you’ll lose any data you saved inside your containers. Rebuilding is useful when something goes wrong during installation. Maybe, halfway through it, you lost your network connection, and the lab reported a failed state. The rebuild command allows you to wipe and install the lab environment from scratch.
+
+
+
+Accessing Individual Lab Machines
+As you progress through the book, you’ll compromise the machines in the lab environment. However, obtaining full access to a machine often takes multiple attempts. Sometimes you may need to troubleshoot an issue or reproduce a post-compromise activity, and you won’t want to repeat the steps you performed to obtain access.
+To gain shell access to any individual lab machine, you can run the following Docker command:
+$ sudo docker exec -it MACHINE-NAME bash
+MACHINE-NAME represents the name of a lab machine, such as p-web-01 or p-jumpstation-01 (or any other machine from Table 3-1 that starts with p- or c-). The Docker command will drop you into a bash shell, at which point you can execute any command you like. To exit, simply enter exit at the prompt or close the terminal session’s window.
+We highly recommend you compromise the machines as intended before taking these convenient shortcuts, however.
+
+
+Installing Additional Hacking Tools
+Most of the tools we’ll use in this book come preinstalled in Kali, and we’ll introduce them upon first use. However, we’ll need several tools that aren’t installed by default, so let’s install them here. First, create a new directory for your tools:
+$ cd ~
+$ mkdir tools
+
+Now use the instructions in the following sections to install each tool.
+
+WhatWeb
+WhatWeb, developed by Andrew Horton and Brendan Coles, is a Ruby-based web scanner. Using a plug-in-based system, it’s designed to identify the software running a target website.
+WhatWeb can fingerprint websites and their application stack by using its database of known application signatures. WhatWeb can also identify particular content management systems and blogging platforms (such as WordPress), web cameras, web application firewalls, and more. As of this writing, WhatWeb has over 1,800 plug-ins.
+To install WhatWeb, simply run the following command in the terminal:
+$ sudo apt-get install whatweb -y
+Verify that WhatWeb can operate successfully by running the whatweb command with the -h (help) argument:
+$ whatweb -h
+
+--snip--
+WhatWeb - Next generation web scanner.
+Developed by Andrew Horton (urbanadventurer) and Brendan Coles (bcoles).
+Homepage: https://www.morningstarsecurity.com/research/whatweb
+
+We’ll use WhatWeb later in the book when we perform reconnaissance activities.
+
+
+RustScan
+RustScan is a lightning-fast port scanner written in the Rust programming language by Autumn (Bee) Skerritt (@bee_sec_san). Some claim that RustScan can scan all 65,000 ports on a target in seconds!
+We’ll use RustScan’s Docker version. To do this, we first need to pull its image onto the Kali machine:
+$ sudo docker pull rustscan/rustscan:2.1.1
+Once you’ve built RustScan, run a quick test to ensure that it’s working properly:
+$ sudo docker run --network=host -it --rm --name rustscan rustscan/rustscan:2.1.1
+
+Fast Port Scanner built in Rust. WARNING Do not use this program against
+sensitive infrastructure since the specified server may not be able to
+handle this many socket connections at once.
+--snip--
+
+This command is quite long, as it relies on using Docker to start a dedicated RustScan container. In “Assigning Aliases to Hacking Tools” on page 66, we’ll create a shortcut command that will run RustScan for us.
+We will use RustScan for port scanning purposes in later chapters.
+
+
+Nuclei
+Nuclei is a vulnerability scanner written in the Go programming language by ProjectDiscovery, a company that builds popular open source hacking tools. Nuclei works by sending requests to targets defined by a YAML template file. The hacking community has published thousands of Nuclei templates supporting several protocols, including Transmission Control Protocol (TCP), Domain Name System (DNS), HTTP, raw sockets, file, headless, and more. You can find these templates at https://github.com/projectdiscovery/nuclei-templates.
+Install Nuclei by running the following installation command:
+$ sudo apt install nuclei -y
+To verify that Nuclei is correctly installed, run a help command:
+$ nuclei -h
+
+Nuclei is a fast, template based vulnerability scanner focusing
+on extensive configurability, massive extensibility and ease of use.
+
+Usage:
+  nuclei [flags]
+
+Flags:
+TARGET:
+   -u, -target string[]       target URLs/hosts to scan
+
+The first time you run Nuclei, it automatically creates a nuclei-templates directory in the user’s home folder and downloads all the publicly available Nuclei templates.
+We will use Nuclei to find vulnerabilities in the lab, as well as for writing custom vulnerability checks.
+
+
+dirsearch
+dirsearch is a multithreaded tool used to find common paths on web servers. dirsearch is available in Kali’s software repositories, so to install it, run the following command:
+$ sudo apt install dirsearch -y
+To verify that dirsearch is correctly installed, run a help command:
+$ dirsearch --help
+We will use dirsearch for information-gathering purposes in later chapters.
+
+
+Linux Exploit Suggester 2
+The Linux Exploit Suggester 2 is a next-generation tool based on the original Linux Exploit Suggester. Written in Perl and developed by Jonathan Donas, it includes several exploits you can use to potentially compromise vulnerable Linux kernel versions.
+To install it, first clone the repository to your tools directory:
+$ cd ~/tools
+$ git clone https://github.com/jondonas/linux-exploit-suggester-2.git
+
+To verify that Linux Exploit Suggester 2 is installed correctly, run a help command:
+$ cd linux-exploit-suggester-2
+$ perl linux-exploit-suggester-2.pl -h
+
+We will use Linux Exploiter Suggester 2 to enumerate kernel exploits later in the book.
+
+
+Gitjacker
+Gitjacker is a data-extraction tool that targets web applications whose .git directory has been mistakenly uploaded. Before you can install Gitjacker, you’ll first need to install jq, a command line JSON processor:
+$ sudo apt install jq -y
+Next, download the Gitjacker install script and move the executable to the tools directory:
+$ cd ~
+$ curl -s "https://raw.githubusercontent.com/liamg/gitjacker/master/scripts/install.sh" | bash
+$ mv ./bin/gitjacker ~/tools/gitjacker
+$ rmdir ./bin
+
+Finally, verify that Gitjacker is working properly by running the following help command:
+$ ~/tools/gitjacker -h
+We will use Gitjacker to identify misconfigured Git repositories later in the book.
+
+
+pwncat
+pwncat is a Python-based command-and-control library for capturing and interacting with remote shells, developed by Caleb Stewart and John Hammond. Once pwncat receives a shell connection from a remote compromised host, it acts as an exploitation platform from which commands can be sent and attacks can be launched.
+To install pwncat, run this command:
+$ pip3 install pwncat-cs
+To verify that the library was installed correctly, use the following:
+$ pwncat-cs -h
+
+usage: pwncat-cs [-h] [--version] [--download-plugins] [--config CONFIG]
+                 [--ssl] [--ssl-cert SSL_CERT] [--ssl-key SSL_KEY]
+                 [--identity IDENTITY] [--listen] [--platform PLATFORM]
+                 [--port PORT] [--list] [--verbose]
+                 [[protocol://][user[:password]@][host][:port]] [port]
+
+We will use pwncat for penetration-testing purposes later in the book. In some cases, pwncat-cs may be found under ~/.local/bin and can be called directly by its full path: ~/.local/bin/pwncat-cs.
+
+
+LinEnum
+LinEnum is a bash script written by Owen Shearing for enumerating local information on a Linux host. We can use wget to grab the script from its GitHub repository:
+$ cd ~/tools
+$ wget https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh
+
+To verify that the script is working correctly, make it executable and run the following help command:
+$ chmod u+x LinEnum.sh
+$ ./LinEnum.sh -h
+
+#########################################################
+# Local Linux Enumeration & Privilege Escalation Script #
+#########################################################
+# www.rebootuser.com | @rebootuser
+
+# Example: ./LinEnum.sh -k keyword -r report -e /tmp/ -t
+
+OPTIONS:
+-k      Enter keyword
+-e      Enter export location
+-s      Supply user password for sudo checks (INSECURE)
+-t      Include thorough (lengthy) tests
+-r      Enter report name
+-h      Displays this help text
+
+Running with no options = limited scans/no output file
+#########################################################
+
+We will use LinEnum to enumerate systems for misconfigurations later in the book.
+
+
+unix-privesc-check
+The unix-privesc-check shell script, written by pentestmonkey, collects information from a host in an attempt to find misconfigurations and ways to escalate privileges. The script is written to support many flavors of Linux and Unix systems and does not require any dependencies, which makes it convenient to run.
+By default, the script comes bundled with Kali, and you should find it in /usr/bin/unix-privesc-check:
+$ which unix-privesc-check
+
+/usr/bin/unix-privesc-check
+
+Optionally, you can create a copy of it in the tools directory for easier access, should you need to copy it later to any of the lab’s machines:
+$ cp /usr/bin/unix-privesc-check ~/tools
+If the script isn’t available on your Kali machine, you can download it directly from APT:
+$ apt-get install unix-privesc-check -y
+Verify that you can run it successfully with the following command:
+$ unix-privesc-check -h
+
+unix-privesc-check (http://pentestmonkey.net/tools/unix-privesc-check)
+
+Usage: unix-privesc-check {standard | detailed}
+
+"standard" mode: Speed-optimised check of lots of security settings.
+--snip--
+
+We will use unix-privesc-check to identify privilege escalation opportunities later in the book.
+
+
+
+Assigning Aliases to Hacking Tools
+Tools that are installed through third-party repositories such as GitHub sometimes won’t have setup files that make running them easier. We can assign these tools bash aliases as shorthand references so that we won’t need to enter the full directory path every time we run them.
+Assign custom aliases by using the following commands. These commands will be written to your ~/.bashrc file, which will execute when you open a new terminal session:
+$ echo "alias rustscan='docker run --network=host -it --rm --name rustscan rustscan/rustscan:
+2.1.1'" >> "/home/kali/.bashrc"
+
+$ echo "alias gitjacker='/home/kali/tools/gitjacker'" >> ~/.bashrc
+
+RustScan and Gitjacker now have aliases.
+At this point, you should have a fully functioning bash hacking lab. Now would be a good time to take a snapshot of your Kali virtual machine so you can restore it to this clean state. Taking snapshots regularly is a good idea, especially whenever you make significant configuration changes or deploy new tools to your virtual lab.
+
+
+Summary
+In this chapter, you built your hacking lab, which consists of a dedicated Kali virtual machine running several intentionally vulnerable Docker containers and hacking utilities. We also discussed managing your lab environment by tearing it down, cleaning it up, and rebuilding it.
+We’ll use this lab in all hands-on exercises moving forward. If you encounter problems, we encourage you to keep an eye on the book’s GitHub repository (https://github.com/dolevf/Black-Hat-Bash), where we maintain the source code responsible for keeping your lab up to date. In the next chapter, you’ll use these tools to perform reconnaissance and gather information about remote targets.
+
+
+
+
+
+
+
+
+
+
+
+
+4
+RECONNAISSANCE
+
+
+
+Every hacking engagement starts with some form of information gathering. In this chapter, we’ll perform reconnaissance on targets by writing bash scripts to run various hacking tools. You’ll learn how to use bash to automate tasks and chain multiple tools into a single workflow.
+In the process, you’ll develop an important bash-scripting skill: parsing the output of various tools to extract only the information you need. Your scripts will interact with tools that figure out what hosts are online, what ports are open on those hosts, and what services they are running, then deliver this information to you in the format you require.
+Perform all hacking activities in your Kali environment against the vulnerable network you set up in

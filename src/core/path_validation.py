@@ -11,6 +11,13 @@ import logging
 
 from src.core.exceptions import ValidationError
 
+__all__ = [
+    "validate_file_path",
+    "is_safe_path",
+    "sanitize_filename"
+]
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -179,7 +186,8 @@ def sanitize_filename(filename: str) -> str:
     filename = os.path.basename(filename)
     
     # Remove dangerous characters
-    dangerous_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0', '\n', '\r', '\t']
+    dangerous_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0', '
+', '\r', '\t']
     for char in dangerous_chars:
         filename = filename.replace(char, '_')
     

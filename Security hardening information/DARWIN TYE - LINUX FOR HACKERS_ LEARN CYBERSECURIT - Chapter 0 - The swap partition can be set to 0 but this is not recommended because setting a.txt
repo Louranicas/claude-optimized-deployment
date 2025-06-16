@@ -1,0 +1,36 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 0 - The swap partition can be set to 0, but this is not recommended, because setting a certain size of swap partition still has a certain effect.
+Although Linux only needs to divide the root partition and the swap partition to complete the system installation by default, it is not recommended because if only the root partition is divided, the system may not be able to boot after the root partition is damaged and it is stored in the root partition. The data may also be lost, which is very insecure. Therefore, it is recommended to assign independent partitions to independent applications, so that even if a partition is destroyed, it will not affect the data of other partitions, and can minimize the loss caused by system crashes.
+The following partitions are recommended to be allocated independently when installing the system.
+Security Relevance Score: 2
+Word Count: 974
+Extracted: 2025-06-13 23:40:27
+
+---
+
+The swap partition can be set to 0, but this is not recommended, because setting a certain size of swap partition still has a certain effect.
+Although Linux only needs to divide the root partition and the swap partition to complete the system installation by default, it is not recommended because if only the root partition is divided, the system may not be able to boot after the root partition is damaged and it is stored in the root partition. The data may also be lost, which is very insecure. Therefore, it is recommended to assign independent partitions to independent applications, so that even if a partition is destroyed, it will not affect the data of other partitions, and can minimize the loss caused by system crashes.
+The following partitions are recommended to be allocated independently when installing the system.
+
+/boot: Store system boot information and kernel information.
+/usr: Storage system application software installation information.
+/var: Store system log information.
+
+For the meaning of each partition, please refer to the next chapter for more detailed information.
+The root partition contains all the directories of the Linux system. If only the root partition is allocated when the system is installed, the above /boot, /usr, and /var will all be included in the root partition, that is, these partitions will occupy the space of the root partition. If you divide /boot, /usr, etc. separately, these partitions will no longer occupy the space of the root partition.
+After understanding some basic partitioning knowledge, start disk partitioning below.
+2) In the interface shown, first select the 100GB sda disk, and then there will be two partition options in the lower left corner. The first is Automatically configure partitioning, which means automatic partitioning. The second is I will configure partitioning, which means manual partitioning.
+If you are not familiar with partitioning, you can directly select automatic partitioning by default. However, for learning considerations, it is recommended to choose manual partitioning, even if you are a novice choosing manual partitioning is more helpful for understanding and understanding of system partitions. Select manual partition here. After selecting, click the Done button in the upper left corner to enter the interface shown.
+3) After selecting manual partitioning, you also need to select the partition scheme. You can select the partition scheme from the drop-down menu in the left pane. The available partition schemes are Standard Partition, Btrfs, LVM and LVM Thin Provisioning (thin provisioning).
+Among them, standard partitions can be used for various file systems or swap space (swap), which is a commonly used partitioning scheme. Btrfs is the next-generation Linux file system, which is used by companies and communities such as Oracle, Red Hat, Intel, and Suse.
+LVM is a logical volume management partition scheme. When creating an LVM partition, an LVM logical volume is automatically generated, and the physical disk can be used flexibly through LVM and can improve disk performance. Using LVM thin provisioning, you can dynamically create and allocate storage pools, and then freely manage disk space. LVM thin provisioning is an upgraded version of LVM.
+In fact, there is also a RAID partition scheme. When there are two or more disks, a RAID partition scheme will appear. This is a software RAID that can provide high-end storage functions and redundant data security for the server.
+Choose the Standard Partition partition scheme here. There are two steps to add a partition. First, you need to create a mount point. Click the "+" button in the lower left corner to create a mount point.
+4) Create a root partition first, and set the root partition space as large as possible, because if the root partition space is full, the system may stop responding, and the applications running on the system may become abnormal. Since partitions such as /boot and /usr have been separated, 20GB of space in the root partition is sufficient.
+In fact, the partition size setting is related to the hard disk size. If the hard disk is large enough, you can set a larger root partition space. Ensuring that the system is sufficient without wasting space is the criterion for partitioning disks.
+The Mount point (mount point) can be selected by clicking the drop-down list, or can be filled in by yourself. Desired Capacity (partition size) such as 20GB can be directly filled in "20G", 500MB can be filled in "500M", And so on. After the setting is complete, click the Add mount point button to complete the addition of the mount point.
+5) After the mount point is successfully created, it will enter the interface. Click the mount point in the left pane, and you can do various modifications in the right pane, for example, edit the mount point, Modify the partition size, select the device type, select the file system type, label options for customization, and whether to encrypt or reformat the corresponding partition.
+For File System selection, the default is xfs, but there can be seven types of swap, vfat, BIOS boot, ext2, ext3, ext4, and xfs. Among them, ext2, ext3, and ext4 are the mainstream on Linux systems File system, in versions before RHEL/CentOS 7.x, the ext series file system is adopted by default. VFAT file system corresponds to the FAT file system on Windows and swap is the swap partition on Linux. BIOS boot is mainly used for system boot devices , Is a very small partition and the xfs file system is a high-performance file system that only appeared on RHEL/CentOS 7.x.
+The Label option is a label corresponding to the disk partition, through which the partition can be quickly identified. The Label option can be filled in or not, and it is blank by default.
+Once the mount point is established, the corresponding disk ID is fixed. For example, the disk ID corresponding to the root partition is /dev/sda

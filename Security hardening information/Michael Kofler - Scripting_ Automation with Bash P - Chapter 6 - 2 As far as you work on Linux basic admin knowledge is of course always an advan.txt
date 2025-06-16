@@ -1,0 +1,51 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 6 - 2). As far as you work on Linux, basic admin knowledge is of course always an advantage.
+Security Relevance Score: 3
+Word Count: 1003
+Extracted: 2025-06-13 23:41:06
+
+---
+
+2). As far as you work on Linux, basic admin knowledge is of course always an advantage.
+
+12.1    Installing the SSH Client and Server
+To establish an SSH connection from local computer A to a second computer B, an SSH client must be available on computer A (usually the ssh command), and an SSH server must be running on B. This section describes the prerequisites you must fulfill before you can use SSH.
+12.1.1    Linux
+On Linux, the ssh command is part of the basic vocabulary, so to speak, and is almost always installed. You can see for yourself via ssh -V in the terminal. This command displays the installed version.
+$ ssh -V  OpenSSH_9.2p1, OpenSSL 3.0.8 7 Feb 2023 
+If the ssh command is indeed not installed, you can install the ssh command in the following ways:
+$ sudo apt update                      (Debian, Ubuntu)$ sudo apt install openssh-client$ sudo dnf install openssh-client      (Fedora, Red Hat) 
+The operation of an SSH server is not quite as self-evident. The following short test can provide clarity:
+$ systemctl status sshd  sshd.service - OpenSSH Daemon     Loaded: loaded (...)     Active: active (running) since ... 
+If the sshd service is not known or not running, the installation will succeed in no time. I have again summarized the commands for the most important distributions here:
+$ sudo apt update                      (Debian, Ubuntu)$ sudo apt install openssh-server$ sudo dnf install openssh-server      (Fedora, Red Hat)$ systemctl enable --now sshd 
+12.1.2    macOS
+On macOS, the SSH client and server are already installed. However, the SSH server must be explicitly enabled. For this task, open the General • Share module in the System Preferences and enable the Remote login option. Done!
+12.1.3    Windows
+In current Windows versions, the SSH client (i.e., the ssh command) is installed by default, whereas the SSH server is not. To install missing components, you must open the Settings program. You can find the OpenSSH client and the OpenSSH server—well hidden—under Apps • Optional features • Add an optional feature. (Why the program can’t simply be installed via the Microsoft Store defies any logic. But I won't complain here; it’s great that Microsoft finally offers an official SSH client and server, making the installation of the dreadfully outdated PuTTY program unnecessary.)
+You can run the SSH client with the ssh command in the terminal after the installation. With regard to the SSH server, one more step is necessary. The program is installed but is not yet running as a service. The solution is the Services program, which you can find in the Start menu. Search for the OpenSSH Server item and double-click to open the settings dialog. Then, click the Start button to start the server service for the first time. You also must set Startup type = Automatic to always activate the service when the computer boots up in the future.
+Instead of clicking through settings dialogs, you can also perform the installation and service startup in the terminal with the following commands:   
+> Add-WindowsCapability -Online -Name OpenSSH.Client> Add-WindowsCapability -Online -Name OpenSSH.Server> Start-Service sshd> Set-Service -Name sshd -StartupType 'Automatic' 
+If you then log on to your Windows computer from an external computer via SSH, you’ll abruptly land in the IT Stone Age. Inexplicably, the SSH server uses cmd.exe as the default shell. To enable you to use PowerShell within the SSH session, you must run pwsh.
+For PowerShell to be used automatically on every SSH login, you must modify a registry entry. You can achieve this task using the following three commands, which must be executed with admin rights in a terminal:  
+> $PSPATH = (Get-Command -Name pwsh).path> New-Item "HKLM:\Software\OpenSSH" -Force> New-ItemProperty "HKLM:\SOFTWARE\OpenSSH"  -Name DefaultShell `    -Value "$PSPATH" -PropertyType String -Force 
+
+Suddenly "Permission Denied" Displays at SSH Login
+If the location where pwsh.exe is stored changes during a PowerShell update or during a new PowerShell installation, the SSH server can no longer start PowerShell. However, the error message in such cases is meaningless: Permission denied.
+This problem can stem from countless reasons, from the wrong password to the incorrect configuration of opensshd_config. However, one possible cause of errors is a changed path to pwsh.exe.
+
+
+Automatically Administrator
+If you perform an SSH login for a user who has admin rights, then you get these rights immediately in the SSH session.
+An important difference arises with interactive work: Usually, you work with reduced rights and only perform actions with admin rights when necessary—for example, by explicitly starting a terminal with admin rights. In this regard, Windows also behaves differently from Linux or macOS, where you must explicitly request administrator rights for individual commands via sudo.
+
+12.1.4    Using an Editor in an SSH Session
+On Linux or macOS, the matter is trivial: To modify a file directly in an SSH session, you simply need to launch an editor. nano and vim are almost always available. If required, you can separately install countless other editors such as emacs, joe, or zile.
+On Windows, however, the concept of an editor without a GUI is still unknown today, and no suitable program is available by default. Things change once you install Git because Git Bash with the vim and nano editors usually is installed as well. Starting the two programs can be done in the following ways:
+> & "C:\Program Files\Git\usr\bin\nano.exe" myscript.ps1> & "C:\Program Files\Git\usr\bin\vim.exe" myscript.ps1 
+By the way, including C:\Program Files\Git\usr\bin in Path variables is not recommended. In this directory, countless Linux tools like cd, ls, cp, and so on are installed, and since these names are also commonly used as PowerShell aliases, this duplication can cause problems. Better to include a function in the profile file to call your editor (see $PROFILE for the path):
+# in the $PROFILE file (usually C:\Users\<name>\# Documents\PowerShell\Microsoft.PowerShell_profile.ps1)function nano {    & "C:\Program Files\Git\usr\bin\nano.exe" $args} 
+You may need to adjust the installation path. As a result, to modify a script file, you can then run nano in an SSH session in the following way:
+> nano myscript.ps1 
+A conceivable alternative is to use VS Code through an SSH connection (see

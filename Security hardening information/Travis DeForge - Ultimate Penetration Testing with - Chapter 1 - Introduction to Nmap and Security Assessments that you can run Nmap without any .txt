@@ -1,0 +1,46 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 1 - Introduction to Nmap and Security Assessments that you can run Nmap without any additional commands (except for the target of course) and expect to determine which of the top 1,000 most common TCP and UDP ports are open. But to do anything more intricate than that, we will have to incorporate additional arguments into the scan called flags. It is important to understand that the flags and their use cases we will go over here are in no way a replacement for the official reference guide (https://nmap.org/book/man.html), which will cover many more in great detail. Instead of reinventing the wheel, we are going to focus initially on the 10 flags that are used mostly for simple attack surface analysis during penetration tests.
+Security Relevance Score: 5
+Word Count: 1055
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Introduction to Nmap and Security Assessments that you can run Nmap without any additional commands (except for the target of course) and expect to determine which of the top 1,000 most common TCP and UDP ports are open. But to do anything more intricate than that, we will have to incorporate additional arguments into the scan called flags. It is important to understand that the flags and their use cases we will go over here are in no way a replacement for the official reference guide (https://nmap.org/book/man.html), which will cover many more in great detail. Instead of reinventing the wheel, we are going to focus initially on the 10 flags that are used mostly for simple attack surface analysis during penetration tests.
+
+-sV: This flag enabled service version detection on the ports that respond as open. Meaning, that in addition to seeing that port 80 is open on a web server, you may also get additional information, such as whether it is an Apache, Nginx, or IIS web server, as well as what version it is. This additional information can help you determine not only the technology being used in an environment but also start to determine if there are vulnerabilities associated with those services and versions:
+
+
+
+Figure 3.1: Service versioning scan
+-A: This flag enabled operating system detection as well as service versioning on the host. A simple way to remember this one is “A” is for “All”. You get all the port, service, versioning, and operating system information that Nmap can identify at once: 
+
+
+
+Figure 3.2: Service, operating system, and versioning scan
+There are a couple of things to note with -A, which are as follows:
+
+It is redundant and provides more information than -sV. It means that there is no reason to combine these flags. The same goes for -O, which is operating system versioning; while that flag exists, it is rarely used, as -A is considered be a far better alternative.
+It is a much slower scan than -sV because it enumerates so much more information. That is why both -sV and -A are listed here. There will be times when the service versioning information is enough, and you need to speed over the additional information.
+-T: T stands for time; it is the speed at which the scan is conducted, and it comes in six variations, ranging from T0, which is extremely slow, to T5, which is extremely fast. Appropriately, the default of Nmap (if you do not specify otherwise) is T3, quite fast. Depending on if you need to worry about being too noisy and getting detected, or being too aggressive on the network, you may want to manually adjust the speed. I will typically use T2 during most engagements that are not extremely large. 
+I recommend experimenting with this, the difference between each of the T-levels is dramatic. In a quick test of scanme.nmap.org with no other flags, you will find that T3+ will complete in probably less than three seconds, but anything below T2 will take several minutes. Depending on your situation, the size of the attack surface, and the length of time you have to scan, it may necessitate adjusting the speed.
+-v: V stands for verbosity; this is a common argument you will find in tools and simply makes the output that is displayed more verbose. It adds additional details to the output and is paired very well with either -sV or -A. There are also three levels of verbosity: -v, -vv, and -vvv. The more Vs that are added, the more verbose the output will be, but also the longer the scan will take. I have personally rarely found it helpful to use more than a single v when leveraging this flag: 
+
+
+
+Figure 3.3: Demonstrating service versioning with verbosity
+-iL: This flag is “in list”, and it is essential for anybody conducting a penetration test of a complex environment. This allows Nmap to read the target list from a txt file rather than scanning one entry or range in the command line. Imagine an engagement where you have dozens if not hundreds of individual external domains and IP addresses; you can put them all into a simple txt file and Nmap will sequentially scan them all at once for you:
+
+
+
+Figure 3.4: Scanning multiple targets from a source file
+-oX: This is for Output. There are several options available to save the output to a file, which can be referenced later: -oG for Greppable output, -oN for normal output, there is even -oS for a comical Script Kiddie output riddled with misspellings and crazy capital letters. But I tend to use -oX, which outputs to an XML format that is easily imported into additional tools such as Zenmap and Legion. 
+Whichever output you prefer (or use -oA for all of them), it is strongly recommended to save the output files of your scans so that they can be referenced later. The last thing you want is to spend six hours running a scan overnight just to have the command prompt closed due to the system restarting and losing all of that data. Always save your work.
+-p: P stands for Port. You can specify specific ports that you want to scan that are single, in ranges, or comma-separated like so:
+
+-p 80 (only port 80)
+-p 80-443 (every port between 80 and 443)
+-p 80,440 (only ports 80 and 443)
+This is extremely useful when you are looking for something specific or are just trying to speed up a scan and want to reduce the number of ports from the default of 1,000 down to a handful of the most likely. As additional notes, you can also use -F (fast) to reduce from the top 1,000 to the top 100, or use –-allports to scan all 65,535 ports. Keep in mind, scanning tens of thousands of ports does tend to increase the length of the scan fairly significantly.
+-sU: This flag specifies scanning UDP ports as opposed to TCP. When you use the -p command, by default, Nmap will assume you mean TCP port X. There may be times when you are explicitly looking for UDP, however, and would need to specify that. One example is if you are looking for the IPMIv2 protocol, which can be hosted on either TCP or UDP port

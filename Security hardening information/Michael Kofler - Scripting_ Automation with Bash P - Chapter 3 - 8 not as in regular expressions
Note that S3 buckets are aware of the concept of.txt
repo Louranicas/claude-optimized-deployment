@@ -1,0 +1,80 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 3 - 8), not as in regular expressions.
+Note that S3 buckets are aware of the concept of directories only with limitations. Although the name of a file stored in the bucket may be composed of several parts (dir1/dir2/file), there is no way to create a directory via mkdir or to delete a directory using rmdir.
+One of the most important AWS S3 commands is aws s3 sync. This command allows you to synchronize a local directory and a directory in a bucket. This command is extremely useful especially for backups: For example, if a complete backup of your data is stored in a local directory, you can create redundancy with a regularly executed synchronization command. If the local backup is lost, you’ll still have a copy in the cloud. (Note that, with AWS, you pay not only for the amount of data stored, but also for each transport in one direction or another. For cost reasons, it is convenient to organize the backup incrementally, so that only the changes saved from one day to the next are transferred.)
+$ aws s3 sync my-local-backupdir s3://my.bucket.name 
+A reference for all AWS S3 commands can be found at https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/index.html.
+20.1.4    Encrypting Files
+Even though Amazon advertises that your files are stored encrypted, this encryption does not improve the security of your data that much as long as Amazon has the key. If you don’t want outside companies or intelligence agencies to read your organization or company’s backups, you must encrypt all files before transferring them to the cloud. This basic rule is not specific to Amazon but applies to any storage of data on external servers or cloud services.
+In the following sections, I will introduce you to the gpg command, which allows you to encrypt files symmetrically in an uncomplicated way and decrypt them later.
+Security Relevance Score: 4
+Word Count: 915
+Extracted: 2025-06-13 23:41:06
+
+---
+
+8), not as in regular expressions.
+Note that S3 buckets are aware of the concept of directories only with limitations. Although the name of a file stored in the bucket may be composed of several parts (dir1/dir2/file), there is no way to create a directory via mkdir or to delete a directory using rmdir.
+One of the most important AWS S3 commands is aws s3 sync. This command allows you to synchronize a local directory and a directory in a bucket. This command is extremely useful especially for backups: For example, if a complete backup of your data is stored in a local directory, you can create redundancy with a regularly executed synchronization command. If the local backup is lost, you’ll still have a copy in the cloud. (Note that, with AWS, you pay not only for the amount of data stored, but also for each transport in one direction or another. For cost reasons, it is convenient to organize the backup incrementally, so that only the changes saved from one day to the next are transferred.)
+$ aws s3 sync my-local-backupdir s3://my.bucket.name 
+A reference for all AWS S3 commands can be found at https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/index.html.
+20.1.4    Encrypting Files
+Even though Amazon advertises that your files are stored encrypted, this encryption does not improve the security of your data that much as long as Amazon has the key. If you don’t want outside companies or intelligence agencies to read your organization or company’s backups, you must encrypt all files before transferring them to the cloud. This basic rule is not specific to Amazon but applies to any storage of data on external servers or cloud services.
+In the following sections, I will introduce you to the gpg command, which allows you to encrypt files symmetrically in an uncomplicated way and decrypt them later.
+
+Symmetric versus Asymmetric
+“Symmetric encryption” means that the same key is used for both encryption and decryption. In contrast, with asymmetric methods, a key pair is used (as with SSH): The public key is used for encryption; the private key, for decryption. This approach is especially advantageous if the encryption is supposed to take place at different locations (computers). The public key required for this setup can be distributed without hesitation.
+Unfortunately, however, asymmetric methods are inefficient for large files. Nevertheless, to take advantage of asymmetric procedures, a common practice is to continue encrypting the files symmetrically. In addition, however, the keys are now also encrypted—namely, asymmetrically! This scenario is now referred to as a “hybrid encryption system” and is described at https://en.wikipedia.org/wiki/Hybrid_cryptosystem.
+For our purposes (i.e., for the safekeeping of backup files in a cloud), a symmetric procedure is absolutely sufficient. You just need to ensure that the key you use does not fall into the wrong hands.
+
+First, you need a key (i.e., just a binary file with random data). A good way to generate a new key is the openssl command, which is part of the package of the same name on Linux. The following command creates a key with a length of 32 bytes. (32 bytes seems small, but that’s 256 bits. For symmetric methods, 128 bits are already considered sufficiently secure.)
+$ openssl rand 32 > mykey 
+If openssl is not available to you, the following command will also work on Linux:
+$ dd if=/dev/random of=mykey bs=16 count=1 
+As I have already clarified in a previous chapter: The key file is (pun intended) the key to security. On my servers, I keep such files in a directory that can only be read by the root user and use chown root:root mykey and chmod 600 to ensure that really nobody except root is allowed to read the file. (Also remember to keep a backup of your key in a safe place! Should your server including the key file get lost—for example due to a hardware defect—you can never decrypt the encrypted backup files in the cloud again.)
+To encrypt or decrypt a key, you can use the gpg command. Because numerous options must be passed in each case, the best way is to wrap the call into two tiny scripts:
+# Sample file mycrypt.sh# usage: mycrypt.sh < plain > cryptedgpg -c -q --batch --cipher-algo AES256 --compress-algo none \  --passphrase-file /path/to/mykey 
+# Sample file myuncrypt.sh# usage: myuncrypt.sh < crypted > plaingpg -d --batch --no-tty -q --cipher-algo AES256 \  --compress-algo none --passphrase-file /path/to/mykey 
+Let’s briefly explain some of these options:
+
+
+-c (symmetric crypt) encrypts standard input and writes to standard output.
+
+
+-d (symmetric decrypt) decrypts the standard input and writes to the standard output.
+
+
+-q (quiet) suppresses status messages.
+
+
+--batch activates the batch mode (no interactive queries).
+
+
+--cipher-algo sets the encryption algorithm.
+
+
+--compress-algo sets the compression algorithm.
+
+
+--passphrase-file specifies from which file gpg should read the key.
+
+
+You can test the two scripts in the following way:
+$ ./mycrypt < readme.txt > readme.crypt$ ./myuncrypt < readme.crypt > readme.copy$ diff readme.txt readme.copy 
+The first command encrypts readme.txt. The second command decrypts the file and saves the result as readme.copy. The third command compares the two files and lists all differences. If diff outputs nothing, the files are identical.
+
+Compress First, Then Encrypt
+If you want to compress and encrypt a file, you should always compress first and then encrypt. Doing it the other way round, compression fails to reduce the file size because already encrypted files look like a sequence of random data to the compression program. Compressing them is thus impossible.
+
+
+
+
+
+
+
+
+
+
+20.2    Example: Uploading Encrypted Backup Files to the Cloud
+In

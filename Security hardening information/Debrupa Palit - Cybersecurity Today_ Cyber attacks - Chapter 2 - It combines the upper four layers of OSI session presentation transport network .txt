@@ -1,0 +1,76 @@
+# Security Chapter Extract
+Book: Debrupa Palit - Cybersecurity Today_ Cyber attacks, network security, and threat prevention (2024) - libgen.li
+Chapter: 2 - It combines the upper four layers of OSI (session, presentation, transport, network) into a single application layer.
+Network access layer
+The network access layer in TCP/IP is responsible for interfacing with the physical network hardware. It handles tasks such as framing, addressing, and error detection to facilitate communication between devices on the same network segment. Figure 1.2 shows the Layers of TCP/IP model:
+Security Relevance Score: 6
+Word Count: 1509
+Extracted: 2025-06-13 23:40:49
+
+---
+
+It combines the upper four layers of OSI (session, presentation, transport, network) into a single application layer.
+Network access layer
+The network access layer in TCP/IP is responsible for interfacing with the physical network hardware. It handles tasks such as framing, addressing, and error detection to facilitate communication between devices on the same network segment. Figure 1.2 shows the Layers of TCP/IP model:
+
+Figure 1.2: Layers of TCP/IP model
+Network layer
+This layer is also known as the Internet layer. It handles packet routing and addressing, ensuring data delivery across interconnected networks. It encapsulates data into packets and determines the optimal route based on destination IP addresses, facilitating efficient communication between devices.
+Transport layer
+This layer manages end-to-end communication, ensuring reliable and efficient data delivery between applications. It handles tasks such as segmentation, flow control, and error correction, providing a reliable and ordered data transfer mechanism. It offers reliable, sequenced delivery TCP or connectionless datagram services UDP to meet diverse application requirements.
+Application layer
+This layer acts as the interface between the network and user applications, enabling communication services such as email, web browsing, and file transfer. It encompasses protocols like HTTP, SMTP, File Transfer Protocol (FTP), and Domain Name System (DNS), facilitating high-level interactions between software applications running on different devices.
+The main benefits of the TCP/IP model include:
+
+Foundational protocol suite of the internet, ensuring compatibility across various network types and devices.
+Accommodates networks of any size, from small local networks to global internetworks, making it highly scalable.
+Supports multiple network protocols and can adapt to changes and advancements in networking technology.
+Modular, with distinct layers that handle specific functions, allowing for easier troubleshooting and maintenance.
+Operates on a decentralized architecture, enabling efficient and robust communication without relying on a central authority.
+Ensures interoperability and widespread connectivity.
+Well-defined and widely accepted standards promoting consistency and interoperability among different networking devices and systems.
+
+The main work of TCP/IP is to transfer the data of a computer from one device to another. The main condition of this process is to make data reliable and accurate so that the receiver will receive the same information that is sent by the sender. To ensure that each message reaches its final destination accurately, the TCP/IP model divides its data into packets and combines them at the other end, which helps maintain the accuracy of the data while transferring from one end to another end. The TCP/IP model is used in the context of the real-world Internet, where a wide range of physical media and network technologies are in use. Rather than specifying a particular physical layer, the TCP/IP model allows for flexibility in adapting to different physical implementations. The functions of the TCP/IP layer are shown in Figure 1.3:
+
+Figure 1.3: Functions of TCP/IP layers
+OSI model and TCP/IP model
+TCP/IP was established before the OSI model and was formed by the US Department of Defense (DoD). In TCP/IP, multiple OSI layers are merged into one layer. In TCP/IP, OSI layers 5, 6, and 7 are merged into a single Application Layer. OSI layers 1 and 2 are merged into one network access layer in TCP/IP. However, TCP/IP does not handle sequencing and acknowledgment functions.
+Types of TCP flags
+TCP flags serve as indicators within TCP packet transmissions, signaling specific connection states or providing supplementary information. They are valuable for troubleshooting and controlling the handling of individual connections.
+Following are the types of TCP flags:
+
+Synchronization (SYN): This flag is used for establishing a TCP connection. It is sent by the client in the first step of the three-way handshake.
+Acknowledgment (ACK): An ACK is used to confirm the successful receipt of packets by the host. This allows the sender to track progress and resend any missing packets if needed.
+Finish (FIN): This flag serves as a notification for the termination of connection. It signifies that the sender has completed data transmission and initiated the connection closure process.
+Reset (RST): This flag is used to abruptly terminate the connection. It is sent by a sender when it detects a severe error or unexpected situation.
+Push (PSH): This flag optimizes data delivery for applications demanding real-time performance. When set by the sending application, it instructs the receiving TCP layer to bypass its standard buffering strategy and deliver the received data segment promptly to the application layer.
+
+Three-way handshake 
+The TCP establishes reliable, two-way communication channels between devices through a three-step handshake process. TCP connections rely on flags to signal specific connection states or convey additional control information. These flags are crucial for managing the connection and troubleshooting any issues. The most commonly used flags are SYN, ACK and FIN. Each flag corresponds to 1-bit information. This ensures both parties are synchronized and ready for data exchange. Most commonly used flags are SYN, SYN-ACK and ACK. Each flag corresponds to 1-bit information:
+
+Initiation (SYN): The client initiates the handshake by sending a SYN flag within a segment. This flag signifies that the client wants to establish a connection and includes an initial sequence number for data tracking.
+Acknowledgment and synchronization (SYN-ACK): Upon receiving the SYN segment, the server acknowledges the request by sending a segment with both SYN and acknowledge (ACK) flags set. This confirms its readiness to connect and includes its own initial sequence number.
+Confirmation (ACK): Finally, the client acknowledges receipt of the server's SYN-ACK segment with a segment containing only the ACK flag. This completes the handshake and establishes the full-duplex connection for reliable data transmission.
+
+This three-way handshake ensures both the client and server are prepared for communication, preventing wasted resources and potential data corruption, as shown in Figure 1.4:
+
+Figure 1.4: Three-way handshake
+Network address translation
+NAT is a vital service that assists the connection of private IP networks to the broader Internet and cloud infrastructure. NAT functions by translating private IP addresses within an internal network into a single public IP address before routing packets to external networks. This process enables devices within a private network to communicate with external servers and services using a single public IP address, enhancing network security and efficiency.
+For Internet connectivity, a single public IP address is required, but within our private network, we can utilize private IP addresses. NAT enables multiple devices to access the Internet using a single public IP address. This is achieved by translating private IP addresses to a public IP address.
+NAT involves the translation of one or multiple local IP addresses into one or more global IP addresses and vice versa, enabling local hosts to access the Internet. NAT also performs the translation of port numbers by masking the port number of the host with a different port number in the packet routed for the destination. Subsequently, it records the corresponding entries of IP addresses and port numbers in the NAT table. NAT functions within a router or firewall. It is the process of modifying network address information in packet headers while in transit across a router, allowing multiple devices on a local network to share a single public IP address for internet access.
+NAT is commonly integrated into routers and frequently included within corporate firewall setups and operates as a mechanism to facilitate network address translation. NAT gateways possess the capability to map IP addresses using various methods. Various methods are described as follows:
+
+One-to-one mapping (Static NAT): A single local IP address is permanently linked to a unique global IP address.
+Address hiding Port Address Translation (PAT): An entire private network using non-routable IP addresses is hidden behind a single public IP address.
+Port-based translation (Dynamic NAT): Local IP addresses combined with specific TCP/UDP ports are mapped to either a single global IP address or a pool of public IP addresses. This is temporary and dynamic.
+Load balancing (Not strictly NAT): Routing incoming traffic from a single global IP address to any available local IP address in a round-robin fashion, distributing the load.
+
+Numerous organizations employed NAT to enable multiple devices to share a single IP address, thereby enhancing security and facilitating address translation within networking systems. While NAT proves beneficial in certain scenarios, its utility may vary depending on specific circumstances. Following are some of the advantages:
+
+Utilization of private IP addresses is maximized through their reusability.
+Security for private networks is enhanced by maintaining internal addressing concealed from the external network.
+A multitude of hosts can be connected to the global Internet with a reduced number of public (external) IP addresses, effectively conserving IP address space.
+
+Network transmission media
+In data communication, a transmission medium refers to the physical path between the sender and the receiver, serving as the conduit through which data travels from one location to another. Information can be conveyed through signals by computers and various telecommunication devices. These signals are sent from one device to another in the form of electromagnetic waves that travel through vacuum, air, or other transmission mediums. Electromagnetic spectrum consists of radio waves, visible light, UV light, and gamma rays. Transmission media is of two types- guided and unguided, as shown in Figure 1.

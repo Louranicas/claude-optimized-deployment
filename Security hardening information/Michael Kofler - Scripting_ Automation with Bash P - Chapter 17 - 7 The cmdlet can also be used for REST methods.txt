@@ -1,0 +1,50 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 17 - 7). The cmdlet can also be used for REST methods.
+Security Relevance Score: 3
+Word Count: 517
+Extracted: 2025-06-13 23:41:06
+
+---
+
+7). The cmdlet can also be used for REST methods.  
+
+
+Invoke-RestMethod has certain advantages and disadvantages compared to Invoke-WebRequest: A convenient aspect is that the cmdlet converts responses in a flat (non-nested) JSON format directly into a PSCustomObject. If the web service returns responses in XML format, Invoke-WebRequest directly returns an object of the XmlDocument type. This relatively intelligent handling of typical REST data types simplifies the continued analysis.
+On the other hand, annoyingly, the cmdlet does not return the HTTP status code. If the request is successful (code 2xx), you’ll receive result data; otherwise an error will occur. In some REST applications, this approach is too minimalistic.
+
+
+From my point of view, Invoke-RestMethod has more disadvantages. In most applications, I prefer Invoke-WebRequest and then convert the Content string into a JSON object in the following way:
+> $json = (Invoke-WebRequest `     'https://httpbin.org/headers').Content | ConvertFrom-Json> $json.headers.host  httpbin.org 
+In my tests, some REST services returned HTML code instead of JSON code on requests made using Invoke-RestMethod or Invoke-WebRequest. The solution in this case is to specify the user agent curl in the header so that the service does not erroneously assume that the user agent is a web browser:
+> Invoke-RestMethod 'https://ipinfo.io'  <!DOCTYPE html><html lang="en"> ... (HTML code extends over multiple pages)> Invoke-RestMethod 'https://ipinfo.io' `      -Headers @{'User-Agent' = 'curl'}  ip       : 91.115.157.28  hostname : 91-115-157-28.adsl.highway.telekom.at  city     : Graz  region   : Styria  country  : AT  ... 
+18.5.1    Options
+Not only do the two Invoke cmdlets provide different result data types, but there are also various special options that differ from each other. Fortunately, at least the options for the basic settings match:
+
+
+-Uri passes the address. This option does not have to be specified (i.e., the address can also be passed directly to the cmdlet).
+
+
+-Method specifies the desired request. Allowed settings are Get, Put, Post, and so on.
+
+
+-Authentication selects the desired authentication method (None, Basic, Bearer, or OAuth).
+
+
+-Credential passes data for Basic authentication to the request. The pair of login name and password must be passed as a PSCredential object. You can initialize such an object interactively via Get-Credential. Alternatively, you can initialize such an object by using the following code:     
+$password = ConvertTo-SecureString 'topSecret' -AsPlainText `                                               -Force$credential = New-Object `   System.Management.Automation.PSCredential('loginname',                                             $password) 
+
+
+-Token passes a string to the cmdlet for Bearer and OAuth authentication.
+
+
+-Body passes the data to be transferred to the web server (upload). If necessary, you can use -ContentType to specify the format and character set of this data.
+
+
+-Header expects a hash table with the header settings.
+
+
+The following lines show how you can transfer your own data to a server using Invoke-WebRequest:
+$data = @{ firstName = 'John'; lastName = 'Doe'}$jsondata = $data | ConvertTo-Json$url = 'https://httpbin.org/put'$response = Invoke-WebRequest -Method Put $url -Body $jsondata$response.Content 
+  {    "headers": {      "Content-Length": "46",      "Host": "httpbin.org",      "User-Agent": "Mozilla/5.0 (Linux; ...) PowerShell/7.3.2",      "X-Amzn-Trace-Id": "Root=1-6426e776-337f635051c3c6753..."    },    "json": {      "firstName": "John",      "lastName": "Doe"    }, ...  } 
+Since a request call typically requires many options and parameters, a good idea is to first collect the data in a hash table and pass it to the cmdlet via splatting (see

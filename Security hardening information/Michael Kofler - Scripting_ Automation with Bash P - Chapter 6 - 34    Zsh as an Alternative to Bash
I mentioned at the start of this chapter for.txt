@@ -1,0 +1,150 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 6 - 3.4    Zsh as an Alternative to Bash
+I mentioned at the start of this chapter, for the core topic of this book (i.e., for programming scripts), Zsh plays only a minor role. For compatibility reasons, a better approach is to use Bash for programming scripts, and even to forgo the use of some Bash-specific extensions over other shells. In this way, you can make your scripts really work in almost any environment.
+The appeal of Zsh lies rather in its interactive application: Zsh takes an even smarter approach than Bash when expanding command, file, and directory names when you press (Tab). You don’t have to specify the initial letters; instead, a combination of letters that occurs somewhere in the name is sufficient. In addition, Zsh provides more configuration options and extension modules. Since I’ve gotten to know the comfort of Zsh in combination with the Oh My Zsh extension, “ordinary” Bash is no longer good enough for me!
+Security Relevance Score: 3
+Word Count: 2116
+Extracted: 2025-06-13 23:41:06
+
+---
+
+3.4    Zsh as an Alternative to Bash
+I mentioned at the start of this chapter, for the core topic of this book (i.e., for programming scripts), Zsh plays only a minor role. For compatibility reasons, a better approach is to use Bash for programming scripts, and even to forgo the use of some Bash-specific extensions over other shells. In this way, you can make your scripts really work in almost any environment.
+The appeal of Zsh lies rather in its interactive application: Zsh takes an even smarter approach than Bash when expanding command, file, and directory names when you press (Tab). You don’t have to specify the initial letters; instead, a combination of letters that occurs somewhere in the name is sufficient. In addition, Zsh provides more configuration options and extension modules. Since I’ve gotten to know the comfort of Zsh in combination with the Oh My Zsh extension, “ordinary” Bash is no longer good enough for me!
+3.4.1    Installation
+macOS as well as selected Linux distributions already rely on Zsh by default. For all other Linux distributions, you can install Zsh effortlessly with the respective package management tool. On Debian and Ubuntu, you would use the following commands:
+$ sudo apt update$ sudo apt install zsh 
+In the next step, you can activate Zsh for your account:
+$ chsh -s $(which zsh) 
+For this change to take effect, you must log out and log back in. Now, when you open a terminal for the first time, a configuration script runs once:
+This is the Z Shell configuration function for new users,zsh-newuser-install. (...) You can(q) Quit and do nothing.  The function will be run again next    time.(0) Exit, creating the file ~/.zshrc containing just a comment.    That will prevent this function being run again.(1) Continue to the main menu.(2) Populate your ~/.zshrc with the configuration recommended    by the system administrator and exit. 
+You’re not doing anything wrong if you simply take the default settings suggested by the script or the default configuration file .zshrc (point 2) provided by your distribution in the manual configuration (point 1). If necessary, you can repeat and adjust the configuration later via zsh-newuser-install.
+To use Zsh on Windows, the same recommendations apply as for Bash: Install Linux in WSL or as a virtual machine and run Zsh there! The switch from Bash to Zsh can be done as we’ve described here.
+3.4.2    Zsh Configuration (/etc/zshrc and .zshrc)
+Similar to Bash, Zsh also evaluates some configuration files at startup. The most important ones are /etc/zshrc for global settings and .zshrc in your home directory.
+3.4.3    Oh My Zsh
+For Zsh, many plugins are available on the internet that provide additional functionality, as well as themes that change the look of the command prompts. Oh My Zsh is a script that helps manage such extensions. Various plugins and themes are included right away and more can be added later.
+To install, download a small script from the project page https://github.com/ohmyzsh/ohmyzsh and run it. The script requires that the git command from the package of the same name is available. Instead of typing the following command, you should copy the code from the Oh My Zsh GitHub page:
+$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/\                        ohmyzsh/master/tools/install.sh)" 
+During the installation, the .zshrc file will be overwritten. The previous content ends up in a backup file named .zshrc.pre-oh-my-zsh. Oh My Zsh will test for updates at startup in the future. Accordingly, when you open a new terminal window, you’re often prompted to update Oh My Zsh.
+In the basic configuration, the prompt has the robbyrussell theme by default. As the only active plugin, git contributes countless aliases that help with the operation of Git. A guide to the many functions and tips for further configuration of Oh My Zsh can be found, for example, at https://ohmyz.sh or in the following blog: https://stackabuse.com/pimp-my-terminal-an-introduction-to-oh-my-zsh.
+
+
+
+
+
+
+
+
+
+3.5    The First Bash Script
+After this short excursion to Zsh, we’ll now return to Bash. Before I introduce you to the syntax of Bash including various programming and working techniques in this chapter, I want to use this section to explain what a script actually is. As a matter of fact, this is quite simple: A script is a text file in which you formulate the same commands that you enter interactively in the terminal. Only two special features distinguish a script from just commands: The first line of the script must contain what’s called a shebang, and the file must be marked as an executable using chmod.
+3.5.1    Hash Bang (Shebang)
+The first line of a script to be executed on Linux or macOS must start with the characters, # (“hash” or “sharp”) and ! (“bang”) as well as the path of the interpreter. “Shebang” is a linguistic shortening of “sharp bang.”
+The interpreter is the program that reads and processes the script file, and in this chapter, that interpreter is Bash (or in exceptional cases Zsh). However, other programming languages can also be used as interpreters, such as Python or Perl.
+On Linux, the Bash program is predominantly installed in the /bin directory. Thus, a Bash script starts with the following line:
+#!/bin/bash 
+3.5.2    Shebang Variants
+Depending on which distribution or Unix-like system you’re working in, Bash may be installed in a different directory, such as /usr/bin. Using which bash, you can determine the location on your computer as in the following example:
+$ which bash  /usr/bin/bash 
+Links often make sure that both /usr/bin/bash and /bin/bash work. A general-purpose hash bang formulation that works regardless of the location uses the /usr/bin/env command. This command searches all common locations:
+#!/usr/bin/env bash 
+If Bash is not installed on your machine at all and you’re using Zsh, you’ll want to replace /bin/bash with /bin/zsh (or the location where Zsh is installed on your machine):
+#!/bin/zsh 
+If you want your script to work regardless of whether Bash or Zsh is available, the following hash bang will get you there:
+#!/bin/sh 
+sh is a link that points to the default shell on most Linux systems. However, you must be aware that different shells will be used from now on when your script is run, depending on the computer/distribution. For example, on Debian and Ubuntu, the speed-optimized Dash will be executed. When formulating your scripts, you must be careful not to use any Bash-specific extensions that are not available in other shells.
+
+What Now?
+I know it’s annoying that, in the IT world, for every rule there are three exceptions and then five special cases. Unless there are compelling reasons not to, you should always use #!/bin/bash as the hash bang. The sample files for this book also use this code.
+
+3.5.3    Making the Script Executable (chmod +x)
+All Unix-like systems including Linux and macOS store some access bits along with each file that provide information about who is allowed to read, write, and execute the file. For scripts, the execute bit (x for short) is crucial. Only with this bit can a script be executed later like a command.
+To set the execute bit, you need to run the following command once in the terminal. Note that the chmod variant of macOS does not understand the +x short notation. You must explicitly specify for whom the execute bit is set. a means “for all.”
+$ chmod +x my-script-file.sh    (Linux, Git Bash)$ chmod a+x my-script-file.sh   (macOS) 
+Thus, chmod is used to change the access bits. The command supports quite diverse syntax variants. (You can run man chmod if you’re interested in the details). For us, only the chmod +x variant is relevant, for setting the execute bit.
+
+The .sh Identifier
+All Bash sample files in this book end with .sh. Although this file extension is common, using it is by no means mandatory. Bash scripts can work without an identifier (and even with a wrong identifier), provided the hash bang is correct.
+Since this book covers PowerShell (.ps1) and Python (.py) in addition to Bash, the identifier helps with the assignment of the sample files.
+
+3.5.4    Hello, World!
+To write your first script, you want to launch your favorite editor: Visual Studio Code (VS Code) is a good choice, but any editor is fine, including the minimalist nano program that you can run directly in a terminal. Then, enter the following two lines:
+#!/bin/bashecho "Hello, World!" 
+Save this file as hello-world.sh. By using chmod, make the script executable, with the following command:
+$ chmod  +x hello-world.sh    (Linux, Git Bash)$ chmod a+x hello-world.sh    (macOS) 
+To check if a script works, you need to type its name and press (Enter). Note that you must prefix the name with ./. In this way, you tell Bash to look for your script in the current directory. (. is a short notation for the currently active directory.)
+$ ./hello-world.sh  Hello, World! 
+
+If Script Execution Does Not Work
+ If the execution of a script triggers an error, various reasons may be the cause:
+
+
+Did you specify the filename correctly?
+
+
+Did you use chmod +x?
+
+
+Did you specify the hash bang line correctly?
+
+
+Is Bash not installed on your computer at all? If you want to run the script using Zsh, you need to change the hash bang to #!/bin/zsh or #!/bin/sh.
+
+
+
+3.5.5    Elementary Syntax Rules
+Besides the hash bang, you must follow a few other rules in your scripts:
+
+
+Lines beginning with # are comments and are not evaluated.
+
+
+You can use the \ character for long commands that run across multiple lines. The \ character must be placed exactly at the end of the line, and no more spaces may follow!
+
+
+Code indentation is allowed but is optional.
+
+
+Bash is extremely picky about the use of spaces in code. s="abc" is correct; the variants s ="abc" or s= "abc" as well as s = "abc" are all wrong and will trigger errors!
+Conversely, in some cases, spaces are required before or after parentheses for Bash to recognize the construct correctly. If your script does not work as expected and the error messages are vague or misleading, you should first check the use of spaces!
+
+
+3.5.6    A “Real” Example: Backup Script
+Of course, you’re not reading this book to run “Hello World!” scripts. This second example is a bit longer, but it performs a real task: It creates a compressed backup of all files in your documents directory and stores the backup in the mybackups directory:
+#!/bin/bash# Sample file backup-documents.sh# Save the contents of this directorydocumentdir=~/documents# Backup locationbackupdir=~/mybackups# Create backup directorymkdir -p $backupdir# returns e.g., date=27 for 2023-03-27day=$(date '+%d')# Create backup, save as documents-<day>.tar.gzecho "Backup file: $backupdir/documents-$day.tar.gz"tar czf $backupdir/documents-$day.tar.gz -C $documentdir . 
+This script requires some explanation:
+
+
+documentdir=~/documents stores the name of your documents directory in the documentdir variable. ~ is a short notation for your home directory (e.g., /home/kofler on Linux, but /Users/kofler on macOS).
+Depending on the operating system or distribution you use, you’ll need to use the English word Documents. When macOS displays Documents in the Finder with a German language setting, the real directory name is actually Documents!
+
+
+backupdir=~/mybackups stores the desired backup location in another variable.
+
+
+mkdir -p $backupdir creates the backup directory. The -p option prevents error messages if the directory already exists (which is the case after the second execution of the script at the latest).
+
+
+day=$(date '+%d') stores the day of the month in the day variable. date is a command which normally returns the whole date including time. Using the additional parameter +%d you supply only the day of the month (01 to 31) instead.
+The notation $(...) means: Execute the command contained in the parentheses and return the result.
+
+
+The echo command outputs the exact path of the new backup file on the screen. The output is just feedback for you to understand that the script works as intended.
+Note that you must specify variable names without $ when assigning them but prefix them with $ when reading them. This is one of the many strange syntax rules of Bash.
+
+
+Finally, the tar command creates a backup of all files in the $documentdir directory. The syntax of this command is also weird:
+
+
+czf specifies what the command is supposed to do (create, zip, file). The next parameter specifies the location of the backup file, for example, /home/kofler/documents-27.tar.gz.
+
+
+-C determines which directory is to be active during the execution of tar. In this example, it should not be the currently active directory, but the directory where the files to be backed up are located.
+
+
+A . at the end of the command means that the entire contents of the directory must be backed up (and not just selected files, which would also be conceivable).
+
+
+A more detailed description of the important tar options follows in

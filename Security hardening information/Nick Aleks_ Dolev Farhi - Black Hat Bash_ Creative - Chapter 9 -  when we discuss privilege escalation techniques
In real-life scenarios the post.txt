@@ -1,0 +1,115 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 9 - , when we discuss privilege escalation techniques.
+In real-life scenarios, the post-compromise phase is also where your chances of getting caught by defenders increase, as the information you gather could leave a trail. For this reason, we’ll default as much as possible to using native Linux utilities and files to collect information in an attempt to live off the land: making do with what’s available on a host while avoiding the use of external tools, which could trigger alerts.
+Try running the shell commands presented in the chapter on all the hosts you’ve compromised thus far, as well as any new machines you compromise as you progress through the book. You could even build a script from these commands to easily execute the same ones on all machines.
+Security Relevance Score: 3
+Word Count: 831
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, when we discuss privilege escalation techniques.
+In real-life scenarios, the post-compromise phase is also where your chances of getting caught by defenders increase, as the information you gather could leave a trail. For this reason, we’ll default as much as possible to using native Linux utilities and files to collect information in an attempt to live off the land: making do with what’s available on a host while avoiding the use of external tools, which could trigger alerts.
+Try running the shell commands presented in the chapter on all the hosts you’ve compromised thus far, as well as any new machines you compromise as you progress through the book. You could even build a script from these commands to easily execute the same ones on all machines.
+
+The Filesystem Hierarchy Standard
+Data of interest could live in many areas of a Linux filesystem. To efficiently explore the systems on which you’ve obtained shell access, consult the Filesystem Hierarchy Standard (FHS), which describes the structure of directories and their locations on a Linux system. This hierarchical standard makes it easier for users and programs to search for files of interest, such as log or configuration files.
+The Linux filesystem’s hierarchy starts at the root (/) directory, which is the entry point into the filesystem directory tree structure. Table 8-1 shows the main subdirectories under root and their primary uses.
+Table 8-1: Filesystem Hierarchy Standard Directory Layout
+
+
+
+
+Directory
+Description
+
+
+
+
+/
+Primary parent directory, also called the root directory.
+
+
+/var
+Directory for nonstatic (variable) files. Often contains application logfiles under the /var/log directory or contains processed tasks, such as scheduled and print jobs, under /var/spool. It may also contain cache files in /var/cache and system-related runtime data under /var/run.
+
+
+/etc
+Directory for configuration files. Application software installed on the system keeps dedicated configuration files in this directory (usually with the *.conf extension). This directory also contains files such as /etc/passwd, /etc/group, and /etc/shadow, where user accounts, group information, and password hashes, respectively, exist.
+
+
+/bin
+Directory for binary utilities. Commonly used for storing binaries related to system tasks such as navigation commands (cd), file copying (cp), directory creation (mkdir), or file creation (touch).
+
+
+/sbin
+Directory for system binaries, such as system debugging, disk manipulation, and service management utilities that are intended for use by the system administrator.
+
+
+/dev
+Directory that represents and provides access to device files, such as disk partitions, thumb drives, and external hard drives.
+
+
+/boot
+Directory for bootloaders, kernel files, and initial random-access memory (RAM) disks (initrd).
+
+
+/home
+Directory containing the home directory of local system user accounts. Active system user accounts usually have a subdirectory as their assigned home directory.
+
+
+/root
+Directory containing the home directory of the root user account.
+
+
+/tmp
+Directory for temporarily written files and directories. The /var/tmp directory is another temporary directory often used for temporary files.
+
+
+/proc
+Virtual filesystem for processes and kernel data. Gets automatically created on system boot.
+
+
+/usr
+Directory for user binaries, manual pages, kernel sources, header files, and more (including games, in the past).
+
+
+/run
+Directory for runtime data. Describes the state of the system since it was last booted.
+
+
+/opt
+Directory for software applications. Often hosts data related to third-party software installations.
+
+
+/mnt
+Directory for mounting network shares or other network devices, mostly used for mounting devices to the local filesystem either temporarily or permanently.
+
+
+/media
+Directory for removable devices, such as CD drives. Serves as a mount point.
+
+
+/lib, /lib32, /lib64
+Directory for shared libraries needed to boot the system and run commands.
+
+
+/srv
+Directory for data commonly served by network services, such as web servers and file servers.
+
+
+
+Production systems could have thousands of files scattered across their systems, so it’s important to know what sensitive data to search for and where to search for it.
+While FHS aims to standardize the layout of the filesystem, systems can deviate from the standard. Additionally, the system administrator can store application files wherever they like. For example, nothing stops a system administrator from serving their entire web server content from a directory such as /mywebsite and writing logs to a directory such as /data/logs.
+
+
+The Shell Environment
+From an information-gathering perspective, the shell environment is important because it can reveal information such as where the system looks for executables to run. Custom applications may add new directory paths to the PATH environment variable so that the application can run custom libraries and executables from nonstandard locations. You might also find credentials and other secrets in these custom configurations.
+
+Environment Variables
+When compromising a host, it’s often useful to dump its environment variables by using the env or printenv commands. Administrators tend to store credentials in environment variables to avoid writing the credentials to files on disk. Delivery systems can inject credentials into the application’s runtime via these environment variables, which the application then reads. In addition, you may find other important information in environment variables, such as addresses of adjacent servers and runtime configurations.
+
+
+Sensitive Information in Bash Profiles
+In

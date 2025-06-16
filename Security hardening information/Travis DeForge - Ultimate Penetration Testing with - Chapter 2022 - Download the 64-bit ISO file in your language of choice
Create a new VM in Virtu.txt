@@ -1,0 +1,131 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 2022 - Download the 64-bit ISO file in your language of choice.
+Create a new VM in Virtual Box and select Windows 10 64-bit as the operating system, but as of now, leave the ISO file empty.
+Assign a minimum of 2GB of RAM (although if you can spare the resources, 4GB is preferred). Specify VHD as the file type with Dynamic Allocation selected and a 50GB capacity.
+Once completed, boot the VM and you will be asked to provide a bootable medium, browse to the ISO file and select “Mount and Retry Boot”:
+Security Relevance Score: 16
+Word Count: 1482
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Download the 64-bit ISO file in your language of choice.
+Create a new VM in Virtual Box and select Windows 10 64-bit as the operating system, but as of now, leave the ISO file empty.
+Assign a minimum of 2GB of RAM (although if you can spare the resources, 4GB is preferred). Specify VHD as the file type with Dynamic Allocation selected and a 50GB capacity.
+Once completed, boot the VM and you will be asked to provide a bootable medium, browse to the ISO file and select “Mount and Retry Boot”:
+
+
+
+Figure 2.10: Windows ISO configuration (1 of 3)
+Continue the installation process and when prompted to select an operating system, choose “Windows Server 2022 Standard Evaluation (Desktop Experience)”:
+
+
+
+Figure 2.11: Windows ISO configuration (2 of 3)
+Next, we will install an open-source automation server called Jenkins, which is commonly seen in enterprise penetration tests. Specifically, Jenkins is used to automate portions of the building, testing, and deploying processes, which facilitates an important concept called continuous integration and continuous delivery (CICD) within the software development lifecycle (SDLC).
+Jenkins is going to be an important application that we will specifically search for using Nmap later in the book. The installation instructions and Windows download file can be found in Jenkin’s official documentation at: https://www.jenkins.io/doc/book/installing/windows/.
+You will most likely also need to install Java Development Kit (JDK) or Java Runtime Environment (JRE) during the Jenkins installation process.
+Once installed, you can confirm that Jenkins is running by checking the Services on the Windows Server as well as navigating to “localhost:8080” in your web browser
+
+
+
+Figure 2.12: Windows ISO configuration (3 of 3)
+Confirm connectivity from the Kali VM by running a default Nmap scan against the Windows Server. You should now see the typical Windows Ports (135, 139, 445, 5357) and the newly added Jenkins Automation Server on port 8080:
+
+
+
+Figure 2.13: Confirming Network Connectivity with Nmap
+
+Securing the Lab Environment
+The final step in setting up our lab at this point will be downloading one more virtual machine. However, instead of purposefully vulnerable machines such as Earth or Mercury, this one will be a security product. We will use Wazuh, which is a completely free and open-source product that has the capabilities of both a security incident and event management system (SIEM) as well as extended detection and response (XDR). We will use this as a way to gauge the level of obfuscation during advanced scanning techniques in later chapters.
+Anecdotally, Wazuh also makes an excellent security solution to incorporate into your home network. The steps are as follows:
+
+To begin, download the prebuilt OVA from https://documentation.wazuh.com/current/deployment-options/virtual-machine/virtual-machine.html. Once downloaded, open the OVA file in Virtual Box and select Settings.
+Under Network Adapter 1, set NAT Network: Nmap Lab.
+Under Network Adapter 2, set Bridged Adapter.
+Start the Wazuh virtual machine and log in with the provided credentials.
+Confirm the Wazuh server Ip with the command ip a.
+From any VM in your Nmap Lab network (such as the Windows Server), open a web browser and navigate to the Wazuh Server’s IP using HTTPS, and log in with admin/admin:
+
+
+
+Figure 2.14: Demonstrating Wazuh Dashboard
+From the Add Agent view, select the following options:
+ Windows
+Windows Server
+i386/x86_64
+Add the IP address of the Wazuh Serer (in the preceding example, it would be 10.0.2.8)
+Name your agent “WindowsServer2022”
+Default group
+Next, download the Windows installer package that is provided and then run the generated commands from an administrator PowerShell prompt:
+
+
+
+Figure 2.15: Demonstrating Wazuh Agent Configuration
+Refresh the page and you should be able to see the agent listed as active:
+
+
+
+Figure 2.16: Confirming Agent Connectivity (1 of 2)
+Navigating to the agents interface below should also reflect the newly configured Windows agent:
+
+
+
+Figure 2.17: Confirming Agent Connectivity (2 of 2)
+
+Conclusion
+It is a very common, albeit unfortunate, habit for cyber security students to simply read a book, or watch a video, but not practice the techniques themselves. When you see a demonstration, it can appear simpler than it is in practice. If you were to ask a handful of penetration testers how often they have to troubleshoot issues such as installed incorrectly, having dependency issues, or just simply not working as expected, the vast majority would say “every day”.
+By following along, completing the challenges, and replicating what will be shown over the next several chapters, you will make mistakes, get frustrated, and troubleshoot why things are not working properly. While that isn’t the most fun thing at the moment, it is arguably the single most valuable thing you can do to learn a new tool or technique. By forcing yourself out of necessity to dig a little bit deeper, to make sure you have values set properly, and to understand why things are (or are not) coming out as you expect, you will learn in a way that is far more efficient than those who simply read the content.
+When most people first start working in cybersecurity, they constantly made the mistake of not doing enough hands-on training. I racked up several degrees and certifications, which helped me learn a lot. However, it was found that whenever something didn’t work exactly as expected, I had to seek help from more experienced coworkers. It wasn’t until I slowed down on simply ingesting bulk content and spent more time replicating, modifying, and expanding on what I was learning in my lab environment that I truly got comfortable with penetration testing.
+So far in the previous chapter, we have touched upon a lot of concepts, learned a lot of definitions, and explored some key differences between security assessments themselves. In this chapter, we built the environment you will need to be successful in working with Nmap and explored all the techniques outlined within the rest of this book. Finally, we are ready to get started.
+In the next chapter, we will dive into the basic flags and scans of Nmap and learn about one of the most essential stages of a penetration test – mapping the attack surface. We will discuss what the attack surface is, why it is critical to understand, and how to use Nmap to not only get a snapshot of the attack surface but to maintain an understanding of it over time.
+Points to Remember
+
+Home lab environments are a great way to reinforce the fundamentals of networking by creating and modifying virtual networks.
+By leveraging virtualization technologies such as Virtual Box, Hyper-V, or VMware, you can create modular environments of virtual machines, which can be turned on or off to simulate different scenarios.
+A highly effective lab can be set up for little to no cost. All virtual machines and products outlined in this chapter are free, and the majority of them are open source.
+Cyber security labs do not only have to be focused on penetration testing techniques. By incorporating open-source security products such as a SIEM, IDS, XDR, or Firewall, you can also learn and train on blue and purple team skills.
+Following the techniques and challenges throughout this book in your lab will greatly enhance and reinforce learning.
+
+Challenge 1 – Customize Your Lab
+Now that you have seen a few different examples of virtual machines being imported into Virtual Box and configured, the first challenge is to find ways to make the lab even more robust. This is an opportunity for a lot of creativity. Some ideas to get you started could be as follows:
+
+Download an additional Windows Server and set it up as a Domain Controller for a small Active Directory environment. Active Directory is a massively popular service and will come up in nearly all internal penetration testing engagements. Understanding its intricacies isn’t within the scope of Nmap or this book specifically, but is certainly worth considering.
+Configure a LAMP server. This is a popular server configuration that stands for Linux Apache MySQL and PHP. These are another type of server that would be seen fairly often during engagements. In addition, configuring them from scratch is a great way to brush up on your Linux skills.
+Add and configure a firewall. There are many options, but pfSense is recommended. It is a great, free, and open-source firewall with robust features to experiment with.
+
+Multiple Choice Questions
+
+Which of the following is not a virtualization platform?
+
+Jenkins
+Virtual Box
+VMware
+Hyper-V
+Wazuh is an example of which of the following?
+
+IPS
+Firewall
+SIEM
+Scanner
+Jenkins is a popular open-source tool used for what?
+
+Hosting a website over HTTPS
+Facilitating continuous integration and continuous development in the SDLC
+Monitoring network traffic for malicious activity
+Conducting static application security testing during the SDLC
+Which of the following would be a good place to look for free virtual machines designed for penetration testing techniques to be tested on?
+
+Exploit-db.com
+Vulnhub.com
+Kali.org
+Nmap.org
+Which file type is also known as disc images?
+
+ps1
+bat
+7z
+Iso
+
+Answers

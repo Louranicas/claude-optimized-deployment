@@ -1,0 +1,680 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 2 - Syntax:
+Nmap -p 139,445 --open --script smb2-securtity-mode
+Purpose:
+Scanning for cross-site request forgery vulnerabilities on web servers.
+Syntax:
+Nmap -p 80,443 -sV --script http-csrf
+Purpose:
+A fast scan to identify and output a list of targets with ports associated with SMB open.
+Syntax:
+Nmap -pn -T4 -iL targets.txt -p 139,445 --open -oX SMB_results.xml
+Purpose:
+A fast UDP scan to identify and output a list of targets with the port associated with IPMI open.
+Syntax:
+Nmap -pn -sU -T4 -iL targets.txt -p 623 --open -oX IPMI.xml
+Purpose:
+A fast scan to identify and output a list of targets with a port associated with JavaRMI open.
+Syntax:
+Nmap pn -T4 -iL targets.txt -p 1099 --open -oX JavaRMI.xml
+Purpose:
+A fast scan to identify and output a list of targets with a port associated with Cisco Smart Install open.
+Syntax:
+Nmap -pn -T4 -iL targets.txt -p 4786 --open -oX smart_install.xml
+Timing and Performance
+Security Relevance Score: 18
+Word Count: 1578
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Syntax:
+Nmap -p 139,445 --open --script smb2-securtity-mode
+Purpose:
+Scanning for cross-site request forgery vulnerabilities on web servers.
+Syntax:
+Nmap -p 80,443 -sV --script http-csrf
+Purpose:
+A fast scan to identify and output a list of targets with ports associated with SMB open.
+Syntax:
+Nmap -pn -T4 -iL targets.txt -p 139,445 --open -oX SMB_results.xml
+Purpose:
+A fast UDP scan to identify and output a list of targets with the port associated with IPMI open.
+Syntax:
+Nmap -pn -sU -T4 -iL targets.txt -p 623 --open -oX IPMI.xml
+Purpose:
+A fast scan to identify and output a list of targets with a port associated with JavaRMI open.
+Syntax:
+Nmap pn -T4 -iL targets.txt -p 1099 --open -oX JavaRMI.xml
+Purpose:
+A fast scan to identify and output a list of targets with a port associated with Cisco Smart Install open.
+Syntax:
+Nmap -pn -T4 -iL targets.txt -p 4786 --open -oX smart_install.xml
+Timing and Performance
+
+
+
+
+
+
+
+Flag
+
+
+Function
+
+
+
+
+-T
+
+
+Specifies the speed of scanning from T0 (slowest) to T5 (fastest)
+
+
+
+
+--version-intensity
+
+
+Specifies the intensity of service versioning efforts from 0 (lightest) to 9 (most intense)
+
+
+
+
+--max-os-tries
+
+
+Specifies the number of times Nmap will attempt to fingerprint the operating system
+
+
+
+
+--max-retries
+
+
+Specify the number of times Nmap will attempt to scan a host before moving on to another
+
+
+
+
+--discovery-ignore-rst
+
+
+Prevents Nmap from considering a host down based on an RST response to a probe
+
+
+
+
+--min-hostgroup
+
+
+Specifies the size of target groups to scan concurrently
+
+
+
+
+--initial-rtt-timeout
+
+
+Specifies a minimum rtt timeout rate in milliseconds
+
+
+
+
+--max-rtt-timeout
+
+
+Specifies a maximum rtt timeout rate in milliseconds
+
+
+
+
+--host-timeout
+
+
+Specify a host timeout value in minutes, which is the maximum amount of time Nmap will attempt to gather all information before moving on to another host
+
+
+
+
+--defeat-icmp-ratelimit
+
+
+Used to increase the speed of UDP scans specifically
+
+
+
+
+--defeat-rst-ratelimit
+
+
+Trade accuracy for speed by ignoring the rate limits entirely, which can result in Nmap not waiting long enough for the results to be returned
+
+
+
+Scanning Large Scopes
+Purpose:
+A simple ping sweep of subnets listed in a target file, which will output a sanitized list of live endpoints to a target file.
+Syntax:
+Nmap -n -sn -iL Ping_Sweep.txt -oG - | awk '/Up$/{print $2}' | > targets.txt
+Purpose:
+A ping sweep, optimized for speed, which will output a sanitized list of live endpoints to a target file.
+NOTE: This is designed for extremely large scopes, with an emphasis on finding the /24 subnets that are in use, rather than accurately identifying every single live endpoint. This scan trades accuracy for speed.
+Syntax:
+Nmap -sn -n --defeat-rst-ratelimit --max-rtt-timeout 250ms --max-retries 2 --host-timeout 2m --min-hostgroup 2048 -iL subnet1.txt -oG - | awk '/Up$/{print $2}' | > Ping_Sweep1.txt
+Purpose:
+A fast scan to identify targets with ports commonly associated with web servers open.
+Syntax:
+Nmap -pn -T4 -iL targets.txt -p 80,443,8080,8443 --open -oX Web_servers.xml
+Obfuscation
+
+
+
+
+
+
+
+Flag
+
+
+Function
+
+
+
+
+--exclude-ports
+
+
+Specifies ports that should not be scanned
+
+
+
+
+--exclude-host
+
+
+Specifies hosts that should not be scanned in a given range
+
+
+
+
+-Pn
+
+
+Disable Ping
+
+
+
+
+--randomize-hosts
+
+
+Modifies the default scanning behavior of targets selected from a sequential range to a random one
+
+
+
+
+--data-length
+
+
+Appends a specified number of bits of random data to the end of each packet
+
+
+
+
+-D
+
+
+Decoy scanning
+
+
+
+
+-f
+
+
+Fragments packets to add more entropy
+
+
+
+
+-ttl
+
+
+Specifies a given time to live
+
+
+
+Stealth Scanning
+Purpose:
+A somewhat stealthy scan that fragments packets, adds entropy to the packets, and randomizes the hosts targeted.
+Syntax:
+Nmap -f --data-length 5 --randomize-hosts
+Purpose:
+A moderately stealthy scan that fragments packets, adds entropy to the packets, randomizes hosts, disables ping, throttles the speed, and excludes commonly detected ports for SSH and SMB.
+Syntax:
+Nmap -f --data-length 5 --randomize-hosts -T2 -Pn --exclude-ports 22,139, 445
+Purpose:
+A moderately stealthy scan that fragments packets, adds entropy to the packets, randomizes hosts, disables ping, throttles the speed, and modifies the default ttl of packets.
+Syntax:
+Nmap -T2 –-randomize-hosts -Pn -f –-data-length 5 -ttl 58
+Purpose:
+A stealthy scan that fragments packets, adds entropy to the packets, randomizes hosts, disables ping, throttles the speed, excludes commonly detected ports for SSH and SMB, and puts reduced limits on the host timeout and maximum retries of each host.
+Syntax:
+Nmap -f --data-length 5 --randomize-hosts -T2 -Pn --exclude-ports 22,139, 445 --host-timeout 5m --max-retries 3
+Purpose:
+A slow scan that employs numerous complementary obfuscation techniques while specifically scanning targets for susceptibility to pass-the-hash attacks by checking SMB signing.
+Syntax:
+sudo nmap -p 139,445 -Pn --disable-arp-ping --discovery-ignore-rst --open --randomize-hosts -T2 --data-length 5 --max-retries 2 --host-timeout 5s --script smb-security-mode,smb2-security-mode -iL targets.txt
+Nmap Scripting Engine
+
+
+
+
+
+
+
+Script Category
+
+
+Description
+
+
+
+
+Auth
+
+
+Script that deals with the authentication of the target system
+
+
+
+
+Broadcast
+
+
+Scripts used for the discovery of additional or specific systems by broadcasting on the local network
+
+
+
+
+Brute
+
+
+Scripts that use brute-force style techniques
+
+
+
+
+Default
+
+
+The default category is the list of scripts that are called when using either the -sC or the -A flags
+
+
+
+
+Discovery
+
+
+Scripts that are used for active reconnaissance and discovering specific information on the network
+
+
+
+
+DoS
+
+
+Scripts that may, intentionally or otherwise, crash systems and cause denial of service conditions
+
+
+
+
+Exploit
+
+
+Scripts that actively exploit particular vulnerabilities
+
+
+
+
+External
+
+
+Scripts that send data outside of the typical scanner – target relationship
+
+
+
+
+Fuzzer
+
+
+Scripts used to “Fuzz” servers or services to identify hidden resources
+
+
+
+
+Malware
+
+
+Scripts can be used to detect targets that are infected by malware
+
+
+
+
+Vuln
+
+
+Scripts that check for very specific vulnerabilities
+
+
+
+
+Intrusive
+
+
+Scripts that have an elevated probability of crashing target systems and thus cannot be classified as ‘safe’
+
+
+
+
+Safe
+
+
+Scripts are designed not to exploit anything, not to crash systems, and not to be associated with using huge amounts of bandwidth
+
+
+
+
+Version
+
+
+Scripts that are related to service versioning
+
+
+
+Top 10 Handy NSE Scripts
+
+
+
+
+
+
+
+Script
+
+
+Function
+
+
+
+
+Vulners.nse
+
+
+Looks at the services being run on the system and queries the vulenrs.com database of vulnerabilities to determine if those services match known vulnerabilities
+
+
+
+
+Ms-exchange-version.nse
+
+
+Fingerprints and identifies vulnerabilities associated specifically with on-premises Microsoft Exchange servers
+
+
+
+
+Smb-security-mode.nse
+
+
+Identifies if SMB signing is enabled on the target(s) via SMB version 1
+
+
+
+
+Smb2-security-mode.nse
+
+
+Identifies if SMB signing is enabled on the target(s) via SMB version 2
+
+
+
+
+Smb-os-discovery.nse
+
+
+Fingerprint Windows systems via the SMB protocol
+
+
+
+
+Smb-enum-*
+
+
+Shortcut for running dozens of individual SMB enumeration scripts
+
+
+
+
+Smb-vuln-*
+
+
+Shortcut for running dozens of individual SMB vulnerability discovery scripts
+
+
+
+
+Broadcast-jenkins-discover.nse
+
+
+Broadcasts a probe to identify instances of Jenkins on the network
+
+
+
+
+Http-wordpress-enum.nse
+
+
+Fingerprints WordPress plugins and prints vulnerabilities associated with them
+
+
+
+
+Firewalk.nse
+
+
+Sends varying types of probes to the gateway and based on the TTL and reply ascertains if a firewall rule is impacting that port
+
+
+
+
+
+
+
+
+
+
+
+
+
+Index
+
+A
+Attack Surfaces
+about 42, 43
+Nmap to Map, leveraging 49-55
+penetration test, stages 43, 44
+small business, monitoring 55, 56
+Attack Surfaces, challenge
+home network, mapping 57
+scan with hand-on, getting 56
+Attack Surfaces, Nmap flags
+-A 45
+-iL 47
+-open 48
+-oX 47
+-p 47, 48
+--reason 48
+-sU 48
+-sV 44
+-T 46
+-v 46
+B
+Blue Team Detection, avoiding 125, 126
+C
+Client System
+benefits 160, 161
+communcating, results 160
+key, considering 158-160
+scans, types 155-157
+Common Platform Enumeration (CPE)
+about 63, 64
+common vulnerabilities and exposures (CVEs) 64, 65
+versioning techniques 64
+CSRF 82
+I
+Intrusion Detection System (IDS) 124
+K
+kali-virtual-machines
+reference link 26
+L
+lab environment
+about 24, 25
+securing 34, 35
+Virtual box, Nmap installing 25-30
+lab environment servers, setting up
+Linux 30, 31
+Windows 31-33
+Large Enterprise Network
+about 90-92
+black box subnet discovery 92, 93
+mass, scanning 94, 95
+speed, optimizing 95-98
+Large Enterprise Network, case study
+real world, pentesting 98, 99
+speed, scan optimizing 100
+Large Enterprise Network, flags
+--defeat-icmp-ratelimit 97
+--defeat-rst-ratelimit 96
+--host-timeout 96
+--initial-rtt-timeout 95
+--max-retries 96
+--min-hostgroup 95
+Legion
+analysis, scanning 107-110
+file configure, modifying 110-112
+zenmap, configuring 114
+Legion Scanning, situations
+large scope 114
+medium scope 113
+small scope 113
+N
+Nmap
+about 2-9
+career, boosting 9-11
+legally, ethically using 12, 13
+penetration, testing 15
+purple, red teaming 16
+TCP 3
+vulnerability scanner 14
+Nmap Flags, intermediate
+-6 68
+--exclude-ports 71
+-F 69
+--max-os-tries 70
+-Pn 69
+--script 67
+--script-help 67
+-sn 68
+--top-ports 69
+--version-all 70
+--version-intensity 70
+--version-light 70
+Nmap Flags, usage
+-sC 142
+--script 141
+--script-args 142
+Nmap Scan obfuscation, flags
+-D 123
+--data-length 122
+--discovery-ignore-rst 123
+--exclude-host 122
+--exclude-port 122
+-f 121
+-Pn 123
+--randomize-hosts 122
+Nmap Scan Parameter 120, 121
+Nmap Scan Parameter, case study
+purple, teaming 126-128
+red, teaming 129-132
+Nmap Scan Parameter, challenge
+complex scans, breaking 133
+lab detect, evading 132
+Nmap Scripting Engine
+about 66
+directory, modifying 143-145
+exploring 71
+flawed protocols, inherently 77
+locating 143
+security, misconfiguring 75, 76
+system, service determine 75
+technical debt 78, 79
+vulnerability, scanning 79-82
+Nmap Scripting Engine, case study
+external penetration, real world testing 83, 84
+home network, scanning 84
+system, fingerprinting 84
+Nmap Scripting Engine, categories
+Auth 138
+Broadcast 138
+brute 138, 139
+default 139
+discovery 139
+DoS 139
+Exploit 139
+External 139
+Fuzzing 139
+intrusive 140
+Malware 140
+safe 140
+version 140
+Vuln 140
+Nmap Scripting Engine, corporations
+Broadcast-jenkins-discover.nse 73
+Firewalk.nse 73
+Http-wordpress-enum.nse 73
+Ms-exchange-version.nse 72
+Mysql-empty-password.nse 74
+Smb-enum 73
+Smb-os-discovery.nse 73
+Smb-security-mode.nse 72
+Smb-vuln 73
+Vulners.nse 72
+Nmap Scripting Engine, scripts
+host 140
+Postrule 141
+Prerule 140
+service 140
+Nmap script, operations
+script + [name of script] 142
+--script "category" 141
+-- script "keyword-*" 141
+NSE Scripting 146, 147
+NSE Scripting, challenges
+concurrent scripts, scanning 148
+GitHub post, creating 148
+lab environment test, refining 148
+R
+Right Scan, identifying 154, 155
+S
+SchedulerSettings 111
+StagedNmapSettings 112
+T
+TCP 3
+Z
+zenmap 26
+zenmap, leveraging
+analysis, scanning 104-107

@@ -1,0 +1,376 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 623 - In this instance, you would want to make sure that you check both options, or you could potentially miss a critical vulnerability.
+–open: This flag filters the response and only shows you ports that respond as being “open” on the target hosts. This is great for reducing the noise and lengthy output of scans, as well as looking for something specific. Rather than scanning 255 hosts looking for port 4786 (nmap -p 4786 10.0.0.0/24) and then having to scroll through all 255 responses to see which ones say “closed” and which say “open”, this flag can be used to do that sorting for me. This is a huge time saver and quality-of-life improvement.
+--reason: This is a flag that most people have never heard of, but it can be really helpful in determining what is going on. It shows the reason why each port is being reported the way that it is. If you are seeing a lot of ports open and they are all coming back Filtered, this is a great flag to add on and rescan the target. While it cannot magically change the status to open, it can display the type of packet that was received from the port when the connection was made:
+Security Relevance Score: 21
+Word Count: 3508
+Extracted: 2025-06-13 23:40:38
+
+---
+
+In this instance, you would want to make sure that you check both options, or you could potentially miss a critical vulnerability.
+–open: This flag filters the response and only shows you ports that respond as being “open” on the target hosts. This is great for reducing the noise and lengthy output of scans, as well as looking for something specific. Rather than scanning 255 hosts looking for port 4786 (nmap -p 4786 10.0.0.0/24) and then having to scroll through all 255 responses to see which ones say “closed” and which say “open”, this flag can be used to do that sorting for me. This is a huge time saver and quality-of-life improvement.
+--reason: This is a flag that most people have never heard of, but it can be really helpful in determining what is going on. It shows the reason why each port is being reported the way that it is. If you are seeing a lot of ports open and they are all coming back Filtered, this is a great flag to add on and rescan the target. While it cannot magically change the status to open, it can display the type of packet that was received from the port when the connection was made:
+
+
+
+Figure 3.5: Including the reasoning behind the port responses
+
+There are many more advanced flags we will cover in the following several chapters, which will incorporate different syntax and naming conventions. While you will naturally start to memorize them with experience, A quick reference guide of all the flags and descriptions we go over in all chapters have been included as an appendix at the end of this book. By strategically combining just these flags, you can efficiently enumerate a lot of information about the systems and, by extension, the attack surface that you are targeting.
+Leveraging Nmap to Map the Attack Surface
+Internal and external network pentests are the types of security engagements you will most likely be conducting when using Nmap for widespread attack surface mapping. While we have discussed several other use cases for red and purple teaming, we will focus this section on the traditional network pentesting.
+Depending on the engagement and the client’s preferences you may be provided a full list of IP addresses and domain/subdomains that make up the scope of the test; or, you may be provided only the name of the company and will have to find the assets that they own yourself. The latter is commonly referred to as a black box pentest, meaning that you are fully emulating a malicious actor who when targeting an organization has to do all the reconnaissance themselves. In this scenario, there are a couple of things that you will want to do before Nmap gets involved, namely, identifying the systems, domains, and subdomains, which need to be assessed.
+Typically, the process begins with subdomain enumeration of the organization's main domain utilizing OWASP Amass (https://github.com/owasp-amass/amass), which is an open-source intelligence (OSINT) tool designed to aid in external asset discovery:
+
+
+
+Figure 3.6: Demonstrating OWASP amass for subdomain enumeration
+A second tool that is worth utilizing as well is https://crt.sh, which looks up subdomains based on the TLS certificates being used:
+
+
+
+Figure 3.7: Demonstrating crt.sh for subdomain enumeration
+While the output of both of these tools will often be very much the same; there can occasionally be some important targets that are picked up by one instead of the other. In both cases, this is considered passive reconnaissance as no direct connections are being established.
+Once the two outputs are generated, the easiest way to deduplicate them is to paste both lists into Microsoft Excel (or something similar) and use the deduplicate function. Now, you have a much more robust set of targets than the main domain name.
+Next, take this consolidated list of targets and create a txt file for Nmap to use. In this case, we will use the Nano command and name this as “targets.txt”:
+
+
+
+Figure 3.8: Creating and reading a target file
+Now we can start to utilize Nmap to dive into the hosts both collectively as well as individually. The strategy tend to be used for this is to first scan the entire target list, looking for ports typically open during this type of engagement. This approach is far quicker and less overt to scan a handful of ports individually rather than the top 1,000 on every host. Then, once the results are analyzed and interesting endpoints are found, the focus will be for more in-depth scans on those devices:
+ Remember a penetration test is not designed to find every possible vulnerability that exists. The goal is to compromise the external attack surface, gain a foothold on the internal environment, and demonstrate the potential impact of a malicious actor.
+Nmap -A -T2 --open -p 21,22,25,80,110,179,443,8080,8443 -iL targets.txt -oX results1.xml
+
+
+
+Figure 3.9: Initial scan demonstration
+Let's break down what that scan is doing flag by flag:
+
+
+
+
+
+
+
+Flag
+
+
+Function
+
+
+
+
+-A
+
+
+Fingerprint the operating system and all services and versions
+
+
+
+
+-T2
+
+
+Slow scanning speed
+
+
+
+
+--open
+
+
+Only show results for ports that are returned in the open state
+
+
+
+
+-p
+
+
+A numerical list of the ports to be scanned (refer to Table 3.2)
+
+
+
+
+-iL
+
+
+Supplying the targets list “targets.txt”
+
+
+
+
+-oX
+
+
+Directing the output to also be piped to the file results1.xml
+
+
+
+Table 3.1: Basic Nmap Flags
+Additionally, we strategically specified several individual ports with the -p flag:
+
+
+
+
+
+
+
+Port
+
+
+Protocol
+
+
+
+
+21
+
+
+FTP – File Transfer Protocol
+
+
+
+
+22
+
+
+SSH – Secure Shell
+
+
+
+
+25
+
+
+SMTP – Simple Mail Transfer Protocol
+
+
+
+
+80
+
+
+HTTP – Hypertext Transfer Protocol
+
+
+
+
+110
+
+
+POP3 – Post Office Protocol version 3
+
+
+
+
+179
+
+
+BGP – Border Gateway Protocol
+
+
+
+
+443
+
+
+HTTPS – Hypertext Transfer Protocol Secure
+
+
+
+
+8080
+
+
+Alternate port for HTTP
+
+
+
+
+8443
+
+
+Alternate port for HTTPS
+
+
+
+Table 3.2: Basic port to protocol mapping
+These ports can be logically put into three main categories to identify the most commonly seen systems that are externally exposed:
+
+Web Servers (80,443,8080,8443)
+Mail Servers (25,110)
+File Transfer Servers (21,22)
+Networking Misconfiguration (179)
+
+While these are where I tend to start, remember that it is a starting point only. To conduct a professional quality penetration test, you have to be very thorough and meticulous about details; scanning the entire scope for additional less common ports and services will come after the initial analysis is complete.
+As you comb through these results, there are a few key things that you want to be looking for that will help you identify the CPE of each endpoint:
+
+Specific operating system and version
+What the system is likely used for
+Specific services running on the ports and their associated versions
+
+This is the point where your research skills will become critical to your success as a penetration tester. You will need to systematically determine what vulnerabilities (CVEs) are known that are associated with both the endpoint itself (operating system) and any of the services running on that endpoint. To this end, there are a few great resources that can help you along the way:
+
+
+
+
+
+
+
+Resource
+
+
+Purpose
+
+
+
+
+Cvedetails.com
+
+
+This is a free-to-use repository of information on known CVEs, which allows you to search by the CVE ID, product title, vendor, or even vulnerability type.
+
+
+
+
+Cisa.gov
+
+
+The United States Cybersecurity Infrastructure and Security Agency has a robust database of known exploited vulnerabilities. Once you have identified a vulnerability through cvedetails.com or any other means, this is a great place to check and see if that vulnerability has been exploited in the wild.
+
+
+
+
+Exploit-db.com
+
+
+This is a database of known exploits, which can be searched by title, system, or CVE ID. Once you have identified an applicable CVE and confirmed that it is being exploited in the wild, this is one area to look into the exploit code.
+
+
+
+Table 3.3: Key resources
+A common question I get asked is, why does it matter if the vulnerability is exploited in the wild? This is somewhat of a philosophical question, but to keep it brief, malicious actors are most often looking for targets of opportunity, not focusing intently on one single organization. During pentests, you are emulating a hacker of moderate sophistication, not a nation-state that has a strategic interest in compromising a very specific system or organization. Most malicious actors will attack the easiest targets rather than investing great sums of time or money into developing a cutting-edge zero-day exploit for a vulnerability that has never been seen before. Taking that one step further, you will find that a large number of known CVEs do not have associated exploits with them; they are essentially theoretical vulnerabilities. This is an important distinction when mapping the attack surface because you need to consider what your potential targets for exploitation are going to be. A high-severity vulnerability that has no known exploit and CISA has never observed it being used by a malicious actor has less value to you as a penetration tester than a moderate-severity issue with known proof of concept exploits that you can leverage.
+Don’t get me wrong, there are excellent security researchers and pentesters out there who will develop their custom exploits for vulnerabilities that they identify, and that is commendable. But in the scenario of a pentest, you are time bound to have a 1-3 week window where you will have a large number of systems to analyze. It may come to a point where you need to build a custom exploit, but considering the time investment that comes with it, it is best to build out the full attack surface and first determine if there is an easier way.
+With the initial group of systems identified you will want to create a second list of targets to dig deeper into the ones that seem to be the most interesting in terms of having outdated services or operating systems. Separating these systems into a targets2.txt file, we can then take some of the restrictions off of the scan profile to dig deeper:
+Nmap -A --version-intensity 9 --allports --open -iL targets2.txt -oX results2.xml
+
+
+
+Figure 3.10: Secondary scan demonstration
+There are two additional flags here not yet discussed: version intensity and all ports. The latter is quite obvious as the “all ports” flag simply directs Nmap to query every TCP port that exists. The “version-intensity” flag however is slightly more nuanced. Version-intensity is an option that can be given a numerical value from 1 (least intense) to 9 (most intense), which will increase the likelihood of successfully versioning the service at the expense of taking longer to scan.
+A default Nmap version scan (-sV) will be using a version-intensity rating equivalent to 7, so opting for a lesser value will increase the speed of the scan at the potential cost of detail, while increasing the value to 8 or 9 will have the opposite effect. As an additional note, you can also use the --version-all flag as a shorthand alias for “version-intensity 9”.
+This far more in-depth scan of the identified hosts can then be analyzed further to identify first the CPE and then any associated CVEs, allowing you to systematically map the attack surface. This is not unlike how enterprise vulnerability scanners operate to determine the presence of vulnerabilities; however, where you have the edge as a penetration tester is the human ability to consider the context of the whole attack surface when making an assessment.
+Vulnerability scanners are very susceptible to both false positive and false negative findings. Any experienced pentester you ask would have countless stories of their vulnerability scanner telling them there is a critical vulnerability in an Apache web server only to find out it was actually Nginx all along. While these systems are getting better with each iteration, and the increased prevalence of artificial intelligence integrations is accelerating this process, the necessity for a discerning professional eye is unlikely to fade anytime soon.
+Case Study – Continuous Attack Surface Monitoring of a Small Business
+One of my favorite clients I have ever done a penetration test for was a small business of about 20 employees in the financial services sector. Over a couple of years, I did several engagements with them (external pentests, internal pentests, social engineering, and so on), and their security team (of only two people) was always extremely engaged in the process and interested in how the testing was done. At one point, we had the opportunity to train them on some of the red-team tools that were utilized in the engagements; naturally, Nmap was one of them.
+As you might guess, with such a small security team, there wasn’t a huge budget for enterprise-grade vulnerability management tools, but instead, they got creative with Nmap and used a very simple set of commands to accomplish a few very important things.
+First, they built a process with documentation, laying out a few very specific scans that they would run every other Friday. By establishing the process and meticulously documenting how it is meant to run, they were able to keep it regimented and effective.
+
+They scanned every subnet they had on their internal network, as opposed to just the IP addresses that they knew about. This way, if there were any unexpected “new” devices on the network, they would be able to identify them. This was also a way for them to identify new vulnerabilities.
+They scanned every externally accessible domain and asset the company owned for ports, services, and vulnerabilities.
+They would output the results to XML files, and analyze them for any week-to-week changes using Zenmap.
+
+What was clever about this is that the scan that they used was the same for both internal and external scanning, only the target list had to change. This made it very quick and easy for them to get into the routine of keeping their finger on the pulse of their organization’s attack surface.
+This is the scan that they used:
+nmap -A -v -T2 –-open –-vulners.nse -iL [Internal or External Target List] -oX [month] [Internal or External]_nmap_results.xml
+ I am not claiming Nmap is a replacement for an enterprise solution for continuous vulnerability management solution. But in an instance where budgetary constraints prevent such a purchase, Nmap can be an effective stop-gap measure at zero cost.
+Before utilizing Nmap, they had very little insight into what resources were even externally accessible, let alone specific vulnerabilities associated with them. This additional insight into their attack surface let the security team more aware of their security posture and allowed them to more strategically allocate the resources at their disposal to strengthen that posture.
+Challenge 1 - Getting Hands-on with Basic Scans
+In this chapter, we have explored a dozen different flags and discussed some use cases for basic scans from an enterprise perspective. Utilize your lab environment to first recreate each of the scans that were demonstrated in this chapter. Next, consider ways to modify some of the scans in your lab environment to elicit different results. While the information necessary can be found in this chapter, don’t be afraid to refer and dive into the official documentation at https://nmap.org/book/man.html.
+Try to accomplish the following with some basic scans:
+
+Add additional verbosity beyond -v
+Adjust the speed of the scan by reducing the complexity of service versioning and timing
+Experiment with outputting different file types
+Scan specific ports, the top 1000 ports, and all ports on your lab machines
+
+Map the attack surface of the systems in your lab, take note of the CPE of each system, and research any known CVEs associated with them.
+Challenge 2 – Map the Attack Surface of Your Home Network
+Now that you have some familiarity with Nmap and mapping the attack surface of a lab environment; it is an opportune time to apply this skillset to your life by mapping your personal home network’s attack surface. This can most simply be done by scanning the subnet of your main computer (assuming you have not established network segmentation on your home network).
+As discussed in the introduction of this chapter, a very similar exercise was eye-opening for me and helped me identify a very troubling security issue with my baby monitor. Perhaps, you will find some similarly concerning items, or (hopefully) confirm the secure state of your network.
+As you assess your network’s attack surface, consider the following questions:
+
+Which systems would a malicious actor be most likely to target?
+How can you improve the security of the network? (adding an IDS, Segregating the network, Restricting outbound traffic)
+Are there any systems on your network that you cannot identify?
+
+ Add the port TCP 1883 to the scan of your home network. This port is associated with MQ Telemetry Transport (MQTT), which is a lightweight communication protocol very common in IoT devices and is not included in the top 1000 most common ports that a default Nmap scan would pick up.
+Conclusion
+The ability to accurately and efficiently map an attack surface is essential for a successful penetration tester. While Nmap is not the only tool that is used in the process, it can be a powerful asset for adding important context to the bigger picture. As we have seen, the versatility and power of Nmap truly come alive when leveraging multiple flags in tandem to fine-tune the individual scans.
+Attack surface mapping is not only critical for a penetration test but is also a very helpful skill for a blue team cyber security professional. Being able to understand how a malicious actor would analyze an organization or network and try to identify points of weakness will inherently lead to a better understanding of how to protect against such techniques.
+This chapter concludes what would generally be considered “basic” Nmap techniques. In the subsequent chapters, we will quickly progress into intermediate and advanced tactics and techniques to fully leverage the capabilities of Nmap in a professional penetration test. To that end, it is highly recommended that you take your time in practicing with the lab environment to build your comfort level with the tool and the basic flags that were discussed in this chapter before progressing to ensure a strong foundation is established.
+In the next chapter, we will continue to build on this foundation and dive deeper into using Nmap to identify specific vulnerabilities in systems through in-depth reconnaissance and enumeration techniques. Through additional case studies, more intermediate-level flags, and intricate versioning techniques, we will cover both system fingerprinting and vulnerability analysis in far greater detail.
+By the end of the next chapter, you will be going beyond simply mapping the attack surface of your lab environment and home network, and instead identifying specific vulnerabilities that could be exploited against those systems. You will become comfortable researching, confirming, and prioritizing what vulnerabilities to focus on, and perhaps most importantly, how to communicate that information to clients.
+Points to Remember
+
+Everything has an attack surface: every application, every network, and every organization. The attack surface simply refers to the systems or platforms a malicious actor could potentially target for exploitation.
+Mapping an attack surface is the first step to understanding how to allocate resources and properly defend it.
+Nmap is extremely versatile and can be magnified in capacity by utilizing specific commands (flags), in tandem with one other. By strategically leveraging different flags at different times, you can use Nmap for multiple purposes during the attack surface mapping process.
+Focus first on identifying the most interesting or unique systems on the perimeter, then utilize more intricate and in-depth scans to further fingerprint that system.
+A high-severity vulnerability that has no known exploit and CISA has never observed it being used by a malicious actor has less value to you as a penetration tester than a moderate severity issue with known proof of concept exploits that you can leverage.
+
+Multiple Choice Questions
+
+Which of the following flags would be best used to identify both the operating system and the services running on open ports?
+
+-A
+-sV
+-sU
+-iL
+Attack surface mapping often begins with organizational reconnaissance of a root domain. Which of the following tools would be best utilized for subdomain enumeration?
+
+ Nmap
+OWASP Amass
+Metasploit
+BurpSuite
+An Nmap scan specifying only “-sV” will conduct service version enumeration equivalent to what version-intensity rating?
+
+ 2
+5
+7
+9
+A default Nmap scan executes at a speed equivalent to which -T specification?
+
+ T-2
+T-3
+T-4
+T-5
+What flag would you use to output scan results to a .xml file?
+
+ -oX
+-oT
+-oA
+-oAll
+The following two scans will return the same results. True or false.
+ Nmap -sV 10.0.0.1 -p 80,443 --open -v
+ Nmap –-open -v -sV -p 80,443 10.0.0.1
+
+True
+False
+This US-based organization maintains a database of known exploited vulnerabilities.
+
+CIA
+CISA
+OWASP
+MITRE
+Which of the following is NOT a port commonly associated with web services?
+
+80
+443
+8080
+1883
+A ______ pentest describes a scenario in which the penetration tester is emulating a malicious actor who when targeting an organization has to do all the reconnaissance themselves.
+
+White Box
+Black Box
+Gray Box
+Which is a database of known exploits that can be searched by title, system, or CVE id.
+
+Exploit-db.com
+Cisa.gov
+Owasp.org
+Attack.mitre.org
+
+Answers

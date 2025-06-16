@@ -137,7 +137,7 @@ impl BashGodOptimizer {
         // Select best variant
         let best_command = scored_variants
             .into_iter()
-            .max_by(|a, b| a.score.partial_cmp(&b.score).unwrap())
+            .max_by(|a, b| a.score.partial_cmp(&b.score)?)
             .ok_or_else(|| anyhow!("No valid command generated"))?;
         
         // Cache the result
@@ -480,7 +480,7 @@ impl PatternLearner {
         }
         
         // Sort by success rate
-        matching_patterns.sort_by(|a, b| b.success_rate.partial_cmp(&a.success_rate).unwrap());
+        matching_patterns.sort_by(|a, b| b.success_rate.partial_cmp(&a.success_rate).expect("Unexpected None/Error"));
         
         Ok(matching_patterns)
     }

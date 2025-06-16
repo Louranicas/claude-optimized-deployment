@@ -20,6 +20,25 @@ import logging
 
 from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError, MCPServer
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError,
+    ValidationError,
+    ConfigurationError,
+    RateLimitError
+)
+
+__all__ = [
+    "AzureDevOpsMCPServer",
+    "WindowsSystemMCPServer",
+    "sanitize_input",
+    "validate_command"
+]
+
+
 logger = logging.getLogger(__name__)
 
 # PowerShell command whitelist for security

@@ -1,0 +1,646 @@
+# Comprehensive Health Checks and Readiness Probes for CODE Project
+# Advanced health monitoring with custom health check endpoints
+
+---
+# Health Check Service for API
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-api-health
+  namespace: code-production
+  labels:
+    app: code-api
+    component: health
+spec:
+  type: ClusterIP
+  ports:
+  - name: health
+    port: 8080
+    targetPort: 8000
+    protocol: TCP
+  selector:
+    app: code-api
+    component: api
+
+---
+# Advanced Health Check Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-monitor
+  namespace: monitoring
+  labels:
+    app: health-monitor
+    component: monitoring
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: health-monitor
+  template:
+    metadata:
+      labels:
+        app: health-monitor
+        component: monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: health-monitor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: health-monitor
+        image: prom/blackbox-exporter:v0.24.0
+        ports:
+        - name: http
+          containerPort: 9115
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        args:
+        - '--config.file=/etc/blackbox/blackbox.yml'
+        - '--web.listen-address=:9115'
+        - '--log.level=info'
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: config
+          mountPath: /etc/blackbox
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: config
+        configMap:
+          name: blackbox-config
+          defaultMode: 0444
+      - name: tmp
+        emptyDir: {}
+
+---
+# Blackbox Exporter Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blackbox-config
+  namespace: monitoring
+data:
+  blackbox.yml: |
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes: [200]
+          method: GET
+          headers:
+            Host: api.code.example.com
+            User-Agent: "Blackbox Exporter"
+          no_follow_redirects: false
+          fail_if_ssl: false
+          fail_if_not_ssl: true
+          tls_config:
+            insecure_skip_verify: false
+      
+      http_post_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes: [200, 201, 202]
+          method: POST
+          headers:
+            Content-Type: "application/json"
+          body: '{"health_check": true}'
+      
+      http_api_health:
+        prober: http
+        timeout: 10s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes: [200]
+          method: GET
+          headers:
+            Authorization: "Bearer health-check-token"
+          fail_if_body_not_matches_regexp:
+            - "\"status\":\\s*\"healthy\""
+            - "\"database\":\\s*\"connected\""
+            - "\"redis\":\\s*\"connected\""
+      
+      tcp_connect:
+        prober: tcp
+        timeout: 5s
+        tcp:
+          query_response:
+            - expect: "^+OK"
+      
+      postgres_connect:
+        prober: tcp
+        timeout: 10s
+        tcp:
+          query_response:
+            - send: ""
+            - expect: "PostgreSQL"
+      
+      dns_resolution:
+        prober: dns
+        timeout: 5s
+        dns:
+          query_name: "api.code.example.com"
+          query_type: "A"
+          valid_rcodes:
+            - NOERROR
+          validate_answer_rrs:
+            fail_if_matches_regexp:
+              - "^127\\.0\\.0\\.1$"
+
+---
+# Custom Health Check Endpoints (ConfigMap for API)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: health-check-endpoints
+  namespace: code-production
+data:
+  health_checks.py: |
+    # Custom health check implementations
+    import asyncio
+    import json
+    import time
+    from typing import Dict, Any
+    import asyncpg
+    import redis.asyncio as redis
+    from fastapi import FastAPI, HTTPException
+    from fastapi.responses import JSONResponse
+    
+    class HealthChecker:
+        def __init__(self):
+            self.start_time = time.time()
+            self.checks = {
+                'database': self.check_database,
+                'redis': self.check_redis,
+                'external_apis': self.check_external_apis,
+                'disk_space': self.check_disk_space,
+                'memory': self.check_memory,
+            }
+        
+        async def check_database(self) -> Dict[str, Any]:
+            """Check PostgreSQL database connectivity and performance"""
+            try:
+                start_time = time.time()
+                conn = await asyncpg.connect(
+                    host="postgres",
+                    port=5432,
+                    user="postgres",
+                    password="password",
+                    database="code_production",
+                    command_timeout=5
+                )
+                
+                # Test query performance
+                result = await conn.fetchval("SELECT 1")
+                response_time = time.time() - start_time
+                
+                # Check connection pool status
+                pool_status = await conn.fetchrow("""
+                    SELECT 
+                        count(*) as total_connections,
+                        count(*) FILTER (WHERE state = 'active') as active_connections
+                    FROM pg_stat_activity 
+                    WHERE datname = 'code_production'
+                """)
+                
+                await conn.close()
+                
+                return {
+                    'status': 'healthy',
+                    'response_time_ms': round(response_time * 1000, 2),
+                    'total_connections': pool_status['total_connections'],
+                    'active_connections': pool_status['active_connections'],
+                    'max_connections': 100  # From config
+                }
+            except Exception as e:
+                return {
+                    'status': 'unhealthy',
+                    'error': str(e),
+                    'response_time_ms': None
+                }
+        
+        async def check_redis(self) -> Dict[str, Any]:
+            """Check Redis connectivity and performance"""
+            try:
+                start_time = time.time()
+                r = redis.Redis(host='redis', port=6379, decode_responses=True)
+                
+                # Test connectivity
+                await r.ping()
+                response_time = time.time() - start_time
+                
+                # Get Redis info
+                info = await r.info()
+                memory_usage = info.get('used_memory', 0)
+                max_memory = info.get('maxmemory', 0)
+                
+                await r.aclose()
+                
+                return {
+                    'status': 'healthy',
+                    'response_time_ms': round(response_time * 1000, 2),
+                    'memory_usage_mb': round(memory_usage / 1024 / 1024, 2),
+                    'memory_usage_percent': round((memory_usage / max_memory) * 100, 2) if max_memory > 0 else 0,
+                    'connected_clients': info.get('connected_clients', 0)
+                }
+            except Exception as e:
+                return {
+                    'status': 'unhealthy',
+                    'error': str(e),
+                    'response_time_ms': None
+                }
+        
+        async def check_external_apis(self) -> Dict[str, Any]:
+            """Check external API dependencies"""
+            import aiohttp
+            
+            external_services = [
+                {'name': 'OpenAI API', 'url': 'https://api.openai.com/v1/models', 'timeout': 5},
+                {'name': 'Anthropic API', 'url': 'https://api.anthropic.com/v1/messages', 'timeout': 5}
+            ]
+            
+            results = {}
+            overall_status = 'healthy'
+            
+            async with aiohttp.ClientSession() as session:
+                for service in external_services:
+                    try:
+                        start_time = time.time()
+                        async with session.get(
+                            service['url'], 
+                            timeout=aiohttp.ClientTimeout(total=service['timeout'])
+                        ) as response:
+                            response_time = time.time() - start_time
+                            results[service['name']] = {
+                                'status': 'healthy' if response.status < 500 else 'degraded',
+                                'response_time_ms': round(response_time * 1000, 2),
+                                'http_status': response.status
+                            }
+                    except Exception as e:
+                        results[service['name']] = {
+                            'status': 'unhealthy',
+                            'error': str(e),
+                            'response_time_ms': None
+                        }
+                        overall_status = 'degraded'
+            
+            return {
+                'status': overall_status,
+                'services': results
+            }
+        
+        async def check_disk_space(self) -> Dict[str, Any]:
+            """Check disk space usage"""
+            import shutil
+            
+            try:
+                total, used, free = shutil.disk_usage('/')
+                usage_percent = (used / total) * 100
+                
+                status = 'healthy'
+                if usage_percent > 90:
+                    status = 'critical'
+                elif usage_percent > 80:
+                    status = 'warning'
+                
+                return {
+                    'status': status,
+                    'total_gb': round(total / 1024 / 1024 / 1024, 2),
+                    'used_gb': round(used / 1024 / 1024 / 1024, 2),
+                    'free_gb': round(free / 1024 / 1024 / 1024, 2),
+                    'usage_percent': round(usage_percent, 2)
+                }
+            except Exception as e:
+                return {
+                    'status': 'unknown',
+                    'error': str(e)
+                }
+        
+        async def check_memory(self) -> Dict[str, Any]:
+            """Check memory usage"""
+            import psutil
+            
+            try:
+                memory = psutil.virtual_memory()
+                
+                status = 'healthy'
+                if memory.percent > 90:
+                    status = 'critical'
+                elif memory.percent > 80:
+                    status = 'warning'
+                
+                return {
+                    'status': status,
+                    'total_gb': round(memory.total / 1024 / 1024 / 1024, 2),
+                    'used_gb': round(memory.used / 1024 / 1024 / 1024, 2),
+                    'available_gb': round(memory.available / 1024 / 1024 / 1024, 2),
+                    'usage_percent': round(memory.percent, 2)
+                }
+            except Exception as e:
+                return {
+                    'status': 'unknown',
+                    'error': str(e)
+                }
+        
+        async def run_all_checks(self) -> Dict[str, Any]:
+            """Run all health checks concurrently"""
+            start_time = time.time()
+            
+            # Run checks concurrently
+            tasks = {name: check() for name, check in self.checks.items()}
+            results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+            
+            # Combine results
+            health_status = {}
+            overall_status = 'healthy'
+            
+            for (name, _), result in zip(tasks.items(), results):
+                if isinstance(result, Exception):
+                    health_status[name] = {
+                        'status': 'error',
+                        'error': str(result)
+                    }
+                    overall_status = 'unhealthy'
+                else:
+                    health_status[name] = result
+                    if result.get('status') in ['unhealthy', 'critical']:
+                        overall_status = 'unhealthy'
+                    elif result.get('status') in ['degraded', 'warning'] and overall_status == 'healthy':
+                        overall_status = 'degraded'
+            
+            total_time = time.time() - start_time
+            uptime = time.time() - self.start_time
+            
+            return {
+                'status': overall_status,
+                'timestamp': time.time(),
+                'uptime_seconds': round(uptime, 2),
+                'check_duration_ms': round(total_time * 1000, 2),
+                'checks': health_status,
+                'version': '1.0.0',
+                'environment': 'production'
+            }
+
+---
+# Health Check Service Monitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: health-checks-monitor
+  namespace: monitoring
+  labels:
+    app: health-monitor
+spec:
+  selector:
+    matchLabels:
+      app: health-monitor
+  endpoints:
+  - port: http
+    interval: 30s
+    path: /metrics
+    scrapeTimeout: 10s
+
+---
+# PrometheusRule for Health Check Alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: health-check-alerts
+  namespace: monitoring
+  labels:
+    app: health-monitor
+spec:
+  groups:
+  - name: health-checks
+    rules:
+    # Endpoint availability
+    - alert: EndpointDown
+      expr: probe_success == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Endpoint {{ $labels.instance }} is down"
+        description: "HTTP probe failed for {{ $labels.instance }} for more than 1 minute"
+    
+    # High response time
+    - alert: HighResponseTime
+      expr: probe_duration_seconds > 5
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High response time for {{ $labels.instance }}"
+        description: "Response time is {{ $value }}s for {{ $labels.instance }}"
+    
+    # SSL certificate expiration
+    - alert: SSLCertificateExpiring
+      expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+      for: 1h
+      labels:
+        severity: warning
+      annotations:
+        summary: "SSL certificate for {{ $labels.instance }} expires soon"
+        description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+    
+    # Database health
+    - alert: DatabaseUnhealthy
+      expr: code_health_check_status{check="database"} != 1
+      for: 30s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Database health check failed"
+        description: "Database connectivity or performance issues detected"
+    
+    # Redis health
+    - alert: RedisUnhealthy
+      expr: code_health_check_status{check="redis"} != 1
+      for: 30s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Redis health check failed"
+        description: "Redis connectivity or performance issues detected"
+    
+    # Memory usage critical
+    - alert: MemoryUsageCritical
+      expr: code_health_check_memory_usage_percent > 90
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Critical memory usage detected"
+        description: "Memory usage is {{ $value }}% which is above critical threshold"
+    
+    # Disk space critical
+    - alert: DiskSpaceCritical
+      expr: code_health_check_disk_usage_percent > 90
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Critical disk space usage detected"
+        description: "Disk usage is {{ $value }}% which is above critical threshold"
+
+---
+# ServiceAccount for Health Monitor
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: health-monitor
+  namespace: monitoring
+
+---
+# ClusterRole for Health Monitor
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: health-monitor
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding for Health Monitor
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: health-monitor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: health-monitor
+subjects:
+- kind: ServiceAccount
+  name: health-monitor
+  namespace: monitoring
+
+---
+# Custom Health Check Metrics Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-metrics
+  namespace: monitoring
+  labels:
+    app: health-metrics
+spec:
+  type: ClusterIP
+  ports:
+  - name: metrics
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: health-metrics
+
+---
+# Synthetic Transaction Monitoring CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: synthetic-tests
+  namespace: monitoring
+  labels:
+    app: synthetic-tests
+    component: monitoring
+spec:
+  schedule: "*/5 * * * *"  # Every 5 minutes
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            app: synthetic-tests
+            component: monitoring
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: synthetic-tests
+            image: curlimages/curl:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              
+              echo "Running synthetic tests at $(date)"
+              
+              # Test API health endpoint
+              response=$(curl -s -w "%{http_code}" -o /tmp/health.json "https://api.code.example.com/health")
+              if [ "$response" != "200" ]; then
+                echo "Health check failed with status: $response"
+                exit 1
+              fi
+              
+              # Test API authentication
+              auth_response=$(curl -s -w "%{http_code}" -H "Authorization: Bearer test-token" -o /tmp/auth.json "https://api.code.example.com/api/v1/auth/verify")
+              if [ "$auth_response" != "200" ]; then
+                echo "Auth check failed with status: $auth_response"
+                exit 1
+              fi
+              
+              # Test critical user journey
+              journey_response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" -d '{"test": true}' -o /tmp/journey.json "https://api.code.example.com/api/v1/test")
+              if [ "$journey_response" != "200" ]; then
+                echo "User journey test failed with status: $journey_response"
+                exit 1
+              fi
+              
+              echo "All synthetic tests passed"
+            resources:
+              requests:
+                memory: "64Mi"
+                cpu: "50m"
+              limits:
+                memory: "128Mi"
+                cpu: "100m"

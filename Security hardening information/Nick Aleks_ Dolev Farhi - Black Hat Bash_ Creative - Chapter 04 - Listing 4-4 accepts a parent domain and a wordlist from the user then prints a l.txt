@@ -1,0 +1,61 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 04 - Listing 4-4 accepts a parent domain and a wordlist from the user, then prints a list of fully qualified subdomains by using the wordlist you downloaded earlier.
+#!/bin/bash
+DOMAIN="${1}"
+FILE="${2}"
+Security Relevance Score: 2
+Word Count: 500
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Listing 4-4 accepts a parent domain and a wordlist from the user, then prints a list of fully qualified subdomains by using the wordlist you downloaded earlier.
+#!/bin/bash
+DOMAIN="${1}"
+FILE="${2}"
+
+# Read the file from standard input and echo the full domain.
+while read -r subdomain; do
+  echo "${subdomain}.${DOMAIN}"
+done < "${FILE}"
+
+Listing 4-4: Using a while loop to generate a list of subdomains
+The script uses a while loop to read the file and assign each line to the subdomain variable in turn. The echo command then concatenates these two strings together to form a full domain name. Save this script as generate_subdomains.sh and provide it with two arguments:
+$ ./generate_subdomains.sh example.com subdomains-1000.txt
+
+www.example.com
+mail.example.com
+ftp.example.com
+localhost.example.com
+webmail.example.com
+--snip--
+
+The first argument is the parent domain, and the second is the path to the file containing all possible subdomains.
+We can use sed to write content to the end of each line in a file. In Listing 4-5, the command uses the $ sign to find the end of a line, then replace it with the target domain prefixed with a dot (.example.com) to complete the domain name.
+$ sed 's/$/.example.com/g' subdomains-1000.txt
+
+relay.example.com
+files.example.com
+newsletter.example.com
+
+Listing 4-5: Using sed to generate a list of subdomains
+The s at the beginning of the argument to sed stands for substitute, and g means that sed will replace all matches in the file, not just the first match. So, in simple terms, we substitute the end of each line in the file with .example.com. If you save this code to a script, the output should look the same as in the previous example.
+
+
+
+Host Discovery
+When testing a range of addresses, one of the first things you’ll likely want to do is find out information about them. Do they have any open ports? What services are behind those ports, and are they vulnerable to any security flaws? Answering these questions manually is possible, but this can be challenging if you need to do it for hundreds or thousands of hosts. Let’s use bash to automate network enumeration tasks.
+One way to identify live hosts is by attempting to send them network packets and wait for them to return responses. In this section, we’ll use bash and additional network utilities to perform host discovery.
+
+ping
+At its most basic form, the ping command takes one argument: a target IP address or domain name. Run the following command to see its output:
+$ ping 172.16.10.10
+
+PING 172.16.10.10 (172.16.10.10) 56(84) bytes of data.
+64 bytes from 172.16.10.10: icmp_seq=1 ttl=64 time=0.024 ms
+64 bytes from 172.16.10.10: icmp_seq=2 ttl=64 time=0.029 ms
+64 bytes from 172.16.10.10: icmp_seq=3 ttl=64 time=0.029 ms
+
+The ping command will run forever, so press CTRL-C to stop its execution.
+If you read the ping manual page (by running man ping), you’ll notice that there is no way to run the command against multiple hosts at once. But using bash, we can do this quite easily. Listing 4-6 pings all hosts on the network 172.16.10.0/

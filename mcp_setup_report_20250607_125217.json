@@ -1,0 +1,141 @@
+{
+  "timestamp": "2025-06-07T12:52:17.342689",
+  "summary": {
+    "total_servers": 8,
+    "installed": 8,
+    "failed": 0
+  },
+  "results": [
+    {
+      "server": "desktop-commander",
+      "status": "success",
+      "package": "@wonderwhy-er/desktop-commander"
+    },
+    {
+      "server": "filesystem",
+      "status": "success",
+      "package": "@modelcontextprotocol/server-filesystem"
+    },
+    {
+      "server": "postgres",
+      "status": "success",
+      "package": "@modelcontextprotocol/server-postgres"
+    },
+    {
+      "server": "github",
+      "status": "success",
+      "package": "@modelcontextprotocol/server-github"
+    },
+    {
+      "server": "memory",
+      "status": "success",
+      "package": "@modelcontextprotocol/server-memory"
+    },
+    {
+      "server": "brave-search",
+      "status": "success",
+      "package": "@modelcontextprotocol/server-brave-search"
+    },
+    {
+      "server": "slack",
+      "status": "success",
+      "package": "@modelcontextprotocol/server-slack"
+    },
+    {
+      "server": "puppeteer",
+      "status": "success",
+      "package": "@modelcontextprotocol/server-puppeteer"
+    }
+  ],
+  "servers": [
+    {
+      "name": "desktop-commander",
+      "npm_package": "@wonderwhy-er/desktop-commander",
+      "description": "Desktop control and command execution",
+      "priority": 1,
+      "config": {
+        "allowed_commands": [
+          "ls",
+          "pwd",
+          "echo",
+          "cat",
+          "grep",
+          "find"
+        ],
+        "max_output_length": 10000,
+        "timeout": 30000
+      }
+    },
+    {
+      "name": "filesystem",
+      "npm_package": "@modelcontextprotocol/server-filesystem",
+      "description": "File system operations",
+      "priority": 2,
+      "config": {
+        "allowed_directories": [
+          "~/projects",
+          "~/Documents"
+        ],
+        "max_file_size": 10485760
+      }
+    },
+    {
+      "name": "postgres",
+      "npm_package": "@modelcontextprotocol/server-postgres",
+      "description": "PostgreSQL database integration",
+      "priority": 3,
+      "config": {
+        "connection_string": "postgresql://localhost:5432/mcp_db"
+      }
+    },
+    {
+      "name": "github",
+      "npm_package": "@modelcontextprotocol/server-github",
+      "description": "GitHub API integration",
+      "priority": 4,
+      "config": {
+        "token": ""
+      }
+    },
+    {
+      "name": "memory",
+      "npm_package": "@modelcontextprotocol/server-memory",
+      "description": "AI memory and context",
+      "priority": 5,
+      "config": {
+        "storage_path": "./mcp_memory"
+      }
+    },
+    {
+      "name": "brave-search",
+      "npm_package": "@modelcontextprotocol/server-brave-search",
+      "description": "Brave search integration",
+      "priority": 6,
+      "config": {
+        "api_key": "BSAigVAUU4-V72PjB48t8_CqN00Hh5z"
+      }
+    },
+    {
+      "name": "slack",
+      "npm_package": "@modelcontextprotocol/server-slack",
+      "description": "Slack communication",
+      "priority": 7,
+      "config": {
+        "bot_token": ""
+      }
+    },
+    {
+      "name": "puppeteer",
+      "npm_package": "@modelcontextprotocol/server-puppeteer",
+      "description": "Browser automation",
+      "priority": 8,
+      "config": {
+        "headless": true,
+        "defaultViewport": {
+          "width": 1920,
+          "height": 1080
+        }
+      }
+    }
+  ]
+}

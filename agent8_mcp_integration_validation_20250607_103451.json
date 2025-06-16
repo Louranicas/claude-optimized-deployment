@@ -1,0 +1,222 @@
+{
+  "validation_timestamp": "2025-06-07T10:34:51.134447",
+  "integration_tests": {
+    "module_imports": {
+      "mcp_core": {
+        "status": "success",
+        "module": "src.mcp",
+        "importable": true
+      },
+      "mcp_manager": {
+        "status": "error",
+        "module": "src.mcp.manager",
+        "error": "Unexpected error: from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)",
+        "importable": false
+      },
+      "mcp_servers": {
+        "status": "success",
+        "module": "src.mcp.servers",
+        "importable": true
+      },
+      "mcp_protocols": {
+        "status": "success",
+        "module": "src.mcp.protocols",
+        "importable": true
+      },
+      "database_core": {
+        "status": "error",
+        "module": "src.database",
+        "error": "Unexpected error: invalid syntax (__init__.py, line 2)",
+        "importable": false
+      },
+      "auth_core": {
+        "status": "error",
+        "module": "src.auth",
+        "error": "Unexpected error: No audit signing key configured. Set AUDIT_SIGNING_KEY environment variable or create ~/.claude_deployment/audit_signing_key file",
+        "importable": false
+      },
+      "monitoring_core": {
+        "status": "error",
+        "module": "src.monitoring",
+        "error": "cannot import name 'OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE' from 'opentelemetry.sdk.environment_variables' (/home/louranicas/projects/claude-optimized-deployment/venv_bulletproof/lib/python3.12/site-packages/opentelemetry/sdk/environment_variables.py)",
+        "importable": false
+      },
+      "core_exceptions": {
+        "status": "success",
+        "module": "src.core.exceptions",
+        "importable": true
+      },
+      "core_circuit_breaker": {
+        "status": "success",
+        "module": "src.core.circuit_breaker",
+        "importable": true
+      }
+    },
+    "mcp_server_registration": {
+      "status": "error",
+      "error": "from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)"
+    },
+    "database_compatibility": {
+      "status": "error",
+      "error": "invalid syntax (__init__.py, line 2)"
+    },
+    "authentication_integration": {
+      "status": "error",
+      "error": "from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)"
+    },
+    "monitoring_integration": {
+      "status": "success",
+      "monitoring_component_imports": {
+        "src.monitoring.metrics": true,
+        "src.monitoring.alerts": false,
+        "src.monitoring.health": true,
+        "src.monitoring.tracing": false
+      },
+      "mcp_monitoring_available": false,
+      "integration_score": 0.5
+    },
+    "api_integration": {
+      "status": "success",
+      "api_component_imports": {
+        "src.api.circuit_breaker_api": true
+      },
+      "web_frameworks_available": {
+        "fastapi": true,
+        "flask": false,
+        "starlette": true
+      },
+      "api_ready": true
+    },
+    "configuration_compatibility": {
+      "status": "success",
+      "config_component_imports": {
+        "src.core.logging_config": true,
+        "src.core.circuit_breaker_config": true,
+        "src.core.cors_config": true
+      },
+      "config_files_present": {
+        "pyproject.toml": true,
+        "Cargo.toml": true,
+        "docker-compose.monitoring.yml": true,
+        "k8s/configmaps.yaml": true
+      },
+      "configuration_score": 1.0
+    },
+    "error_handling": {
+      "status": "success",
+      "exception_tests": {
+        "mcp_error": {
+          "creatable": true,
+          "class_name": "MCPError",
+          "is_mcp_error": true
+        },
+        "server_not_found": {
+          "creatable": true,
+          "class_name": "MCPServerNotFoundError",
+          "is_mcp_error": true
+        },
+        "tool_not_found": {
+          "creatable": false,
+          "error": "MCPToolNotFoundError.__init__() missing 1 required positional argument: 'server_name'"
+        },
+        "tool_execution": {
+          "creatable": false,
+          "error": "MCPToolExecutionError.__init__() missing 2 required positional arguments: 'tool_name' and 'server_name'"
+        }
+      },
+      "error_hierarchy_working": true
+    },
+    "resource_management": {
+      "status": "error",
+      "error": "from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)"
+    }
+  },
+  "compatibility_matrix": {
+    "module_imports": {
+      "compatible": false,
+      "status": "unknown",
+      "score": 0.0
+    },
+    "mcp_server_registration": {
+      "compatible": false,
+      "status": "error",
+      "score": 0.0
+    },
+    "database_compatibility": {
+      "compatible": false,
+      "status": "error",
+      "score": 0.0
+    },
+    "authentication_integration": {
+      "compatible": false,
+      "status": "error",
+      "score": 0.0
+    },
+    "monitoring_integration": {
+      "compatible": true,
+      "status": "success",
+      "score": 1.0
+    },
+    "api_integration": {
+      "compatible": true,
+      "status": "success",
+      "score": 1.0
+    },
+    "configuration_compatibility": {
+      "compatible": true,
+      "status": "success",
+      "score": 1.0
+    },
+    "error_handling": {
+      "compatible": true,
+      "status": "success",
+      "score": 1.0
+    },
+    "resource_management": {
+      "compatible": false,
+      "status": "error",
+      "score": 0.0
+    },
+    "overall": {
+      "compatibility_score": 0.4444444444444444,
+      "compatibility_grade": "F"
+    }
+  },
+  "performance_metrics": {
+    "integration_performance": {
+      "status": "error",
+      "error": "from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)"
+    }
+  },
+  "error_handling": {},
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "mcp_server_registration",
+      "issue": "mcp_server_registration integration failed",
+      "recommendation": "Review and fix mcp_server_registration integration issues",
+      "details": "from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)"
+    },
+    {
+      "priority": "high",
+      "category": "database_compatibility",
+      "issue": "database_compatibility integration failed",
+      "recommendation": "Review and fix database_compatibility integration issues",
+      "details": "invalid syntax (__init__.py, line 2)"
+    },
+    {
+      "priority": "high",
+      "category": "authentication_integration",
+      "issue": "authentication_integration integration failed",
+      "recommendation": "Review and fix authentication_integration integration issues",
+      "details": "from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)"
+    },
+    {
+      "priority": "high",
+      "category": "resource_management",
+      "issue": "resource_management integration failed",
+      "recommendation": "Review and fix resource_management integration issues",
+      "details": "from __future__ imports must occur at the beginning of the file (scanner_server.py, line 11)"
+    }
+  ]
+}

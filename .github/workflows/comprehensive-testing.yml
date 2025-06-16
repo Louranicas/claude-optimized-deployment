@@ -1,0 +1,632 @@
+# Comprehensive Testing Infrastructure
+# Complete testing suite with quality gates, coverage reporting, and performance benchmarks
+
+name: Comprehensive Testing Infrastructure
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+  schedule:
+    # Run comprehensive tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_scope:
+        description: 'Test scope to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - unit
+          - integration
+          - e2e
+          - performance
+          - security
+          - mutation
+          - property
+      skip_slow_tests:
+        description: 'Skip slow tests'
+        required: false
+        default: false
+        type: boolean
+      coverage_threshold:
+        description: 'Coverage threshold percentage'
+        required: false
+        default: '80'
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  RUST_VERSION: 'stable'
+  COVERAGE_THRESHOLD: ${{ github.event.inputs.coverage_threshold || '80' }}
+  PERFORMANCE_THRESHOLD: '95'
+  PYTEST_WORKERS: 'auto'
+
+jobs:
+  # Pre-flight checks
+  preflight:
+    name: Pre-flight Checks
+    runs-on: ubuntu-latest
+    outputs:
+      test_matrix: ${{ steps.test-matrix.outputs.matrix }}
+      should_run_performance: ${{ steps.conditions.outputs.performance }}
+      should_run_e2e: ${{ steps.conditions.outputs.e2e }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine test conditions
+        id: conditions
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event.inputs.test_scope }}" == "all" ]] || [[ "${{ github.event.inputs.test_scope }}" == "performance" ]]; then
+            echo "performance=true" >> $GITHUB_OUTPUT
+          else
+            echo "performance=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.event.inputs.test_scope }}" == "all" ]] || [[ "${{ github.event.inputs.test_scope }}" == "e2e" ]]; then
+            echo "e2e=true" >> $GITHUB_OUTPUT
+          else
+            echo "e2e=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate test matrix
+        id: test-matrix
+        run: |
+          matrix='{"include":[
+            {"name":"python-unit","language":"python","test_type":"unit","path":"tests/unit/python"},
+            {"name":"typescript-unit","language":"typescript","test_type":"unit","path":"tests/unit/typescript"},
+            {"name":"rust-unit","language":"rust","test_type":"unit","path":"tests"},
+            {"name":"integration","language":"python","test_type":"integration","path":"tests/integration"},
+            {"name":"mcp-protocol","language":"python","test_type":"protocol","path":"tests"}
+          ]}'
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+      - name: Validate configuration files
+        run: |
+          # Validate package.json
+          if [[ -f package.json ]]; then
+            node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))"
+          fi
+          
+          # Validate pytest.ini
+          if [[ -f pytest.ini ]]; then
+            python -c "import configparser; c=configparser.ConfigParser(); c.read('pytest.ini')"
+          fi
+          
+          # Validate Cargo.toml
+          if [[ -f Cargo.toml ]]; then
+            cargo check --manifest-path Cargo.toml
+          fi
+
+  # Unit tests matrix
+  unit-tests:
+    name: ${{ matrix.name }} Tests
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: ${{ github.event.inputs.test_scope == 'all' || github.event.inputs.test_scope == 'unit' || github.event.inputs.test_scope == '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.preflight.outputs.test_matrix) }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: matrix.language == 'typescript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Setup Rust
+        if: matrix.language == 'rust'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+          components: rustfmt, clippy
+
+      - name: Install Python dependencies
+        if: matrix.language == 'python'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install pytest-cov pytest-html pytest-xdist pytest-timeout pytest-mock pytest-asyncio
+
+      - name: Install Node.js dependencies
+        if: matrix.language == 'typescript'
+        run: |
+          npm ci
+          npm install --save-dev @types/jest @jest/globals
+
+      - name: Install Rust dependencies
+        if: matrix.language == 'rust'
+        run: |
+          cargo fetch
+          cargo install cargo-tarpaulin
+
+      - name: Lint code
+        run: |
+          if [[ "${{ matrix.language }}" == "python" ]]; then
+            python -m flake8 src/ tests/ --max-line-length=100 --ignore=E203,W503
+            python -m black --check src/ tests/
+            python -m isort --check-only src/ tests/
+          elif [[ "${{ matrix.language }}" == "typescript" ]]; then
+            npm run lint
+          elif [[ "${{ matrix.language }}" == "rust" ]]; then
+            cargo fmt -- --check
+            cargo clippy -- -D warnings
+          fi
+
+      - name: Run unit tests - Python
+        if: matrix.language == 'python'
+        run: |
+          pytest ${{ matrix.path }} \
+            -v \
+            --cov=src \
+            --cov-report=xml:coverage/coverage.xml \
+            --cov-report=html:coverage/html \
+            --cov-report=term \
+            --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} \
+            --junitxml=test-results/pytest.xml \
+            --html=test-results/report.html \
+            --self-contained-html \
+            -m "unit and not slow" \
+            ${{ github.event.inputs.skip_slow_tests == 'true' && '--ignore-glob="**/test_*_slow.py"' || '' }}
+
+      - name: Run unit tests - TypeScript
+        if: matrix.language == 'typescript'
+        run: |
+          npm test -- \
+            --coverage \
+            --coverageThreshold='{"global":{"statements":${{ env.COVERAGE_THRESHOLD }},"branches":${{ env.COVERAGE_THRESHOLD }},"functions":${{ env.COVERAGE_THRESHOLD }},"lines":${{ env.COVERAGE_THRESHOLD }}}}' \
+            --testPathPattern="${{ matrix.path }}" \
+            --detectOpenHandles \
+            --forceExit \
+            ${{ github.event.inputs.skip_slow_tests == 'true' && '--testPathIgnorePatterns=".*\\.slow\\.(test|spec)\\.(js|ts)$"' || '' }}
+
+      - name: Run unit tests - Rust
+        if: matrix.language == 'rust'
+        run: |
+          # Run tests with coverage
+          cargo tarpaulin \
+            --out xml \
+            --output-dir coverage \
+            --skip-clean \
+            --target-dir target/tarpaulin \
+            --timeout 300 \
+            --fail-under ${{ env.COVERAGE_THRESHOLD }} \
+            ${{ github.event.inputs.skip_slow_tests == 'true' && '--exclude-files="**/test_*_slow.rs"' || '' }}
+          
+          # Run regular tests for output
+          cargo test \
+            --lib \
+            --bins \
+            --tests \
+            -- \
+            --test-threads=4 \
+            --nocapture
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.name }}
+          path: |
+            test-results/
+            coverage/
+            target/tarpaulin/
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: coverage/coverage.xml,coverage/cobertura.xml
+          flags: ${{ matrix.name }}
+          name: ${{ matrix.name }}-coverage
+
+  # Security tests
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_scope == 'all' || github.event.inputs.test_scope == 'security' || github.event.inputs.test_scope == '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install security tools
+        run: |
+          # Python security tools
+          pip install safety bandit semgrep
+          
+          # Node.js security tools
+          npm install -g audit-ci snyk
+          
+          # Install additional tools
+          wget -O /tmp/grype.tar.gz https://github.com/anchore/grype/releases/latest/download/grype_linux_amd64.tar.gz
+          tar -xzf /tmp/grype.tar.gz -C /tmp
+          sudo mv /tmp/grype /usr/local/bin/
+
+      - name: Python dependency scan
+        run: |
+          safety check --json --output safety-report.json || true
+          bandit -r src/ -f json -o bandit-report.json || true
+
+      - name: Node.js dependency scan
+        run: |
+          npm audit --audit-level moderate --json > npm-audit.json || true
+          
+      - name: Static code analysis
+        run: |
+          semgrep --config=auto src/ --json --output=semgrep-report.json || true
+
+      - name: Container security scan
+        if: github.event_name == 'schedule'
+        run: |
+          # Build test image
+          docker build -t test-image:latest .
+          
+          # Scan with grype
+          grype test-image:latest -o json > grype-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            safety-report.json
+            bandit-report.json
+            npm-audit.json
+            semgrep-report.json
+            grype-report.json
+
+  # Integration tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_scope == 'all' || github.event.inputs.test_scope == 'integration' || github.event.inputs.test_scope == '' }}
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup test environment
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          
+          # Setup environment variables
+          echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgresql://postgres:test@localhost:5432/test" >> $GITHUB_ENV
+          echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ \
+            -v \
+            --cov=src \
+            --cov-report=xml:coverage/integration-coverage.xml \
+            --junitxml=test-results/integration.xml \
+            --html=test-results/integration-report.html \
+            -m "integration" \
+            --timeout=300 \
+            --maxfail=5
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            test-results/
+            coverage/
+
+  # Performance tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    if: needs.preflight.outputs.should_run_performance == 'true'
+    needs: preflight
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-benchmark pytest-asyncio
+          cargo install criterion
+
+      - name: Run Python performance tests
+        run: |
+          pytest tests/performance/ \
+            -v \
+            --benchmark-only \
+            --benchmark-json=benchmark-results/python-benchmarks.json \
+            --benchmark-min-rounds=5 \
+            --benchmark-warmup=2
+
+      - name: Run Rust benchmarks
+        run: |
+          cargo bench -- --output-format json > benchmark-results/rust-benchmarks.json
+
+      - name: Analyze performance results
+        run: |
+          python -c "
+          import json
+          import sys
+          
+          # Load Python benchmarks
+          with open('benchmark-results/python-benchmarks.json') as f:
+              py_results = json.load(f)
+          
+          # Check performance regression
+          failed = []
+          for benchmark in py_results['benchmarks']:
+              name = benchmark['name']
+              stats = benchmark['stats']
+              mean_time = stats['mean']
+              
+              # Fail if any test takes more than 1 second
+              if mean_time > 1.0:
+                  failed.append(f'{name}: {mean_time:.3f}s > 1.0s')
+          
+          if failed:
+              print('Performance regressions detected:')
+              for failure in failed:
+                  print(f'  - {failure}')
+              sys.exit(1)
+          else:
+              print('All performance tests passed!')
+          "
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-results
+          path: benchmark-results/
+
+  # End-to-end tests
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    if: needs.preflight.outputs.should_run_e2e == 'true'
+    needs: preflight
+    timeout-minutes: 45
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run E2E tests
+        run: |
+          pytest tests/e2e/ \
+            -v \
+            --junitxml=test-results/e2e.xml \
+            --html=test-results/e2e-report.html \
+            -m "e2e" \
+            --timeout=600 \
+            --maxfail=3
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-test-results
+          path: test-results/
+
+  # Quality gates
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    needs: [unit-tests, security-tests, integration-tests]
+    if: always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Analyze test results
+        run: |
+          # Combine all test results
+          find . -name "*.xml" -type f | head -20
+          
+          # Count total tests and failures
+          total_tests=0
+          failed_tests=0
+          
+          for file in $(find . -name "*.xml" -type f); do
+            if command -v xmllint >/dev/null 2>&1; then
+              tests=$(xmllint --xpath "string(/testsuite/@tests)" "$file" 2>/dev/null || echo "0")
+              failures=$(xmllint --xpath "string(/testsuite/@failures)" "$file" 2>/dev/null || echo "0")
+              errors=$(xmllint --xpath "string(/testsuite/@errors)" "$file" 2>/dev/null || echo "0")
+              
+              total_tests=$((total_tests + tests))
+              failed_tests=$((failed_tests + failures + errors))
+            fi
+          done
+          
+          echo "Total tests: $total_tests"
+          echo "Failed tests: $failed_tests"
+          
+          # Calculate success rate
+          if [ "$total_tests" -gt 0 ]; then
+            success_rate=$(echo "scale=2; (($total_tests - $failed_tests) * 100) / $total_tests" | bc -l)
+            echo "Success rate: $success_rate%"
+            
+            # Quality gate: 95% success rate
+            if (( $(echo "$success_rate < ${{ env.PERFORMANCE_THRESHOLD }}" | bc -l) )); then
+              echo "❌ Quality gate failed: Success rate $success_rate% < ${{ env.PERFORMANCE_THRESHOLD }}%"
+              exit 1
+            else
+              echo "✅ Quality gate passed: Success rate $success_rate% >= ${{ env.PERFORMANCE_THRESHOLD }}%"
+            fi
+          else
+            echo "⚠️ No test results found"
+            exit 1
+          fi
+
+      - name: Generate summary report
+        run: |
+          cat > summary.md << 'EOF'
+          # 🧪 MCP Test Suite Results
+          
+          ## Overview
+          - **Workflow**: ${{ github.workflow }}
+          - **Trigger**: ${{ github.event_name }}
+          - **Branch**: ${{ github.ref_name }}
+          - **Commit**: ${{ github.sha }}
+          - **Date**: $(date -u)
+          
+          ## Test Results
+          - **Unit Tests**: ${{ needs.unit-tests.result }}
+          - **Security Tests**: ${{ needs.security-tests.result }}
+          - **Integration Tests**: ${{ needs.integration-tests.result }}
+          - **Performance Tests**: ${{ needs.performance-tests.result || 'skipped' }}
+          - **E2E Tests**: ${{ needs.e2e-tests.result || 'skipped' }}
+          
+          ## Artifacts
+          - Test reports and coverage data available in workflow artifacts
+          - Security scan results included
+          - Performance benchmarks (if run)
+          
+          ## Next Steps
+          - Review failed tests in artifact reports
+          - Check coverage reports for areas needing improvement
+          - Address any security vulnerabilities found
+          EOF
+          
+          echo "Summary report generated"
+          cat summary.md
+
+      - name: Post summary to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('summary.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  # Cleanup and notifications
+  cleanup:
+    name: Cleanup & Notifications
+    runs-on: ubuntu-latest
+    needs: [quality-gates]
+    if: always()
+    
+    steps:
+      - name: Cleanup old artifacts
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            
+            const oldArtifacts = artifacts.data.artifacts.filter(artifact => {
+              const ageInDays = (Date.now() - new Date(artifact.created_at)) / (1000 * 60 * 60 * 24);
+              return ageInDays > 30;
+            });
+            
+            for (const artifact of oldArtifacts) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id
+              });
+            }
+            
+            console.log(`Cleaned up ${oldArtifacts.length} old artifacts`);
+
+      - name: Report status
+        run: |
+          echo "🎉 MCP Test Suite completed!"
+          echo "Check the Actions tab for detailed results and artifacts."

@@ -1,0 +1,229 @@
+# Security Chapter Extract
+Book: Rufus Stewart - Bash Scripting_ Everything you need to know about Bash , 2nd Edition (2020, Independently published) - libgen.li
+Chapter: 1 - politics" 
+ echo "2. startrek" 
+ echo "3. kernelnewbies" 
+ echo "4. sports" 
+ echo "5. bofh-excuses" 
+ echo "6.Magic" 
+ echo "7. love" 
+ echo "8. literature" 
+ echo "9. drugs" 
+ echo "10. education" 
+ echo
+Security Relevance Score: 3
+Word Count: 1135
+Extracted: 2025-06-13 23:40:44
+
+---
+
+politics" 
+ echo "2. startrek" 
+ echo "3. kernelnewbies" 
+ echo "4. sports" 
+ echo "5. bofh-excuses" 
+ echo "6.Magic" 
+ echo "7. love" 
+ echo "8. literature" 
+ echo "9. drugs" 
+ echo "10. education" 
+ echo 
+   
+ echo -n "Enter your choice, or 0 for exit:" 
+ read choice 
+ echo 
+   
+ case $ choice in 
+      1) 
+      $ FORTUNE politics 
+      ;; 
+      2) 
+      $ FORTUNE startrek 
+      ;; 
+      3) 
+      $ FORTUNE kernelnewbies 
+      ;; 
+      4) 
+      echo "Sports are a waste of time, energy and money." 
+      echo "Go back to your keyboard." 
+      echo -e "\ t \ t \ t \ t - \" Unhealthy is my middle name \ "Soggie." 
+      ;; 
+      5) 
+      $ FORTUNE bofh-excuses 
+      ;; 
+      6) 
+      $ FORTUNE magic 
+      ;; 
+      7) 
+      $ FORTUNE love 
+      ;; 
+      8) 
+      $ FORTUNE literature 
+      ;; 
+      9) 
+      $ FORTUNE drugs 
+      ;; 
+      10) 
+      $ FORTUNE education 
+      ;; 
+      0) 
+      echo "OK, see you!" 
+      break 
+      ;; 
+      *) 
+      echo "That is not a valid choice, try a number from 0 to 10." 
+      ;; 
+ esac 
+ done 
+   
+ Note the break command that terminates the loop only - not the program -. This can be seen clearly by adding an echo command at the end of the program, and the echo command will also be executed when you type an entry that causes a break command to be executed (when the user types "0"). The break command also allows, in the case of overlapping loops, to determine which loops come out, see the info guide pages for more. 
+   
+   
+   
+ Continue command 
+   
+ The continue statement repeats the attached for, while, until, or select loop, and when used in the for loop, the ruling variable --controlling variable - takes the value of the next item in the list. If used in a while or until loop, the execution returns again with the TEST-COMMAND command placed at the beginning of the loop. 
+   
+ Examples 
+   
+ In the following example, the filenames are converted to lower case, and the continue statement returns the loop if no characters need to be converted. 
+ These commands do not take a lot of system resources, and although such problems can be solved using the sed and awk commands, however, it is useful to know this method of solution as it is useful when performing large tasks, and it will not be necessary if tests are entered In the correct positions within the program, saving system resources: 
+   
+ [wiki @ hsoub ~ / test] cat tolower.sh 
+ #! / bin / bash 
+   
+ # This program converts all uppercase file names to lowercase names. 
+   
+ LIST = "$ (ls)" 
+   
+ for name in "$ LIST"; do 
+   
+ if [["$ name"! = * [[: upper:]] *]]; then 
+ continue 
+ fi 
+   
+ ORIG = "$ name" 
+ NEW = `echo $ name | tr 'A-Z' 'a-z'' ' 
+   
+ mv "$ ORIG" "$ NEW" 
+ echo "new name for $ ORIG is $ NEW" 
+ done 
+   
+ This program has at least one vulnerability: it replaces existing files, and the noclobber command is useful only when a redirect occurs. Also, the b-option for the mv command provides more security, but that security is useful only in case of unintentional replacement, as you can see in the following example: 
+   
+ [wiki @ hsoub ~ / test] rm * 
+   
+ [wiki @ hsoub ~ / test] touch test Test TEST 
+   
+ [wiki @ hsoub ~ / test] bash -x tolower.sh 
+ ++ ls 
+ + LIST = test 
+ Test 
+ TEST 
+ + [[test! = * [[: upper:]] *]] 
+ + continue 
+ + [[Test! = * [[: Upper:]] *]] 
+ + ORIG = Test 
+ ++ echo Test 
+ ++ tr A-Z a-z 
+ + NEW = test 
+ + mv -b Test test 
+ + echo 'new name for Test is test' 
+ new name for Test is test 
+ + [[TEST! = * [[: Upper:]] *]] 
+ + ORIG = TEST 
+ ++ echo TEST 
+ ++ tr A-Z a-z 
+ + NEW = test 
+ + mv -b TEST test 
+ + echo 'new name for TEST is test' 
+ new name for TEST is test 
+   
+ [wiki @ hsoub ~ / test] ls -a 
+ ./ ../ test test ~ 
+   
+ The tr command comes as part of the textutils package and can perform all kinds of conversions on files. 
+   
+   
+   
+   
+   
+   
+   
+   
+ Chapter VI 
+ Functions in Bash 
+   
+ Functions provide an easy way to group commands that need to be executed repeatedly. 
+   
+ Functions are similar to mini-scripts, so they generate exit codes or return codes. 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ What are functions? 
+   
+ Shell functions are a way of grouping commands for later execution using a single group name as a whole or routine. 
+ The list of commands associated with the name of a function is executed when that function is called as a simple command, and the function is executed within the shell in which it was declared. The special commands that are included before the shell functions will appear while searching for commands, and the special commands that are included are: 
+   
+ break,:,., continue, eval, exec, exit, export, readonly, return, set, shift, trap, unset. 
+   
+ Functions Syntax 
+   
+ Functions use one of these two rules: 
+   
+ function FUNCTION {COMMANDS; } 
+   
+ or 
+   
+ FUNCTION () {COMMANDS; } 
+   
+ These rules define a shell function called FUNCTION. You don't need to use a function, but if you don't use it, you will need the parentheses () as you see in the second rule. 
+   
+     Common errors 
+   
+     The space brackets {} must be separated from the content of the function between them, otherwise the content of the function will be misinterpreted, and the function content must end with a semicolon; Or a new line. 
+   
+ Position coefficients in functions 
+   
+ Functions are similar to miniature codes, they can accept parameters and use variables that cannot be used outside of functions via the local command, and can return values ​​to the shell they called. 
+   
+ Functions have a system for interpreting position coefficients, although the position coefficients that are passed to a function are not the same as those passed to a command or text code. When the function is executed, its arguments become positional coefficients during execution, and the # special parameter that expands to the number of position coefficients is updated to reflect the change occurring. 
+ The position coefficient does not change to 0, and the FUNCNAME variable is set to the function name during execution. If a return command is executed in a function, the function is executed, and the command is executed after the function is called. The values ​​of the position coefficients and the special parameter # after the completion of a function return to the values ​​they were before the function was executed. Here's a simple example: 
+   
+ [ahmad @ ahmadpc ~ / test] cat showparams.sh 
+ #! / bin / bash 
+   
+ echo "This script demonstrates function arguments." 
+ echo 
+   
+ echo "Positional parameter 1 for the script is $ 1." 
+ echo 
+   
+ test () 
+ { 
+ echo "Positional parameter 1 in the function is $ 1." 
+ RETURN_VALUE = $? 
+ echo "The exit code of this function is $ RETURN_VALUE." 
+ } 
+   
+ test other_param 
+   
+ [ahmad @ ahmadpc ~ / test] ./showparams.sh parameter1 
+ This script demonstrates function arguments. 
+   
+ Positional parameter 1 for the script is parameter

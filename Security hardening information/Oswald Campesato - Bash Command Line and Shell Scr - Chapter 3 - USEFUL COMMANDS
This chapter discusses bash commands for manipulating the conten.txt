@@ -1,0 +1,915 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 3 - USEFUL COMMANDS
+This chapter discusses bash commands for manipulating the contents of text files, as well as searching for strings in text files using the bash “pipe” command that redirects the output of one bash command as the input of a second bash command.
+The first part of this chapter shows you how to merge, fold, and split text files. This section also shows you how to sort files and find unique lines in files using the sort and uniq commands, respectively. The last part explains how to compare text files and binary files.
+The second section introduces you to the find command, which is a powerful command that supports many options. For example, you can search for files in the current directory or in sub-directories; you can search for files based on their creation date and last modification date. One convenient combination is to “pipe” the output of the find command to the xargs command in order to search files for a particular pattern. Next, you will see how to use the tr command, a tool that handles a lot of commonly used text transformations such as capitalization or removal of whitespace. After the section that discusses the tr command, you will see a use case that shows you how to use the tr command in order to remove the ^M control character from a dataset.
+The third section contains compression-related commands, such as cpio, tar, and bash commands for managing files that are already compressed (such as zdiff, zcmp, zmore, and so forth).
+The fourth section introduces you to the IFS option, which is useful when you need to specify a non-default field separator while extracting data from a range of columns in a dataset. You will also see how to use the xargs command in order to “line up” the columns of a dataset so that all rows have the same number of columns.
+The fifth section shows you how to create shell scripts, which contain bash commands that are executed sequentially.
+THE JOIN COMMAND
+The join command allows you to merge two files in a meaningful fashion, which essentially creates a simple version of a relational database.
+The join command operates on two files, and pastes together only those lines with a common tagged field (usually a numerical label), and writes the result to stdout. The files to be joined should be sorted according to the tagged field for the matchups to work properly. Listing 3.1 and Listing 3.2 displays the contents of 1.data and 2.data, respectively.
+Listing 3.1: 1.data
+100 Shoes
+200 Laces
+300 Socks
+Listing 3.2: 2.data
+100 $40.00
+200 $1.00
+300 $2.00
+Now launch the following command:
+join 1.data 2.data
+File: 1.data 2.data
+100 Shoes $40.00
+200 Laces $1.00
+300 Socks $2.00
+THE FOLD COMMAND
+As you know from Chapter 1, the fold command enables you to display a set of lines with fixed column width, and this section contains a few more examples. Note that this command does not take into account spaces between words: the output is displayed in columns that resemble a “newspaper” style.
+The following command displays a set of lines with ten characters in each line:
+x="aa bb cc d e f g h i j kk ll mm nn"
+echo $x |fold -10
+The output of the preceding code snippet is here:
+aa bb cc d
+e f g h i
+j kk ll m
+m nn
+As another example, consider the following code snippet:
+x="The quick brown fox jumps over the fat lazy dog. "
+echo $x |fold -10
+The output of the preceding code snippet is here:
+The quick
+brown fox
+jumps over
+the fat l
+azy dog.
+THE SPLIT COMMAND
+The split command is useful when you want to create a set of sub-files of a given file. By default, the sub-files are named xaa, xab, …, xaz, xba, xbb, …, xbz, … xza, xzb, … , xzz. Thus, the split command creates a maximum of 676 files (=26x26). The default size for each of these files is 1,000 lines.
+The following snippet illustrates how to invoke the split command in order to split the file abc.txt into files with 500 lines each:
+split -l 500 one-dl-course-outline.txt
+If the file abc.txt contains between 501 and 1,000 lines, then the preceding command will create the following pair of files:
+xaa
+xab
+You can also specify a file prefix for the created files, as shown here:
+split -l 500 one-dl-course-outline.txt shorter
+The preceding command creates the following pair of files:
+shorterxaa
+shorterxab
+THE SORT COMMAND
+The sort command sorts the lines in a text file. For example, suppose you have a text file called test2.txt that contains the following lines:
+aa
+cc
+bb
+Both of the following commands will sort the lines in test2.txt:
+cat test2.txt |sort
+sort test2.txt
+The output of the preceding commands is here:
+aa
+bb
+cc
+The sort command arranges lines of text alphabetically by default. Some options for the sort command are here:
+-n Sort numerically (10 will sort after 2), ignore
+blanks and tabs
+-r Reverse the order of sort
+-f Sort upper- and lowercase together
++x Ignore first x fields when sorting
+You can use the sort command to display the files in a directory based on their file size, as shown here:
+-rw-r--r-- 1 ocampesato staff 11 Apr 06 19:21
+outfile.txt
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 19:21
+output.txt
+-rwx------ 1 ocampesato staff 12 Apr 06 19:21
+kyrgyzstan.txt
+-rwx------ 1 ocampesato staff 25 Apr 06 19:21
+apple-care.txt
+-rwx------ 1 ocampesato staff 146 Apr 06 19:21
+checkin-commands.txt
+-rwx------ 1 ocampesato staff 176 Apr 06 19:21 sslinstructions.
+txt
+-rwx------ 1 ocampesato staff 417 Apr 06 19:43
+iphonemeetup.txt
+The sort command supports many options, some of which are summarized here.
+The sort –r command sorts the list of files in reverse chronological order. The sort –n command sorts on numeric data and sort –k command sorts on a field. For example, the following command displays the long listing of the files in a directory that are sorted by their file size:
+ls –l |sort –k 5
+The output is here:
+total 72
+-rwx------ 1 ocampesato staff 12 Apr 06 20:46
+kyrgyzstan.txt
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 20:46
+output.txt
+-rw-r--r-- 1 ocampesato staff 14 Apr 06 20:46
+outfile.txt
+-rwx------ 1 ocampesato staff 25 Apr 06 20:46
+apple-care.txt
+-rwxr-xr-x 1 ocampesato staff 90 Apr 06 20:50
+testvars.sh
+-rwxr-xr-x 1 ocampesato staff 100 Apr 06 20:50
+testvars2.sh
+-rwx------ 1 ocampesato staff 146 Apr 06 20:46
+checkin-commands.txt
+-rwx------ 1 ocampesato staff 176 Apr 06 20:46
+ssl-instructions.txt
+-rwx------ 1 ocampesato staff 417 Apr 06 20:46
+iphonemeetup.txt
+Notice that the file listing is sorted based on the fifth column, which displays the file size of each file. You can sort the files in a directory and display them from largest to smallest with this command:
+ls –l |sort –n
+In addition to sorting lists of files, you can use the sort command to sort the contents of a file. For example, suppose that the file abc2.txt contains the following:
+This is line one
+This is line two
+This is line one
+This is line three
+Fourth line
+Fifth line
+The sixth line
+The seventh line
+The following command sorts the contents of abc2.txt:
+sort abc2.txt
+You can sort the contents of multiple files and redirect the output to another file:
+sort outfile.txt output.txt > sortedfile.txt
+An example of combining the commands sort and tail is shown here:
+cat abc2.txt |sort |tail -5
+The preceding command sorts the contents of the file abc2.txt and then displays the final five lines:
+The seventh line
+The sixth line
+This is line one
+This is line one
+This is line three
+This is line two
+As you can see, the preceding output contains two duplicate lines. The next section shows you how to use the uniq command in order to remove duplicate lines.
+THE UNIQ COMMAND
+The uniq command prints only the unique lines in a sorted text file (i.e., it ignores duplicate lines). As a simple example, suppose the file test3.txt contains the following text:
+abc
+def
+abc
+abc
+The following command sorts the contents of test3.txt and then displays the unique lines:
+cat test3.txt |sort | uniq
+The output of the preceding code snippet is here:
+abc
+def
+HOW TO COMPARE FILES
+The diff command enables you to compare two text files and the cmp command compares two binary files. For example, suppose that the file output.txt contains these two lines:
+Hello
+World
+Suppose that the file outfile.txt contains these two lines:
+goodbye
+world
+Then the output of this command:
+diff output.txt outfile.txt
+is shown here:
+1,2c1,2
+< Hello
+< World
+---
+> goodbye
+> world
+Note that the diff command performs a case-sensitive text-based comparison, which means that the strings Hello and hello are treated as different strings.
+THE OD COMMAND
+The od command displays an octal dump of a file, which can be very helpful when you want to see embedded control characters (such as tab characters) that are not normally visible on the screen. This command contains many switches that you can see when you type man od.
+As a simple example, suppose that the file abc.txt contains one line of text with the following three letters, separated by a tab character (which is not visible here) between each pair of letters:
+a      b      c
+The following command displays the tab and newline characters in the file
+abc.txt:
+cat control1.txt |od -tc
+The preceding command generates the following output:
+0000000    a \t b \t c \n
+0000006
+In the special case of tabs, another way to see them is to use the following cat command:
+cat –t abc.txt
+The output from the preceding command is here:
+a^Ib^Ic
+In Chapter 1, you learned that the echo command prints a newline character whereas the printf statement does not print a newline character (unless it is explicitly included). You can verify this fact for yourself with this code snippet:
+echo abcde | od -c
+0000000    a  b  c  d  e \n
+0000006
+printf abcde | od -c
+0000000     a  b  c  d  e
+0000005
+THE TR COMMAND
+The tr command is a highly versatile command that supports some very useful options. For example, the tr command enables you to remove extraneous whitespaces in datasets, inserting blank lines, printing words on separate lines, and also translating characters from one character set to another character set (i.e., from uppercase to lowercase, and vice versa).
+The following command capitalizes every letter in the variable x:
+x="abc def ghi"
+echo $x | tr [a-z] [A-Z]
+ABC DEF GHI
+Here is another way to convert letters from lowercase to uppercase:
+cat columns4.txt | tr '[:lower:]' '[:upper:]'
+In addition to uppercase and lowercase, you can use the POSIX characters classes in the tr command:
+•alnum: alphanumeric characters
+•alpha: alphabetic characters
+•cntrl: control (non-printable) characters
+•digit: numeric characters
+•graph: graphic characters
+•lower: lower-case alphabetic characters
+•print: printable characters
+•punct: punctuation characters
+•space: whitespace characters
+•upper: upper-case characters
+•xdigit: hexadecimal characters 0-9 A-F
+The following example removes white spaces in the variable x (initialized above):
+echo $x |tr -ds " " ""
+abcdefghi
+The following command prints each word on a separate line:
+echo "a b c" | tr -s " " "\012"
+a
+b
+c
+The following command replaces every comma with a linefeed:
+echo "a,b,c" | tr -s "," "\n"
+a
+b
+c
+The following example replaces the linefeed in each line with a blank space, which produces a single line of output:
+cat test4.txt |tr '\n' ' '
+The output of the preceding command is here:
+abc  def  abc  abc
+The following example removes the linefeed character at the end of each line of text in a text file. As an illustration, Listing 3.3 displays the contents of abc2.txt.
+Listing 3.3: abc2.txt
+This is line one
+This is line two
+This is line three
+Fourth line
+Fifth line
+The sixth line
+The seventh line
+The following code snippet removes the linefeed character in the text file abc2.txt:
+tr -d '\n' < abc2.txt
+The output of the preceding tr code snippet is here:
+This is line oneThis is line twoThis is line
+threeFourth lineFifth lineThe sixth lineThe seventh line
+As you can see, the output is missing a blank space between consecutive lines, which we can insert with this command:
+tr -s '\n' ' ' < abc2.txt
+The output of the modified version of the tr code snippet is here:
+This is line one This is line two This is line three
+Fourth line Fifth line The sixth line The seventh line
+You can replace the linefeed character with a period “.” with this tr command:
+tr -s '\n' '.' < abc2.txt
+The output of the preceding version of the tr code snippet is here:
+This is line one.This is line two.This is line three.
+Fourth line.Fifth line.The sixth line.The seventh line.
+The tr command with the –s option works on a one-for-one basis, which means that the sequence ‘.’ has the same effect as the sequence ‘. ‘. As a sort of “preview,” we can add a blank space after each period ‘.’ by combining the tr command with the sed command (discussed in Chapter 6), as shown here:
+tr -s '\n' '.' < abc2.txt | sed 's/\./\. /g'
+The output of the preceding command is here:
+This is line one. This is line two. This is line three.
+Fourth line. Fifth line. The sixth line. The seventh line.
+Think of the preceding sed snippet as follows: “whenever a ‘period’ is encountered, replace it with a ‘dot’ followed by a space, and do this for every occurrence of a period.”
+You can also combine multiple commands using the bash “pipe” symbol. For example, the following command sorts the contents of Listing 3.3, retrieves the “bottom” five lines of text, retrieves the lines of text that are unique, and then converts the text to upper case letters,
+cat abc2.txt |sort |tail -5 | uniq | tr [a-z] [A-Z]
+Here is the output from the preceding command:
+THE SEVENTH LINE
+THE SIXTH LINE
+THIS IS LINE ONE
+THIS IS LINE THREE
+THIS IS LINE TWO
+You can also convert the first letter of a word to uppercase (or to lowercase) with the tr command, as shown here:
+x="pizza"
+x=`echo ${x:0:1} | tr '[a-z]' '[A-Z]'`${x:1}
+echo $x
+A slightly longer (one extra line of code) way to convert the first letter to uppercase is shown here:
+x="pizza"
+first=`echo $x|cut -c1|tr [a-z] [A-Z]`
+second=`echo $x|cut -c2-`
+echo $first$second
+As you can see, it’s possible to combine multiple commands using the bash pipe symbol “|” in order to produce the desired output.
+A SIMPLE USE CASE
+The code sample in this section shows you how to use the tr command in order to replace the control character “^M” with a linefeed. Listing 3.4 displays the contents of the dataset controlm.csv that contains embedded control characters.
+Listing 3.4 controlm.csv
+IDN,TEST,WEEK_MINUS1,WEEK0,WEEK1,WEEK2,WEEK3,WEEK4,
+WEEK10,WEEK12,WEEK14,WEEK15,WEEK17,WEEK18,WEEK19,
+WEEK21^M1,BASO,,1.4,,0.8,,1.2,,1.1,,,2.2,,,1.4^M1,B
+ASOAB,,0.05,,0.04,,0.05,,0.04,,,0.07,,,0.05^M1,EOS,,
+6.1,,6.2,,7.5,,6.6,,,7.0,,,6.2^M1,EOSAB,,0.22,,0.30
+,,0.27,,0.25,,,0.22,,,0.21^M1,HCT,,35.0,,34.2,,
+34.6,,34.3,,,36.2,,,34.1^M1,HGB,,11.8,,11.1,,11.6,,
+11.5,,,12.1,,,11.3^M1,LYM,,36.7
+Listing 3.5 displays the contents of the file controlm.sh that illustrates how to remove the control characters from controlm.csv.
+Listing 3.5 controlm.sh
+inputfile="controlm.csv"
+removectrlmfile="removectrlmfile"
+tr -s '\r' '\n' < $inputfile > $removectrlmfile
+For convenience, Listing 3.5 defines the variable inputfile for the input file and the variable removectrlmfile for the output file.
+The output from launching the shell script in Listing 3.5 is here:
+IDN,TEST,WEEK_MINUS1,WEEK0,WEEK1,WEEK2,WEEK3,WEEK4,WE
+EK10,WEEK12,WEEK14,WEEK15,WEEK17,WEEK18,WEEK19,WEEK21
+1,BASO,,1.4,,0.8,,1.2,,1.1,,,2.2,,,1.4
+1,BASOAB,,0.05,,0.04,,0.05,,0.04,,,0.07,,,0.05
+1,EOS,,6.1,,6.2,,7.5,,6.6,,,7.0,,,6.2
+1,EOSAB,,0.22,,0.30,,0.27,,0.25,,,0.22,,,0.21
+As you can see, the task in this section is easily solved via the tr command. Note that there are empty fields in the preceding output, which means that additional processing is required.
+You can also replace the current delimiter “,” with a different delimiter, such as a “|” symbol that appears in the following command:
+cat removectrlmfile |tr -s ',' '|' > pipedfile
+The resulting output is shown here:
+IDN|TEST|WEEK_MINUS1|WEEK0|WEEK1|WEEK2|WEEK3|WEEK4|WE
+EK10|WEEK12|WEEK14|WEEK15|WEEK17|WEEK18|WEEK19|WEEK21
+1|BASO|1.4|0.8|1.2|1.1|2.2|1.4
+1|BASOAB|0.05|0.04|0.05|0.04|0.07|0.05
+1|EOS|6.1|6.2|7.5|6.6|7.0|6.2
+1|EOSAB|0.22|0.30|0.27|0.25|0.22|0.21
+If you have a text file with multiple delimiters in arbitrary order in multiple files, you can replace those delimiters with a single delimiter via the sed command, which is discussed in Chapter 6.
+THE FIND COMMAND
+The find command supports many options, including one for printing (displaying) the files returned by the find command, and another one for removing the files returned by the find command.
+In addition, you can specify logical operators such as -a (AND) as well as -o (OR) in a find command. You can also specify switches to find the files (if any) that were created, accessed, or modified before (or after) a specific date.
+Several examples are here:
+find . –print displays all the files (including sub-directories)
+find . –print |grep "abc" displays all the files whose names contain the string abc
+find . –print |grep "sh$" displays all the files whose names have the suffix sh
+find . –depth 2 –print displays all files of depth at most 2 (including sub-directories)
+You can also specify access times pertaining to files. For example, atime, ctime, and mtime refer to the access time, creation time, and modification time of a file.
+As another example, the following command finds all the files modified in less than 2 days and prints the record count of each:
+$ find . –mtime –2 -exec wc –l {} ;
+You can remove a set of files with the find command. For example, you can remove all the files in the current directory tree that have the suffix “m” as follows:
+find . –name "*m$" –print –exec rm {}
+NOTE
+Be careful when you remove files: run the preceding command without “exec rm {}” to review the list of files before deleting them.
+THE TEE COMMAND
+The tee command enables you to display output to the screen and also redirect the output to a file at the same time. The –a option will append subsequent output to the named file instead of overwriting the file. Here is a simple example:
+find . –print |xargs grep "sh$" | tee /tmp/blue
+The preceding code snippet redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that end with the string “sh.” The result is displayed on the screen and also redirected to the file / tmp/blue.
+find . – print |xargs grep "^abc$" | tee – a /tmp/blue
+The preceding code snippet also redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that contain only the string “abc.” The result is displayed on the screen and also appended to the file /tmp/blue.
+FILE COMPRESSION COMMANDS
+Bash supports various commands for compressing sets of files, including the tar, cpio, gzip, and gunzip commands. The following subsections contain simple examples of how to use these commands.
+The tar command
+The tar command enables you to compress a set of files in a directory to create a new tar file, uncompress an existing tar file, and also display the contents of a tar file.
+The “c” option specifies “create,” the “f” option specifies “file” and the “v” option specifies “verbose.” For example, the following command creates a compressed file called testing.tar and displays the files that are included in testing.tar during the creation of this file:
+tar cvf testing.tar *.txt
+The compressed file testing.tar contains the files with the suffix txt in the current directory and you will see the following output:
+a apple-care.txt
+a checkin-commands.txt
+a iphonemeetup.txt
+a kyrgyzstan.txt
+a outfile.txt
+a output.txt
+a ssl-instructions.txt
+The following command extracts the files that are in the tar file testing.tar:
+tar xvf testing.tar
+The following command displays the contents of a tar file without uncompressing its contents:
+tar tvf testing.tar
+The preceding command displays the same output as the “ls –l” command that displays a long listing.
+The “z” option uses gzip compression. For example, the following command creates a compressed file called testing.tar.gz:
+tar czvf testing.tar.gz *.txt
+The cpio Command
+The cpio command provides further compression after you create a tar file. For example, the following command creates the file archive.cpio:
+ls file1 file2 file3 | cpio -ov > archive.cpio
+The “-o” option specifies an output file and the “-v” option specifies verbose, which means that the files are displayed as they are placed in the archive file. The “-I” option specifies input, and the “-d” option specifies “display”.
+You can combine other commands (such as the find command) with the cpio command, an example of which is here:
+find . –name ".sh" | cpio -ov > shell-scripts.cpio
+You can display the contents of the file archive.cpio with the following command:
+cpio -id < archive.cpio
+The output of the preceding command is here:
+file1
+file2
+file3
+1 block
+The gzip and gunzip Commands
+The gzip command creates a compressed file. For example, the following command creates the compressed file filename.gz:
+gzip filename
+Extract the contents of the compressed file filename.gz with the gunzip command:
+gunzip filename.gz
+You can create gzipped tarballs using the following methods:
+Method #1:
+tar -czvvf archive.tar.gz [YOUR-LIST-OF-FILES]
+Method #2:
+tar -cavvf archive.tar.gz [YOUR-LIST-OF-FILES]
+The -a option specifies that the compression format should automatically be detected from the extension.
+The bunzip2 Command
+The bunzip2 utility uses a compression technique that is similar to gunzip2, except that bunzip2 typically produces smaller (more compressed) files than gzip. It comes with all Linux distributions. In order to compress with bzip2 use:
+bzip2 filename
+ls
+filename.bz2
+The zip Command
+The zip command is another utility for creating zip files. For example, if you have the files called file1, file2, and file3, then the following command creates the file file1.zip that contains these three files:
+zip file?
+The zip command has useful options (such as –x for excluding files), and you can find more information in online tutorials.
+COMMANDS FOR ZIP FILES AND BZ FILES
+There are various commands for handling zip files, including zdiff, zcmp, zmore, zless, zcat, zipgrep, zipsplit, zipinfo, zgrep, zfgrep, and zegrep.
+Remove the initial “z” or “zip” from these commands to obtain the corresponding “regular” bash command.
+For example, the zcat command is the counterpart to the cat command, so you can display the contents of a file in a .gz file without manually extracting that file and also without modifying the contents of the .gz file. Here is an example:
+ls test.gz
+zcat test.gz
+Another set of utilities for bz files includes bzcat, bzcmp, bzdiff, bzegrep, bzfgrep, bzgrep, bzless, and bzmore.
+Read the online documentation to find out more about these commands.
+INTERNAL FIELD SEPARATOR (IFS)
+The Internal Field Separator is an important concept in shell scripting that is useful while manipulating text data. An Internal Field Separator (IFS) is an environment variable that stores delimiting characters. The IFS is the default delimiter string used by a running shell environment.
+Consider the case where we need to iterate through words in a string or comma separated values (CSV). Specify IFS="," in order to display each substring on a separate line. For example, suppose that a shell script contains the following lines:
+data="age,gender,street,state"
+IFS=$','
+for item in $data
+do
+   echo Item: $item
+done
+The output of the preceding code block is here:
+Item: age
+Item: gender
+Item: street
+Item: state
+Note that you can also use the awk command (discussed in Chapter 7) to produce the same output.
+The next section contains a code sample that relies on the value of IFS in order to extract data correctly from a dataset.
+DATA FROM A RANGE OF COLUMNS IN A DATASET
+Listing 3.6 displays the contents of the dataset datacolumns1.txt and Listing 3.7 displays the contents of the shell script datacolumns1.sh that illustrates how to extract data from a range of columns from the dataset in Listing 3.6.
+Incidentally, this code sample contains a while loop, which is one of several types of loops that are available in bash, and are discussed in more detail in Chapter 3. As such, this code sample involves “forward referencing”: using a bash construct before it’s been discussed in detail. However, you are either already familiar with the concept of a while loop, or you have an intuitive grasp vis-à-vis its purpose, so you’ll be able to understand the code in this code sample.
+Listing 3.6 datacolumns1.txt
+#23456789012345678901234567890
+  1000      Jane     Edwards
+  2000      Tom      Smith
+  3000      Dave     Del Ray
+Listing 3.7 datacolumns1.sh
+# empid: 03-09
+# fname: 11-20
+# lname: 21-30
+IFS=''
+inputfile="datacolumns1.txt"
+Security Relevance Score: 4
+Word Count: 4646
+Extracted: 2025-06-13 23:40:50
+
+---
+
+USEFUL COMMANDS
+This chapter discusses bash commands for manipulating the contents of text files, as well as searching for strings in text files using the bash “pipe” command that redirects the output of one bash command as the input of a second bash command.
+The first part of this chapter shows you how to merge, fold, and split text files. This section also shows you how to sort files and find unique lines in files using the sort and uniq commands, respectively. The last part explains how to compare text files and binary files.
+The second section introduces you to the find command, which is a powerful command that supports many options. For example, you can search for files in the current directory or in sub-directories; you can search for files based on their creation date and last modification date. One convenient combination is to “pipe” the output of the find command to the xargs command in order to search files for a particular pattern. Next, you will see how to use the tr command, a tool that handles a lot of commonly used text transformations such as capitalization or removal of whitespace. After the section that discusses the tr command, you will see a use case that shows you how to use the tr command in order to remove the ^M control character from a dataset.
+The third section contains compression-related commands, such as cpio, tar, and bash commands for managing files that are already compressed (such as zdiff, zcmp, zmore, and so forth).
+The fourth section introduces you to the IFS option, which is useful when you need to specify a non-default field separator while extracting data from a range of columns in a dataset. You will also see how to use the xargs command in order to “line up” the columns of a dataset so that all rows have the same number of columns.
+The fifth section shows you how to create shell scripts, which contain bash commands that are executed sequentially.
+THE JOIN COMMAND
+The join command allows you to merge two files in a meaningful fashion, which essentially creates a simple version of a relational database.
+The join command operates on two files, and pastes together only those lines with a common tagged field (usually a numerical label), and writes the result to stdout. The files to be joined should be sorted according to the tagged field for the matchups to work properly. Listing 3.1 and Listing 3.2 displays the contents of 1.data and 2.data, respectively.
+Listing 3.1: 1.data
+100 Shoes
+200 Laces
+300 Socks
+Listing 3.2: 2.data
+100 $40.00
+200 $1.00
+300 $2.00
+Now launch the following command:
+join 1.data 2.data
+File: 1.data 2.data
+100 Shoes $40.00
+200 Laces $1.00
+300 Socks $2.00
+THE FOLD COMMAND
+As you know from Chapter 1, the fold command enables you to display a set of lines with fixed column width, and this section contains a few more examples. Note that this command does not take into account spaces between words: the output is displayed in columns that resemble a “newspaper” style.
+The following command displays a set of lines with ten characters in each line:
+x="aa bb cc d e f g h i j kk ll mm nn"
+echo $x |fold -10
+The output of the preceding code snippet is here:
+aa bb cc d
+e f g h i
+j kk ll m
+m nn
+As another example, consider the following code snippet:
+x="The quick brown fox jumps over the fat lazy dog. "
+echo $x |fold -10
+The output of the preceding code snippet is here:
+The quick
+brown fox
+jumps over
+the fat l
+azy dog.
+THE SPLIT COMMAND
+The split command is useful when you want to create a set of sub-files of a given file. By default, the sub-files are named xaa, xab, …, xaz, xba, xbb, …, xbz, … xza, xzb, … , xzz. Thus, the split command creates a maximum of 676 files (=26x26). The default size for each of these files is 1,000 lines.
+The following snippet illustrates how to invoke the split command in order to split the file abc.txt into files with 500 lines each:
+split -l 500 one-dl-course-outline.txt
+If the file abc.txt contains between 501 and 1,000 lines, then the preceding command will create the following pair of files:
+xaa
+xab
+You can also specify a file prefix for the created files, as shown here:
+split -l 500 one-dl-course-outline.txt shorter
+The preceding command creates the following pair of files:
+shorterxaa
+shorterxab
+THE SORT COMMAND
+The sort command sorts the lines in a text file. For example, suppose you have a text file called test2.txt that contains the following lines:
+aa
+cc
+bb
+Both of the following commands will sort the lines in test2.txt:
+cat test2.txt |sort
+sort test2.txt
+The output of the preceding commands is here:
+aa
+bb
+cc
+The sort command arranges lines of text alphabetically by default. Some options for the sort command are here:
+-n Sort numerically (10 will sort after 2), ignore
+blanks and tabs
+-r Reverse the order of sort
+-f Sort upper- and lowercase together
++x Ignore first x fields when sorting
+You can use the sort command to display the files in a directory based on their file size, as shown here:
+-rw-r--r-- 1 ocampesato staff 11 Apr 06 19:21
+outfile.txt
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 19:21
+output.txt
+-rwx------ 1 ocampesato staff 12 Apr 06 19:21
+kyrgyzstan.txt
+-rwx------ 1 ocampesato staff 25 Apr 06 19:21
+apple-care.txt
+-rwx------ 1 ocampesato staff 146 Apr 06 19:21
+checkin-commands.txt
+-rwx------ 1 ocampesato staff 176 Apr 06 19:21 sslinstructions.
+txt
+-rwx------ 1 ocampesato staff 417 Apr 06 19:43
+iphonemeetup.txt
+The sort command supports many options, some of which are summarized here.
+The sort –r command sorts the list of files in reverse chronological order. The sort –n command sorts on numeric data and sort –k command sorts on a field. For example, the following command displays the long listing of the files in a directory that are sorted by their file size:
+ls –l |sort –k 5
+The output is here:
+total 72
+-rwx------ 1 ocampesato staff 12 Apr 06 20:46
+kyrgyzstan.txt
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 20:46
+output.txt
+-rw-r--r-- 1 ocampesato staff 14 Apr 06 20:46
+outfile.txt
+-rwx------ 1 ocampesato staff 25 Apr 06 20:46
+apple-care.txt
+-rwxr-xr-x 1 ocampesato staff 90 Apr 06 20:50
+testvars.sh
+-rwxr-xr-x 1 ocampesato staff 100 Apr 06 20:50
+testvars2.sh
+-rwx------ 1 ocampesato staff 146 Apr 06 20:46
+checkin-commands.txt
+-rwx------ 1 ocampesato staff 176 Apr 06 20:46
+ssl-instructions.txt
+-rwx------ 1 ocampesato staff 417 Apr 06 20:46
+iphonemeetup.txt
+Notice that the file listing is sorted based on the fifth column, which displays the file size of each file. You can sort the files in a directory and display them from largest to smallest with this command:
+ls –l |sort –n
+In addition to sorting lists of files, you can use the sort command to sort the contents of a file. For example, suppose that the file abc2.txt contains the following:
+This is line one
+This is line two
+This is line one
+This is line three
+Fourth line
+Fifth line
+The sixth line
+The seventh line
+The following command sorts the contents of abc2.txt:
+sort abc2.txt
+You can sort the contents of multiple files and redirect the output to another file:
+sort outfile.txt output.txt > sortedfile.txt
+An example of combining the commands sort and tail is shown here:
+cat abc2.txt |sort |tail -5
+The preceding command sorts the contents of the file abc2.txt and then displays the final five lines:
+The seventh line
+The sixth line
+This is line one
+This is line one
+This is line three
+This is line two
+As you can see, the preceding output contains two duplicate lines. The next section shows you how to use the uniq command in order to remove duplicate lines.
+THE UNIQ COMMAND
+The uniq command prints only the unique lines in a sorted text file (i.e., it ignores duplicate lines). As a simple example, suppose the file test3.txt contains the following text:
+abc
+def
+abc
+abc
+The following command sorts the contents of test3.txt and then displays the unique lines:
+cat test3.txt |sort | uniq
+The output of the preceding code snippet is here:
+abc
+def
+HOW TO COMPARE FILES
+The diff command enables you to compare two text files and the cmp command compares two binary files. For example, suppose that the file output.txt contains these two lines:
+Hello
+World
+Suppose that the file outfile.txt contains these two lines:
+goodbye
+world
+Then the output of this command:
+diff output.txt outfile.txt
+is shown here:
+1,2c1,2
+< Hello
+< World
+---
+> goodbye
+> world
+Note that the diff command performs a case-sensitive text-based comparison, which means that the strings Hello and hello are treated as different strings.
+THE OD COMMAND
+The od command displays an octal dump of a file, which can be very helpful when you want to see embedded control characters (such as tab characters) that are not normally visible on the screen. This command contains many switches that you can see when you type man od.
+As a simple example, suppose that the file abc.txt contains one line of text with the following three letters, separated by a tab character (which is not visible here) between each pair of letters:
+a      b      c
+The following command displays the tab and newline characters in the file
+abc.txt:
+cat control1.txt |od -tc
+The preceding command generates the following output:
+0000000    a \t b \t c \n
+0000006
+In the special case of tabs, another way to see them is to use the following cat command:
+cat –t abc.txt
+The output from the preceding command is here:
+a^Ib^Ic
+In Chapter 1, you learned that the echo command prints a newline character whereas the printf statement does not print a newline character (unless it is explicitly included). You can verify this fact for yourself with this code snippet:
+echo abcde | od -c
+0000000    a  b  c  d  e \n
+0000006
+printf abcde | od -c
+0000000     a  b  c  d  e
+0000005
+THE TR COMMAND
+The tr command is a highly versatile command that supports some very useful options. For example, the tr command enables you to remove extraneous whitespaces in datasets, inserting blank lines, printing words on separate lines, and also translating characters from one character set to another character set (i.e., from uppercase to lowercase, and vice versa).
+The following command capitalizes every letter in the variable x:
+x="abc def ghi"
+echo $x | tr [a-z] [A-Z]
+ABC DEF GHI
+Here is another way to convert letters from lowercase to uppercase:
+cat columns4.txt | tr '[:lower:]' '[:upper:]'
+In addition to uppercase and lowercase, you can use the POSIX characters classes in the tr command:
+•alnum: alphanumeric characters
+•alpha: alphabetic characters
+•cntrl: control (non-printable) characters
+•digit: numeric characters
+•graph: graphic characters
+•lower: lower-case alphabetic characters
+•print: printable characters
+•punct: punctuation characters
+•space: whitespace characters
+•upper: upper-case characters
+•xdigit: hexadecimal characters 0-9 A-F
+The following example removes white spaces in the variable x (initialized above):
+echo $x |tr -ds " " ""
+abcdefghi
+The following command prints each word on a separate line:
+echo "a b c" | tr -s " " "\012"
+a
+b
+c
+The following command replaces every comma with a linefeed:
+echo "a,b,c" | tr -s "," "\n"
+a
+b
+c
+The following example replaces the linefeed in each line with a blank space, which produces a single line of output:
+cat test4.txt |tr '\n' ' '
+The output of the preceding command is here:
+abc  def  abc  abc
+The following example removes the linefeed character at the end of each line of text in a text file. As an illustration, Listing 3.3 displays the contents of abc2.txt.
+Listing 3.3: abc2.txt
+This is line one
+This is line two
+This is line three
+Fourth line
+Fifth line
+The sixth line
+The seventh line
+The following code snippet removes the linefeed character in the text file abc2.txt:
+tr -d '\n' < abc2.txt
+The output of the preceding tr code snippet is here:
+This is line oneThis is line twoThis is line
+threeFourth lineFifth lineThe sixth lineThe seventh line
+As you can see, the output is missing a blank space between consecutive lines, which we can insert with this command:
+tr -s '\n' ' ' < abc2.txt
+The output of the modified version of the tr code snippet is here:
+This is line one This is line two This is line three
+Fourth line Fifth line The sixth line The seventh line
+You can replace the linefeed character with a period “.” with this tr command:
+tr -s '\n' '.' < abc2.txt
+The output of the preceding version of the tr code snippet is here:
+This is line one.This is line two.This is line three.
+Fourth line.Fifth line.The sixth line.The seventh line.
+The tr command with the –s option works on a one-for-one basis, which means that the sequence ‘.’ has the same effect as the sequence ‘. ‘. As a sort of “preview,” we can add a blank space after each period ‘.’ by combining the tr command with the sed command (discussed in Chapter 6), as shown here:
+tr -s '\n' '.' < abc2.txt | sed 's/\./\. /g'
+The output of the preceding command is here:
+This is line one. This is line two. This is line three.
+Fourth line. Fifth line. The sixth line. The seventh line.
+Think of the preceding sed snippet as follows: “whenever a ‘period’ is encountered, replace it with a ‘dot’ followed by a space, and do this for every occurrence of a period.”
+You can also combine multiple commands using the bash “pipe” symbol. For example, the following command sorts the contents of Listing 3.3, retrieves the “bottom” five lines of text, retrieves the lines of text that are unique, and then converts the text to upper case letters,
+cat abc2.txt |sort |tail -5 | uniq | tr [a-z] [A-Z]
+Here is the output from the preceding command:
+THE SEVENTH LINE
+THE SIXTH LINE
+THIS IS LINE ONE
+THIS IS LINE THREE
+THIS IS LINE TWO
+You can also convert the first letter of a word to uppercase (or to lowercase) with the tr command, as shown here:
+x="pizza"
+x=`echo ${x:0:1} | tr '[a-z]' '[A-Z]'`${x:1}
+echo $x
+A slightly longer (one extra line of code) way to convert the first letter to uppercase is shown here:
+x="pizza"
+first=`echo $x|cut -c1|tr [a-z] [A-Z]`
+second=`echo $x|cut -c2-`
+echo $first$second
+As you can see, it’s possible to combine multiple commands using the bash pipe symbol “|” in order to produce the desired output.
+A SIMPLE USE CASE
+The code sample in this section shows you how to use the tr command in order to replace the control character “^M” with a linefeed. Listing 3.4 displays the contents of the dataset controlm.csv that contains embedded control characters.
+Listing 3.4 controlm.csv
+IDN,TEST,WEEK_MINUS1,WEEK0,WEEK1,WEEK2,WEEK3,WEEK4,
+WEEK10,WEEK12,WEEK14,WEEK15,WEEK17,WEEK18,WEEK19,
+WEEK21^M1,BASO,,1.4,,0.8,,1.2,,1.1,,,2.2,,,1.4^M1,B
+ASOAB,,0.05,,0.04,,0.05,,0.04,,,0.07,,,0.05^M1,EOS,,
+6.1,,6.2,,7.5,,6.6,,,7.0,,,6.2^M1,EOSAB,,0.22,,0.30
+,,0.27,,0.25,,,0.22,,,0.21^M1,HCT,,35.0,,34.2,,
+34.6,,34.3,,,36.2,,,34.1^M1,HGB,,11.8,,11.1,,11.6,,
+11.5,,,12.1,,,11.3^M1,LYM,,36.7
+Listing 3.5 displays the contents of the file controlm.sh that illustrates how to remove the control characters from controlm.csv.
+Listing 3.5 controlm.sh
+inputfile="controlm.csv"
+removectrlmfile="removectrlmfile"
+tr -s '\r' '\n' < $inputfile > $removectrlmfile
+For convenience, Listing 3.5 defines the variable inputfile for the input file and the variable removectrlmfile for the output file.
+The output from launching the shell script in Listing 3.5 is here:
+IDN,TEST,WEEK_MINUS1,WEEK0,WEEK1,WEEK2,WEEK3,WEEK4,WE
+EK10,WEEK12,WEEK14,WEEK15,WEEK17,WEEK18,WEEK19,WEEK21
+1,BASO,,1.4,,0.8,,1.2,,1.1,,,2.2,,,1.4
+1,BASOAB,,0.05,,0.04,,0.05,,0.04,,,0.07,,,0.05
+1,EOS,,6.1,,6.2,,7.5,,6.6,,,7.0,,,6.2
+1,EOSAB,,0.22,,0.30,,0.27,,0.25,,,0.22,,,0.21
+As you can see, the task in this section is easily solved via the tr command. Note that there are empty fields in the preceding output, which means that additional processing is required.
+You can also replace the current delimiter “,” with a different delimiter, such as a “|” symbol that appears in the following command:
+cat removectrlmfile |tr -s ',' '|' > pipedfile
+The resulting output is shown here:
+IDN|TEST|WEEK_MINUS1|WEEK0|WEEK1|WEEK2|WEEK3|WEEK4|WE
+EK10|WEEK12|WEEK14|WEEK15|WEEK17|WEEK18|WEEK19|WEEK21
+1|BASO|1.4|0.8|1.2|1.1|2.2|1.4
+1|BASOAB|0.05|0.04|0.05|0.04|0.07|0.05
+1|EOS|6.1|6.2|7.5|6.6|7.0|6.2
+1|EOSAB|0.22|0.30|0.27|0.25|0.22|0.21
+If you have a text file with multiple delimiters in arbitrary order in multiple files, you can replace those delimiters with a single delimiter via the sed command, which is discussed in Chapter 6.
+THE FIND COMMAND
+The find command supports many options, including one for printing (displaying) the files returned by the find command, and another one for removing the files returned by the find command.
+In addition, you can specify logical operators such as -a (AND) as well as -o (OR) in a find command. You can also specify switches to find the files (if any) that were created, accessed, or modified before (or after) a specific date.
+Several examples are here:
+find . –print displays all the files (including sub-directories)
+find . –print |grep "abc" displays all the files whose names contain the string abc
+find . –print |grep "sh$" displays all the files whose names have the suffix sh
+find . –depth 2 –print displays all files of depth at most 2 (including sub-directories)
+You can also specify access times pertaining to files. For example, atime, ctime, and mtime refer to the access time, creation time, and modification time of a file.
+As another example, the following command finds all the files modified in less than 2 days and prints the record count of each:
+$ find . –mtime –2 -exec wc –l {} ;
+You can remove a set of files with the find command. For example, you can remove all the files in the current directory tree that have the suffix “m” as follows:
+find . –name "*m$" –print –exec rm {}
+NOTE
+Be careful when you remove files: run the preceding command without “exec rm {}” to review the list of files before deleting them.
+THE TEE COMMAND
+The tee command enables you to display output to the screen and also redirect the output to a file at the same time. The –a option will append subsequent output to the named file instead of overwriting the file. Here is a simple example:
+find . –print |xargs grep "sh$" | tee /tmp/blue
+The preceding code snippet redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that end with the string “sh.” The result is displayed on the screen and also redirected to the file / tmp/blue.
+find . – print |xargs grep "^abc$" | tee – a /tmp/blue
+The preceding code snippet also redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that contain only the string “abc.” The result is displayed on the screen and also appended to the file /tmp/blue.
+FILE COMPRESSION COMMANDS
+Bash supports various commands for compressing sets of files, including the tar, cpio, gzip, and gunzip commands. The following subsections contain simple examples of how to use these commands.
+The tar command
+The tar command enables you to compress a set of files in a directory to create a new tar file, uncompress an existing tar file, and also display the contents of a tar file.
+The “c” option specifies “create,” the “f” option specifies “file” and the “v” option specifies “verbose.” For example, the following command creates a compressed file called testing.tar and displays the files that are included in testing.tar during the creation of this file:
+tar cvf testing.tar *.txt
+The compressed file testing.tar contains the files with the suffix txt in the current directory and you will see the following output:
+a apple-care.txt
+a checkin-commands.txt
+a iphonemeetup.txt
+a kyrgyzstan.txt
+a outfile.txt
+a output.txt
+a ssl-instructions.txt
+The following command extracts the files that are in the tar file testing.tar:
+tar xvf testing.tar
+The following command displays the contents of a tar file without uncompressing its contents:
+tar tvf testing.tar
+The preceding command displays the same output as the “ls –l” command that displays a long listing.
+The “z” option uses gzip compression. For example, the following command creates a compressed file called testing.tar.gz:
+tar czvf testing.tar.gz *.txt
+The cpio Command
+The cpio command provides further compression after you create a tar file. For example, the following command creates the file archive.cpio:
+ls file1 file2 file3 | cpio -ov > archive.cpio
+The “-o” option specifies an output file and the “-v” option specifies verbose, which means that the files are displayed as they are placed in the archive file. The “-I” option specifies input, and the “-d” option specifies “display”.
+You can combine other commands (such as the find command) with the cpio command, an example of which is here:
+find . –name ".sh" | cpio -ov > shell-scripts.cpio
+You can display the contents of the file archive.cpio with the following command:
+cpio -id < archive.cpio
+The output of the preceding command is here:
+file1
+file2
+file3
+1 block
+The gzip and gunzip Commands
+The gzip command creates a compressed file. For example, the following command creates the compressed file filename.gz:
+gzip filename
+Extract the contents of the compressed file filename.gz with the gunzip command:
+gunzip filename.gz
+You can create gzipped tarballs using the following methods:
+Method #1:
+tar -czvvf archive.tar.gz [YOUR-LIST-OF-FILES]
+Method #2:
+tar -cavvf archive.tar.gz [YOUR-LIST-OF-FILES]
+The -a option specifies that the compression format should automatically be detected from the extension.
+The bunzip2 Command
+The bunzip2 utility uses a compression technique that is similar to gunzip2, except that bunzip2 typically produces smaller (more compressed) files than gzip. It comes with all Linux distributions. In order to compress with bzip2 use:
+bzip2 filename
+ls
+filename.bz2
+The zip Command
+The zip command is another utility for creating zip files. For example, if you have the files called file1, file2, and file3, then the following command creates the file file1.zip that contains these three files:
+zip file?
+The zip command has useful options (such as –x for excluding files), and you can find more information in online tutorials.
+COMMANDS FOR ZIP FILES AND BZ FILES
+There are various commands for handling zip files, including zdiff, zcmp, zmore, zless, zcat, zipgrep, zipsplit, zipinfo, zgrep, zfgrep, and zegrep.
+Remove the initial “z” or “zip” from these commands to obtain the corresponding “regular” bash command.
+For example, the zcat command is the counterpart to the cat command, so you can display the contents of a file in a .gz file without manually extracting that file and also without modifying the contents of the .gz file. Here is an example:
+ls test.gz
+zcat test.gz
+Another set of utilities for bz files includes bzcat, bzcmp, bzdiff, bzegrep, bzfgrep, bzgrep, bzless, and bzmore.
+Read the online documentation to find out more about these commands.
+INTERNAL FIELD SEPARATOR (IFS)
+The Internal Field Separator is an important concept in shell scripting that is useful while manipulating text data. An Internal Field Separator (IFS) is an environment variable that stores delimiting characters. The IFS is the default delimiter string used by a running shell environment.
+Consider the case where we need to iterate through words in a string or comma separated values (CSV). Specify IFS="," in order to display each substring on a separate line. For example, suppose that a shell script contains the following lines:
+data="age,gender,street,state"
+IFS=$','
+for item in $data
+do
+   echo Item: $item
+done
+The output of the preceding code block is here:
+Item: age
+Item: gender
+Item: street
+Item: state
+Note that you can also use the awk command (discussed in Chapter 7) to produce the same output.
+The next section contains a code sample that relies on the value of IFS in order to extract data correctly from a dataset.
+DATA FROM A RANGE OF COLUMNS IN A DATASET
+Listing 3.6 displays the contents of the dataset datacolumns1.txt and Listing 3.7 displays the contents of the shell script datacolumns1.sh that illustrates how to extract data from a range of columns from the dataset in Listing 3.6.
+Incidentally, this code sample contains a while loop, which is one of several types of loops that are available in bash, and are discussed in more detail in Chapter 3. As such, this code sample involves “forward referencing”: using a bash construct before it’s been discussed in detail. However, you are either already familiar with the concept of a while loop, or you have an intuitive grasp vis-à-vis its purpose, so you’ll be able to understand the code in this code sample.
+Listing 3.6 datacolumns1.txt
+#23456789012345678901234567890
+  1000      Jane     Edwards
+  2000      Tom      Smith
+  3000      Dave     Del Ray
+Listing 3.7 datacolumns1.sh
+# empid: 03-09
+# fname: 11-20
+# lname: 21-30
+IFS=''
+inputfile="datacolumns1.txt"
+
+while read line
+do
+  pound="`echo $line |grep '^#'`"
+
+  if [ x"$pound" == x"" ]
+  then
+
+   echo "line: $line"
+    empid=`echo "$line" |cut -c3-9`
+    echo "empid: $empid"
+
+    fname=`echo "$line" |cut -c11-19`
+    echo "fname: $fname"
+
+    lname=`echo "$line" |cut -c21-29`
+    echo "lname: $lname"
+    echo "--------------"
+  fi
+done < $inputfile
+Listing 3.7 sets the value of IFS to an empty string, which is required for this shell script to work correctly (try running this script without setting IFS and see what happens). The body of this script contains a while loop that reads each line from the input file called datacolumns1.txt and sets the pound variable equal to “v” if a line does not start with the “#” character OR sets the pound variable equal to the entire line if it does start with the “#” character. This is a simple technique for “filtering” lines based on their initial character.
+The if statement executes for lines that do not start with a “#” character, and the variables empid, fname, and lname are initialized to the characters in Columns 3 through 9, then 11 through 19, and then 21 through 29, respectively. The values of those three variables are printed each time they are initialized. As you can see, these variables are initialized by a combination of the echo command and the cut command, and the value of IFS is required in order to ensure that the echo command does not remove blank spaces.
+The output from Listing 3.7 is shown below:
+line: 1000     Jane        Edwards
+empid: 1000
+fname: Jane
+lname: Edwards
+--------------
+line: 2000     Tom         Smith
+empid: 2000
+fname: Tom
+lname: Smith
+--------------
+line: 3000     Dave        Del Ray
+empid: 3000
+fname: Dave
+lname: Del Ray
+--------------
+WORKING WITH UNEVEN ROWS IN DATASETS
+Listing 3.8 displays the contents of the dataset uneven.txt that contains rows with a different number of columns. Listing 3.9 displays the contents of the bash script uneven.sh that illustrates how to generate a dataset whose rows have the same number of columns.
+Listing 3.8: uneven.txt
+abc1 abc2 abc3 abc4
+abc5 abc6
+abc1 abc2 abc3 abc4
+abc5 abc6
+Listing 3.9: uneven.sh
+inputfile="uneven.txt"
+outputfile="even2.txt"
+
+# ==> four fields per line
+
+#method #1: four fields per line
+cat $inputfile | xargs -n 4 >$outputfile
+
+#method #2: two equal rows
+#xargs -L 2 <$inputfile > $outputfile
+
+echo "input file:"
+cat $inputfile
+
+echo "output file:"
+cat $outputfile
+Listing 3.9 contains two techniques for realigning the text in the input file so that the output appears with four columns in each row. As you can see, both techniques involve the xargs command (which is an interesting use of the xargs command).
+Launch the code in Listing 3.9 and you will see the following output:
+abc1 abc2 abc3 abc4
+abc5 abc6 abc1 abc2
+abc3 abc4 abc5 abc6
+SUMMARY
+This chapter showed you examples of how to use some useful and versatile bash commands. First, you learned about the bash commands join, fold, split, sort, and uniq. Next, you learned about the find command and the xargs command. You also learned about various ways to use the tr command, which is also in the use case in this chapter.
+Then you saw some compression-related commands, such as cpio and tar, which help you create new compressed files and also help you examine the contents of compressed files.
+In addition, you learned how to extract column ranges of data, as well as the usefulness of the IFS option.

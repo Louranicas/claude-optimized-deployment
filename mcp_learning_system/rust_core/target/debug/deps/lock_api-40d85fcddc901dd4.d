@@ -1,0 +1,10 @@
+/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/rust_core/target/debug/deps/liblock_api-40d85fcddc901dd4.rmeta: /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/lib.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/mutex.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/remutex.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/rwlock.rs
+
+/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/rust_core/target/debug/deps/liblock_api-40d85fcddc901dd4.rlib: /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/lib.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/mutex.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/remutex.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/rwlock.rs
+
+/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/rust_core/target/debug/deps/lock_api-40d85fcddc901dd4.d: /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/lib.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/mutex.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/remutex.rs /home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/rwlock.rs
+
+/home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/lib.rs:
+/home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/mutex.rs:
+/home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/remutex.rs:
+/home/louranicas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lock_api-0.4.13/src/rwlock.rs:

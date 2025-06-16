@@ -1,0 +1,590 @@
+---
+# Grafana Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: visualization
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+        component: visualization
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: grafana
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - grafana
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 472
+        runAsGroup: 472
+        fsGroup: 472
+      initContainers:
+      - name: grafana-sc-datasources
+        image: quay.io/kiwigrid/k8s-sidecar:1.25.2
+        env:
+        - name: METHOD
+          value: "LIST"
+        - name: LABEL
+          value: "grafana_datasource"
+        - name: FOLDER
+          value: "/etc/grafana/provisioning/datasources"
+        - name: RESOURCE
+          value: "both"
+        - name: NAMESPACE
+          value: "monitoring"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 472
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: sc-datasources-volume
+          mountPath: "/etc/grafana/provisioning/datasources"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.2.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: grafana
+          containerPort: 3000
+          protocol: TCP
+        env:
+        # Security
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-admin-secret
+              key: admin-password
+        - name: GF_SECURITY_ADMIN_USER
+          value: "admin"
+        - name: GF_SECURITY_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: grafana-admin-secret
+              key: secret-key
+        - name: GF_SECURITY_DISABLE_GRAVATAR
+          value: "true"
+        - name: GF_SECURITY_COOKIE_SECURE
+          value: "true"
+        - name: GF_SECURITY_COOKIE_SAMESITE
+          value: "strict"
+        - name: GF_SECURITY_STRICT_TRANSPORT_SECURITY
+          value: "true"
+        - name: GF_SECURITY_CONTENT_TYPE_PROTECTION
+          value: "true"
+        - name: GF_SECURITY_X_CONTENT_TYPE_OPTIONS
+          value: "nosniff"
+        - name: GF_SECURITY_X_XSS_PROTECTION
+          value: "true"
+        
+        # Server Configuration
+        - name: GF_SERVER_ROOT_URL
+          value: "https://grafana.code.example.com"
+        - name: GF_SERVER_DOMAIN
+          value: "grafana.code.example.com"
+        - name: GF_SERVER_ENABLE_GZIP
+          value: "true"
+        - name: GF_SERVER_CERT_FILE
+          value: "/etc/ssl/certs/tls.crt"
+        - name: GF_SERVER_CERT_KEY
+          value: "/etc/ssl/private/tls.key"
+        
+        # Database
+        - name: GF_DATABASE_TYPE
+          value: "postgres"
+        - name: GF_DATABASE_HOST
+          value: "postgres:5432"
+        - name: GF_DATABASE_NAME
+          value: "grafana"
+        - name: GF_DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: grafana-db-secret
+              key: username
+        - name: GF_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-db-secret
+              key: password
+        - name: GF_DATABASE_SSL_MODE
+          value: "require"
+        
+        # Users and Authentication
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        - name: GF_USERS_ALLOW_ORG_CREATE
+          value: "false"
+        - name: GF_USERS_AUTO_ASSIGN_ORG
+          value: "true"
+        - name: GF_USERS_AUTO_ASSIGN_ORG_ROLE
+          value: "Viewer"
+        
+        # Auth (OAuth/OIDC)
+        - name: GF_AUTH_GENERIC_OAUTH_ENABLED
+          value: "true"
+        - name: GF_AUTH_GENERIC_OAUTH_NAME
+          value: "OAuth"
+        - name: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: grafana-oauth-secret
+              key: client-id
+        - name: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: grafana-oauth-secret
+              key: client-secret
+        - name: GF_AUTH_GENERIC_OAUTH_SCOPES
+          value: "openid profile email"
+        - name: GF_AUTH_GENERIC_OAUTH_AUTH_URL
+          value: "https://auth.code.example.com/oauth/authorize"
+        - name: GF_AUTH_GENERIC_OAUTH_TOKEN_URL
+          value: "https://auth.code.example.com/oauth/token"
+        - name: GF_AUTH_GENERIC_OAUTH_API_URL
+          value: "https://auth.code.example.com/userinfo"
+        - name: GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH
+          value: "contains(groups[*], 'admin') && 'Admin' || contains(groups[*], 'editor') && 'Editor' || 'Viewer'"
+        
+        # Analytics and Telemetry
+        - name: GF_ANALYTICS_REPORTING_ENABLED
+          value: "false"
+        - name: GF_ANALYTICS_CHECK_FOR_UPDATES
+          value: "false"
+        - name: GF_ANALYTICS_GOOGLE_ANALYTICS_UA_ID
+          value: ""
+        
+        # Logging
+        - name: GF_LOG_MODE
+          value: "console"
+        - name: GF_LOG_LEVEL
+          value: "info"
+        
+        # Metrics
+        - name: GF_METRICS_ENABLED
+          value: "true"
+        - name: GF_METRICS_INTERVAL_SECONDS
+          value: "10"
+        
+        # Alerting
+        - name: GF_ALERTING_ENABLED
+          value: "true"
+        - name: GF_ALERTING_EXECUTE_ALERTS
+          value: "true"
+        - name: GF_UNIFIED_ALERTING_ENABLED
+          value: "true"
+        
+        # Plugins
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel"
+        
+        # Feature Toggles
+        - name: GF_FEATURE_TOGGLES_ENABLE
+          value: "ngalert,live,publicDashboards"
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 472
+          runAsGroup: 472
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+            ephemeral-storage: "1Gi"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+            ephemeral-storage: "5Gi"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: grafana
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: grafana
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: storage
+          mountPath: /var/lib/grafana
+        - name: config
+          mountPath: /etc/grafana/grafana.ini
+          subPath: grafana.ini
+          readOnly: true
+        - name: sc-datasources-volume
+          mountPath: /etc/grafana/provisioning/datasources
+          readOnly: true
+        - name: dashboards-config
+          mountPath: /etc/grafana/provisioning/dashboards
+          readOnly: true
+        - name: dashboards
+          mountPath: /var/lib/grafana/dashboards
+          readOnly: true
+        - name: tls-certs
+          mountPath: /etc/ssl/certs
+          readOnly: true
+        - name: tls-private
+          mountPath: /etc/ssl/private
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: grafana-storage
+      - name: config
+        configMap:
+          name: grafana-config
+          defaultMode: 0444
+      - name: sc-datasources-volume
+        emptyDir: {}
+      - name: dashboards-config
+        configMap:
+          name: grafana-dashboards-config
+          defaultMode: 0444
+      - name: dashboards
+        configMap:
+          name: grafana-dashboards
+          defaultMode: 0444
+      - name: tls-certs
+        secret:
+          secretName: grafana-tls
+          items:
+          - key: tls.crt
+            path: tls.crt
+          defaultMode: 0444
+      - name: tls-private
+        secret:
+          secretName: grafana-tls
+          items:
+          - key: tls.key
+            path: tls.key
+          defaultMode: 0400
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi
+
+---
+# Grafana Storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-storage
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# Grafana Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: visualization
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3000"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: grafana
+    port: 3000
+    targetPort: grafana
+    protocol: TCP
+  selector:
+    app: grafana
+
+---
+# Grafana Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: monitoring
+  labels:
+    app: grafana
+data:
+  grafana.ini: |
+    [server]
+    http_port = 3000
+    domain = grafana.code.example.com
+    root_url = https://grafana.code.example.com
+    enable_gzip = true
+    cert_file = /etc/ssl/certs/tls.crt
+    cert_key = /etc/ssl/private/tls.key
+    
+    [database]
+    type = postgres
+    host = postgres:5432
+    name = grafana
+    user = $__env{GF_DATABASE_USER}
+    password = $__env{GF_DATABASE_PASSWORD}
+    ssl_mode = require
+    max_idle_conn = 25
+    max_open_conn = 300
+    conn_max_lifetime = 14400
+    
+    [security]
+    admin_user = $__env{GF_SECURITY_ADMIN_USER}
+    admin_password = $__env{GF_SECURITY_ADMIN_PASSWORD}
+    secret_key = $__env{GF_SECURITY_SECRET_KEY}
+    disable_gravatar = true
+    cookie_secure = true
+    cookie_samesite = strict
+    strict_transport_security = true
+    content_type_protection = true
+    x_content_type_options = nosniff
+    x_xss_protection = true
+    
+    [users]
+    allow_sign_up = false
+    allow_org_create = false
+    auto_assign_org = true
+    auto_assign_org_role = Viewer
+    
+    [auth.generic_oauth]
+    enabled = true
+    name = OAuth
+    client_id = $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_ID}
+    client_secret = $__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}
+    scopes = openid profile email
+    auth_url = https://auth.code.example.com/oauth/authorize
+    token_url = https://auth.code.example.com/oauth/token
+    api_url = https://auth.code.example.com/userinfo
+    role_attribute_path = contains(groups[*], 'admin') && 'Admin' || contains(groups[*], 'editor') && 'Editor' || 'Viewer'
+    allow_assign_grafana_admin = true
+    
+    [analytics]
+    reporting_enabled = false
+    check_for_updates = false
+    
+    [log]
+    mode = console
+    level = info
+    
+    [metrics]
+    enabled = true
+    interval_seconds = 10
+    
+    [alerting]
+    enabled = true
+    execute_alerts = true
+    
+    [unified_alerting]
+    enabled = true
+    
+    [feature_toggles]
+    enable = ngalert,live,publicDashboards
+    
+    [paths]
+    data = /var/lib/grafana
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+
+---
+# Grafana Datasources Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+  labels:
+    app: grafana
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus:9090
+      isDefault: true
+      editable: true
+      jsonData:
+        httpMethod: POST
+        prometheusType: Prometheus
+        prometheusVersion: 2.48.0
+        timeInterval: "30s"
+        queryTimeout: "60s"
+        exemplarTraceIdDestinations:
+        - name: traceID
+          datasourceUid: jaeger
+          url: "https://jaeger.code.example.com/trace/\${__value.raw}"
+    
+    - name: Jaeger
+      type: jaeger
+      uid: jaeger
+      access: proxy
+      url: http://jaeger-query:16686
+      editable: true
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
+          spanStartTimeShift: "-1h"
+          spanEndTimeShift: "1h"
+          tags: [{ key: "service.name", value: "service" }]
+          filterByTraceID: false
+          filterBySpanID: false
+          customQuery: true
+          query: '{service="${service}"} |= "${__span.traceId}"'
+    
+    - name: Loki
+      type: loki
+      uid: loki
+      access: proxy
+      url: http://loki:3100
+      editable: true
+      jsonData:
+        derivedFields:
+        - datasourceUid: jaeger
+          matcherRegex: "traceID=(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+    
+    - name: Alertmanager
+      type: alertmanager
+      access: proxy
+      url: http://alertmanager:9093
+      editable: true
+      jsonData:
+        implementation: prometheus
+
+---
+# Grafana Dashboards Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-config
+  namespace: monitoring
+  labels:
+    app: grafana
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      updateIntervalSeconds: 60
+      allowUiUpdates: true
+      options:
+        path: /var/lib/grafana/dashboards
+    - name: 'infrastructure'
+      orgId: 1
+      folder: 'Infrastructure'
+      type: file
+      disableDeletion: false
+      editable: true
+      updateIntervalSeconds: 60
+      options:
+        path: /var/lib/grafana/dashboards/infrastructure
+    - name: 'application'
+      orgId: 1
+      folder: 'Application'
+      type: file
+      disableDeletion: false
+      editable: true
+      updateIntervalSeconds: 60
+      options:
+        path: /var/lib/grafana/dashboards/application
+
+---
+# ServiceAccount for Grafana
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana
+  namespace: monitoring
+
+---
+# ClusterRole for Grafana
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "watch", "list"]
+
+---
+# ClusterRoleBinding for Grafana
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana
+subjects:
+- kind: ServiceAccount
+  name: grafana
+  namespace: monitoring

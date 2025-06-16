@@ -1,0 +1,35 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 12345 - Or, simply not realizing that a default setting is making the whole system less secure, like a baby monitor with telnet open.
+Example 1:
+The most glaringly obvious example of a security misconfiguration is also extremely common in enterprise networks. If you were to survey a group of network pentesters and ask them “What is the #1 way you compromise systems on an internal environment”, they will most likely say “default credentials”. It is unbelievably common to find printers, phone systems, security cameras, and even significantly more critical devices, such as a Dell iDRAC with their default administrator credentials still active.
+Security Relevance Score: 16
+Word Count: 889
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Or, simply not realizing that a default setting is making the whole system less secure, like a baby monitor with telnet open.
+Example 1:
+The most glaringly obvious example of a security misconfiguration is also extremely common in enterprise networks. If you were to survey a group of network pentesters and ask them “What is the #1 way you compromise systems on an internal environment”, they will most likely say “default credentials”. It is unbelievably common to find printers, phone systems, security cameras, and even significantly more critical devices, such as a Dell iDRAC with their default administrator credentials still active.
+
+ For those unfamiliar, a Dell iDRAC is an out of band management platform which provides a central place to manage and configure remote consoles from one interface. Compromising a device such as this almost immediately leads to a cascading compromise of all of the additional remote devices it is configured to manage.
+If you ever see one on a pentest, the default credentials are root/calvin.
+
+There are a couple of ways that Nmap can support the auditing of default credentials. The first is the use of a few NSE scripts, which attempt to brute force the devices; a few examples are citrix-brute-xml.nse, ftp-bute.nse, and iax2-brute.nse. While this is one way to go about it, generally it is not recommended to conduct brute force testing without explicit approval from the client due to the potential of disrupting the service. So instead, a somewhat more manual strategy can be employed. Consider using Nmap to scan the subnet for only web servers on the most common ports (80,443,8080,8443):
+Nmap -p 80,443,8080,8443 –open -iL targets.txt
+With a list of endpoints that are running web servers, you can then use an open-source tool in Kali Linux called EyeWitness (https://github.com/redsiege/EyeWitness), which can provide a file of targets and will automatically screenshot the websites. The output from EyeWitness is an HTML file that you can then quickly go through and identify which web interfaces look to be unique login fields. A quick Google search will then tell you if there are default credentials that you can try. While this seems extremely simplistic and “too good to be true”, you will be astounded at how many systems you will get into by just trying “admin/admin” as a username and password.
+Example 2:
+Many systems are set up that, by default, do not have all security systems hardened. The Windows server virtual machine that we put in our lab environment fits this description perfectly. By using the NSE script smb2-security-mode.nse, we can see that SMB signing is enabled but not required. This is a big problem from a security standpoint. SMB signing is a Microsoft feature that signs all SMB messages with both a session key and an encryption algorithm. By doing this, an extremely popular (and old) man-in-the-middle attack called pass-the-hash is largely mitigated. In a pass-the-hash attack, an attacker would acquire the password hash of a valid user, possibly through network traffic poisoning or another vector, and then “pass” that hash to a system not requiring SMB signing to authenticate as that user.
+Inherently Flawed Protocols
+Some network protocols are designed in such a way that their fundamental implementation presents a vulnerability that can be exploited by an attacker. Two commonly seen examples are Intelligence Platform Management Interface Version 2 (IPMIv2) and MQ Telemetry Transport (MQTT). These are very different protocols and are used for completely different purposes, but both offer a very easy path to exploitation once they are identified.
+Example 1:
+IPMIv2 is a protocol designed to support management and monitoring by system administrators for out-of-band management systems, like an iDRAC, for example. The problem with this protocol is the way it handles authentication and provides a hashed version of the user’s password once a username is submitted. This allows attackers to systematically dump all user hashes and attempt to crack them using an offline dictionary or brute force-based means.
+Identifying hosts with IPMIv2 with Nmap can be done with one command first identifying hosts with UDP port 623 open, then versioning the service with the script ipmi-version:
+Nmap -sU -p 623 –-open --script ipmi-version.nse -iL targets.txt
+There are several other tools available which will both scan for and dump the hashes for IPMIv2, such as the Metasploit module auxiliary/scanner/ipmi/ipmi_dumphashes. However, it is almost always quicker and safer to first confirm the use of IPMIv2 using Nmap, and then determine if exploitation is permitted within your rules of engagement.
+Example 2:
+MQTT is a lightweight messaging protocol most commonly used by IoT devices due to the inherently resource-constrained nature of such devices. In most implementations of MQTT, authentication is completely optional to establish a connection and subscribe to various topics that are published by the MQTT brokers.
+To identify and subscribe to various topics for additional system information and enumeration, you can simply scan for systems with port 1833 open and call the mqtt-subscribe.nse script:
+Nmap -p 1883 --open --script mqtt-subscribe -iL targets.txt
+This is generally a safe script to run and is classified under the Discovery category, although in most cases it would be considered active exploitation. If you wish to subscribe to only a limited number of topics as a proof of concept, a number can be specified with the mqtt-subscribe.listen-msgs argument. If you don't specify a number, the default is

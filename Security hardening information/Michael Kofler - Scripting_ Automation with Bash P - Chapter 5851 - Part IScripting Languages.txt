@@ -1,0 +1,97 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 5851 - Part IScripting Languages
+Security Relevance Score: 5
+Word Count: 1839
+Extracted: 2025-06-13 23:41:06
+
+---
+
+Part IScripting Languages
+
+
+
+
+
+
+
+1    Scripting: Doing One ThingThis short introductory chapter addresses the question, “What is scripting?” We’ll cover the differences between “full-fledged” programming languages and classic scripting languages and show you right away how these boundaries (especially with Python) are fluid.In this chapter, I want to go into a bit of the background and philosophy of scripting. I think this background is especially important if you’ve previously developed code using a language like Java or C#. You have learned to use the correct data types and to structure your code in an object-oriented way. You’ve followed all the rules of the art as best you can.At this point, you might be wondering: What is wrong with also developing a backup script or a test program for a REST API in a strictly typed programming language? What are the advantages of a syntactically much more generous script language like Bash, which knows strings as the only data type? Why make friends with PowerShell when it uses the same .NET foundation as C#? We’ll be answering these questions as we discuss the benefits of each scripting language in the coming sections. 
+1.1    What Does Scripting Mean?
+Scripting means the following: 
+
+
+You can write 20 lines of code to create a backup of your database once a day, including encrypting and uploading this data to cloud storage.
+
+
+With a tiny program, you can reduce countless wedding photos to a maximum resolution of 1024×768 pixels, including watermarking and uploading the files to a hidden directory on your web server so that your customers can view and select their favorite images via your website.
+
+
+You can easily scan all the computers on your local network for a specific security vulnerability or an outdated software version.
+
+
+You can capture, for instance, the volume of gas stored in Germany, the price fluctuations of the next notebook you want to buy, or the latest COVID-19 case numbers from public websites and represent this data in charts.
+
+
+You can filter out the 20 error messages relevant to you from a log file of 50,000 lines.
+
+
+1.1.1    Scripting versus Programming
+Scripts, too, are “only” programs. However, they differ from large software projects in the way they are programmed, the tools/components used, and their objectives:
+
+
+Typically, scripts perform manageable, relatively simple tasks. They often help automate administrative tasks or at least perform them more efficiently.
+
+
+Scripts are used in text mode (in the terminal) or executed automatically in the background. No graphical user interface (GUI) exists.
+
+
+Special script languages are used for programming, which make uncomplicated, efficient development possible. Script languages require neither elaborate development tools nor compilers. The syntax is minimalistic (sometimes, unfortunately, also outdated and it can take some getting used to). Central principles familiar from large projects, such as object orientation or strict type control of variables, play a subordinate role or cannot be implemented at all.
+
+
+Popular script languages are characterized by huge offering of commands or extension modules. This diversity helps to perform basic operations (read and evaluate files, set up users, perform network operations, etc.). When it comes to scripting, you don’t have time to reinvent the wheel! You should rather make use of a huge toolbox of existing components and building blocks as best you can.
+
+
+The code size of scripts is small, typically under 100 lines (not counting comments and strings).
+
+
+In large software projects, an extremely important goal is that code be developed “cleanly”—that is, the code can be understood by all members of the team and later extended or modified. In other words, all guidelines of modern software design are observed.
+Scripting, on the other hand, is about solving a small problem quickly and pragmatically (getting things done). Of course, you shouldn’t go out of your way to develop sloppy scripts! Scripts should also use meaningful variable names, be documented with comments, contain basic error protection, and so on. But the priorities and development goals of a script that should be ready within a day if possible are quite different from the priorities and development goals for a software project whose code may need to be maintained for a decade.
+1.1.2    Glue Languages and Glue Code
+In the context of scripting, sometimes, you’ll hear talk of “glue code.” Accordingly, scripting languages are sometimes referred to as “glue languages.” What do these terms mean?
+In larger projects, the proverbial glue is often necessary to connect independent or incompatible software components. In the simplest case, a script calls some external commands that in themselves have nothing to do with each other: One creates a backup of a database, the second encrypts the resulting file, the third transfers the file to another server via HTTP, and so on. Each of the commands used was developed independently of all the others. But by connecting the commands through your script, a new meaningful component is created.
+Glue code is sometimes also necessary to efficiently apply modern software development tools. For example, let’s say your team is developing a large project in JavaScript using tools like Git (version control) and Docker (containers for local testing environments). Each time a team member completes (“checks in”) a new test version, the current code should be transferred (“deployed”) to an external test server. This step could be performed by a small script.
+Theoretically, you can perform such tasks with any programming language. However, scripting languages are particularly well suited for these tasks because of their simple syntaxes, minimal development overhead, and the fact that scripts create few (or even no) new project dependencies.
+1.1.3    Do One Thing and Do It Well
+Unix programs were developed according to the motto “Do one thing and do it well,” formulated by Doug McIlroy, and these programs are still assessed by this standard today. When Unix became Linux and macOS, what was then called a “program” is now called a “command.” But the principle has not changed: A command like ls, grep, or find is expected to perform a very specific task and to do that task really well.
+What does Unix’s motto have to do with scripting? On Linux and macOS, when you develop scripts in the Bash or Zsh languages, you do so on a foundation of several hundred commands that meet the Unix recommendation. You would be well advised to adopt the motto for your own projects as well. Write scripts that perform one task neatly.
+
+
+
+
+
+
+
+
+
+1.2    Scripting Languages
+In purely formal terms, scripting languages differ from other, “higher-level” programming languages in that the code is interpreted. Thus, the code is formulated in a text file and then executed directly by an interpreter in Bash, PowerShell, or Python. The code does not need to be compiled (i.e., converted to a binary representation) beforehand.
+This concept has an advantage in that scripts can be executed immediately without lengthy preparation work, which speeds up the development process.
+However, using an interpreter has a disadvantage in that scripts usually run somewhat more slowly than compiled programs. For this reason, a scripting language is rarely the ideal choice for developing computationally intensive algorithms. Since many scripts consist mainly of calls to other commands, the loss of efficiency due to the missing compiler does not matter at all.
+All Linux shells are considered “classic” scripting languages, such as Bourne Shell, the Korn Shell, Bash, and Zsh. A shell is actually a command interpreter, that is, a program that accepts and executes commands. If several such commands are stored in a text file, the original form of a script is created.
+Over time, countless scripting languages were developed that offered more syntactic options than traditional shells and were often optimized for specific tasks. These other languages include, for example, JavaScript, Python, PHP, and Tcl.
+In the Windows world, the unspeakable cmd.exe program originally took over the role of the shell. Even now, *.bat files based on this program are still in use today despite their extremely modest scripting capabilities. This program was followed by VBScript, the VBA language optimized for Microsoft Office, and finally PowerShell, which brought Microsoft the success they had been hoping for: PowerShell is now considered the language when it comes to maintaining and administering large Windows network installations.
+
+Compilers for Scripting Languages
+The interpreter/compiler criterion was established in the past to distinguish between scripting and other languages, but this distinction is obsolete today. Compilers now exist for many languages whose code was initially executed by an interpreter. These compilers are often just-in-time compilers that compile the code immediately before execution and are thus unnoticed by users. This invisibility is true for JavaScript, PHP, and Python, among others.
+
+1.2.1    Bash and Zsh
+Obviously, I cannot cover all popular scripting languages in this book. I’ll instead focus on three (with Zsh, four) languages that are most important for administrative tasks and in DevOps environments. In the following sections, I’ll briefly introduce these languages to you.
+The name Bash is an abbreviation for Bourne Again Shell. The Bourne shell was immensely popular for Unix more than 30 years ago. However, this program was not available in an open-source license, which led to the development of the largely compatible Bash, which later became the standard shell for most Linux distributions.
+When scripting is mentioned in the context of a Linux environment without further explanation, the scripting language is almost always Bash. Whether server processes are being started, network connections set up, or firewall rules changed, quite often Bash scripts are already used at the operating system level for this purpose. Therefore, also running your own tasks using Bash makes sense.
+The widespread use of Bash sometimes makes one overlook the fact that its roots and syntax are old. Accordingly, the syntax of the language is sometimes inconsistent, sometimes simply atrocious. Instead of simple functions, countless special characters must be used to perform quite trivial tasks (e.g., edit strings or perform calculations). Besides strings and arrays, no other data types exist. Object orientation is an unknown concept in Bash anyway.
+On the plus side, an almost limitless selection of Unix tools can be used and combined in scripts. So, the strength of Bash lies not in its linguistic capabilities but in its commands, which you can easily call in scripts. (And as mentioned earlier, these commands were developed based on the motto “do one thing....”)
+However, I must mention also that beginners can find becoming accustomed to the world of Bash and Linux commands quite difficult. While (almost) every command is well documented on its own, no central overview exists.
+
+Bash versus Zsh
+Zsh is largely compatible with Bash. With regard to script programming, the differences are minimal, and of course, you can call the same commands in both shells. However, when used interactively, Zsh stands out for its many advantages and better extensibility. Thus, Zsh is gaining more and more fans in the Linux world and is even used as the default shell by some distributions. (For other distributions, Zsh can be installed in a few simple steps.)
+macOS switched from Bash to Zsh in

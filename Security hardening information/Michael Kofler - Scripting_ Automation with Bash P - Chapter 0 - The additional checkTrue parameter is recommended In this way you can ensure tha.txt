@@ -1,0 +1,72 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 0 - The additional check=True parameter is recommended. In this way, you can ensure that an exception is thrown on every error where the exception type is CalledProcessError. You must import this error class from the subprocess module.
+Security Relevance Score: 4
+Word Count: 867
+Extracted: 2025-06-13 23:41:06
+
+---
+
+The additional check=True parameter is recommended. In this way, you can ensure that an exception is thrown on every error where the exception type is CalledProcessError. You must import this error class from the subprocess module. 
+5.16.8    Waiting (sleep)
+The sleep function from the time module waits for the specified time in seconds without blocking the CPU for other tasks:
+import timeprint("wait 200 ms")time.sleep(0.2)print("End of program") 
+
+
+
+
+
+
+
+
+
+5.17    Modules
+For beginners, the Python language often seems more extensive than it actually is. In fact, the number of functions implemented directly in Python is quite manageable. For this purpose, all conceivable additional functions are implemented as add-on modules. These modules must be imported before they can be used.
+5.17.1    import
+Several syntax variants are available for the import command, with the following three main ones:
+
+
+import modulenameThis statement reads the module. After this step, you can use all functions defined in the module in the modulname.functionname() notation. Using import m1, m2, m3, you can also import multiple modules at once.
+
+
+import modulename as mWith this variant, the functions defined in the module can be used as m.functionname(). For long module names, this approach minimizes the typing effort and makes the code more clear.
+
+
+from modulename import f1, f2In this variant, you can use the functions f1 and f2 without prefixing the module name.
+
+
+Internally in Python, import causes the modulename.py file to be read and executed. Many modules simply contain the definition of various functions; thus, these functions are now known to Python and can be used. However, modules can also contain code that is executed immediately, for example, to perform initialization work.
+A common practice is to always place import statements at the beginning of a Python script. Modules can import other modules themselves. Python remembers which modules it has already read and thus avoids further import attempts for already activated modules.
+More details about handling modules are available in the Python documentation at https://docs.python.org/3/reference/simple_stmts.html#import.
+5.17.2    Distributing Custom Scripts across Multiple Files
+You can also use the module mechanism to distribute large scripts across multiple files. To do this, you simply import the relevant files into your main script using import myname. This loads the myname.py file from the local directory. The functions defined there are then available in the main script.
+It is convenient to define only functions (or classes, but I won’t go into that in this book) in your own module files. Code that is immediately executable should be located only in the main file of your script.
+
+Name Conflicts with Standard Modules
+This useful mechanism can cause errors that are difficult to understand. For example, you want to use the Python module csv in your script. If your own csv.py file exists in the local directory, then it will be loaded instead of the Python module.
+You should therefore avoid naming your own script files the same as Python modules! This recommendation is easier said than done, because you can’t possibly know the names of all Python modules. In any case, keep this possibility of an error in mind.
+
+
+
+
+
+
+
+
+
+
+5.18    Installing Additional Modules Using pip
+In Python, you can choose from a selection of several hundred modules by default. These modules can be activated via import without any further preparatory work. But wait, there’s more! On the Python Package Index platform at the https://pypi.org, files from more than 400,000 projects are also available for download.
+To install external modules, Python provides the pip command (for Windows and current Linux distributions) or pip3 (for macOS and older Linux distributions). Just convince yourself of the existence of this command in a terminal window!
+> pip --version  pip 22.3.1 from C:\Users\kofler\AppData\Local\Programs\Python\                   Python311\Lib\site-packages\pip (python 3.11) 
+5.18.1    Installing pip
+On Windows and macOS, pip or pip3 is an integral part of Python. In most Linux distributions, pip is located in a separate package that must be installed separately—on Ubuntu, for example, with the following commands:
+$ sudo apt update$ sudo apt install python3-pip 
+5.18.2    Applying pip
+Once the installation obstacles have been overcome, using pip is child’s play: For example, to install Matplotlib, which allows you to create diagrams, you can just run one of the following two commands in the terminal (pip on Windows and on new Linux distributions, pip3 on macOS or on older Linux distributions):
+> pip install --user matploblib$ pip3 install --user matplotlib  Collecting matplotlib  Downloading matplotlib-3.6.3-cp311-cp311-win_amd64.whl  Downloading contourpy-1.0.7-cp311-cp311-win_amd64.whl  ...  Successfully installed contourpy-1.0.7 ... matplotlib-3.6.3 
+With some packages (like in this example with matplotlib), pip installs not only the actual package but also some additional packages with functions that the main package needs.
+On Linux and macOS, run pip or pip3 without root privileges and without sudo. The --user option, which mostly applies by default, ensures that the relevant package is installed locally in the relevant user directory (usually in .local/lib/python<n>/site-packages) and is only available to that user.
+If you want to upgrade an installed module at a later time, you should run pip install with the --upgrade option, as in the following example:
+> pip install --upgrade <name> 
+Surprisingly, no simple command exists to update all modules. Stack Overflow provides some tips on how you can work around this limitation if needed at https://stackoverflow.com/questions/

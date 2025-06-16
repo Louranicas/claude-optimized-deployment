@@ -1,22 +1,47 @@
 #!/usr/bin/env python3
 """
-Setup script for comprehensive monitoring stack.
+Comprehensive Monitoring Setup Script
 
-This script:
-1. Validates monitoring dependencies
-2. Initializes the monitoring components
-3. Sets up health checks for all services
-4. Configures SLA objectives
-5. Registers alert handlers
-6. Starts the monitoring stack
+Sets up the complete monitoring and observability stack including:
+- Prometheus configuration
+- Grafana dashboards
+- AlertManager rules
+- MCP server monitoring
+- Log aggregation
+- Distributed tracing
 """
 
 import os
-import sys
+import json
+import yaml
+import shutil
 import asyncio
-import subprocess
+import logging
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, List, Optional, Any
+from datetime import datetime
+import subprocess
+import sys
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+__all__ = [
+    "MonitoringSetup",
+    "check_dependencies",
+    "install_missing_dependencies",
+    "setup_custom_health_checks",
+    "setup_custom_sla_objectives",
+    "setup_alert_handlers",
+    "setup_tracing",
+    "start_monitoring_stack",
+    "verify_monitoring_endpoints",
+    "main"
+]
 
 # Add src to path to import monitoring modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -34,6 +59,189 @@ from monitoring import (
 )
 from monitoring.sla import SLAObjective, SLAType
 from monitoring.alerts import AlertRule, AlertSeverity
+
+class MonitoringSetup:
+    """Comprehensive monitoring setup manager."""
+    
+    def __init__(self, base_dir: Optional[str] = None):
+        self.base_dir = Path(base_dir) if base_dir else Path(__file__).parent.parent.parent
+        self.monitoring_dir = self.base_dir / "monitoring"
+        self.config_dir = self.monitoring_dir / "config"
+        self.dashboards_dir = self.monitoring_dir / "dashboards"
+        self.docker_dir = self.base_dir / "docker"
+        
+        # Create directories if they don't exist
+        self.monitoring_dir.mkdir(exist_ok=True)
+        self.config_dir.mkdir(exist_ok=True)
+        self.dashboards_dir.mkdir(exist_ok=True)
+        self.docker_dir.mkdir(exist_ok=True)
+        
+    def setup_prometheus_config(self) -> Dict[str, Any]:
+        """Setup Prometheus configuration."""
+        logger.info("Setting up Prometheus configuration...")
+        
+        config = {
+            "global": {
+                "scrape_interval": "15s",
+                "evaluation_interval": "15s",
+                "external_labels": {
+                    "cluster": "claude-deployment-engine",
+                    "replica": "prometheus-01"
+                }
+            },
+            "rule_files": [
+                "/etc/prometheus/alert_rules.yaml",
+                "/etc/prometheus/recording_rules.yaml"
+            ],
+            "alerting": {
+                "alertmanagers": [
+                    {
+                        "static_configs": [
+                            {"targets": ["alertmanager:9093"]}
+                        ]
+                    }
+                ]
+            },
+            "scrape_configs": [
+                {
+                    "job_name": "claude-deployment-engine",
+                    "scrape_interval": "15s",
+                    "static_configs": [
+                        {"targets": ["host.docker.internal:8000"]}
+                    ],
+                    "metrics_path": "/monitoring/metrics",
+                    "scrape_timeout": "10s"
+                },
+                {
+                    "job_name": "prometheus",
+                    "static_configs": [
+                        {"targets": ["localhost:9090"]}
+                    ]
+                },
+                {
+                    "job_name": "node_exporter",
+                    "static_configs": [
+                        {"targets": ["node-exporter:9100"]}
+                    ]
+                },
+                {
+                    "job_name": "cadvisor",
+                    "static_configs": [
+                        {"targets": ["cadvisor:8080"]}
+                    ]
+                },
+                {
+                    "job_name": "mcp_servers",
+                    "scrape_interval": "30s",
+                    "static_configs": [
+                        {
+                            "targets": [
+                                "host.docker.internal:8001",  # Desktop Commander
+                                "host.docker.internal:8002",  # Docker MCP
+                                "host.docker.internal:8003",  # Kubernetes MCP
+                                "host.docker.internal:8004",  # Azure DevOps MCP
+                                "host.docker.internal:8005",  # Windows System MCP
+                                "host.docker.internal:8006",  # Prometheus Monitoring MCP
+                                "host.docker.internal:8007",  # Security Scanner MCP
+                                "host.docker.internal:8008",  # Slack Notifications MCP
+                                "host.docker.internal:8009",  # S3 Storage MCP
+                                "host.docker.internal:8010",  # Brave Search MCP
+                            ]
+                        }
+                    ],
+                    "metrics_path": "/health"
+                }
+            ]
+        }
+        
+        # Write configuration
+        config_file = self.config_dir / "prometheus.yml"
+        with open(config_file, 'w') as f:
+            yaml.dump(config, f, default_flow_style=False)
+        
+        logger.info(f"Prometheus configuration written to {config_file}")
+        return config
+    
+    def create_docker_compose(self) -> Dict[str, Any]:
+        """Create comprehensive Docker Compose configuration for monitoring stack."""
+        logger.info("Creating Docker Compose configuration for monitoring stack...")
+        
+        docker_compose = {
+            "version": "3.8",
+            "services": {
+                "prometheus": {
+                    "image": "prom/prometheus:latest",
+                    "container_name": "claude-prometheus",
+                    "command": [
+                        "--config.file=/etc/prometheus/prometheus.yml",
+                        "--storage.tsdb.path=/prometheus",
+                        "--web.console.libraries=/etc/prometheus/console_libraries",
+                        "--web.console.templates=/etc/prometheus/consoles",
+                        "--storage.tsdb.retention.time=15d",
+                        "--web.enable-lifecycle",
+                        "--web.enable-admin-api"
+                    ],
+                    "ports": ["9090:9090"],
+                    "volumes": [
+                        f"{self.config_dir.absolute()}/prometheus.yml:/etc/prometheus/prometheus.yml",
+                        f"{self.config_dir.absolute()}/alert_rules.yaml:/etc/prometheus/alert_rules.yaml",
+                        f"{self.config_dir.absolute()}/recording_rules.yaml:/etc/prometheus/recording_rules.yaml",
+                        "prometheus_data:/prometheus"
+                    ],
+                    "networks": ["monitoring"],
+                    "restart": "unless-stopped"
+                },
+                "grafana": {
+                    "image": "grafana/grafana:latest",
+                    "container_name": "claude-grafana",
+                    "ports": ["3000:3000"],
+                    "environment": {
+                        "GF_SECURITY_ADMIN_PASSWORD": "admin123",
+                        "GF_INSTALL_PLUGINS": "grafana-clock-panel,grafana-simple-json-datasource",
+                        "GF_FEATURE_TOGGLES_ENABLE": "publicDashboards"
+                    },
+                    "volumes": [
+                        f"{self.dashboards_dir.absolute()}:/etc/grafana/provisioning/dashboards",
+                        "grafana_data:/var/lib/grafana"
+                    ],
+                    "networks": ["monitoring"],
+                    "restart": "unless-stopped",
+                    "depends_on": ["prometheus"]
+                }
+            },
+            "networks": {
+                "monitoring": {
+                    "driver": "bridge"
+                }
+            },
+            "volumes": {
+                "prometheus_data": {},
+                "grafana_data": {}
+            }
+        }
+        
+        # Write Docker Compose file
+        compose_file = self.docker_dir / "docker-compose.monitoring.yml"
+        with open(compose_file, 'w') as f:
+            yaml.dump(docker_compose, f, default_flow_style=False)
+        
+        logger.info(f"Docker Compose configuration written to {compose_file}")
+        return docker_compose
+    
+    def setup_all(self):
+        """Setup the complete monitoring stack."""
+        logger.info("🚀 Setting up comprehensive monitoring and observability stack...")
+        
+        try:
+            # Setup configurations
+            self.setup_prometheus_config()
+            self.create_docker_compose()
+            
+            logger.info("✅ Monitoring stack setup completed successfully!")
+            
+        except Exception as e:
+            logger.error(f"❌ Setup failed: {e}")
+            raise
 
 
 def check_dependencies() -> Dict[str, bool]:
@@ -289,117 +497,4 @@ def verify_monitoring_endpoints():
         "AlertManager": "http://localhost:9093/-/healthy",
     }
     
-    print("\nVerifying monitoring endpoints...")
-    
-    # Wait a bit for services to start
-    time.sleep(10)
-    
-    for service, url in endpoints.items():
-        try:
-            response = requests.get(url, timeout=5)
-            if response.status_code < 400:
-                print(f"✓ {service} is accessible")
-            else:
-                print(f"⚠ {service} returned status {response.status_code}")
-        except requests.exceptions.RequestException:
-            print(f"❌ {service} is not accessible")
-
-
-async def run_monitoring_validation():
-    """Run a comprehensive monitoring validation."""
-    print("\n🔍 Running monitoring validation...")
-    
-    # Test metrics collection
-    collector = get_metrics_collector()
-    collector.record_http_request("GET", "/test", 200, 0.1)
-    print("✓ Metrics collection working")
-    
-    # Test health checks
-    checker = get_health_checker()
-    health_report = await checker.check_health_async()
-    print(f"✓ Health checks working (status: {health_report.status.value})")
-    
-    # Test SLA tracking
-    tracker = get_sla_tracker()
-    sla_reports = await tracker.check_all_objectives()
-    print(f"✓ SLA tracking working ({len(sla_reports)} objectives)")
-    
-    # Test alerting
-    alert_manager = get_alert_manager()
-    rules = alert_manager.get_prometheus_rules()
-    print(f"✓ Alert system working ({len(rules)} rules)")
-
-
-def main():
-    """Main setup function."""
-    print("🚀 Setting up Claude Deployment Engine monitoring...")
-    
-    # Check dependencies
-    print("\n📋 Checking dependencies...")
-    deps = check_dependencies()
-    missing = [name for name, available in deps.items() if not available]
-    
-    if missing:
-        print(f"❌ Missing dependencies: {', '.join(missing)}")
-        
-        python_missing = [dep for dep in missing if dep in ["prometheus_client", "psutil", "opentelemetry", "fastapi"]]
-        if python_missing:
-            try:
-                install_missing_dependencies(python_missing)
-                print("✓ Python dependencies installed")
-            except subprocess.CalledProcessError as e:
-                print(f"❌ Failed to install dependencies: {e}")
-                return 1
-        
-        # Check for Docker
-        if "docker" in missing:
-            print("❌ Docker is required but not installed. Please install Docker Desktop.")
-            return 1
-    else:
-        print("✓ All dependencies available")
-    
-    # Initialize monitoring components
-    print("\n⚙️ Initializing monitoring components...")
-    
-    try:
-        # Set up health checks
-        setup_custom_health_checks()
-        print("✓ Health checks configured")
-        
-        # Set up SLA objectives
-        setup_custom_sla_objectives()
-        print("✓ SLA objectives configured")
-        
-        # Set up alert handlers
-        setup_alert_handlers()
-        print("✓ Alert handlers configured")
-        
-        # Initialize tracing
-        setup_tracing()
-        
-        # Start monitoring stack
-        print("\n🐳 Starting monitoring stack...")
-        if start_monitoring_stack():
-            verify_monitoring_endpoints()
-        
-        # Run validation
-        asyncio.run(run_monitoring_validation())
-        
-        print("\n🎉 Monitoring setup complete!")
-        print("\nNext steps:")
-        print("1. Configure your application to include monitoring endpoints")
-        print("2. Import and use monitoring decorators in your code")
-        print("3. Set up alert notification webhooks")
-        print("4. Import Grafana dashboards from src/monitoring/dashboards/")
-        
-        return 0
-        
-    except Exception as e:
-        print(f"❌ Setup failed: {e}")
-        import traceback
-        traceback.print_exc()
-        return 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    print("\nVerifying monitoring endpoints...")\n\n    # Wait a bit for services to start\n    time.sleep(10)\n\n    for service, url in endpoints.items():\n        try:\n            response = requests.get(url, timeout=5)\n            if response.status_code < 400:\n                print(f"✓ {service} is accessible")\n            else:\n                print(f"⚠ {service} returned status {response.status_code}")\n        except requests.exceptions.RequestException:\n            print(f"❌ {service} is not accessible")\n\n\nasync def run_monitoring_validation():\n    """Run a comprehensive monitoring validation."""\n    print("\n🔍 Running monitoring validation...")\n\n    # Test metrics collection\n    collector = get_metrics_collector()\n    collector.record_http_request("GET", "/test", 200, 0.1)\n    print("✓ Metrics collection working")\n\n    # Test health checks\n    checker = get_health_checker()\n    health_report = await checker.check_health_async()\n    print(f"✓ Health checks working (status: {health_report.status.value})")\n\n    # Test SLA tracking\n    tracker = get_sla_tracker()\n    sla_reports = await tracker.check_all_objectives()\n    print(f"✓ SLA tracking working ({len(sla_reports)} objectives)")\n\n    # Test alerting\n    alert_manager = get_alert_manager()\n    rules = alert_manager.get_prometheus_rules()\n    print(f"✓ Alert system working ({len(rules)} rules)")\n\n\ndef main():\n    """Main setup function."""\n    print("🚀 Setting up Claude Deployment Engine monitoring...")\n\n    # Check dependencies\n    print("\n📋 Checking dependencies...")\n    deps = check_dependencies()\n    missing = [name for name, available in deps.items() if not available]\n\n    if missing:\n        print(f"❌ Missing dependencies: {', '.join(missing)}")\n\n        python_missing = [dep for dep in missing if dep in ["prometheus_client", "psutil", "opentelemetry", "fastapi"]]\n        if python_missing:\n            try:\n                install_missing_dependencies(python_missing)\n                print("✓ Python dependencies installed")\n            except subprocess.CalledProcessError as e:\n                print(f"❌ Failed to install dependencies: {e}")\n                return 1\n\n        # Check for Docker\n        if "docker" in missing:\n            print("❌ Docker is required but not installed. Please install Docker Desktop.")\n            return 1\n    else:\n        print("✓ All dependencies available")\n\n    # Initialize monitoring components\n    print("\n⚙️ Initializing monitoring components...")\n\n    try:\n        # Set up health checks\n        setup_custom_health_checks()\n        print("✓ Health checks configured")\n\n        # Set up SLA objectives\n        setup_custom_sla_objectives()\n        print("✓ SLA objectives configured")\n\n        # Set up alert handlers\n        setup_alert_handlers()\n        print("✓ Alert handlers configured")\n\n        # Initialize tracing\n        setup_tracing()\n\n        # Start monitoring stack\n        print("\n🐳 Starting monitoring stack...")\n        if start_monitoring_stack():\n            verify_monitoring_endpoints()\n\n        # Run validation\n        asyncio.run(run_monitoring_validation())\n\n        print("\n🎉 Monitoring setup complete!")\n        print("\nNext steps:")\n        print("1. Configure your application to include monitoring endpoints")\n        print("2. Import and use monitoring decorators in your code")\n        print("3. Set up alert notification webhooks")\n        print("4. Import Grafana dashboards from src/monitoring/dashboards/")\n\n        return 0\n\n    except Exception as e:\n        print(f"❌ Setup failed: {e}")\n        import traceback\n        traceback.print_exc()\n        return 1\n\n\nif __name__ == "__main__":\n    sys.exit(main())

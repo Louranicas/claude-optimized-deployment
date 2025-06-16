@@ -1,0 +1,27 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 443 - You could certainly clone the entire GitHub repo, but the drawback is that to run the script, you would need to be in that specific file. For example, if we were to clone the repository for ms-exchange-version.nse and attempt to run the script directly, it would fail. Instead, we would need to change directories to the newly created /ms-exchange-version-nse before it would run successfully.
+Security Relevance Score: 3
+Word Count: 198
+Extracted: 2025-06-13 23:40:38
+
+---
+
+You could certainly clone the entire GitHub repo, but the drawback is that to run the script, you would need to be in that specific file. For example, if we were to clone the repository for ms-exchange-version.nse and attempt to run the script directly, it would fail. Instead, we would need to change directories to the newly created /ms-exchange-version-nse before it would run successfully.
+
+
+
+Figure 8.6: Illustrating the pitfall of cloning a script into a new directory
+By placing the script directly into /usr/share/nmap/scripts, Nmap inherently knows where to look for it regardless of where you are in the file system.
+In the event that you have already cloned the repository, or forgot to do this initially, the scripts can be easily moved to /usr/share/nmap/scripts with the following command:
+
+sudo mv [script file] /usr/share/nmap/scripts:
+
+
+
+
+
+Figure 8.7: Demonstrating moving a script into the proper directory via command line
+
+Introduction to NSE Scripting
+As briefly mentioned, NSE scripts are written in the Lua scripting language, which is a relatively straightforward and flexible language. In this section, we will take a look at the components of a script designed to check for an indicator of compromise associated with exploitation of CVE-2023-

@@ -1,0 +1,389 @@
+# Full production configuration example for deploy-code
+# This demonstrates all available options for a production deployment
+
+# Application metadata
+name: production-api
+version: 2.5.0
+description: "Production API service with full monitoring and scaling"
+
+# Deployment target configuration
+target:
+  type: kubernetes
+  
+  # Kubernetes-specific configuration
+  kubernetes:
+    # Target namespace
+    namespace: production
+    
+    # Cluster configuration
+    cluster:
+      name: prod-cluster-1
+      region: us-east-1
+      context: production-context
+    
+    # Resource specifications
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"
+    
+    # Deployment strategy
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+
+# Source configuration
+source:
+  repository: https://github.com/company/production-api.git
+  branch: release/2.5.0
+  
+  # Authentication for private repositories
+  auth:
+    type: ssh
+    keyPath: ~/.ssh/deploy_key
+  
+  # Build configuration
+  build:
+    # Build system: docker, npm, maven, gradle, make
+    type: docker
+    
+    # Docker-specific build options
+    docker:
+      dockerfile: Dockerfile.production
+      buildArgs:
+        NODE_ENV: production
+        API_VERSION: "2.5.0"
+      
+      # Multi-stage build target
+      target: production
+      
+      # Build cache configuration
+      cache:
+        enabled: true
+        registry: cache.company.com/production-api
+
+# Runtime configuration
+runtime:
+  # Container image (for containerized deployments)
+  image: registry.company.com/production-api:2.5.0
+  
+  # Environment variables
+  environment:
+    NODE_ENV: production
+    LOG_LEVEL: info
+    PORT: "8080"
+    
+  # Secrets management
+  secrets:
+    # Reference to external secret stores
+    - name: database-credentials
+      source: vault
+      path: /secrets/production/database
+      keys:
+        - DB_USER
+        - DB_PASSWORD
+    
+    - name: api-keys
+      source: kubernetes
+      secretName: api-keys
+      keys:
+        - JWT_SECRET
+        - ENCRYPTION_KEY
+  
+  # Health checks
+  healthCheck:
+    # Liveness probe
+    liveness:
+      httpGet:
+        path: /health/live
+        port: 8080
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    
+    # Readiness probe
+    readiness:
+      httpGet:
+        path: /health/ready
+        port: 8080
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Scaling configuration
+scaling:
+  # Horizontal Pod Autoscaler
+  horizontal:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    
+    # Scaling metrics
+    metrics:
+      - type: cpu
+        targetAverageUtilization: 70
+      - type: memory
+        targetAverageUtilization: 80
+      - type: custom
+        name: requests_per_second
+        targetValue: 1000
+  
+  # Vertical Pod Autoscaler (VPA)
+  vertical:
+    enabled: true
+    updateMode: "Auto"
+
+# Networking configuration
+networking:
+  # Service configuration
+  service:
+    type: LoadBalancer
+    ports:
+      - name: http
+        port: 80
+        targetPort: 8080
+        protocol: TCP
+      - name: metrics
+        port: 9090
+        targetPort: 9090
+        protocol: TCP
+  
+  # Ingress configuration
+  ingress:
+    enabled: true
+    className: nginx
+    
+    # TLS configuration
+    tls:
+      enabled: true
+      secretName: production-tls
+      hosts:
+        - api.company.com
+    
+    # Routing rules
+    rules:
+      - host: api.company.com
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: production-api
+                port: 80
+    
+    # Ingress annotations
+    annotations:
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+# Monitoring and observability
+monitoring:
+  # Metrics collection
+  metrics:
+    enabled: true
+    provider: prometheus
+    
+    # Prometheus scrape configuration
+    prometheus:
+      scrape: true
+      port: 9090
+      path: /metrics
+      interval: 30s
+    
+    # Custom metrics
+    custom:
+      - name: api_request_duration
+        help: "API request duration in seconds"
+        type: histogram
+        buckets: [0.1, 0.5, 1, 2, 5, 10]
+  
+  # Logging configuration
+  logging:
+    enabled: true
+    
+    # Log aggregation
+    aggregator:
+      type: elasticsearch
+      endpoint: https://logs.company.com
+      index: production-api
+    
+    # Log format and level
+    format: json
+    level: info
+    
+    # Log sampling (for high-volume services)
+    sampling:
+      enabled: true
+      rate: 0.1  # Sample 10% of logs
+  
+  # Distributed tracing
+  tracing:
+    enabled: true
+    provider: jaeger
+    
+    # Jaeger configuration
+    jaeger:
+      endpoint: http://jaeger-collector:14268/api/traces
+      samplingRate: 0.1
+      serviceName: production-api
+
+# Security configuration
+security:
+  # Pod security context
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  
+  # Container security context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  
+  # Network policies
+  networkPolicy:
+    enabled: true
+    
+    # Ingress rules
+    ingress:
+      - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        ports:
+          - protocol: TCP
+            port: 8080
+    
+    # Egress rules
+    egress:
+      # Allow DNS
+      - to:
+        - namespaceSelector: {}
+        ports:
+          - protocol: UDP
+            port: 53
+      
+      # Allow database access
+      - to:
+        - namespaceSelector:
+            matchLabels:
+              name: database
+        ports:
+          - protocol: TCP
+            port: 5432
+
+# Backup and disaster recovery
+backup:
+  enabled: true
+  
+  # Backup schedule (cron format)
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  
+  # Backup storage
+  storage:
+    type: s3
+    bucket: company-backups
+    prefix: production-api/
+    region: us-east-1
+  
+  # Retention policy
+  retention:
+    daily: 7
+    weekly: 4
+    monthly: 12
+
+# Deployment hooks
+hooks:
+  # Pre-deployment hooks
+  preDeployment:
+    - name: database-migration
+      command: npm run migrate:production
+      timeout: 300
+      onFailure: abort
+    
+    - name: cache-warmup
+      command: npm run cache:warm
+      timeout: 120
+      onFailure: continue
+  
+  # Post-deployment hooks
+  postDeployment:
+    - name: smoke-tests
+      command: npm run test:smoke
+      timeout: 180
+      onFailure: rollback
+    
+    - name: notify-team
+      command: ./scripts/notify-deployment.sh
+      timeout: 30
+      onFailure: continue
+  
+  # Rollback hooks
+  rollback:
+    - name: restore-cache
+      command: npm run cache:restore
+      timeout: 60
+
+# Compliance and governance
+compliance:
+  # Required labels
+  labels:
+    environment: production
+    team: backend
+    cost-center: engineering
+    compliance: pci-dss
+  
+  # Required annotations
+  annotations:
+    company.com/owner: backend-team@company.com
+    company.com/sla: "99.99"
+    company.com/data-classification: sensitive
+
+# Advanced features
+advanced:
+  # Blue-green deployment
+  blueGreen:
+    enabled: true
+    autoPromote: false
+    scaleDownDelay: 300
+    
+    # Traffic splitting
+    trafficSplit:
+      method: weighted
+      weights:
+        blue: 90
+        green: 10
+  
+  # Canary deployment
+  canary:
+    enabled: false
+    steps:
+      - weight: 10
+        duration: 300
+      - weight: 50
+        duration: 600
+      - weight: 100
+        duration: 0
+  
+  # Feature flags
+  featureFlags:
+    provider: launchdarkly
+    sdkKey: ${LAUNCHDARKLY_SDK_KEY}
+    
+    # Default flag values
+    defaults:
+      new-algorithm: false
+      enhanced-caching: true

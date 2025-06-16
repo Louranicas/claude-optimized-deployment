@@ -1,0 +1,362 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 17 - .
+2.6    Logging Weather Data (Python)
+On countless sites on the internet, you can di scover interesting data via what are called
+REST  APIs . Many services require yo u to register first, however, and free use is often
+limited, as with https://www.weatherapi.com .
+The following script determines the weather in  Graz, Austria, and lo gs this information
+into a file called weather.csv , which has the following stru cture (using a semicolon as
+the delimiter):
+2023-04-14 11:30;Light rain;5.0
+2023-04-14 12:13;Light rain;6.0...
+In this example, the three columns contain the time, a short description of the weather
+and the temperature. The asso ciated script performs a GET request and turns the result-
+ing JSON data into a Python data struct ure. The desired data can then be easily
+452.7 Microsoft Hyper-V Cleanup (PowerShell)
+extracted from this data structure. Like the previous example, this script also requires
+the requests  module.
+# Sample file log-weather.py
+import requests
+key = "7901xxxx"
+location = "Graz"base = "https://api.weatherapi.com/v1/current.json"
+url = base + "?key=" + key + "&q=" + location
+data = requests.get(url).json()temp = data['current']['temp_c']
+condition = data['current']['condition']['text']
+time = data['location']['localtime']with open("weather.csv", 'a') as f:
+f.write("%s;%s;%s\n" % (time, condition, temp))
+You also now have the option of automating th e periodic invocation of this script using
+cron or the Microsoft Windows Task Scheduler (see Chapter 11 ). You should prefix the
+filename weather.csv  with an absolute path . For instructions on ho w to use REST APIs in
+Python and PowerShell scripts, see Chapter 18 .
+2.7    Microsoft Hyper-V Cleanup (PowerShell)
+If you use Microsoft Hyper-V as a virtualiza tion system, you run the risk of accumulat-
+ing old snapshots that will eat up storage space. The following PowerShell script deletes
+all snapshots older than 30 days:
+# Sample file delete-old-snapshots.ps1
+$days = 30
+$aMonthAgo = (Get-Date).AddDays(-$days)
+foreach ($snapshot in Get-VMSnapshot -VMName *) {
+if ($snapshot.CreationTime -lt $aMonthAgo) {
+$vmname = $snapshot.VMName
+$snapname = $snapshot.Name
+Write-Output "Delete '$snapname' of VM '$vmname'"Remove-VMSnapshot -VMName $vmname -Name $snapname -Confirm
+}
+}
+The script assumes that Hyper-V is installe d with all the administration tools on your
+Windows machine, which automatically makes the Hyper-V  PowerShell module avail-
+able as well. The scri pt also requires admin rights: In  other words, you must first open
+a PowerShell terminal as an administrato r before you can run the script in it.
+2 Ten Times Ten Lines
+46To be on the safe side, the cleanup script will ask for your confirmation before deleting
+each snapshot. These queries are omitted if you remove the -Confirm  option. More
+examples of virtual machine administration  with Hyper-V are described in Chapter 21 ,
+Section 21.3 .
+2.8    Statistical Analysis of a Logging File (Bash)
+The starting point for this example is a lo g file of a web server that has been ano-
+nymized for privacy reasons. Each line of th is file is structured in the following way
+(text wrapped for space reasons):
+160.85.252.20 7--[05/Feb/2023:00:00:26 +0100]
+"GET /research/business/only HTTP/1.1" 200 25158"https://example.com/less/response/edge/policy""Mozilla/5.0 ..."
+In each case, the first column indicates th e IP address from which the website was con-
+tacted. The script, which is unparalleled in its brevity, creates a list of the 20 most com-
+mon IP addresses. The $1 character combination is the first parameter passed to the
+script.
+# Sample file ip-address-statistic.sh
+c u t- d''- f1$ 1| sort | uniq -c | sort -n -r | head -n 20
+When you analyze the sample.log  file using this script, you’ ll get the following result:
+$ ./ip-address-statistics.sh
+6166 65d3:f5b9:e9e5:4b1c:331b:29f3:97c1:c18f
+6048 3547:0b26:4c84:4411:0f66:945e:7741:d8875136 186.107.89.1284620 d741:a4ea:f6e1:6a17:78b1:1694:f518:c480
+...
+Therefore, 6,166 requests originated from IPv6 address 65d3:f5b9:...:c18f, etc. For a
+detailed explanation of how the cut, grep , uniq , sort , and head  commands in this script
+work, see Chapter 8 , Section 8.1 .
+2.9    Uploading Files to  the Cloud (PowerShell)
+The task for our penultimate example is to upload all image files in the current direc-
+tory that have changed since the last time the script was run or that have been added
+since then to a bucket on the Simple Storage Service (S3) cloud service from AmazonWeb Services (AWS).
+472.10 Cloning Virtual Machines (Bash)
+This PowerShell script assumes that the AWS.Tools.Common  and AWS.Tools.S3  modules
+are installed and that the access data for the bucket has been stored with Set-AWSCre-
+dential  for profile name MyProfile  (see also Chapter 20 , Section 20.3 ).
+The if construction tests whether the last-run  file exists. If this file exists, the time of
+the last change will be read. Then, the LastWriteTime  property is updated with the cur-
+rent time. If the file does not exist, it will be created. This script  takes into account all
+image files since January 1, 2000.
+Next, Get-ChildItem  determines all image files in the current directory. Where-Object  fil-
+ters out files that are ne w or have been modified. Write-S3Object  uploads these files to
+an S3 bucket.
+# Sample file upload-images-to-aws.ps1
+if (Test-Path -Path "last-run") {
+$lastRunTime = (Get-Item -Path "last-run").LastWriteTime
+(Get-ChildItem "last-run").LastWriteTime = Get-Date
+} else {
+$lastRunTime = New-Object DateTime(2000, 1, 1)
+New-Item "last-run" | Out-Null
+}
+Get-ChildItem -Path "*.jpg", "*.jpeg", "*.png" |
+Where-Object { $_.LastWriteTime -gt $lastRunTime } |ForEach-Object {
+Write-S3Object -BucketName "my.aws.bucket" `
+-ProfileName "MyProfile" -File $_.Name -Key $_.Name
+}
+I must admit a little reluctantly that this sc ript just barely exceed s the ten-line promise
+I made for this chapter.
+2.10    Cloning Virtual Machines (Bash)
+The last example is from server administrati on. One of my Linux servers is running the
+Kernel-based Virtual Machine (KVM) virtuali zation system. At the beginning of each
+semester, I create virtual machines with se quential numbers for all students attending
+my Linux course. For example, the ./make-vms.sh  20 44 command results in 25 clones of
+my base system being created, numbered vm20  through vm44 .
+# Sample file make-vms.sh
+orig='vm-base' # Name of the base VM to clone
+for (( nr=$1; nr<=$2; nr++ )); do
+echo "create vm-$nr"
+disk=/var/lib/libvirt/images/vm-$nr-disk.qcow2
+2 Ten Times Ten Lines
+48virt-clone --name "vm-$nr" --original $orig \
+--mac 52:54:00:01:00:$nr --file $disk
+done
+Although this script respects  the ten-line rule, I cheated a little. The “real” version of
+this script tests whether two parameters we re really passed to the script, shuts down
+the source virtual machine that may still be  running, sets up mult iple disks and multi-
+ple network interfaces for each exercise VM, and more.
+For basic principles and more details, refer to Chapter 21 , Section 21.1 .
+49Chapter 3 
+Bash and Zsh
+Bash  (Bourne  Again  Shell)  is the default shell of most Linux distributions. It performs
+two tasks: On the one hand, it accepts comm ands in the terminal, executes these com-
+mands, and displays their results. On  the other hand, Bash is considered the classic
+scripting programming language. In this chap ter, I will only briefly discuss the interac-
+tive application; instead, I'll focus on in troducing you to the main concepts behind
+Bash.
+As an alternative to Bash, Zsh is gainin g momentum. While the differences compared
+to Bash in script programming are neglig ible, Zsh scores points with many small
+improvements in interactive operations. Popular extensions (such as one called Oh My
+Zsh) make Zsh even more comfortable and improve its appearance. On macOS, Zsh has
+been the default shell since 20 19. On Linux, the switch from Bash to Zsh can be made in
+a minute if necessary.
+3.1    Terminal, Shell, and Bash
+So far, some terms have appeared that I wa nt to explain again br iefly now. Let’s start
+with the terminal: In this program, you can execute text-based commands. On Linux
+and macOS, the existence of the terminal  was always a matter of course. While a termi-
+nal program is available on macOS, there are countless programs to choose from on
+Linux. The most common ones include gnome-terminal , the new console of the GNOME
+Project (program name kgx), as well as konsole . Even on Windows, the Windows  Termi-
+nal is available now.
+Inside the terminal, the shell is running: Th is shell is a program that takes your text
+input, executes the re sulting command, and displays the result back in text form. The
+shell also provides a lot of ad ditional features that are not obvious at first glance: It can
+redirect the results of a command to a file, link several commands together, and so on.
+In the early history of Unix and Linux, sh ells have been developed multiple times:
+Bourne Shell, C Shell, Bash, Dash, Zsh, and so on. However, this chapter only deals with
+the two currently most popular shells—Bash and Zsh.
+3 Bash and Zsh
+50Why the Separation between Terminal and Shell?
+The nesting of terminal and shell seems conf using at first sight. This separation stems
+from the fact that the terminal is only ne cessary when you work on a graphical desktop
+system. But most operating systems can also be controlled in text mode or via a net-
+work connection (SSH)—then the shell runs without  a terminal!
+The separation between terminal and shell has a further advantage in that you can
+combine your favorite terminal with your fa vorite shell, deviatin g from the default set-
+tings of Linux or macOS. This freedom is es pecially important to Linux professionals.
+3.1.1    Determining the Current Shell
+To determine which shell is running on your machine, you must run the echo  $SHELL
+command, which displays the contents of the $SHELL  variable that specifies the path to
+your account’s default shell.  If the shell running is Bash, you can access its version
+number with the second command, bash  --version .
+Figure 3.1  Computer Running Bash Version 5.1
+3.2    Installation
+Almost all Linux distributions have Bash prei nstalled. Thus, if you work on Linux, this
+section is unnecessary. If your distribution uses Zsh, I recommend you keep using it for
+its interactive features. However, to develop sc ripts that are as portable as possible, the
+parallel installation of Bash is recommended . This parallel installation can be achieved
+with the package management command fo r your distribution ; for example, on
+Debian and Ubuntu, you would use sudo  apt install  bash .
+O n  m a c O S ,  B a s h  i s  o n l y  a v a i l a b l e  i n  t h e  o u t d a t e d  v e r s i o n  3 . 2 .  I n  f u t u r e  v e r s i o n s  o f
+macOS, Bash is expected to be removed enti rely. In this respect,  Zsh represents a com-
+patible, and in many ways even better, repl acement. If you prefer Bash or use it for
+script programming, the best approach is to set up the Homebrew  package manager
+Security Relevance Score: 3
+Word Count: 1806
+Extracted: 2025-06-13 23:40:21
+
+---
+
+.
+2.6    Logging Weather Data (Python)
+On countless sites on the internet, you can di scover interesting data via what are called
+REST  APIs . Many services require yo u to register first, however, and free use is often
+limited, as with https://www.weatherapi.com .
+The following script determines the weather in  Graz, Austria, and lo gs this information
+into a file called weather.csv , which has the following stru cture (using a semicolon as
+the delimiter):
+2023-04-14 11:30;Light rain;5.0
+2023-04-14 12:13;Light rain;6.0...
+In this example, the three columns contain the time, a short description of the weather
+and the temperature. The asso ciated script performs a GET request and turns the result-
+ing JSON data into a Python data struct ure. The desired data can then be easily
+452.7 Microsoft Hyper-V Cleanup (PowerShell)
+extracted from this data structure. Like the previous example, this script also requires
+the requests  module.
+# Sample file log-weather.py
+import requests
+key = "7901xxxx"
+location = "Graz"base = "https://api.weatherapi.com/v1/current.json"
+url = base + "?key=" + key + "&q=" + location
+data = requests.get(url).json()temp = data['current']['temp_c']
+condition = data['current']['condition']['text']
+time = data['location']['localtime']with open("weather.csv", 'a') as f:
+f.write("%s;%s;%s\n" % (time, condition, temp))
+You also now have the option of automating th e periodic invocation of this script using
+cron or the Microsoft Windows Task Scheduler (see Chapter 11 ). You should prefix the
+filename weather.csv  with an absolute path . For instructions on ho w to use REST APIs in
+Python and PowerShell scripts, see Chapter 18 .
+2.7    Microsoft Hyper-V Cleanup (PowerShell)
+If you use Microsoft Hyper-V as a virtualiza tion system, you run the risk of accumulat-
+ing old snapshots that will eat up storage space. The following PowerShell script deletes
+all snapshots older than 30 days:
+# Sample file delete-old-snapshots.ps1
+$days = 30
+$aMonthAgo = (Get-Date).AddDays(-$days)
+foreach ($snapshot in Get-VMSnapshot -VMName *) {
+if ($snapshot.CreationTime -lt $aMonthAgo) {
+$vmname = $snapshot.VMName
+$snapname = $snapshot.Name
+Write-Output "Delete '$snapname' of VM '$vmname'"Remove-VMSnapshot -VMName $vmname -Name $snapname -Confirm
+}
+}
+The script assumes that Hyper-V is installe d with all the administration tools on your
+Windows machine, which automatically makes the Hyper-V  PowerShell module avail-
+able as well. The scri pt also requires admin rights: In  other words, you must first open
+a PowerShell terminal as an administrato r before you can run the script in it.
+2 Ten Times Ten Lines
+46To be on the safe side, the cleanup script will ask for your confirmation before deleting
+each snapshot. These queries are omitted if you remove the -Confirm  option. More
+examples of virtual machine administration  with Hyper-V are described in Chapter 21 ,
+Section 21.3 .
+2.8    Statistical Analysis of a Logging File (Bash)
+The starting point for this example is a lo g file of a web server that has been ano-
+nymized for privacy reasons. Each line of th is file is structured in the following way
+(text wrapped for space reasons):
+160.85.252.20 7--[05/Feb/2023:00:00:26 +0100]
+"GET /research/business/only HTTP/1.1" 200 25158"https://example.com/less/response/edge/policy""Mozilla/5.0 ..."
+In each case, the first column indicates th e IP address from which the website was con-
+tacted. The script, which is unparalleled in its brevity, creates a list of the 20 most com-
+mon IP addresses. The $1 character combination is the first parameter passed to the
+script.
+# Sample file ip-address-statistic.sh
+c u t- d''- f1$ 1| sort | uniq -c | sort -n -r | head -n 20
+When you analyze the sample.log  file using this script, you’ ll get the following result:
+$ ./ip-address-statistics.sh
+6166 65d3:f5b9:e9e5:4b1c:331b:29f3:97c1:c18f
+6048 3547:0b26:4c84:4411:0f66:945e:7741:d8875136 186.107.89.1284620 d741:a4ea:f6e1:6a17:78b1:1694:f518:c480
+...
+Therefore, 6,166 requests originated from IPv6 address 65d3:f5b9:...:c18f, etc. For a
+detailed explanation of how the cut, grep , uniq , sort , and head  commands in this script
+work, see Chapter 8 , Section 8.1 .
+2.9    Uploading Files to  the Cloud (PowerShell)
+The task for our penultimate example is to upload all image files in the current direc-
+tory that have changed since the last time the script was run or that have been added
+since then to a bucket on the Simple Storage Service (S3) cloud service from AmazonWeb Services (AWS).
+472.10 Cloning Virtual Machines (Bash)
+This PowerShell script assumes that the AWS.Tools.Common  and AWS.Tools.S3  modules
+are installed and that the access data for the bucket has been stored with Set-AWSCre-
+dential  for profile name MyProfile  (see also Chapter 20 , Section 20.3 ).
+The if construction tests whether the last-run  file exists. If this file exists, the time of
+the last change will be read. Then, the LastWriteTime  property is updated with the cur-
+rent time. If the file does not exist, it will be created. This script  takes into account all
+image files since January 1, 2000.
+Next, Get-ChildItem  determines all image files in the current directory. Where-Object  fil-
+ters out files that are ne w or have been modified. Write-S3Object  uploads these files to
+an S3 bucket.
+# Sample file upload-images-to-aws.ps1
+if (Test-Path -Path "last-run") {
+$lastRunTime = (Get-Item -Path "last-run").LastWriteTime
+(Get-ChildItem "last-run").LastWriteTime = Get-Date
+} else {
+$lastRunTime = New-Object DateTime(2000, 1, 1)
+New-Item "last-run" | Out-Null
+}
+Get-ChildItem -Path "*.jpg", "*.jpeg", "*.png" |
+Where-Object { $_.LastWriteTime -gt $lastRunTime } |ForEach-Object {
+Write-S3Object -BucketName "my.aws.bucket" `
+-ProfileName "MyProfile" -File $_.Name -Key $_.Name
+}
+I must admit a little reluctantly that this sc ript just barely exceed s the ten-line promise
+I made for this chapter.
+2.10    Cloning Virtual Machines (Bash)
+The last example is from server administrati on. One of my Linux servers is running the
+Kernel-based Virtual Machine (KVM) virtuali zation system. At the beginning of each
+semester, I create virtual machines with se quential numbers for all students attending
+my Linux course. For example, the ./make-vms.sh  20 44 command results in 25 clones of
+my base system being created, numbered vm20  through vm44 .
+# Sample file make-vms.sh
+orig='vm-base' # Name of the base VM to clone
+for (( nr=$1; nr<=$2; nr++ )); do
+echo "create vm-$nr"
+disk=/var/lib/libvirt/images/vm-$nr-disk.qcow2
+2 Ten Times Ten Lines
+48virt-clone --name "vm-$nr" --original $orig \
+--mac 52:54:00:01:00:$nr --file $disk
+done
+Although this script respects  the ten-line rule, I cheated a little. The “real” version of
+this script tests whether two parameters we re really passed to the script, shuts down
+the source virtual machine that may still be  running, sets up mult iple disks and multi-
+ple network interfaces for each exercise VM, and more.
+For basic principles and more details, refer to Chapter 21 , Section 21.1 .
+49Chapter 3 
+Bash and Zsh
+Bash  (Bourne  Again  Shell)  is the default shell of most Linux distributions. It performs
+two tasks: On the one hand, it accepts comm ands in the terminal, executes these com-
+mands, and displays their results. On  the other hand, Bash is considered the classic
+scripting programming language. In this chap ter, I will only briefly discuss the interac-
+tive application; instead, I'll focus on in troducing you to the main concepts behind
+Bash.
+As an alternative to Bash, Zsh is gainin g momentum. While the differences compared
+to Bash in script programming are neglig ible, Zsh scores points with many small
+improvements in interactive operations. Popular extensions (such as one called Oh My
+Zsh) make Zsh even more comfortable and improve its appearance. On macOS, Zsh has
+been the default shell since 20 19. On Linux, the switch from Bash to Zsh can be made in
+a minute if necessary.
+3.1    Terminal, Shell, and Bash
+So far, some terms have appeared that I wa nt to explain again br iefly now. Let’s start
+with the terminal: In this program, you can execute text-based commands. On Linux
+and macOS, the existence of the terminal  was always a matter of course. While a termi-
+nal program is available on macOS, there are countless programs to choose from on
+Linux. The most common ones include gnome-terminal , the new console of the GNOME
+Project (program name kgx), as well as konsole . Even on Windows, the Windows  Termi-
+nal is available now.
+Inside the terminal, the shell is running: Th is shell is a program that takes your text
+input, executes the re sulting command, and displays the result back in text form. The
+shell also provides a lot of ad ditional features that are not obvious at first glance: It can
+redirect the results of a command to a file, link several commands together, and so on.
+In the early history of Unix and Linux, sh ells have been developed multiple times:
+Bourne Shell, C Shell, Bash, Dash, Zsh, and so on. However, this chapter only deals with
+the two currently most popular shells—Bash and Zsh.
+3 Bash and Zsh
+50Why the Separation between Terminal and Shell?
+The nesting of terminal and shell seems conf using at first sight. This separation stems
+from the fact that the terminal is only ne cessary when you work on a graphical desktop
+system. But most operating systems can also be controlled in text mode or via a net-
+work connection (SSH)—then the shell runs without  a terminal!
+The separation between terminal and shell has a further advantage in that you can
+combine your favorite terminal with your fa vorite shell, deviatin g from the default set-
+tings of Linux or macOS. This freedom is es pecially important to Linux professionals.
+3.1.1    Determining the Current Shell
+To determine which shell is running on your machine, you must run the echo  $SHELL
+command, which displays the contents of the $SHELL  variable that specifies the path to
+your account’s default shell.  If the shell running is Bash, you can access its version
+number with the second command, bash  --version .
+Figure 3.1  Computer Running Bash Version 5.1
+3.2    Installation
+Almost all Linux distributions have Bash prei nstalled. Thus, if you work on Linux, this
+section is unnecessary. If your distribution uses Zsh, I recommend you keep using it for
+its interactive features. However, to develop sc ripts that are as portable as possible, the
+parallel installation of Bash is recommended . This parallel installation can be achieved
+with the package management command fo r your distribution ; for example, on
+Debian and Ubuntu, you would use sudo  apt install  bash .
+O n  m a c O S ,  B a s h  i s  o n l y  a v a i l a b l e  i n  t h e  o u t d a t e d  v e r s i o n  3 . 2 .  I n  f u t u r e  v e r s i o n s  o f
+macOS, Bash is expected to be removed enti rely. In this respect,  Zsh represents a com-
+patible, and in many ways even better, repl acement. If you prefer Bash or use it for
+script programming, the best approach is to set up the Homebrew  package manager

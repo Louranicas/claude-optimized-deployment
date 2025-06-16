@@ -1,0 +1,120 @@
+{
+  "test_suite": "API Integration Stability",
+  "timestamp": "2025-06-08T15:45:27.860899",
+  "tests": {
+    "individual_connectivity": {
+      "tavily": {
+        "api": "tavily",
+        "status": "success",
+        "success": true,
+        "response_time": 3.4587602615356445,
+        "results_count": 5,
+        "has_answer": true
+      },
+      "brave": {
+        "api": "brave",
+        "status": "success",
+        "success": true,
+        "response_time": 0.9166948795318604,
+        "results_count": 10,
+        "has_discussions": false
+      },
+      "smithery": {
+        "api": "smithery",
+        "status": "failed",
+        "success": false,
+        "error": "URL Error: <urlopen error [Errno -2] Name or service not known>",
+        "response_time": 0.03624701499938965
+      }
+    },
+    "fallback_mechanism": {
+      "primary_api": "tavily",
+      "success": true,
+      "fallback_used": false,
+      "attempts": [
+        {
+          "api": "tavily",
+          "status": "success",
+          "success": true,
+          "response_time": 3.1502726078033447,
+          "results_count": 5,
+          "has_answer": true
+        }
+      ]
+    },
+    "stress_test": {
+      "timestamp": "2025-06-08T15:45:49.047616",
+      "api_metrics": {
+        "tavily": {
+          "status": "healthy",
+          "total_requests": 17,
+          "successful_requests": 17,
+          "failed_requests": 0,
+          "success_rate": "100.00%",
+          "avg_response_time": "2.659s",
+          "p95_response_time": "3.477s",
+          "circuit_breaker_open": false,
+          "recent_errors": []
+        },
+        "smithery": {
+          "status": "failed",
+          "total_requests": 1,
+          "successful_requests": 0,
+          "failed_requests": 1,
+          "success_rate": "0.00%",
+          "avg_response_time": "0.000s",
+          "p95_response_time": "0.000s",
+          "circuit_breaker_open": false,
+          "recent_errors": [
+            "URL Error: <urlopen error [Errno -2] Name or service not known>"
+          ]
+        },
+        "brave": {
+          "status": "healthy",
+          "total_requests": 1,
+          "successful_requests": 1,
+          "failed_requests": 0,
+          "success_rate": "100.00%",
+          "avg_response_time": "0.917s",
+          "p95_response_time": "0.917s",
+          "circuit_breaker_open": false,
+          "recent_errors": []
+        }
+      },
+      "overall_health": "degraded",
+      "recommendations": [
+        "Investigate smithery API failures - success rate: 0.00%"
+      ]
+    },
+    "network_recovery": {
+      "test_name": "network_failure_recovery",
+      "timestamp": "2025-06-08T15:45:49.047849",
+      "phases": [
+        {
+          "phase": "normal_operation",
+          "success_rate": 100.0
+        },
+        {
+          "phase": "during_failure",
+          "success_rate": 0.0,
+          "circuit_breakers_open": 3
+        },
+        {
+          "phase": "after_recovery",
+          "success_rate": 100.0,
+          "circuit_breakers_open": 0
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_apis_tested": 3,
+    "apis_healthy": 2,
+    "apis_degraded": 0,
+    "apis_failed": 1,
+    "overall_stability": "degraded",
+    "recommendations": [
+      "Investigate smithery API failures - success rate: 0.00%"
+    ]
+  }
+}

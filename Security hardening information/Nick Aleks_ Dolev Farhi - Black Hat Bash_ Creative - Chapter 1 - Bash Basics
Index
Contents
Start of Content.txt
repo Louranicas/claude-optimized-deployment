@@ -1,0 +1,809 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 1 - Bash Basics
+Index
+Contents
+Start of Content
+Security Relevance Score: 27
+Word Count: 2517
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Bash Basics
+Index
+Contents
+Start of Content
+
+
+
+Pagebreaks of the print version
+
+Cover Page
+ix
+x
+xi
+xii
+xiii
+xiv
+xv
+xvi
+iii
+iv
+v
+xvii
+xix
+xx
+xxi
+xxii
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONTENTS IN DETAIL
+
+
+TITLE PAGE
+COPYRIGHT
+ABOUT THE AUTHORS AND TECHNICAL REVIEWER
+ACKNOWLEDGMENTS
+INTRODUCTION
+What Is in This Book
+The Scripting Exercises
+How to Use This Book
+1BASH BASICS
+Environmental Setup
+Accessing the Bash Shell
+Installing a Text Editor
+Exploring the Shell
+Checking Environment Variables
+Running Linux Commands
+Elements of a Bash Script
+The Shebang Line
+Comments
+Commands
+Execution
+Debugging
+Basic Syntax
+Variables
+Arithmetic Operators
+Arrays
+Streams
+Control Operators
+Redirection Operators
+Positional Arguments
+Input Prompting
+Exit Codes
+Exercise 1: Recording Your Name and the Date
+Summary
+2FLOW CONTROL AND TEXT PROCESSING
+Test Operators
+if Conditions
+Linking Conditions
+Testing Command Success
+Checking Subsequent Conditions
+Functions
+Returning Values
+Accepting Arguments
+Loops and Loop Controls
+while
+until
+for
+break and continue
+case Statements
+Text Processing and Parsing
+Filtering with grep
+Filtering with awk
+Editing Streams with sed
+Job Control
+Managing the Background and Foreground
+Keeping Jobs Running After Logout
+Bash Customizations for Penetration Testers
+Placing Scripts in Searchable Paths
+Shortening Commands with Aliases
+Customizing the ~/.bashrc Profile
+Importing Custom Scripts
+Capturing Terminal Session Activity
+Exercise 2: Pinging a Domain
+Summary
+3SETTING UP A HACKING LAB
+Security Lab Precautions
+Installing Kali
+The Target Environment
+Installing Docker and Docker Compose
+Cloning the Book’s Repository
+Deploying Docker Containers
+Testing and Verifying the Containers
+The Network Architecture
+The Public Network
+The Corporate Network
+Kali Network Interfaces
+The Machines
+Managing the Lab
+Shutting Down
+Removing
+Rebuilding
+Accessing Individual Lab Machines
+Installing Additional Hacking Tools
+WhatWeb
+RustScan
+Nuclei
+dirsearch
+Linux Exploit Suggester 2
+Gitjacker
+pwncat
+LinEnum
+unix-privesc-check
+Assigning Aliases to Hacking Tools
+Summary
+4RECONNAISSANCE
+Creating Reusable Target Lists
+Consecutive IP Addresses
+Possible Subdomains
+Host Discovery
+ping
+Nmap
+arp-scan
+Exercise 3: Receiving Alerts About New Hosts
+Port Scanning
+Nmap
+RustScan
+Netcat
+Exercise 4: Organizing Scan Results
+Detecting New Open Ports
+Banner Grabbing
+Using Active Banner Grabbing
+Detecting HTTP Responses
+Using Nmap Scripts
+Detecting Operating Systems
+Analyzing Websites and JSON
+Summary
+5VULNERABILITY SCANNING AND FUZZING
+Scanning Websites with Nikto
+Building a Directory Indexing Scanner
+Identifying Suspicious robots.txt Entries
+Exercise 5: Exploring Non-indexed Endpoints
+Brute-Forcing Directories with dirsearch
+Exploring Git Repositories
+Cloning the Repository
+Viewing Commits with git log
+Filtering git log Information
+Inspecting Repository Files
+Vulnerability Scanning with Nuclei
+Understanding Templates
+Writing a Custom Template
+Applying the Template
+Running a Full Scan
+Exercise 6: Parsing Nuclei’s Findings
+Fuzzing for Hidden Files
+Creating a Wordlist of Possible Filenames
+Fuzzing with ffuf
+Fuzzing with Wfuzz
+Assessing SSH Servers with Nmap’s Scripting Engine
+Exercise 7: Combining Tools to Find FTP Issues
+Summary
+6GAINING A WEB SHELL
+Arbitrary File Upload Vulnerabilities
+Fuzzing for Arbitrary File Uploads
+Bypassing File Upload Controls
+Uploading Files with Burp Suite
+Staging Web Shells
+Finding Directory Traversal Vulnerabilities
+Uploading Malicious Payloads
+Executing Web Shell Commands
+Exercise 8: Building a Web Shell Interface
+Limitations of Web Shells
+Lack of Persistence
+Lack of Real-Time Responses
+Limited Functionality
+OS Command Injection
+Exercise 9: Building a Command Injection Interface
+Bypassing Command Injection Restrictions
+Obfuscation and Encoding
+Globbing
+Summary
+7REVERSE SHELLS
+How Reverse Shells Work
+Ingress vs. Egress Controls
+Shell Payloads and Listeners
+The Communication Sequence
+Executing a Connection
+Setting Up a Netcat Listener
+Crafting a Payload
+Delivering and Initializing the Payload
+Executing Commands
+Listening with pwncat
+Bypassing Security Controls
+Encrypting and Encapsulating Traffic
+Alternating Between Destination Ports
+Spawning TTY Shells with Pseudo-terminal Devices
+Python’s pty Module
+socat
+Post-exploitation Binary Staging
+Serving Netcat
+Uploading Files with pwncat
+Downloading Binaries from Trusted Sites
+Exercise 10: Maintaining a Continuous Reverse Shell Connection
+Initial Access with Brute Force
+Exercise 11: Brute-Forcing an SSH Server
+Summary
+8LOCAL INFORMATION GATHERING
+The Filesystem Hierarchy Standard
+The Shell Environment
+Environment Variables
+Sensitive Information in Bash Profiles
+Users and Groups
+Local Accounts
+Local Groups
+Home Folder Access
+Valid Shells
+Processes
+Viewing Process Files
+Running ps
+Examining Root Processes
+The Operating System
+Exercise 12: Writing a Linux Operating System Detection Script
+Login Sessions and User Activity
+Collecting User Sessions
+Investigating Executed Commands
+Networking
+Network Interfaces and Routes
+Connections and Neighbors
+Firewall Rules
+Network Interface Configuration Files
+Domain Resolvers
+Software Installations
+Storage
+Block Devices
+The Filesystem Tab File
+Logs
+System Logs
+Application Logs
+Exercise 13: Recursively Searching for Readable Logfiles
+Kernels and Bootloaders
+Configuration Files
+Scheduled Tasks
+Cron
+At
+Exercise 14: Writing a Cron Job Script to Find Credentials
+Hardware
+Virtualization
+Using Dedicated Tools
+Living Off the Land
+Automating Information Gathering with LinEnum
+Exercise 15: Adding Custom Functionality to LinEnum
+Summary
+9PRIVILEGE ESCALATION
+What Is Privilege Escalation?
+Linux File and Directory Permissions
+Viewing Permissions
+Setting Permissions
+Creating File Access Control Lists
+Viewing SetUID and SetGID
+Setting the Sticky Bit
+Finding Files Based on Permissions
+Exploiting a SetUID Misconfiguration
+Scavenging for Credentials
+Passwords and Secrets
+Private Keys
+Exercise 16: Brute-Forcing GnuPG Key Passphrases
+Examining the sudo Configuration
+Abusing Text Editor Tricks
+Downloading Malicious sudoers Files
+Hijacking Executables via PATH Misconfigurations
+Exercise 17: Maliciously Modifying a Cron Job
+Finding Kernel Exploits
+SearchSploit
+Linux Exploit Suggester 2
+Attacking Adjacent Accounts
+Privilege Escalation with GTFOBins
+Exercise 18: Mapping GTFOBins Exploits to Local Binaries
+Automating Privilege Escalation
+LinEnum
+unix-privesc-check
+MimiPenguin
+Linuxprivchecker
+Bashark
+Summary
+10PERSISTENCE
+The Enemies of Persistent Access
+Modifying Service Configurations
+System V
+systemd
+Hooking into Pluggable Authentication Modules
+Exercise 19: Coding a Malicious pam_exec Bash Script
+Generating Rogue SSH Keys
+Repurposing Default System Accounts
+Poisoning Bash Environment Files
+Exercise 20: Intercepting Data via Profile Tampering
+Credential Theft
+Hooking a Text Editor
+Streaming Executed Commands
+Forging a Not-So-Innocent sudo
+Exercise 21: Hijacking Password Utilities
+Distributing Malicious Packages
+Understanding DEB Packages
+Packaging Innocent Software
+Converting Package Formats with alien
+Exercise 22: Writing a Malicious Package Installer
+Summary
+11NETWORK PROBING AND LATERAL MOVEMENT
+Probing the Corporate Network
+Service Mapping
+Port Frequencies
+Exercise 23: Scanning Ports Based on Frequencies
+Exploiting Cron Scripts on Shared Volumes
+Verifying Exploitability
+Checking the User Context
+Exercise 24: Gaining a Reverse Shell on the Backup Server
+Exploiting a Database Server
+Port Forwarding
+Brute-Forcing with Medusa
+Backdooring WordPress
+Running SQL Commands with Bash
+Exercise 25: Executing Shell Commands via WordPress
+Compromising a Redis Server
+Raw CLI Commands
+Metasploit
+Exposed Database Files
+Dumping Sensitive Information
+Uploading a Web Shell with SQL
+Summary
+12DEFENSE EVASION AND EXFILTRATION
+Defensive Controls
+Endpoint Security
+Application and API Security
+Network Security
+Honeypots
+Log Collection and Aggregation
+Exercise 26: Auditing Hosts for Landmines
+Concealing Malicious Processes
+Library Preloading
+Process Hiding
+Process Masquerading
+Exercise 27: Rotating Process Names
+Dropping Files in Shared Memory
+Disabling Runtime Security Controls
+Manipulating History
+Tampering with Session Metadata
+Concealing Data
+Encoding
+Encryption
+Exercise 28: Writing Substitution Cipher Functions
+Exfiltration
+Raw TCP
+DNS
+Text Storage Sites
+Slack Webhooks
+Sharding Files
+Number of Lines
+Size
+Chunks
+Exercise 29: Sharding and Scheduling Exfiltration
+Summary
+INDEX
+
+
+
+
+
+
+
+
+
+
+
+
+BLACK HAT BASH
+Creative Scripting for Hackers and Pentesters
+
+
+by Dolev Farhi and Nick Aleks
+
+San Francisco
+
+
+
+
+
+
+
+
+
+BLACK HAT BASH. Copyright © 2025 by Dolev Farhi and Nick Aleks.
+All rights reserved. No part of this work may be reproduced or transmitted in any form or by any means, electronic or mechanical, including photocopying, recording, or by any information storage or retrieval system, without the prior written permission of the copyright owner and the publisher.
+First printing
+28 27 26 25 24      1 2 3 4 5
+ISBN-13: 978-1-7185-0374-8 (print)ISBN-13: 978-1-7185-0375-5 (ebook)
+
+Published by No Starch Press®, Inc.245 8th Street, San Francisco, CA 94103phone: +1.415.863.9900www.nostarch.com; info@nostarch.com
+Publisher: William PollockManaging Editor: Jill FranklinProduction Manager: Sabrina Plomitallo-GonzálezProduction Editor: Jennifer KeplerDevelopmental Editor: Frances SauxCover Illustrator: Rick ReeseInterior Design: Octopod StudiosTechnical Reviewer: Kc UdonsiCopyeditor: Sharon WilkeyProofreader: James Brook
+Library of Congress Control Number: 2024004527
+For customer service inquiries, please contact info@nostarch.com. For information on distribution, bulk sales, corporate sales, or translations: sales@nostarch.com. For permission to translate this work: rights@nostarch.com. To report counterfeit copies or piracy: counterfeit@nostarch.com.
+No Starch Press and the No Starch Press logo are registered trademarks of No Starch Press, Inc. Other product and company names mentioned herein may be the trademarks of their respective owners. Rather than use a trademark symbol with every occurrence of a trademarked name, we are using the names only in an editorial fashion and to the benefit of the trademark owner, with no intention of infringement of the trademark.
+The information in this book is distributed on an “As Is” basis, without warranty. While every precaution has been taken in the preparation of this work, neither the authors nor No Starch Press, Inc. shall have any liability to any person or entity with respect to any loss or damage caused or alleged to be caused directly or indirectly by the information contained in it.
+
+
+
+
+
+
+
+
+
+
+About the Authors
+
+Dolev Farhi is a security engineer and co-author of Black Hat GraphQL (No Starch Press, 2023). He has extensive experience leading security engineering teams in the fintech and cybersecurity industries and is currently a distinguished security engineer at Palo Alto Networks, where he builds defenses for the largest cybersecurity company in the world. He has provided training for official Linux certification tracks and, in his spare time, enjoys researching vulnerabilities in IoT devices and building open source offensive security tools.
+
+Nick Aleks is a prominent cybersecurity leader whose work has been vital in protecting the financial data of millions of Canadians. He is the senior director of security at Wealthsimple and has served as a patented distinguished security engineer at TD Bank. Nick is also the chief hacking officer at ASEC and co-author of Black Hat GraphQL (No Starch Press, 2023). A senior advisory board member for the University of Guelph and George Brown College cybersecurity programs, he has over a decade of experience hacking everything from websites, safes, locks, cars, and drones to smart buildings.
+
+About the Technical Reviewer
+Kc Udonsi (CISSP) is currently the security architect at Stan Technology Inc., where he oversees the security posture of the organization by designing and building defenses. He has experience leading research teams in the cybersecurity industry and mentoring security professionals. He offers training on the OpenSecurityTraining platform and is a sessional instructor for computer and network security at his alma mater, the University of Toronto Scarborough. In his prior role as a senior vulnerability researcher at Trend Micro, he disclosed significant vulnerabilities to companies such as Adobe and Microsoft.
+
+
+
+
+
+
+
+
+
+
+
+ACKNOWLEDGMENTS
+
+Many people contributed to the success of this book. Without their patience, support, sacrifices, and guidance, releasing it would have been impossible.
+Thank you to Limor-Petersil Farhi, Dolev’s wife and partner, who supported him throughout this and the previous book-writing journey by providing unconditional encouragement and an environment conducive to pursuing his literary ambitions.
+Thank you to Nick’s best friend and loving wife, Natalia Aleks, for supporting yet another literary adventure, especially as they welcome Sofia into their lives. Natalia is his rock.
+Thank you to Kc for delivering an astounding, meticulous technical review of this book. His experience finding security flaws translated nicely to catching errors.
+To the entire No Starch Press team, thank you for giving us the opportunity to translate our experience into a book. Thanks to Frances Saux, our amazing editor, who was an excellent resource during the roller-coaster ride that is book writing, and to Bill Pollock, for the opportunity to team up with No Starch Press once again to make our dream a reality.
+
+
+
+
+
+
+
+
+
+
+INTRODUCTION
+
+
+What if the world’s most potent cyberweapon wasn’t a zero-day exploit but the oldest trick in the book? In this fast-evolving cybersecurity landscape, bash scripting has remained a foundational skill, providing much more than just a convenient way to interact with an operating system.
+Written by Brian Fox in 1989, the bash shell is used on most versions of the Linux operating system, which runs an impressive share of the world’s infrastructure. You’ll find Linux across the vast network of servers that form the backbone of the internet, as well as orchestrating space missions, enabling secure financial transactions, and driving innovation in artificial intelligence.
+Linux’s ubiquity has made bash scripting an essential skill for hackers hoping to master the art of living off the land, or using a system’s native tools and processes to execute attacks, which can enable them to blend in with legitimate activities and avoid detection. If penetration testers rely too heavily on an ever-growing arsenal of third-party tools, they’ll struggle to operate in restricted environments with limited tool access.
+Bash scripting also enables hackers to automate the execution of command line tools. For example, it lets them chain multiple tools together, run them against many targets, or strategically schedule their execution. By writing scripts, hackers can develop powerful, efficient penetration-testing routines that fit their custom needs.
+Whether you’re a penetration tester, a bug bounty hunter, a student taking your first steps into the field of cybersecurity, or a defender hoping to understand attacker techniques, this book will teach you to harness bash scripting at all stages of an offensive security engagement. You’ll learn how to write reusable offensive scripts, use the bash shell to maneuver through networks, and dive deep inside the Linux operating system.
+
+What Is in This Book
+This book begins by teaching you the foundations of bash syntax and scripting. It then applies those skills to each stage of a penetration test against a Linux-based target network, from initial access to data exfiltration. Along the way, you’ll explore the Linux operating system and enhance your bash hacking skills.

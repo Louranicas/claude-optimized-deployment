@@ -1,0 +1,189 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 6 - Prints the content of the output.txt file to the standard output stream.
+You can find an example solution, exercise_solution.sh, in the book’s GitHub repository.
+Security Relevance Score: 2
+Word Count: 955
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Prints the content of the output.txt file to the standard output stream.
+You can find an example solution, exercise_solution.sh, in the book’s GitHub repository.
+
+
+
+
+Summary
+In this chapter, you ran simple Linux commands in the terminal and used man to learn about command options. You also learned how to pass arguments to scripts and execute a sequence of commands from within scripts. We covered the fundamentals of bash, such as how to write basic programs that use variables, arrays, redirects, exit codes, and arguments. You also learned how to prompt the user to enter arbitrary information and use it as part of a script’s flow.
+
+
+
+
+
+
+
+
+
+
+
+
+2
+FLOW CONTROL AND TEXT PROCESSING
+
+
+
+This chapter covers bash concepts that can make your scripts more intelligent. You’ll learn how to test conditions, use loops, consolidate code into functions, send commands to the background, and more. You’ll also learn some ways of customizing your bash environment for penetration testing.
+
+Test Operators
+Bash lets us selectively execute commands when certain conditions of interest are met. We can use test operators to craft a wide variety of conditions, such as whether one value equals another value, whether a file is of a certain type, or whether one value is greater than another. We often rely on such tests to determine whether to continue running a block of code, so being able to construct them is fundamental to bash programming.
+Bash has multiple kinds of test operators. File test operators allow us to perform tests against files on the filesystem, such as checking whether a file is executable or whether a certain directory exists. Table 2-1 shows a short list of the available tests.
+Table 2-1: File Test Operators
+
+
+
+Operator
+Description
+
+
+
+
+-d
+Checks whether the file is a directory
+
+
+-r
+Checks whether the file is readable
+
+
+-x
+Checks whether the file is executable
+
+
+-w
+Checks whether the file is writable
+
+
+-f
+Checks whether the file is a regular file
+
+
+-s
+Checks whether the file size is greater than zero
+
+
+
+You can find the full list of file test operators at https://ss64.com/bash/test.html or by running the man test command.
+String comparison operators allow us to perform tests related to strings, such as testing whether one string is equal to another. Table 2-2 shows the string comparison operators.
+Table 2-2: String Comparison Operators
+
+
+
+Operator
+Description
+
+
+
+
+=
+Checks whether a string is equal to another string
+
+
+==
+Synonym of = when used within [[]] constructs
+
+
+!=
+Checks whether a string is not equal to another string
+
+
+<
+Checks whether a string comes before another string (in alphabetical order)
+
+
+>
+Checks whether a string comes after another string (in alphabetical order)
+
+
+-z
+Checks whether a string is null
+
+
+-n
+Checks whether a string is not null
+
+
+
+Integer comparison operators allow us to perform checks on integers, such as whether an integer is less than or greater than another. Table 2-3 shows the available operators.
+Table 2-3: Integer Comparison Operators
+
+
+
+Operator
+Description
+
+
+
+
+-eq
+Checks whether a number is equal to another number
+
+
+-ne
+Checks whether a number is not equal to another number
+
+
+-ge
+Checks whether a number is greater than or equal to another number
+
+
+-gt
+Checks whether a number is greater than another number
+
+
+-lt
+Checks whether a number is less than another number
+
+
+-le
+Checks whether a number is less than or equal to another number
+
+
+
+Let’s use these operators in flow-control mechanisms to decide what code to run next.
+
+
+if Conditions
+In bash, we can use an if condition to execute code only when a certain condition is met. Listing 2-1 shows its syntax.
+if [[condition]]; then
+  # Do something if the condition is met.
+else
+  # Do something if the condition is not met.
+fi
+
+Listing 2-1: The structure of an if statement
+We start with the if keyword, followed by a test condition between double square brackets ([[]]). We then use the ; character to separate the if keyword from the then keyword, which allows us to introduce a block of code that runs only if the condition is met.
+Next, we use the else keyword to introduce a fallback code block that runs if the condition is not met. Note that else is optional, and you may not always need it. Finally, we close the if condition with the fi keyword (which is if inversed).
+
+NOTE
+
+In some operating systems, such as those often used in containers, the default shell might not necessarily be bash. To account for these cases, you may want to use single square brackets ([...]) rather than double to enclose your condition. This use of single brackets meets the Portable Operating System Interface standard and should work on almost any Unix derivative, including Linux.
+Let’s see an if condition in practice. Listing 2-2 uses an if condition to test whether a file exists and, if not, creates it.
+
+test_if_file _exists.sh
+#!/bin/bash
+FILENAME="flow_control_with_if.txt"
+
+if [[-f "${FILENAME}"]]; then
+  echo "${FILENAME} already exists."
+  exit 1
+else
+  touch "${FILENAME}"
+fi
+
+Listing 2-2: An if condition to test for the existence of a file
+We first create a variable named FILENAME containing the name of the file we need. This saves us from having to repeat the filename in the code. We then introduce the if statement, which includes a condition that uses the -f file test operator to test for the existence of the file. If this condition is true, we use echo to print to the screen a message explaining that the file already exists and then use the status code 1 (failure) to exit the program. In the else block, which will execute only if the file does not exist, we create the file by using the touch command.
+
+NOTE
+
+You can download this chapter’s scripts from https://github.com/dolevf/Black-Hat-Bash/blob/master/ch

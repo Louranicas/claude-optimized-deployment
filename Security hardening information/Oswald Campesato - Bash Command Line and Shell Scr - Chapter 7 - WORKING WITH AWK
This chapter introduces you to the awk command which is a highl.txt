@@ -1,0 +1,319 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 7 - WORKING WITH AWK
+This chapter introduces you to the awk command, which is a highly versatile utility for manipulating data and restructuring datasets. In fact, this utility is so versatile that entire books have been written about the awk utility. Awk is essentially an entire programming language in a single command, which accepts standard input, gives standard output and uses regular expressions and metacharacters in the same way other bash commands do. This lets you combine awk with other expressions and do almost anything, at the cost of adding complexity to a command string that may already be doing quite a lot already. It is almost always worthwhile to add a comment when using awk, it is so versatile that it won't be clear which of the many features you are using at a glance.
+The first part of this chapter provides a very brief introduction of the awk command. You will learn about some built-in variables for awk, and also how to manipulate string variables using awk. Note that some of these string-related examples can also be handled using other bash commands.
+The second part of this chapter shows you conditional logic, while loops, and for loops in awk in order to manipulate the rows and columns in datasets. This section also shows you how to delete lines and merge lines in datasets, and also how to print the contents of a file as a single line of text. You will see how to “join” lines and groups of lines in datasets.
+The third section contains code samples that involve metacharacters (introduced in Chapter 1) and character sets in awk commands. You will also see how to use conditional logic in awk commands in order to determine whether or not to print a line of text.
+The fourth section illustrates how to “split” a text string that contains multiple “.” characters as a delimiter, followed by examples of awk to perform numeric calculations (such as addition, subtraction, multiplication, and division) in files containing numeric data. This section also shows you various numeric functions that are available in awk, and also how to print text in a fixed set of columns.
+The fifth section explains how to align columns in a dataset and also how to align and merge columns in a dataset. You will see how to delete columns, how to select a subset of columns from a dataset, and how to work with multiline records in datasets. This section contains some one-line awk commands that can be useful for manipulating the contents of datasets.
+The final section of this chapter has a pair of use cases involving nested quotes and date formats in structured data sets.
+THE AWK COMMAND
+The awk (Aho, Weinberger, and Kernighan) command has C-like syntax and you can use this utility to perform very complex operations on numbers and text strings.
+As a side comment, there is also the gawk command that is GNU awk, as well as the nawk command, which is the “new” awk (neither command is discussed in this book). One advantage of nawk is that it allows you to set externally the value of an internal variable.
+Built-in Variables That Control awk
+The awk command provides variables that you can change from their default values in order to control how awk performs operations. Examples of such variables (and their default values) include: FS (" "), RS ("\n"), OFS (" "), ORS ("\n"), SUBSEP, and IGNORECASE. The variables FS and RS specify the field separator and record separator, whereas the variables OFS and ORS specify the output field separator and the output record separator, respectively.
+You can think of the field separators as delimiters/IFS we used in other commands earlier. The record separators behave in a way similar to how sed treats individual lines – for example, sed can match or delete a range of lines instead of matching or deleting something that matches a regular expression (and the default awk record separator is the newline character, so by default awk and sed have similar ability to manipulate and reference lines in a text file).
+As a simple example, you can print a blank line after each line of a file by changing the ORS, from the default of one newline to two newlines, as shown here:
+Security Relevance Score: 2
+Word Count: 2196
+Extracted: 2025-06-13 23:40:50
+
+---
+
+WORKING WITH AWK
+This chapter introduces you to the awk command, which is a highly versatile utility for manipulating data and restructuring datasets. In fact, this utility is so versatile that entire books have been written about the awk utility. Awk is essentially an entire programming language in a single command, which accepts standard input, gives standard output and uses regular expressions and metacharacters in the same way other bash commands do. This lets you combine awk with other expressions and do almost anything, at the cost of adding complexity to a command string that may already be doing quite a lot already. It is almost always worthwhile to add a comment when using awk, it is so versatile that it won't be clear which of the many features you are using at a glance.
+The first part of this chapter provides a very brief introduction of the awk command. You will learn about some built-in variables for awk, and also how to manipulate string variables using awk. Note that some of these string-related examples can also be handled using other bash commands.
+The second part of this chapter shows you conditional logic, while loops, and for loops in awk in order to manipulate the rows and columns in datasets. This section also shows you how to delete lines and merge lines in datasets, and also how to print the contents of a file as a single line of text. You will see how to “join” lines and groups of lines in datasets.
+The third section contains code samples that involve metacharacters (introduced in Chapter 1) and character sets in awk commands. You will also see how to use conditional logic in awk commands in order to determine whether or not to print a line of text.
+The fourth section illustrates how to “split” a text string that contains multiple “.” characters as a delimiter, followed by examples of awk to perform numeric calculations (such as addition, subtraction, multiplication, and division) in files containing numeric data. This section also shows you various numeric functions that are available in awk, and also how to print text in a fixed set of columns.
+The fifth section explains how to align columns in a dataset and also how to align and merge columns in a dataset. You will see how to delete columns, how to select a subset of columns from a dataset, and how to work with multiline records in datasets. This section contains some one-line awk commands that can be useful for manipulating the contents of datasets.
+The final section of this chapter has a pair of use cases involving nested quotes and date formats in structured data sets.
+THE AWK COMMAND
+The awk (Aho, Weinberger, and Kernighan) command has C-like syntax and you can use this utility to perform very complex operations on numbers and text strings.
+As a side comment, there is also the gawk command that is GNU awk, as well as the nawk command, which is the “new” awk (neither command is discussed in this book). One advantage of nawk is that it allows you to set externally the value of an internal variable.
+Built-in Variables That Control awk
+The awk command provides variables that you can change from their default values in order to control how awk performs operations. Examples of such variables (and their default values) include: FS (" "), RS ("\n"), OFS (" "), ORS ("\n"), SUBSEP, and IGNORECASE. The variables FS and RS specify the field separator and record separator, whereas the variables OFS and ORS specify the output field separator and the output record separator, respectively.
+You can think of the field separators as delimiters/IFS we used in other commands earlier. The record separators behave in a way similar to how sed treats individual lines – for example, sed can match or delete a range of lines instead of matching or deleting something that matches a regular expression (and the default awk record separator is the newline character, so by default awk and sed have similar ability to manipulate and reference lines in a text file).
+As a simple example, you can print a blank line after each line of a file by changing the ORS, from the default of one newline to two newlines, as shown here:
+
+cat columns.txt | awk 'BEGIN { ORS ="\n\n" } ;
+{ print $0 }'
+
+Other built-in variables include FILENAME (the name of the file that awk is currently reading), FNR (the current record number in the current file), NF (the number of fields in the current input record), and NR (the number of input records awk has processed since the beginning of the program’s execution).
+Consult the online documentation for additional information regarding these (and other) arguments for the awk command.
+How Does the awk Command Work?
+The awk command reads the input files one record at a time (by default, one record is one line). If a record matches a pattern, then an action is performed (otherwise no action is performed). If the search pattern is not given, then awk performs the given actions for each record of the input. The default behavior, if no action is given, is to print all the records that match the given pattern. Finally, empty brackets without any action does nothing; i.e., it will not perform the default printing operation. Note that each statement in actions should be delimited by a semicolon.
+In order to make the preceding paragraph more concrete, here are some simple examples involving text strings and the awk command (the results are displayed after each code snippet). The -F switch sets the field separator to whatever follows it, in this case a space. Switches will often provide a shortcut to an action that normally needs a command inside a ‘BEGIN{} block):
+
+x="a b c d e"
+echo $x |awk -F" " '{print $1}'
+a
+echo $x |awk -F" " '{print NF}'
+5
+echo $x |awk -F" " '{print $0}'
+a b c d e
+echo $x |awk -F" " '{print $3, $1}'
+c a
+
+Now let’s change the FS (record separator) to an empty string to calculate the length of a string, this time using the BEGIN{} syntax:
+
+echo "abc" | awk 'BEGIN { FS = "" } ; { print NF }'
+3
+
+The following example illustrates several equivalent ways to specify test. txt as the input file for an awk command:
+
+awk < test.txt '{ print $1 }'
+awk '{ print $1 }' < test.txt
+awk '{ print $1 }' test.txt
+
+Yet another way is shown here (but as we’ve discussed earlier, it can be inefficient, so only do it if the cat is adding value in some way):
+
+cat test.txt | awk '{ print $1 }'
+
+This simple example of four ways to do the same task illustrates why commenting awk calls of any complexity is almost always a good idea. The next person to look at your code may not know/remember the syntax you are using.
+ALIGNING TEXT WITH THE PRINTF COMMAND
+Since awk is a programming language inside a single command, it also has its own way of producing formatted output via the printf command.
+Listing 7.1 displays the contents of columns2.txt and Listing 7.2 displays the contents of the shell script AlignColumns1.sh that shows you how to align the columns in a text file.
+Listing 7.1: columns2.txt
+
+one two
+three four
+one two three four
+five six
+one two three
+four five
+
+Listing 7.2: AlignColumns1.sh
+
+awk '
+{
+  # left-align $1 on a 10-char column
+  # right-align $2 on a 10-char column
+  # right-align $3 on a 10-char column
+  # right-align $4 on a 10-char column
+  printf("%-10s*%10s*%10s*%10s*\n", $1, $2, $3, $4)
+}
+' columns2.txt
+
+Listing 7.2 contains a printf() statement that displays the first four fields of each row in the file columns2.txt, where each field is 10 characters wide.
+The output from launching the code in Listing 7.2 is here:
+
+
+one
+*
+two*
+*
+*
+
+
+three
+*
+four*
+*
+*
+
+
+one
+*
+two*
+three*
+four*
+
+
+five
+*
+six*
+*
+*
+
+
+one
+*
+two*
+three*
+*
+
+
+four
+*
+five*
+*
+*
+
+
+Keep in mind that printf is reasonably powerful and as such has its own syntax, which is beyond the scope of this chapter. A search online can find the manual pages and also discussions of “how to do X with printf().”
+CONDITIONAL LOGIC AND CONTROL STATEMENTS
+Like other programming languages, awk provides support for conditional logic (if/else) and control statements (for/while loops). awk is the only way to put conditional logic inside a piped command stream without creating, installing and adding to the path a custom executable shell script. The following code block shows you how to use if/else logic:
+
+echo "" | awk '
+BEGIN { x = 10 }
+{
+  if (x % 2 == 0) }
+      print "x is even"
+}
+else }
+   print "x is odd"
+}
+}
+&
+
+The preceding code block initializes the variable x with the value 10 and prints “x is even” if x is divisible by 2, otherwise it prints “x is odd.”
+The while Statement
+The following code block illustrates how to use a while loop in awk:
+
+echo "" | awk '
+{
+  x = 0
+  while(x < 4) {
+    print "x:",x
+    x = x + 1
+ }
+}
+'
+
+The preceding code block generates the following output:
+
+x:0
+x:1
+x:2
+x:3
+
+The following code block illustrates how to use a do while loop in awk:
+
+echo "" | awk '
+{
+  x = 0
+
+
+do {
+  print "x:",x
+  x = x + 1
+} while(x < 4)
+}
+'
+
+The preceding code block generates the following output:
+
+x:0
+x:1
+x:2
+x:3
+
+A for loop in awk
+Listing 7.3 displays the contents of Loop.sh that illustrates how to print a list of numbers in a loop. Note that “i++” is another way of writing “i=i+1” in awk.
+Listing 7.3: Loop.sh
+
+awk '
+BEGIN {
+  for(i=0; i<5; i++) {
+   printf("%3d", i)
+ }
+}
+'
+
+Listing 7.3 contains a for loop that prints numbers on the same line via the printf() statement. The output from Listing 7.3 is here:
+
+0 1 2 3 4
+
+A for loop with a break Statement
+The following code block illustrates how to use a break statement in a for loop in awk:
+
+echo "" | awk '
+{
+  for(x=1; x<4; x++) {
+    print "x:",x
+    if(x == 2) {
+       break;
+    }
+  }
+}
+'
+
+The preceding code block prints output only until the variable x has the value 2, after which the loop exits (because of the break inside the conditional logic). The following output is displayed:
+
+x:1
+
+The next and continue Statements
+The following code snippet illustrates how to use next and continue in a for loop in awk:
+
+awk '
+{
+   /expression1/ { var1 = 5; next }
+   /expression2/ { var2 = 7; next }
+   /expression3/ { continue }
+   // some other code block here
+' somefile
+
+When the current line matches expression1, then var1 is assigned the value 5 and awk reads the next input line: hence, expression2 and expression3 will not be tested. If expression1 does not match and expression2 does match, then var2 is assigned the value 7 and then awk will read the next input line. If only expression3 results in a positive match, then awk skips the remaining block of code and processes the next input line.
+DELETING ALTERNATE LINES IN DATASETS
+Listing 7.4 displays the contents of linepairs.csv and Listing 7.5 displays the contents of deletelines.sh that illustrates how to print alternating lines from the dataset linepairs.csv that have exactly two columns.
+Listing 7.4: linepairs.csv
+
+a,b,c,d
+e,f,g,h
+1,2,3,4
+5,6,7,8
+
+Listing 7.5: deletelines.sh
+
+inputfile="linepairs.csv"
+outputfile="linepairsdeleted.csv"
+awk ' NR%2 {printf "%s", $0; print ""; next}' < 
+$inputfile > $outputfile
+
+Listing 7.5 checks if the current record number NR is divisible by 2, in which case it prints the current line and skips the next line in the dataset.
+The output is redirected to the specified output file, the contents of which are here:
+
+a,b,c,d
+1,2,3,4
+
+A slightly more common task involves merging consecutive lines, which is the topic of the next section.
+MERGING LINES IN DATASETS
+Listing 7.6 displays the contents of columns.txt and Listing 7.7 displays the contents of ColumnCount1.sh that illustrates how to print the lines from the text file columns.txt that have exactly two columns.
+Listing 7.6: columns.txt
+
+one two three
+one two
+one two three four
+one
+one three
+one four
+
+Listing 7.7: ColumnCount1.sh
+
+awk '
+{
+   if( NF == 2 ) { print $0 }
+}
+' columns.txt
+
+Listing 7.7 is straightforward: if the current record number is even, then the current line is printed (i.e., odd-numbered rows are skipped). The output from launching the code in Listing 7.7 is here:
+
+one two
+one three
+one four
+
+If you want to display the lines that do not contain 2 columns, use the following code snippet:
+
+if( NF != 2 ) { print $0 }
+
+Printing File Contents as a Single Line
+The contents of test4.txt are here (note the blank lines):
+
+abc
+
+ 
+
+def
+
+ 
+
+
+abc
+
+ 
+
+abc
+
+The following code snippet illustrates how to print the contents of test

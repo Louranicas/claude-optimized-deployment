@@ -1,0 +1,491 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 8 - INTRO TO SHELL SCRIPTS
+This chapter introduces you to shell scripts that illustrate how to solve some well-known tasks. Although Chapter 4 showed you how to define a custom function in the AppendRow.sh shell script, this chapter is devoted to shell scripts. Some examples rely on the grep command, so this would be a good time to review the material in the chapter that contains grep-related information. Later in this chapter, you will see shell scripts that involve recursion-based algorithms for well-known tasks such as the GCD and LCM of two positive integers.
+The first part of this chapter starts with examples of very simple shell scripts and also how to make those shell scripts executable. This section also shows you how to “source” or “dot” a shell script, and also describes situations when it’s necessary to do so.
+The second part of this chapter shows you how to use pass parameters to shell functions that are defined in shell scripts, how to determine the number of values passed to a function, and how to display their values. This section also contains an example of an interactive shell script (i.e., prompts users for their input).
+The third part of this chapter shows you how to use recursion in order to compute the factorial value of a positive integer. In addition, this section shows you shell scripts for calculating Fibonacci numbers, the GCD and LCM of two positive integers, and the divisors of a positive integer.
+One detail to keep in mind regarding the shell scripts in this book: although some of them might not have immediate value for you, it’s still worth your time to read them to see if they contain techniques that you can use in your own shell scripts.
+WHAT ARE SHELL SCRIPTS?
+Shell scripts contain a collection of bash commands that are executed in order to complete a task defined by you. If the shell script does not contain any functions, then the commands are executed sequentially from top to bottom (i.e., in the sequence that they appear in a shell script). As you will see later in this chapter, you can define functions and use conditional logic in order to alter the sequence commands are executed in.
+Shell scripts can contain whatever bash commands are available on your system, but keep in mind that some commands require the sudo command, which in turn requires a password. Simple examples of shell scripts include file-related commands that create files, read data from files, and update the contents of files. Regardless of the contents of your shell scripts, they are interpreted “on the fly,” so there are no compilation steps that create a binary executable.
+Shell scripts automate the process of executing a set of bash commands so that you don’t need to execute them manually from the command line. If you need to execute a simple command from the command line, then it’s unlikely that you need to do so via a shell script: just type the command and press the <RETURN> key. Note that the crontab utility enables you to schedule the execution of shell scripts on a regular basis (hourly, daily, weekly, and so forth). Chapter 10 provides some additional information regarding the crontab utility.
+A Simple Shell Script
+This section shows you how to create a shell script that contains an assortment of very simple commands that are executed sequentially. Specifically, create the text file test.sh (using your favorite text editor) with the following contents:
+Security Relevance Score: 3
+Word Count: 3298
+Extracted: 2025-06-13 23:40:50
+
+---
+
+INTRO TO SHELL SCRIPTS
+This chapter introduces you to shell scripts that illustrate how to solve some well-known tasks. Although Chapter 4 showed you how to define a custom function in the AppendRow.sh shell script, this chapter is devoted to shell scripts. Some examples rely on the grep command, so this would be a good time to review the material in the chapter that contains grep-related information. Later in this chapter, you will see shell scripts that involve recursion-based algorithms for well-known tasks such as the GCD and LCM of two positive integers.
+The first part of this chapter starts with examples of very simple shell scripts and also how to make those shell scripts executable. This section also shows you how to “source” or “dot” a shell script, and also describes situations when it’s necessary to do so.
+The second part of this chapter shows you how to use pass parameters to shell functions that are defined in shell scripts, how to determine the number of values passed to a function, and how to display their values. This section also contains an example of an interactive shell script (i.e., prompts users for their input).
+The third part of this chapter shows you how to use recursion in order to compute the factorial value of a positive integer. In addition, this section shows you shell scripts for calculating Fibonacci numbers, the GCD and LCM of two positive integers, and the divisors of a positive integer.
+One detail to keep in mind regarding the shell scripts in this book: although some of them might not have immediate value for you, it’s still worth your time to read them to see if they contain techniques that you can use in your own shell scripts.
+WHAT ARE SHELL SCRIPTS?
+Shell scripts contain a collection of bash commands that are executed in order to complete a task defined by you. If the shell script does not contain any functions, then the commands are executed sequentially from top to bottom (i.e., in the sequence that they appear in a shell script). As you will see later in this chapter, you can define functions and use conditional logic in order to alter the sequence commands are executed in.
+Shell scripts can contain whatever bash commands are available on your system, but keep in mind that some commands require the sudo command, which in turn requires a password. Simple examples of shell scripts include file-related commands that create files, read data from files, and update the contents of files. Regardless of the contents of your shell scripts, they are interpreted “on the fly,” so there are no compilation steps that create a binary executable.
+Shell scripts automate the process of executing a set of bash commands so that you don’t need to execute them manually from the command line. If you need to execute a simple command from the command line, then it’s unlikely that you need to do so via a shell script: just type the command and press the <RETURN> key. Note that the crontab utility enables you to schedule the execution of shell scripts on a regular basis (hourly, daily, weekly, and so forth). Chapter 10 provides some additional information regarding the crontab utility.
+A Simple Shell Script
+This section shows you how to create a shell script that contains an assortment of very simple commands that are executed sequentially. Specifically, create the text file test.sh (using your favorite text editor) with the following contents:
+
+#!/bin/bash pwd ls
+cd /tmp
+ls
+mkdir /tmp/abc
+touch /tmp/abc/emptyfile
+ls /tmp/abc/
+
+The second step involves making this shell script executable, which involves the chmod command, as shown here:
+
+chmod +x test.sh
+
+Now your shell script is ready for execution, and simply type the following command in the directory that contains test.sh:
+
+./test.sh
+
+NOTE
+note The output from launching test.sh depends on the contents of the /tmp directory.
+The first line in test.sh is called the “shebang” line, which directs the system to launch the bash shell in order to invoke the commands in test.sh. The term shebang is sort of a contraction of “hash” (for the “#” character) and “bang” (for the “!” character). Note that the initial “./” of ./test.sh specifies the file test.sh in the current directory: if the file test.sh is in your home directory, specify $HOME/test.sh. In addition, if “.” is included in the PATH environment variable, then you can simply type test.sh without the “./” prefix.
+One point regarding the mkdir command: if you specify a path in which intermediate directories do not exist, then you need to use the –p switch. For example, if the directory /tmp/abc does not exist, then the following command requires the –p switch:
+
+  mkdir –p /tmp/abc/def
+
+SETTING ENVIRONMENT VARIABLES VIA SHELL SCRIPTS
+A very important concept when using shell scripts is that any variables set inside the script are no longer set when the script finishes its execution. The rules are shown below:
+If a variable isn’t set in a script but is already defined before the script is executed, that variable will also be available inside the script.
+If a variable is set in a script, it will override any existing variable with the same name after the variable is set, but once the script ends, the variable will revert to its old value (or to no value, if it did not exist outside the shell script)
+For example, if your $HOME directory is /Users/jsmith but inside a script on line 10 you define $HOME to be /Users/common/bin, then the value of $HOME is initially /Users/jsmith for lines 1-9, then becomes /Users/common/bin on line 10, and maintains that value until the last command in the shell script is executed. When the shell script has finished its execution, the value of $HOME reverts to /Users/jsmith.
+The reason for this behavior is related to how Unix structures its processes (known as “shells,” hence the term “shell script”). That discussion is beyond the scope of this book, but you can perform an online search to find articles with a detailed explanation.
+Thus, the default behavior is that if you set the value of a variable in a shell script, then that variable (and its value) exists only for the duration of the execution of the shell script. There is a simple “workaround” whereby variables “hold” their values after a shell script has completed, and you’ll learn how to do so in a subsequent section.
+Just to make sure that the distinction is clear, consider Listing 8.1 that displays the contents of the shell script abc.sh.
+Listing 8.1: abc.sh
+
+export x="123"
+echo "inside abc.sh"
+echo "x = $x"
+
+Make sure that abc.sh is an executable shell script with the chmod command (as shown earlier in this chapter) and then launch the following sequence of commands from the command line:
+
+export x="tom"
+echo "x = $x"
+
+./abc.sh
+
+echo "x = $x"
+
+The output from the preceding commands is here:
+
+x = tom
+inside abc.sh
+x = 123
+x = tom
+
+As you can see, the value that is assigned to the variable x is only for the duration of the process associated with the shell script abc.sh. After execution has completed, the process terminates and the value of x reverts to its original value. Fortunately, there is a way to ensure that the values of variables in a shell script can be “set” for the current shell, a technique called “sourcing” the shell script, as described in the next section.
+Sourcing or “Dotting” a Shell Script
+Now execute the following sequence of commands:
+
+export x="tom smith"
+echo "x = $x"
+
+. abc.sh
+
+echo "x = $x"
+
+The output from the preceding commands is here:
+
+x = "tom smith"
+inside abc.sh
+x = 123
+x = 123
+
+In the preceding code block, the value assigned to the variable x inside the shell script abc.sh overrides its previously defined value because “sourcing” (also called “dotting”) a shell script does not create a new process. Consequently, if a shell script assigns a new value to an existing variable, that new value is placed in the current environment and the previously defined value is
+lost.
+As you probably know, comments are important in source code. A good shell script contains meaningful comments, which are preceded by a pound sign “#”, that explain the purpose of different sections in the shell script. The exception is when the “#” symbol appears in the first line of a shell script, as you will see in the next section.
+WORKING WITH FUNCTIONS IN SHELL SCRIPTS
+A shell function can be defined by using the keyword function, followed by the name of the function (specified by you) and a pair of round parentheses, followed by a pair of curly brackets that contain shell commands. The general form is shown here:
+
+function fname()
+{
+  statements;
+}
+
+An alternate method of defining a shell function involves placing the left curly bracket on a separate line, as shown here:
+
+fname()
+{
+  statements;
+}
+
+A shell function can be invoked by its name, as shown here:
+
+fname ; # executes the function
+
+Arguments can be passed to functions and can be accessed by the shell script:
+
+fname arg1 arg2 ; # passing args
+
+Listing 8.2 displays the contents of simple-shell.sh that illustrates how to define a function in a shell script.
+Listing 8.2: simple-shell.sh
+
+#!/bin/sh
+
+function1 ()
+{
+  echo "inside function 1"
+}
+
+function2 ()
+{
+  echo "you entered $1 in function 2"
+}
+
+# invoke function1 here:
+function1
+
+echo "Enter a string: "
+read str
+
+# invoke function2 here:
+function2 str
+
+Listing 8.2 defines function1 that displays a text message and function2 that displays the string that you entered at the command line. Launch Listing 8.2 and enter abc at the prompt and you will see the following output:
+
+inside function 1
+Enter a string:
+abc
+you entered str in function 2
+
+PASSING VALUES TO FUNCTIONS IN A SHELL SCRIPT (1)
+Positional parameters are built-in variables that contain the values of command-line arguments to scripts and functions in shell scripts. The positional parameters are named 1, 2, 3, etc., and their values are denoted by $1, $2, $3, etc. The positional parameter 0 has the value equal to the name of the script.
+Listing 8.3 displays the contents of parameters-function.sh that illustrates how to pass values to a function in a shell script.
+Listing 8.3: parameters-function.sh
+
+#!/bin/sh
+
+function1 ()
+{
+  echo "top of function 1"
+  echo "param 1: $1"
+  echo "param 2: $2"
+  echo "param 3: $3"
+}
+
+# invoke function1 here:
+function1 a
+function1 a b
+function1 a b c
+
+Listing 8.3 defines function1 that displays the values of the first three parameters that it receives. Launch Listing 8.3 and you will see the following output:
+
+top of function 1
+param 1: a
+param 2:
+param 3:
+top of function 1
+param 1: a
+param 2: b
+param 3:
+top of function 1
+param 1: a
+param 2: b
+param 3: c
+
+There is an obvious problem with the function in Listing 8.3: this function assumes that there are exactly three parameters. Hence, it displays parameters that do not have values and do not display the values beyond the first three parameters.
+The solution involves determining the number of parameters that are supplied to a function, which is the topic of the next section.
+PASSING VALUES TO FUNCTIONS IN A SHELL SCRIPT (2)
+Two special variables contain all of the positional parameters (except for positional parameter 0): * and @. The difference between them is subtle but important, and it’s apparent only when they are within double quotes.
+Listing 8.4 displays the contents of parameters-function2.sh that illustrates how to determine the number of values that are passed to a function in a shell script.
+Listing 8.4: parameters-function2.sh
+
+#!/bin/sh
+
+function1 ()
+{
+  echo "param count: $#"
+  echo "all params:  $@"
+  echo ""
+}
+
+# invoke function1 here:
+function1 a
+function1 a b
+function1 a b c
+function1 a b c d
+function1 1 2 3 4 5
+
+# display the command-line values:
+echo "param count: $#"
+echo "all params:  $@"
+
+As you can see, the function in Listing 8.4 uses $3 to display the number of parameters and $@ in order to display their values each time that the function is invoked.
+Launch Listing 8.4 and you will see the following output:
+
+param count: 1
+all params:  a
+
+param count: 2
+all params:  a b
+
+param count: 3
+all params:  a b c
+
+param count: 4
+all params:  a b c d
+
+param count: 5
+all params:  1 2 3 4 5
+param 3: c
+
+param count: 2
+all params:  good pasta
+
+ITERATE THROUGH VALUES PASSED TO A FUNCTION
+As another example, this shell function and invocation of the shell function shows you how to list parameter values in a convenient block:
+
+show_args ()
+{
+  echo "Argument count:  $#"
+  echo "Name of script:  $0"
+  echo "First argument:  $1"
+  echo "Second argument: $2"
+  echo "Third argument:  $3"
+  echo "All arguments:   $@"
+}
+
+show_args new york chicago pizza
+
+The output from the previous code block is here:
+
+Argument count:  4
+Name of script:  ./arguments.sh
+First argument:  new
+Second argument: york
+Third argument:  chicago
+All arguments:   new york chicago pizza
+
+Listing 8.5 displays the contents of iterate-args1.sh that illustrates how to iterate through a set of values in a shell script.
+Listing 8.5: iterate-args1.sh
+
+#!/bin/sh
+
+for i in {1..5}
+do
+  echo "Value of i: ${i}"
+done
+
+As you can see, the function in Listing 8.5 iterate through the values from 1 through 5 inclusive. Launch Listing 8.5 and you will see the following output:
+
+Value of i: 1
+Value of i: 2
+Value of i: 3
+Value of i: 4
+Value of i: 5
+
+Listing 8.6 displays the contents of iterate-args2.sh that illustrates how to iterate through a set of values in a shell script.
+Listing 8.6: iterate-args2.sh
+
+#!/bin/sh
+
+iterate()
+{
+  for arg
+  do
+    echo "value: $arg";
+  done
+}
+
+iterate a b c d e
+
+As you can see, the function in Listing 8.6 iterate through the values that are passed into the function iterate. Launch Listing 8.6 and you will see the following output:
+
+value: a
+value: b
+value: c
+value: d
+value: e
+
+Listing 8.7 displays the contents of iterate-args3.sh that illustrates how to iterate through a set of values in a shell script.
+Listing 8.7: iterate-args3.sh
+
+#!/bin/sh
+
+iterate()
+{
+  echo "this will be skipped ... why?"
+}
+
+iterate()
+{
+  arg1=”$1”; shift;
+
+  for arg
+  do
+    echo "value: $arg";
+  done
+}
+
+iterate a b c d e
+
+As you can see, the function in Listing 8.7 iterate through the values that are passed into the function iterate. However, there are two definitions of the iterate() function, and the rule is simple: the last (bottom-most) definition is executed, and all other preceding definitions are ignored (there might be more than two definitions of the same function).
+Another detail to notice is the first code snippet that’s shown in bold in the (second) definition of the iterate function, and reproduced here:
+
+arg1="$1"; shift;
+
+The preceding code snippet saves the value of $1 in the variable arg1, just in case you want to process this value elsewhere in the code (which we simply ignore in this code sample). Next, the shift keyword performs a “left shift” on the set of arguments that were passed into the iterate function. As a result, $1 is replaced with $2, and $2 is replaced with $3, and so on, until all the arguments have been shifted leftward.
+Launch Listing 8.7 and you will see the following output:
+
+value: b
+value: c
+value: d
+value: e
+
+Listing 8.8 displays the contents of iterate-args3.sh that illustrates how to use a for loop in order to iterate through a set of values in a shell script.
+Listing 8.8: iterate-args4.sh
+
+#!/bin/sh
+
+iterate()
+{
+  for (( i=2; i <= "$#"; i++ ))
+  do
+    echo "arg position: ${i}"
+    echo "arg value:	${!i}"
+  done
+}
+
+iterate a b c d e
+
+As you can see, the function in Listing 8.8 iterate through the values that are passed into the function iterate(). However, the for loop starts from the value 2, which skips the first argument. Launch Listing 8.8 and you will see the following output:
+
+arg position: 2
+arg value:   b
+arg position: 3
+arg value:   c
+arg position: 4
+arg value:   d
+arg position: 5
+arg value:   e
+
+Listing 8.9 displays the contents of iterate-args5.sh that illustrates how to use a for loop in order to iterate through a set of values, some of which are inside quotation marks, in a shell script.
+Listing 8.9: iterate-args5.sh
+
+#!/bin/sh
+
+iterate()
+{
+  echo "Argument count: $#"
+  echo "Argument list:  $@"
+  echo ""
+
+  for i in "${@}"
+  do
+    echo "argument: $i"
+  done
+}
+
+iterate a "b c" d "e f"
+
+As you can see, the function in Listing 8.9 iterate through the values that are passed into the function iterate(). If two or more strings are inside a pair of quotes, then they are treated as a single argument. Launch Listing 8.9 and you will see the following output:
+
+Argument count: 4
+Argument list:  a b c d e f
+
+argument: a
+argument: b c
+argument: d
+argument: e f
+
+POSITIONAL PARAMETERS IN USER-DEFINED FUNCTIONS
+Earlier in this chapter, you saw various examples of passing values to shell functions. The following list of positional parameters are useful when you write shell functions:
+
+$# contains the number of arguments
+$0 contains the command name
+$1, $2, ... , $9 contain the individual arguments of
+the command
+$* contains the entire list of arguments, treated as a
+single word
+$@ contains the entire list of arguments, treated as a
+series of words
+$? contains the exit status of the previous command,
+and the value 0 denotes successful completion
+$$ contains the process id of the current process
+
+Listing 8.10 displays the contents of PositionalParameters1.sh that displays the values of the preceding positional parameters.
+Listing 8.10 PositionalParameters1.sh
+
+echo "number of arguments: $#"
+echo "command name: $0"
+echo "all params: $1 $2 $3 $4 $5 $6 $7 $8 $9"
+echo "all params: $*"
+echo "all params: $@"
+echo "exit status: $?"
+echo "process id: $$"
+
+if [ x"$1" != "x" ]
+then
+  echo "Position parameter #1 = $1"
+else
+  echo "Position parameter #1 is null"
+fi
+
+if [ "$5" == "" ]
+then
+  echo "Position parameter #5 is nul1"
+fi
+
+case $1 in
+  n|N) echo "#1 is an n or N" ;;
+  y*|Y*) echo "#1 starts with a y or Y" ;;
+  *) echo "no matches occurred" ;;
+esac
+
+Launch Listing 8.10 with the following command:
+
+./PositionalParameters1.sh yes 2 3 4
+
+The output is shown here:
+
+./PositionalParameters1.sh 2 3 4
+number of arguments: 3
+command name: ./PositionalParameters1.sh
+all params: 2 3 4
+all params: 2 3 4
+all params: 2 3 4
+exit status: 0
+process id: 58003
+Position parameter #l = 2
+Position parameter #5 is nul1
+no matches occurred
+
+SHELL SCRIPTS, FUNCTIONS, AND USER INPUT
+Listing 8.11 displays the contents of checkuser.sh that illustrates how to prompt users for two input strings and then pass those two strings as parameters to a custom function checkNewUser().
+Listing 8.11: checkuser.sh
+
+#!/bin/bash
+
+function checkNewUser()
+{
+  echo "argument #1 = $1"
+  echo "argument #2 = $2"
+  echo "arg count   = $#"
+
+  if test "$1" = "John" && test "$2" = "Smith"
+  then
+    return 1
+  else
+    return 0
+  fi
+}
+
+/bin/echo -n "First name: "
+read fname
+/bin/echo -n "Last name: "
+read lname
+
+checkNewUser $fname $1name
+echo "result = $?"
+
+Listing 8.11 contains the function checkNewUser() that displays the value of the first argument, the second argument, and the total number of arguments, respectively. This function returns the value 1 if the first argument is John and the second argument is Smith; otherwise, the function returns

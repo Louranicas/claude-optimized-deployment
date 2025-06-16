@@ -1,0 +1,19 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 5 - Mapping a Large Environment.
+--top-ports #: We have established that the default of Nmap is to scan the top 1000 ports, and you can use the -F flag to reduce that to the top 100. But what if you want to scan the top 25? Or 50? Or 1000? That is where the --top-ports flag comes in; this allows you to specify the exact number to scan, which can help provide a good balance between speed and depth. From numerous interviews with accomplished network penetration testers, the most common specification for this flag seems to be --top-ports 2500. This ensures that the vast majority of regularly seen ports are covered while also substantially reducing the time it would take to scan every port.
+--version-intensity #: The previous chapter established that the service version could be abled via the -sV command, but additional nuance can be added by specifying the intensity of that versioning effort between 0 and 9. This is done by sending a series of probes with assigned values to all identified open ports in an attempt to determine the service running on them. The default value of -sV is “7”. So, if your objective is to return results quicker, select a lower number, and if you are trying to get a more accurate fingerprint, select the higher value:
+Security Relevance Score: 3
+Word Count: 236
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Mapping a Large Environment.
+--top-ports #: We have established that the default of Nmap is to scan the top 1000 ports, and you can use the -F flag to reduce that to the top 100. But what if you want to scan the top 25? Or 50? Or 1000? That is where the --top-ports flag comes in; this allows you to specify the exact number to scan, which can help provide a good balance between speed and depth. From numerous interviews with accomplished network penetration testers, the most common specification for this flag seems to be --top-ports 2500. This ensures that the vast majority of regularly seen ports are covered while also substantially reducing the time it would take to scan every port.
+--version-intensity #: The previous chapter established that the service version could be abled via the -sV command, but additional nuance can be added by specifying the intensity of that versioning effort between 0 and 9. This is done by sending a series of probes with assigned values to all identified open ports in an attempt to determine the service running on them. The default value of -sV is “7”. So, if your objective is to return results quicker, select a lower number, and if you are trying to get a more accurate fingerprint, select the higher value:
+
+
+
+Figure 4.5: Demonstrating manually setting version intensity
+--version-light: This flag is simply an alias for --version-intensity

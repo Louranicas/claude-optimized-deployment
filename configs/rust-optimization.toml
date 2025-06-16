@@ -1,0 +1,142 @@
+# Optimized Cargo configuration for AMD Ryzen 7 7800X3D
+# Place this file at ~/.cargo/config.toml
+
+[build]
+# Utilize all 16 threads for parallel compilation
+jobs = 16
+
+# Use mold linker for faster linking (install with: sudo apt install mold)
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+# Target-specific optimizations for AMD Zen 4 architecture
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-C", "target-cpu=znver4",           # Zen 4 optimizations
+    "-C", "link-arg=-fuse-ld=mold",      # Fast linker
+    "-C", "opt-level=3",                 # Maximum optimization
+    "-C", "lto=thin",                    # Thin Link Time Optimization
+    "-C", "codegen-units=1",             # Single codegen unit for better optimization
+    "-C", "target-feature=+avx2,+fma,+bmi2,+popcnt,+lzcnt" # Enable AVX2 and other optimizations
+]
+
+# Development profile - faster compilation, some optimization
+[profile.dev]
+opt-level = 1                    # Basic optimization for faster debug performance
+debug = 1                        # Limited debug info for faster compilation
+split-debuginfo = "unpacked"     # Faster debug info processing
+incremental = true               # Enable incremental compilation
+codegen-units = 256             # More codegen units for faster parallel compilation
+
+# Release profile - maximum performance
+[profile.release]
+opt-level = 3                    # Maximum optimization
+lto = "fat"                      # Full Link Time Optimization
+codegen-units = 1                # Single codegen unit for maximum optimization
+panic = "abort"                  # Smaller binary size
+strip = true                     # Strip debug symbols from release builds
+debug = false                    # No debug info in release
+overflow-checks = false          # Disable overflow checks for performance
+
+# Bench profile - optimized for benchmarking
+[profile.bench]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+debug = false
+strip = true
+
+# Test profile - balance between compilation speed and runtime performance
+[profile.test]
+opt-level = 1
+debug = 2
+incremental = true
+codegen-units = 256
+
+# Custom profile for development with GPU workloads
+[profile.gpu-dev]
+inherits = "dev"
+opt-level = 2                    # Higher optimization for GPU kernels
+debug = 1
+lto = "thin"                     # Some LTO for better GPU code generation
+
+# Network optimizations
+[net]
+git-fetch-with-cli = true        # Use Git CLI for potentially faster fetches
+offline = false                  # Allow network access
+
+# Registry optimizations
+[registries.crates-io]
+protocol = "sparse"              # Use sparse protocol for faster index updates
+
+# Source replacement for faster dependency resolution
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
+
+# Cargo environment variables
+[env]
+# Use sccache for compilation caching (install with: cargo install sccache)
+RUSTC_WRAPPER = "sccache"
+
+# Optimize for the specific CPU
+RUSTFLAGS = "-C target-cpu=znver4"
+
+# Use all available memory for compilation
+CARGO_BUILD_JOBS = "16"
+
+# Enable incremental compilation
+CARGO_INCREMENTAL = "1"
+
+# Memory optimization for large projects
+CARGO_PROFILE_RELEASE_LTO = "fat"
+CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "1"
+
+# GPU-specific environment variables for ROCm
+ROCM_PATH = "/opt/rocm"
+HIP_PATH = "/opt/rocm"
+
+# Aliases for common optimization patterns
+[alias]
+# Fast build for development
+fast = "build --profile=dev"
+
+# Optimized build for release
+opt = "build --release"
+
+# Build with maximum parallelism
+para = "build -j 16"
+
+# Clean and rebuild everything
+fresh = ["clean", "build --release"]
+
+# Build with timing information
+time = "build --timings"
+
+# Check with all features
+check-all = "check --all-features --all-targets"
+
+# Benchmark with profiling
+bench-prof = "bench --profile=bench"
+
+# Build for GPU development
+gpu = "build --profile=gpu-dev --features=gpu"
+
+# Quick clippy check
+lint = "clippy --all-targets --all-features -- -D warnings"
+
+# Format code
+fmt-check = "fmt --all -- --check"
+
+# Full CI-like check
+ci = ["fmt-check", "lint", "check-all", "test"]
+
+# Memory profiling build
+mem-prof = "build --release --features=profile-mem"
+
+# Build with specific optimizations for machine learning workloads
+ml = "build --release --features=ml,gpu,simd --profile=release"
+
+# Build documentation with all features
+doc-all = "doc --all-features --no-deps --open"

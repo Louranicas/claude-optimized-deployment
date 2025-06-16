@@ -1,0 +1,46 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 12 - ). Such keys are used for authentication in this chapter (for example, at GitHub or GitLab). As far as scripting examples go, this chapter is pretty Bash and Linux heavy.
+This chapter begins with a crash course on Git that shows you how to version and back up a directory with some scripts using Git. However, you should really consider this section only as a starter! For a complete guide to Git, see Git: Project Management for Developers and DevOps Teams by myself and Bernd Öggl (Rheinwerk Computing, 2023), which covers advanced topics, special cases, variants, and best practices.I will also describe how you can keep sensitive information in your scripts out of the Git repository. All too often, passwords to cloud services or FTP access are contained in scripts that have led to massive security breaches. This problem must be avoided at all costs.
+14.1    Git Crash Course
+This crash course is designed to help you get started with Git. If you already know Git, just scroll on to the next section!
+I will restrict myself to the absolute basics in this chapter: You won’t learn about branches or merge conflicts, let alone best practices for team deployment. The only authentication method I will describe is SSH. In short, this crash course could be called “Git for minimalists.” Nevertheless, the knowledge I impart should be sufficient to manage a collection of scripts using Git. To learn more about Git, you can find comprehensive documentation online including videos at https://git-scm.com/doc. And did I mention that there are also some pretty good books on Git?
+14.1.1    Preparation Tasks
+First, you must install Git. On Linux, the best approach is to use the Git package of your distribution. If you run Debian or Ubuntu, sudo apt install git will do the job. For macOS and Windows, you can find installation packages at https://git-scm.com/downloads that are straightforward to use. In the terminal, you should verify that the git command can be executed. If that command does not work, you must check if the Git installation directory is included in the PATH variable!
+> git --version  git version 2.39.2
+Security Relevance Score: 4
+Word Count: 940
+Extracted: 2025-06-13 23:41:06
+
+---
+
+). Such keys are used for authentication in this chapter (for example, at GitHub or GitLab). As far as scripting examples go, this chapter is pretty Bash and Linux heavy.
+This chapter begins with a crash course on Git that shows you how to version and back up a directory with some scripts using Git. However, you should really consider this section only as a starter! For a complete guide to Git, see Git: Project Management for Developers and DevOps Teams by myself and Bernd Öggl (Rheinwerk Computing, 2023), which covers advanced topics, special cases, variants, and best practices.I will also describe how you can keep sensitive information in your scripts out of the Git repository. All too often, passwords to cloud services or FTP access are contained in scripts that have led to massive security breaches. This problem must be avoided at all costs.
+14.1    Git Crash Course
+This crash course is designed to help you get started with Git. If you already know Git, just scroll on to the next section!
+I will restrict myself to the absolute basics in this chapter: You won’t learn about branches or merge conflicts, let alone best practices for team deployment. The only authentication method I will describe is SSH. In short, this crash course could be called “Git for minimalists.” Nevertheless, the knowledge I impart should be sufficient to manage a collection of scripts using Git. To learn more about Git, you can find comprehensive documentation online including videos at https://git-scm.com/doc. And did I mention that there are also some pretty good books on Git?
+14.1.1    Preparation Tasks
+First, you must install Git. On Linux, the best approach is to use the Git package of your distribution. If you run Debian or Ubuntu, sudo apt install git will do the job. For macOS and Windows, you can find installation packages at https://git-scm.com/downloads that are straightforward to use. In the terminal, you should verify that the git command can be executed. If that command does not work, you must check if the Git installation directory is included in the PATH variable!
+> git --version  git version 2.39.2 
+
+Windows, Linux, or macOS
+I use the > PowerShell prompt in this section. The few screenshots I’ve included were taken on a Windows system. However, the procedure does not change whether you use Windows, Linux, or macOS or whether you run git in PowerShell, Bash, or Zsh.
+
+Basically, you can use Git standalone; that is, you can manage the code of your project exclusively locally on your computer. However, I strongly recommend that you set up a free account with a Git host of your choice. I refer to GitHub in the following examples, but alternatives like GitLab work just as well.
+To allow the local git command to authenticate with the Git host, you must store your public SSH key there (i.e., usually in the .ssh/id_xxx.pub file). On GitHub, you can find the corresponding upload dialog under Settings ï SSH and GPG keys. The easiest way is to load the key file into an editor, copy all the text, and paste it into the web dialog.
+Because this information is stored in every commit, Git needs to know your name and email address. (I’ll explain what a commit is later.) You don’t need to provide your real email address. If you use GitHub and you want your email address to remain anonymous, you should proceed as follows and replace aname with your GitHub account name:
+> git config --global user.name  "Michael Kofler"> git config --global user.email "aname@users.noreply.github.com" 
+14.1.2    The First Repository
+In the GitHub web interface, you can now create a new repository. A repository is a collection of all the files in a project that you are managing using Git—including all the changes that come together during the course of the project. You must assign a name to the repository, and you should set its visibility to Private. (Your first tests are not meant to be seen by the entire world.) To ensure that the repository is not completely empty, I recommend activating the Add a README file option and leaving all the other options as they are.
+Then, go back to your terminal. On my computers, I usually have a separate directory for repositories. (git is obvious.) In that directory, you can now run git clone and then change to the new directory with the repository, as in the following example:
+> mkdir git> cd git> git clone git@github.com:MichaelKofler/test1234.git> cd test1234 
+git clone downloads the repository from GitHub and sets up a copy in the test1234 directory on your machine. Needless to say, you need to replace MichaelKofler/test1234 with your own GitHub account name and the name of your repository. You can find the entire repository address in the GitHub web interface by clicking the green Code button and selecting the SSH variant.
+
+Figure 14.1    
+            A Test Repository in the GitHub Web Interface
+
+Internal Affairs
+The repository directory—in our case, git\test1234\—reflects the current state of your project. Old versions of your code as well as other internal data (a kind of “Git database” for your project) are hidden in the .git subdirectory. These compressed files have names that are composed of hexadecimal characters. You should use only the git command to edit or read your repository. Do not touch the .git subdirectory!
+
+14.1.3    The First Commit
+The work you do now takes place in the directory of the repository—in the logic of this example, in git\test1234\. If you use Visual Studio Code (VS Code), you must open this directory. Let’s assume you create three new scripts in this directory: script1.ps1 to script3.ps

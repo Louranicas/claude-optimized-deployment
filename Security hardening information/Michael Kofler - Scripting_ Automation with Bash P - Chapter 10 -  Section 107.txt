@@ -1,0 +1,32 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 10 - , Section 10.7).
+Security Relevance Score: 2
+Word Count: 480
+Extracted: 2025-06-13 23:41:06
+
+---
+
+, Section 10.7).
+
+
+Including a sample of the settings file in the Git repositoryDon’t stop at passwords! Critical information also includes hostnames, port numbers, and the names of Amazon Web Services (AWS) buckets or virtual machines.Configuration files with these types of data should not be included in any Git repository! Without the configuration file, however, getting your script up and running becomes a guessing game for other people. For this reason, a useful approach is to include a sample configuration file in the repository. If the real configuration file is named mybackup.conf, you can name the sample file mybackup.conf.sample, for example. The purpose of this file is to explain the syntax of the configuration file. However, the file does not contain any real data, only freely invented sample data.
+
+
+These security rules apply to all Git repositories, including private repositories or repositories that are located on their own, non-public GitLab instances. When you set up or use a repository, you can never predict who else will have access to it later. Passwords and other critical information must never be stored in repositories.
+
+What Should You Do If a Password Ends Up in a Git Repository after All?
+The concept of Git repositories is that any file can also be restored to an earlier state. For this reason, removing the file in question in the next commit or to overwriting the password in the file is of no use. The only safe approach is to change the password in the respective program or on the server in question. If this is impossible because the external system is not controlled by you, you still have the option of deleting the repository in its entirety—an unpleasant thought, I know.
+
+14.2.2    Example
+How can we make the fragmentary backup script from earlier in this section better and more securely organized? The script starts with the . filename import statement (a short notation for source filename). This statement will read the specified file into the script and process it via Bash.
+# Sample file mybackup.sh# load initial configuration settings. mybackup.conf# mysqldump reads the password from .my.cnfmysqldump -u $MYSQLUSER $DBNAM > db.sql# lftp reads the password from .netrclftp $FTPHOST << EOFcd remote/dir/put db.sqlbyeEOF 
+The corresponding configuration file looks as follows:
+# mybackup.conf configuration fileMYSQLUSER=rootDBNAME=wordpressFTPHOST=backupserver.example.com 
+To ensure that this file does not end up in the Git repository, .gitignore is extended with the following line:
+# .gitignore filemybackup.conf 
+On the other hand, to help users of the script, the following sample file is included in the Git repository:
+# configuration file mybackup.conf.sample# copy this file to mybackup.conf and# replace the sample texts with applicable names!# note that myscript.sh expects the MySQL password in .my.cnf# and the FTP password in .netrc.MYSQLUSER=mysqlaccountnameDBNAME=databasenameFTPHOST=ftphostname 
+
+PowerShell and Python
+The source operator . also works in PowerShell. For Python scripts, the best approach is to save your settings in an INI file (see

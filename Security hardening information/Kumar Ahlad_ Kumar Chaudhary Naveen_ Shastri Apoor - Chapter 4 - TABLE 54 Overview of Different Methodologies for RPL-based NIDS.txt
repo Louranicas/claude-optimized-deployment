@@ -1,0 +1,98 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 4 - TABLE 5.4 Overview of Different Methodologies for RPL-based NIDS
+Security Relevance Score: 8
+Word Count: 589
+Extracted: 2025-06-13 23:40:52
+
+---
+
+TABLE 5.4 Overview of Different Methodologies for RPL-based NIDS
+
+
+Authors [ref]
+Description
+Features
+
+
+
+
+Kasinathan et al. [16]
+DoS detection IDS for 6LoW-PAN
+Low-power consumption, applicability to IP-based WSNs
+
+
+Surendar and Umamakeswari [17]
+Constraint-based specification IDS for 6LoWPAN
+Detection of sinkhole attacks, preservation of QoS, isolation of malicious nodes
+
+
+Bostani and Sheikhan [26]
+Hybrid IDS for 6LoWPAN
+Reduction in communication messages, applicability to large- scale networks
+
+
+Garcia-Font et al. [27]
+NIDS for WSNs
+Applicability to large-scale WSNs
+
+
+
+
+
+
+5.3.2 Lightweight IDSs for IoT Systems
+Traditional IDSs struggle with the resource constraints of IoT devices. To address this, researchers developed lightweight IDSs specifically designed for IoT environments (as shown in Table 5.5). These specialized IDSs leverage techniques like pattern matching, deep packet anomaly detection, and machine learning to effectively detect and prevent attacks on both devices and networks within the IoT.
+
+
+TABLE 5.5 Overview of Different Methodologies for Lightweight-based IDS
+
+
+Authors [ref]
+Description
+Features
+
+
+
+
+Oh et al. [28]
+Lightweight malicious-pattern-matching IDS
+Reduced memory size, reduced workload, increased speed, scalable performance
+
+
+Arrignton et al. [8]
+HIDS with machine learning for anomaly-based intrusion detection
+Use of a behavioral modeling IDS (BMIDS), increased detection sensitivity
+
+
+Khan and Herrmann [29]
+Algorithms based on the protocol model approach using a trust management mechanism
+Light weight, energy efficiency, applicability in healthcare environments
+
+
+
+
+
+
+
+5.4 MEC as a Resource to Provide Security for IoT
+The surge in IoT devices demands robust security for both devices and the data they collect. Traditional cloud-based security struggles with real-time demands due to latency and scalability limitations. MEC offers a promising solution [20]. By processing data closer to devices (at the network edge), MEC reduces latency and enhances IoT security. MEC offers several advantages for securing IoT systems, including:
+
+Context awareness: MEC servers can provide IoT devices with real-time security information, enabling them to adapt their security posture based on the evolving threat landscape [20].
+Energy efficiency: MEC offloads computationally intensive tasks from IoT devices, reducing their energy consumption [20].
+Augmented privacy and security: MEC achieves an elevated level of data protection by keeping data in proximity to its source, thereby diminishing the risk of data breaches and unauthorized access.
+Optimal resource allocation: MEC dynamically allocates resources to IoT devices based on their security needs [20].
+
+NIDS are crucial for IoT security. When implemented within an MEC framework, NIDS leverage virtualization technologies like Network Functions Virtualization (NFV) to enhance IoT security.
+
+NFV: NFV enables the creation of multiple virtual machines (VMs) on edge devices to execute NIDS tasks efficiently [20].
+ICN: ICN facilitates efficient data routing and retrieval, enabling faster NIDS detection and response times [20].
+SDN: SDN provides flexible network management and control, enabling dynamic network reconfiguration to mitigate attacks [20].
+
+Offloading NIDS tasks to the MEC platform reduces energy consumption for IoT devices, improves response latency, and optimizes resource usage. The effectiveness depends on the device’s proximity to the MEC server. There are two main types of NIDS task offloading:
+
+Binary NIDS Tasks Offloading: The entire NIDS task is offloaded to the MEC platform.
+Partial Computational NIDS Tasks Offloading: Specifically, only the computationally intensive segments of the NIDS task are offloaded to the MEC platform.
+
+The decision of whether to use binary or partial offloading depends on factors such as the processing capabilities of the IoT device and the bandwidth constraints of the network.
+NIDS are vital for IoT security, but their placement within the network significantly impacts their effectiveness in detecting and mitigating threats. This paper explores three main NIDS placement strategies: centralized, distributed, and hybrid as shown in Figure 5.

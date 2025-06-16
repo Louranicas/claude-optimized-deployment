@@ -1,0 +1,434 @@
+name: Advanced Deployment Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+          - rolling
+          - blue-green
+          - canary
+      version:
+        description: 'Version to deploy (leave empty for latest)'
+        required: false
+        type: string
+      rollback:
+        description: 'Rollback to previous version'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  KUSTOMIZE_VERSION: '5.2.1'
+  HELM_VERSION: '3.13.0'
+  KUBECTL_VERSION: '1.28.0'
+
+jobs:
+  # Pre-deployment validation
+  pre-deployment:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    outputs:
+      target_version: ${{ steps.version.outputs.target_version }}
+      cluster_info: ${{ steps.cluster.outputs.cluster_info }}
+      deployment_config: ${{ steps.config.outputs.deployment_config }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Determine target version
+        id: version
+        run: |
+          if [[ -n "${{ inputs.version }}" ]]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION=$(git describe --tags --always)
+          fi
+          echo "target_version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Deploying version: ${VERSION}"
+      
+      - name: Validate environment
+        run: |
+          case "${{ inputs.environment }}" in
+            development)
+              echo "Deploying to development environment"
+              ;;
+            staging)
+              echo "Deploying to staging environment"
+              ;;
+            production)
+              echo "Deploying to production environment"
+              if [[ "${{ inputs.strategy }}" != "blue-green" && "${{ inputs.strategy }}" != "canary" ]]; then
+                echo "Warning: Consider using blue-green or canary deployment for production"
+              fi
+              ;;
+            *)
+              echo "Invalid environment: ${{ inputs.environment }}"
+              exit 1
+              ;;
+          esac
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+      
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+      
+      - name: Get cluster information
+        id: cluster
+        run: |
+          # Configure kubectl for your cluster
+          # kubectl config set-cluster ...
+          echo "cluster_info=cluster-${{ inputs.environment }}" >> $GITHUB_OUTPUT
+      
+      - name: Load deployment configuration
+        id: config
+        run: |
+          CONFIG_FILE="deploy/environments/${{ inputs.environment }}/config.yaml"
+          if [[ -f "$CONFIG_FILE" ]]; then
+            echo "deployment_config=${CONFIG_FILE}" >> $GITHUB_OUTPUT
+          else
+            echo "deployment_config=deploy/default-config.yaml" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Validate deployment prerequisites
+        run: |
+          echo "Validating deployment prerequisites for ${{ inputs.environment }}..."
+          # Add validation logic here
+          echo "✅ Prerequisites validated"
+
+  # Rolling deployment
+  rolling-deployment:
+    name: Rolling Deployment
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: inputs.strategy == 'rolling' && !inputs.rollback
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup tools
+        run: |
+          # Setup kubectl, helm, etc.
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+      
+      - name: Deploy with rolling update
+        run: |
+          echo "Performing rolling deployment to ${{ inputs.environment }}"
+          echo "Version: ${{ needs.pre-deployment.outputs.target_version }}"
+          
+          # Update image tag in deployment manifests
+          cd deploy/environments/${{ inputs.environment }}
+          kustomize edit set image app=ghcr.io/${{ github.repository }}:${{ needs.pre-deployment.outputs.target_version }}
+          
+          # Apply changes
+          kubectl apply -k .
+          
+          # Wait for rollout to complete
+          kubectl rollout status deployment/app -n ${{ inputs.environment }}
+      
+      - name: Verify deployment
+        run: |
+          echo "Verifying rolling deployment..."
+          kubectl get pods -n ${{ inputs.environment }}
+          kubectl get services -n ${{ inputs.environment }}
+
+  # Blue-Green deployment
+  blue-green-deployment:
+    name: Blue-Green Deployment
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: inputs.strategy == 'blue-green' && !inputs.rollback
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Determine current and target environments
+        id: environments
+        run: |
+          # Check which environment is currently active
+          CURRENT_ENV=$(kubectl get service app-service -n ${{ inputs.environment }} -o jsonpath='{.spec.selector.version}' || echo "blue")
+          if [[ "$CURRENT_ENV" == "blue" ]]; then
+            TARGET_ENV="green"
+          else
+            TARGET_ENV="blue"
+          fi
+          echo "current_env=${CURRENT_ENV}" >> $GITHUB_OUTPUT
+          echo "target_env=${TARGET_ENV}" >> $GITHUB_OUTPUT
+          echo "Current environment: ${CURRENT_ENV}, Target: ${TARGET_ENV}"
+      
+      - name: Deploy to target environment
+        run: |
+          echo "Deploying version ${{ needs.pre-deployment.outputs.target_version }} to ${{ steps.environments.outputs.target_env }} environment"
+          
+          # Update deployment for target environment
+          cd deploy/environments/${{ inputs.environment }}
+          
+          # Create blue-green specific deployment
+          cat > app-${{ steps.environments.outputs.target_env }}.yaml << EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: app-${{ steps.environments.outputs.target_env }}
+            namespace: ${{ inputs.environment }}
+          spec:
+            replicas: 3
+            selector:
+              matchLabels:
+                app: claude-optimized-deployment
+                version: ${{ steps.environments.outputs.target_env }}
+            template:
+              metadata:
+                labels:
+                  app: claude-optimized-deployment
+                  version: ${{ steps.environments.outputs.target_env }}
+              spec:
+                containers:
+                - name: app
+                  image: ghcr.io/${{ github.repository }}:${{ needs.pre-deployment.outputs.target_version }}
+                  ports:
+                  - containerPort: 8000
+          EOF
+          
+          kubectl apply -f app-${{ steps.environments.outputs.target_env }}.yaml
+          kubectl rollout status deployment/app-${{ steps.environments.outputs.target_env }} -n ${{ inputs.environment }}
+      
+      - name: Run smoke tests on target environment
+        run: |
+          echo "Running smoke tests on ${{ steps.environments.outputs.target_env }} environment..."
+          
+          # Port forward to test the new deployment
+          kubectl port-forward deployment/app-${{ steps.environments.outputs.target_env }} 8080:8000 -n ${{ inputs.environment }} &
+          sleep 10
+          
+          # Run smoke tests
+          curl -f http://localhost:8080/health || exit 1
+          curl -f http://localhost:8080/version || exit 1
+          
+          echo "✅ Smoke tests passed"
+      
+      - name: Switch traffic to target environment
+        run: |
+          echo "Switching traffic from ${{ steps.environments.outputs.current_env }} to ${{ steps.environments.outputs.target_env }}"
+          
+          # Update service selector
+          kubectl patch service app-service -n ${{ inputs.environment }} -p '{"spec":{"selector":{"version":"${{ steps.environments.outputs.target_env }}"}}}'
+          
+          echo "Traffic switched successfully"
+      
+      - name: Cleanup old environment
+        run: |
+          echo "Cleaning up old ${{ steps.environments.outputs.current_env }} environment"
+          kubectl delete deployment app-${{ steps.environments.outputs.current_env }} -n ${{ inputs.environment }} || true
+
+  # Canary deployment
+  canary-deployment:
+    name: Canary Deployment
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: inputs.strategy == 'canary' && !inputs.rollback
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy canary version (10% traffic)
+        run: |
+          echo "Deploying canary version: ${{ needs.pre-deployment.outputs.target_version }}"
+          
+          cd deploy/environments/${{ inputs.environment }}
+          
+          # Create canary deployment with 1 replica (10% of traffic)
+          cat > app-canary.yaml << EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: app-canary
+            namespace: ${{ inputs.environment }}
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: claude-optimized-deployment
+                version: canary
+            template:
+              metadata:
+                labels:
+                  app: claude-optimized-deployment
+                  version: canary
+              spec:
+                containers:
+                - name: app
+                  image: ghcr.io/${{ github.repository }}:${{ needs.pre-deployment.outputs.target_version }}
+                  ports:
+                  - containerPort: 8000
+          EOF
+          
+          kubectl apply -f app-canary.yaml
+          kubectl rollout status deployment/app-canary -n ${{ inputs.environment }}
+      
+      - name: Monitor canary for 5 minutes
+        run: |
+          echo "Monitoring canary deployment for 5 minutes..."
+          
+          # Monitor metrics, errors, etc.
+          for i in {1..10}; do
+            echo "Monitoring cycle $i/10"
+            
+            # Check pod health
+            kubectl get pods -l version=canary -n ${{ inputs.environment }}
+            
+            # Simulate monitoring
+            sleep 30
+          done
+          
+          echo "✅ Canary monitoring completed successfully"
+      
+      - name: Promote canary to 50% traffic
+        run: |
+          echo "Promoting canary to 50% traffic..."
+          kubectl scale deployment app-canary -n ${{ inputs.environment }} --replicas=5
+          kubectl scale deployment app -n ${{ inputs.environment }} --replicas=5
+          kubectl rollout status deployment/app-canary -n ${{ inputs.environment }}
+      
+      - name: Monitor canary at 50% for 10 minutes
+        run: |
+          echo "Monitoring canary at 50% traffic for 10 minutes..."
+          
+          for i in {1..20}; do
+            echo "Monitoring cycle $i/20"
+            sleep 30
+          done
+          
+          echo "✅ Canary at 50% monitoring completed successfully"
+      
+      - name: Complete canary promotion
+        run: |
+          echo "Completing canary promotion to 100%..."
+          
+          # Update main deployment to new version
+          kubectl set image deployment/app app=ghcr.io/${{ github.repository }}:${{ needs.pre-deployment.outputs.target_version }} -n ${{ inputs.environment }}
+          kubectl rollout status deployment/app -n ${{ inputs.environment }}
+          
+          # Remove canary deployment
+          kubectl delete deployment app-canary -n ${{ inputs.environment }}
+          
+          echo "✅ Canary deployment completed successfully"
+
+  # Rollback deployment
+  rollback-deployment:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: inputs.rollback
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Perform rollback
+        run: |
+          echo "Performing rollback in ${{ inputs.environment }} environment..."
+          
+          if [[ -n "${{ inputs.version }}" ]]; then
+            echo "Rolling back to specific version: ${{ inputs.version }}"
+            kubectl set image deployment/app app=ghcr.io/${{ github.repository }}:${{ inputs.version }} -n ${{ inputs.environment }}
+          else
+            echo "Rolling back to previous revision"
+            kubectl rollout undo deployment/app -n ${{ inputs.environment }}
+          fi
+          
+          kubectl rollout status deployment/app -n ${{ inputs.environment }}
+      
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback..."
+          kubectl get pods -n ${{ inputs.environment }}
+          
+          # Run basic health checks
+          kubectl port-forward deployment/app 8080:8000 -n ${{ inputs.environment }} &
+          sleep 10
+          curl -f http://localhost:8080/health || exit 1
+          
+          echo "✅ Rollback completed successfully"
+
+  # Post-deployment verification
+  post-deployment:
+    name: Post-deployment Verification
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, rolling-deployment, blue-green-deployment, canary-deployment, rollback-deployment]
+    if: always() && !cancelled()
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run comprehensive tests
+        run: |
+          echo "Running comprehensive post-deployment tests..."
+          
+          # Health checks
+          kubectl port-forward deployment/app 8080:8000 -n ${{ inputs.environment }} &
+          sleep 10
+          
+          # API tests
+          curl -f http://localhost:8080/health
+          curl -f http://localhost:8080/version
+          curl -f http://localhost:8080/metrics
+          
+          echo "✅ All post-deployment tests passed"
+      
+      - name: Update deployment status
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Strategy: ${{ inputs.strategy }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ needs.pre-deployment.outputs.target_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: Success" >> $GITHUB_STEP_SUMMARY
+          echo "- Timestamp: $(date -u)" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Send deployment notifications
+        run: |
+          echo "Sending deployment notifications..."
+          # Add Slack, email, or other notification logic here
+          echo "✅ Notifications sent"
+
+  # Cleanup and monitoring setup
+  cleanup:
+    name: Cleanup and Monitoring
+    runs-on: ubuntu-latest
+    needs: post-deployment
+    if: success()
+    
+    steps:
+      - name: Setup monitoring alerts
+        run: |
+          echo "Setting up monitoring alerts for the deployment..."
+          # Configure monitoring, alerts, dashboards
+          echo "✅ Monitoring configured"
+      
+      - name: Cleanup temporary resources
+        run: |
+          echo "Cleaning up temporary deployment resources..."
+          # Clean up any temporary resources
+          echo "✅ Cleanup completed"

@@ -1,0 +1,42 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 8 - After the time has elapsed, the entire command exits.
+Security Relevance Score: 5
+Word Count: 483
+Extracted: 2025-06-13 23:40:57
+
+---
+
+After the time has elapsed, the entire command exits.
+
+
+Nmap
+The Nmap port scanner has a special option called -sn that performs a ping sweep. This simple technique finds live hosts on a network by sending them a ping command and waiting for a positive response (called a ping response). Since many operating systems respond to ping by default, this technique has proved valuable. The ping sweep in Nmap will essentially make Nmap send Internet Control Message Protocol packets over the network to discover running hosts:
+$ nmap -sn 172.16.10.0/24
+
+Nmap scan report for 172.16.10.1
+Host is up (0.00093s latency).
+Nmap scan report for 172.16.10.10
+Host is up (0.00020s latency).
+Nmap scan report for 172.16.10.11
+Host is up (0.00076s latency).
+--snip--
+
+This output has a lot of text. With a bit of bash magic, we can get a cleaner output by using the grep and awk commands to extract only the IP addresses that were identified as being alive (Listing 4-7).
+$ nmap -sn 172.16.10.0/24 | grep "Nmap scan" | awk -F'report for ' '{print $2}'
+
+172.16.10.1
+172.16.10.10
+--snip--
+
+Listing 4-7: Parsing Nmap’s ping scan output
+Using Nmap’s built-in ping sweep scan may be more useful than manually wrapping the ping utility with bash, because you don’t have to worry about checking for conditions such as whether the command was successful. Moreover, in penetration tests, you may drop an Nmap binary on more than one type of operating system, and the same syntax will work consistently whether the ping utility exists or not.
+
+
+arp-scan
+We can perform penetration testing remotely, from a different network, or from within the same network as the target. In this section, we’ll highlight the use of arp-scan as a way to find hosts on a network when the test is done locally.
+The arp-scan utility sends Address Resolution Protocol (ARP) packets to hosts on a network and displays any responses it gets back. ARP maps media access control (MAC) addresses, which are unique 12-digit hexadecimal addresses assigned to network devices, to the IP addresses on a network. Because ARP is a Layer 2 protocol in the Open Systems Interconnection (OSI) model, it is useful only when you’re on a local network; ARP can’t be used to perform a remote scan over the internet.
+Note that arp-scan requires root privileges to run; this is because it uses functions to read and write packets that require elevated privileges. At its most basic form, you can run it by executing the arp-scan command and passing a single IP address as an argument:
+$ sudo arp-scan 172.16.10.10 -I br_public
+We also need to tell arp-scan which network interface to send packets on, as Kali has a few network interfaces. To achieve this, we use the -I argument. The br_public interface corresponds to the 172.16.10.0/24 network in the lab.
+To scan entire networks, you can pass arp-scan a CIDR range, such as /

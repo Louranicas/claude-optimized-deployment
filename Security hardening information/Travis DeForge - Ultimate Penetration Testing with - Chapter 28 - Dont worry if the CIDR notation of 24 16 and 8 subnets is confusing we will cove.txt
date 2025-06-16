@@ -1,0 +1,27 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 28 - Don’t worry if the CIDR notation of /24, /16, and /8 subnets is confusing, we will cover what that means and why it is important to understand in this chapter.
+While the majority of this book focuses on hands-on practice in the lab environment, out of necessity, this chapter is inherently more theory-focused. We will cover the fundamentals of subnets and VLANs as they relate to enterprise environments, and then explore techniques for conducting reconnaissance and enumeration on them. While the individual scans and flags we will discuss will largely be a review (such as a Ping Scan), the strategies for modifying and amplifying those scans for greater efficiency will introduce many new concepts.
+Structure
+In this chapter, we will discuss the following topics:
+Security Relevance Score: 9
+Word Count: 380
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Don’t worry if the CIDR notation of /24, /16, and /8 subnets is confusing, we will cover what that means and why it is important to understand in this chapter.
+While the majority of this book focuses on hands-on practice in the lab environment, out of necessity, this chapter is inherently more theory-focused. We will cover the fundamentals of subnets and VLANs as they relate to enterprise environments, and then explore techniques for conducting reconnaissance and enumeration on them. While the individual scans and flags we will discuss will largely be a review (such as a Ping Scan), the strategies for modifying and amplifying those scans for greater efficiency will introduce many new concepts.
+Structure
+In this chapter, we will discuss the following topics:
+
+Working with Large Networks
+Black Box Subnet Discovery Techniques and Mass Scanning
+Optimizing Scans for Speed
+Case Study: Real-World Account of Pentesting a Very Large Environment
+Challenge: Optimizing a Custom Scan for Speed
+
+Working with Large Networks
+To understand how to work effectively with a large enterprise network, we must first understand the fundamentals of subnetting. Subnetting is essentially the process of subdividing an existing network into smaller individual subnets. There are several reasons to do this, such as the logical and secure organization of different types of equipment (for example, workstations and servers should not be on the same subnet), and the implementation of additional security controls, such as firewall rules restricting access to certain subnets. Subnets can also be used to distinguish networks belonging to different offices within a large organization.
+For this book, we will focus less on the intricacies of network architecture and the plethora of blue-team defensive measures that can be implemented, and instead, we will focus on how these types of networks relate to you as a penetration tester. To this end, it is essential to understand the concept of Classless Inter-Domain Routing (CIDR) notation. CIDR notation is a way to depict an IP address range with its associated subnet mask, which was first introduced by the Internet Engineering Task Force in the early 1990s.
+This is done by using the “/”, which in this context is simply called a slash, followed by the subnet mask. For example, the IP range of 10.10.10.0 – 10.10.10.255 would be depicted as 10.10.10.0/

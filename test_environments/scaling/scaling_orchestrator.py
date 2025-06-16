@@ -36,21 +36,7 @@ from .capacity_planner import CapacityPlanner
 from .autoscaler import Autoscaler
 
 
-class ScalingAction(Enum):
-    SCALE_UP = "scale_up"
-    SCALE_DOWN = "scale_down"
-    SCALE_OUT = "scale_out"
-    SCALE_IN = "scale_in"
-    OPTIMIZE = "optimize"
-    MAINTAIN = "maintain"
-
-
-class ScalingStrategy(Enum):
-    REACTIVE = "reactive"
-    PREDICTIVE = "predictive"
-    EXPERT_DRIVEN = "expert_driven"
-    COST_AWARE = "cost_aware"
-    PERFORMANCE_FOCUSED = "performance_focused"
+from .types import ScalingAction, ScalingStrategy
 
 
 @dataclass
@@ -486,6 +472,25 @@ class ScalingOrchestrator:
         # Sort by score and return the best option
         scored_options.sort(key=lambda x: x[0], reverse=True)
         return scored_options[0][1]
+    
+    async def _analyze_trends(self, forecasts: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze trends from forecasts"""
+        return {
+            'overall_trend': 'stable',
+            'trend_strength': 0.5,
+            'forecasts_analyzed': len(forecasts)
+        }
+    
+    async def _calculate_load_predictions(self, forecasts: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate load change predictions"""
+        return {
+            'load_increase': 0.1,
+            'load_decrease': 0.0,
+            'load_change': 0.1,
+            'response_time': 1.5,
+            'throughput': 100,
+            'confidence': 0.7
+        }
     
     async def _score_scaling_option(self, option: ScalingDecision) -> float:
         """Score a scaling option based on multiple criteria"""

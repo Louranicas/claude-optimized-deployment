@@ -1,0 +1,145 @@
+{
+  "unsafe_blocks": [
+    {
+      "file": "mcp_v2.rs",
+      "line": 211,
+      "code": "std::mem::transmute(header.msg_type)",
+      "issues": [
+        {
+          "type": "unsafe_transmute",
+          "severity": "high",
+          "description": "Using std::mem::transmute can lead to undefined behavior",
+          "recommendation": "Use TryFrom or safe conversions"
+        }
+      ]
+    },
+    {
+      "file": "mcp_v2.rs",
+      "line": 218,
+      "code": "std::slice::from_raw_parts(\n                header as *const MessageHeader as *const u8,\n           ...",
+      "issues": [
+        {
+          "type": "raw_pointer_deref",
+          "severity": "medium",
+          "description": "Raw pointer dereference without null check",
+          "recommendation": "Add null checks or use safe alternatives"
+        },
+        {
+          "type": "unsafe_slice_creation",
+          "severity": "high",
+          "description": "Creating slice from raw parts can violate memory safety",
+          "recommendation": "Ensure proper lifetime and alignment"
+        }
+      ]
+    },
+    {
+      "file": "mcp_v2.rs",
+      "line": 234,
+      "code": "std::ptr::read_unaligned(header_bytes.as_ptr() as *const MessageHeader)",
+      "issues": [
+        {
+          "type": "raw_pointer_deref",
+          "severity": "medium",
+          "description": "Raw pointer dereference without null check",
+          "recommendation": "Add null checks or use safe alternatives"
+        },
+        {
+          "type": "unaligned_read",
+          "severity": "medium",
+          "description": "Unaligned reads can cause issues on some architectures",
+          "recommendation": "Consider using aligned reads or byte-by-byte copying"
+        }
+      ]
+    }
+  ],
+  "arc_mutex_patterns": [
+    {
+      "file": "performance_optimizer.rs",
+      "type": "lock_ordering",
+      "severity": "medium",
+      "description": "Multiple locks without clear ordering",
+      "recommendation": "Establish consistent lock ordering to prevent deadlocks"
+    },
+    {
+      "file": "engine.rs",
+      "type": "lock_ordering",
+      "severity": "medium",
+      "description": "Multiple locks without clear ordering",
+      "recommendation": "Establish consistent lock ordering to prevent deadlocks"
+    },
+    {
+      "file": "mcp_v2.rs",
+      "type": "lock_ordering",
+      "severity": "medium",
+      "description": "Multiple locks without clear ordering",
+      "recommendation": "Establish consistent lock ordering to prevent deadlocks"
+    },
+    {
+      "file": "knowledge_graph.rs",
+      "type": "lock_ordering",
+      "severity": "medium",
+      "description": "Multiple locks without clear ordering",
+      "recommendation": "Establish consistent lock ordering to prevent deadlocks"
+    },
+    {
+      "file": "agents/api_agent.rs",
+      "type": "lock_ordering",
+      "severity": "medium",
+      "description": "Multiple locks without clear ordering",
+      "recommendation": "Establish consistent lock ordering to prevent deadlocks"
+    },
+    {
+      "file": "agents/knowledge_base_agent.rs",
+      "type": "lock_ordering",
+      "severity": "medium",
+      "description": "Multiple locks without clear ordering",
+      "recommendation": "Establish consistent lock ordering to prevent deadlocks"
+    },
+    {
+      "file": "agents/web_agent.rs",
+      "type": "lock_ordering",
+      "severity": "medium",
+      "description": "Multiple locks without clear ordering",
+      "recommendation": "Establish consistent lock ordering to prevent deadlocks"
+    }
+  ],
+  "lifetime_issues": [],
+  "memory_leaks": [
+    {
+      "file": "parallel_executor.rs",
+      "type": "detached_task",
+      "severity": "low",
+      "description": "Spawned task without join",
+      "recommendation": "Consider storing JoinHandle for cleanup"
+    },
+    {
+      "file": "engine.rs",
+      "type": "detached_task",
+      "severity": "low",
+      "description": "Spawned task without join",
+      "recommendation": "Consider storing JoinHandle for cleanup"
+    },
+    {
+      "file": "mcp_v2.rs",
+      "type": "detached_task",
+      "severity": "low",
+      "description": "Spawned task without join",
+      "recommendation": "Consider storing JoinHandle for cleanup"
+    }
+  ],
+  "borrowing_violations": [],
+  "summary": {
+    "total_issues": 13,
+    "critical_issues": 2,
+    "recommendations": [
+      "Replace unsafe transmute with safe type conversions",
+      "Add safety documentation for all unsafe blocks",
+      "Consider using bytemuck for safe transmutations",
+      "Use parking_lot for better deadlock detection",
+      "Implement consistent lock ordering across the codebase",
+      "Consider lock-free data structures where possible",
+      "Replace Rc cycles with Weak references",
+      "Implement proper cleanup for spawned tasks"
+    ]
+  }
+}

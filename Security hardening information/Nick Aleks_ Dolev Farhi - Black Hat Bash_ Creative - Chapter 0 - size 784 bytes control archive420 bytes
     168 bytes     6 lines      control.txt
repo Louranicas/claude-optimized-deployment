@@ -1,0 +1,111 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 0 - size 784 bytes: control archive=420 bytes.
+     168 bytes,     6 lines      control
+      79 bytes,     3 lines   *  postinst             #!/bin/bash
+ Package: example
+ Version: 1.0.0
+ Maintainer: Black Hat Bash (info@blackhatbash.com)
+ Description: My awesome package
+ Homepage: https://blackhatbash.com
+ Architecture: all
+Security Relevance Score: 3
+Word Count: 854
+Extracted: 2025-06-13 23:40:57
+
+---
+
+size 784 bytes: control archive=420 bytes.
+     168 bytes,     6 lines      control
+      79 bytes,     3 lines   *  postinst             #!/bin/bash
+ Package: example
+ Version: 1.0.0
+ Maintainer: Black Hat Bash (info@blackhatbash.com)
+ Description: My awesome package
+ Homepage: https://blackhatbash.com
+ Architecture: all
+
+Next, run strings on the package to see its contents. You should see the three files we discussed:
+$ strings example_amd64.deb
+
+!<arch>
+debian-binary   1694828481  0     0     100644  4
+control.tar.xz  1694828481  0     0     100644  420
+YZdata.tar.xz   1694828481  0     0     100644  172
+--snip--
+
+Finally, install the package to see what it does. You can do this on any machine in the lab or on Kali:
+$ sudo dpkg -i example_amd64.deb
+
+Selecting previously unselected package example.
+(Reading database ... 423743 files and directories currently installed.)
+Preparing to unpack example_amd64.deb ...
+Unpacking example (1.0.0) ...
+Setting up example (1.0.0) ...
+
+I don't do anything other than echoing this to the screen!
+
+As you can see, the package doesn’t do anything special other than printing a message to the screen. Consider this the “Hello, world!” of DEB packages.
+To extract the contents of a .deb file, use the ar command:
+$ ar -v -x example_amd64.db
+
+x - debian-binary
+x - control.tar.xz
+x - data.tar.xz
+
+The v flag is for verbose mode; the x flag, for extraction, accepts the filename. To further extract the control.tar.xz and data.tar.xz files, you can use the tar command with -x (extract), -v (verbose), and -f (file):
+$ tar -xvf control.tar.xz
+$ tar -xvf data.tar.xz
+
+DEB packages can contain several types of scripts. The most interesting to us are inst (installation) and rm (remove) scripts. Installation scripts are responsible for the bootstrapping of the package. They include preinstallation scripts (preinst), called before the package is installed, and post-installation scripts (postinst), called afterward. These scripts can perform any task, but some common tasks are creating directories, setting permissions, and copying files.
+The rm scripts perform some form of cleanup, such as removing files or stopping services. These include prerm scripts, which take actions such as the removal of symbolic links or files associated with the package before it’s finally removed, and postrm scripts, which clean up files after the package is removed. Can you think of ways to include malicious code in these scripts?
+
+
+Packaging Innocent Software
+Let’s practice creating packages by making our own innocent package. On your Kali machine, create a directory named example:
+$ mkdir /tmp/example && cd /tmp/example
+Next, create a directory named DEBIAN inside the example directory:
+$ mkdir DEBIAN
+Create a file named control inside the DEBIAN directory, with the following package metadata, and save the file:
+Package: example
+Version: 1.0.0
+Maintainer: Your Name
+Description: Example
+Homepage: https://nostarch.com
+Architecture: all
+
+Then use dpkg -b (build) to build the package. The first argument to -b is the name of the directory where the files to package are located, followed by the name of the artifact to generate:
+$ dpkg -b example example_amd64.deb
+$ ls -l
+
+drwxr-xr-x 3 kali kali 4096 Sep 17 20:33 example
+-rw-r--r-- 1 kali kali  684 Sep 17 21:22 example_amd64.deb
+
+We can install this package by using sudo dpkg -i package and remove it by using sudo dpkg -r package.
+
+
+Converting Package Formats with alien
+Other Linux distributions use different package formats. Luckily, we can convert packages from one format to another (for example, from RPM to DEB or from DEB to RPM) by using a tool called alien. Kali should come with alien installed, but if not, install it using sudo apt install alien.
+The following example converts a DEB package to an RPM package:
+$ sudo alien -v -r bksh_amd64.deb --scripts
+
+  dpkg-deb --info 'bksh_amd64.deb' control 2>/dev/null
+--snip--
+  dpkg-deb --info 'bksh_amd64.deb' preinst 2>/dev/null
+  dpkg-deb --info 'bksh_amd64.deb' prerm 2>/dev/null
+  mkdir bksh-1.0.0
+  chmod 755 bksh-1.0.0
+--snip--
+bksh-1.0.0-2.noarch.rpm generated
+
+We use the arguments -v (verbose), -r package (where the r stands for rpm conversion), and --scripts to tell alien to use verbose output, convert the package to RPM, and include the post- and pre-scripts we created earlier.
+Converting a package from RPM back to the DEB format is as easy as changing the -r flag to -d.
+Exercise 22: Writing a Malicious Package Installer
+We could create a malicious package installer to gain persistence on a system in a few ways:
+
+By compromising a central software repository, such as a local APT repository
+By compromising an account that has permissions to install packages
+By sending a malicious package as part of a phishing campaign against system administrators
+
+The APT repository mentioned in the first scenario is a web server that contains a database of DEB packages. Consumers on the network, such as servers or end users, can use the APT repository to download packages onto their operating system and install them. You’ll find such setups in networks that aren’t directly connected to the internet or that are designed to install software from trusted sources only.
+Let’s create a DEB package containing malicious scripts for use in one of these scenarios. Specifically, we’ll use the postinst and postrm scripts to deploy and persist a reverse shell. Call your package bksh, for backdoor shell, and create a control file, as discussed in “Packaging Innocent Software” on page

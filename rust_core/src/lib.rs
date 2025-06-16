@@ -12,13 +12,46 @@
 // - SIMD-accelerated computations where applicable
 // ============================================================================
 
-#![cfg_attr(feature = "simd", feature(portable_simd))]
+// #![cfg_attr(feature = "simd", feature(portable_simd))] // Only for nightly
 
 pub mod infrastructure;
 pub mod performance;
 pub mod security;
+pub mod security_enhanced;
 pub mod python_bindings;
 pub mod circle_of_experts;
+pub mod ffi_security;
+pub mod adaptive_learning;
+pub mod async_helpers;
+
+// New high-performance modules
+pub mod memory_mapped;
+pub mod simd_ops;
+pub mod zero_copy_net;
+pub mod lockfree_collections;
+
+// New orchestration modules
+pub mod orchestrator;
+pub mod services;
+pub mod resources;
+pub mod network;
+pub mod reliability;
+
+// SYNTHEX search engine
+pub mod synthex;  // Now working without tantivy dependency
+
+// MCP Manager module
+pub mod mcp_manager;
+
+// SYNTHEX-BashGod module - Advanced bash command chain optimization
+pub mod synthex_bashgod;
+
+// Testing framework (only in development/test builds)
+#[cfg(any(test, feature = "testing"))]
+pub mod testing;
+
+// PyO3 test bindings module
+pub mod test_bindings;
 
 use pyo3::prelude::*;
 use tracing::{info, debug};
@@ -53,13 +86,58 @@ fn claude_optimized_deployment_rust(py: Python, m: &PyModule) -> PyResult<()> {
     security::register_module(py, sec)?;
     m.add_submodule(sec)?;
     
+    let sec_enhanced = PyModule::new(py, "security_enhanced")?;
+    security_enhanced::register_module(py, sec_enhanced)?;
+    m.add_submodule(sec_enhanced)?;
+    
     let coe = PyModule::new(py, "circle_of_experts")?;
     circle_of_experts::register_module(py, coe)?;
     m.add_submodule(coe)?;
     
+    let adaptive = PyModule::new(py, "adaptive_learning")?;
+    adaptive_learning::adaptive_learning(py, adaptive)?;
+    m.add_submodule(adaptive)?;
+    
+    // Register new high-performance modules
+    let mmap = PyModule::new(py, "memory_mapped")?;
+    memory_mapped::register_module(py, mmap)?;
+    m.add_submodule(mmap)?;
+    
+    let simd = PyModule::new(py, "simd_ops")?;
+    simd_ops::register_module(py, simd)?;
+    m.add_submodule(simd)?;
+    
+    let zero_copy = PyModule::new(py, "zero_copy_net")?;
+    zero_copy_net::register_module(py, zero_copy)?;
+    m.add_submodule(zero_copy)?;
+    
+    let lockfree = PyModule::new(py, "lockfree_collections")?;
+    lockfree_collections::register_module(py, lockfree)?;
+    m.add_submodule(lockfree)?;
+    
+    // Register SYNTHEX module
+    // let synthex_module = PyModule::new(py, "synthex")?;
+    // synthex::python_bindings::register_module(py, synthex_module)?;
+    // m.add_submodule(synthex_module)?;
+    
+    // Register MCP Manager module
+    let mcp_manager_module = PyModule::new(py, "mcp_manager")?;
+    mcp_manager::python_bindings::register_module(py, mcp_manager_module)?;
+    m.add_submodule(mcp_manager_module)?;
+    
+    // Register SYNTHEX-BashGod module
+    let synthex_bashgod_module = PyModule::new(py, "synthex_bashgod")?;
+    synthex_bashgod::python_bindings::register_module(py, synthex_bashgod_module)?;
+    m.add_submodule(synthex_bashgod_module)?;
+    
+    // Register test bindings module
+    let test_module = PyModule::new(py, "test_bindings")?;
+    test_bindings::register_test_module(py, test_module)?;
+    m.add_submodule(test_module)?;
+    
     // Add version info
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    m.add("__rust_version__", env!("CARGO_PKG_RUST_VERSION"))?;
+    // m.add("__rust_version__", env!("CARGO_PKG_RUST_VERSION"))?; // Not available
     
     // Initialize Circle of Experts module
     circle_of_experts::init().map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Failed to initialize Circle of Experts: {}", e)))?;

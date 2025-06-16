@@ -1,0 +1,72 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 18 - This command converts JSON documents directly into PowerShell objects.
+Security Relevance Score: 2
+Word Count: 1145
+Extracted: 2025-06-13 23:41:06
+
+---
+
+This command converts JSON documents directly into PowerShell objects.
+
+10.1.3    Example: Converting between CSV and JSON
+Converting a comma-separated values (CSV) file to JSON format is a piece of cake. The only requirement is that the CSV file contains column labels in the first row. The starting point for this example is the employees.csv file, which contains the following information:
+FirstName;LastName;DateOfBirth;Street;Zip;City;...Ruthanne;Summers;1977-06-04;4 Dewy Turnpike;27698;Clifton ...... 
+Import-Csv converts the file into PowerShell objects; ConvertTo-Json turns it into a JSON document:
+> Import-Csv -Delimiter ';' employees.csv |  ConvertTo-Json > employees.json 
+By default, ConvertTo-Json takes care of reader-friendly indentation of the JSON document. If the readability of the resulting file is not an issue, you can pass the additional -Compress option. The subsequent Get-ChildItem proves that the amount of space saved is quite noticeable.
+> Import-Csv -Delimiter ';' employees.csv |  ConvertTo-Json -Compress > employees-compressed.json> Get-ChildItem *.json | Select-Object Name, Length  Name                      Length  ----                      ------  employees-compressed.json 122528  employees.json            165030 
+The conversion back from JSON to CSV is equally simple, as in the following example:
+> Get-Content .\employees-compressed.json | ConvertFrom-Json |  Export-Csv employees2.csv 
+
+
+
+
+
+
+
+
+
+10.2    JSON and Python
+Python and JSON together form a dream team. To process JSON documents, you must import the json module. This module comes with Python by default and does not need to be installed separately. The module provides the following functions:   
+
+
+load(filehandle)This function reads a text file previously opened via open and returns the JSON data it contains as Python dictionaries and lists.
+
+
+loads(str)In the sense of load string, this function expects the JSON document in the string passed as parameter.
+
+
+dump(obj, filehandle)This function stores the Python object passed in the first parameter as a JSON string in the specified file. Some additional parameters allow you to influence the resulting JSON document. indent=2 specifies the desired indentation depth per nesting level. ensure_ascii=False ensures the correct processing of UTF-8 characters.
+
+
+dumps(obj)This function works like dump but returns the JSON document as a string.
+
+
+The following listing shows the application of these four methods:
+# Sample file hello-json.pyimport json# read JSON filewith open('employees.json', 'r') as f:    employees = json.load(f)# process JSON stringtxt = '{"key1": "value1", "key2": "value2"}'data = json.loads(txt)# analysis of the dataprint(data['key2'])   # Ausgabe: value2# save Python object (list, dictionary) as JSON filewith open('otherfile.json', 'w') as f:    json.dump(data, f, indent=2, ensure_ascii=False)# output JSON stringprint(json.dumps(data, indent=2, ensure_ascii=False)) 
+10.2.1    Example: Collecting Birthdays
+The starting point for the birthdays.py script is the employees.json file, which has the following structure:
+[  {    "FirstName": "Ruthanne",    "LastName": "Ferguson",    "DateOfBirth": "1977-06-04",    ...  }, ...] 
+The birthdays.py script reads the JSON file and processes the employees in a loop. In this process, a dictionary is created. The key is the day and month of the birthday (e.g., 06-24). The actual entry contains a list of employee names whose birthday is on that day.
+# Sample file birthdays.pyimport jsonwith open('employees.json') as f:    employees = json.load(f)birthdates = {}   # birthday dictionaryfor employee in employees:    # [5:] skips the first five characters, only month and day    birthdate = employee['DateOfBirth'][5:]    name = employee['FirstName'] + ' ' + employee['LastName']    if birthdate in birthdates:        # add name to existing list        birthdates[birthdate].append(name)    else:        # create new dictionary entry with list        birthdates[birthdate] = [name]# test: all birthday children on 1/24# output: ['Nannette Ramsey', 'Allena Hoorenman',#           'Arden Lit', 'Duncan Noel']print(birthdates['01-24']) 
+10.2.2    Example: Determining Holidays
+After free user registration on the https://calendarific.com website, you’ll receive an API key that allows you to determine the holidays and any other commemorative days imaginable for a given country and year, for example, with the following command:
+$ curl 'https://calendarific.com/api/v2/holidays\?             api_key=1234&country=DE&year=2023' 
+The result is a JSON document that is structured in the following way:
+{    "meta": {        "code": 200    },    "response": {        "holidays": [            {                "name": "Name of holiday,                "description": "Description of holiday,                "date": {                    "iso": "2023-12-31",                    "datetime": { ... }                },                "type": [ ... ]            }, ...        ]    }} 
+Our sample holidays.py script expects two optional parameters: a country code and a year. If this information is missing, the script uses 'US' and the current year by default. The script then performs a request, analyzes the result, and returns the result in the following format:
+$ ./holidays.py DE 2023  Holidays for DE in 2023  2023-01-01: New Year's Day    New Year's Day, which is on January 1, ...  2023-01-06: Epiphany    Epiphany on January 6 is a public holiday in 3 German states    and commemorates the Bible story of the Magi's visit to    baby Jesus.  ... 
+
+Limitations
+The use of https://calendarific.com is free of charge after a simple registration form but is subject to various restrictions. Commercial use is allowed only upon payment of a monthly fee.
+
+The script starts with the import of various modules and the initialization of the api_key, country, and year variables. A loop analyzes all parameters passed to the script and overwrites year or country if necessary.
+# Sample file holidays.pyimport datetime, json, sys, urllib.request# Please use your own key that you# can obtain free of charge at https://calendarific.com.api_key = "xxx"# default settingscountry = 'US'year = datetime.datetime.now().year# analyze script parameters, set year and countryfor arg in sys.argv[1:]:    if arg.isdigit():        year = arg    else:        country = argprint("Holidays for", country, "in", year) 
+For the web request, I used the urllib Python module, which is available by default, so it doesn't need to be installed using pip. The application of this module is rather cumbersome: First, you must create a Request object. Then, you’ll pass this object to the urlopen method and get a Response object. The read method of that object gives you the data returned by the server in binary format, which you finally convert to a UTF-8 string by using decode.   
+In my tests, I discovered that https://calendarific.com denies requests from Python. (A request executed using curl with the same URL, on the other hand, works.) Presumably the operators of Calendarific want you to use the python-calendarific module, but I wanted to avoid that for didactic reasons. Instead, I used the headers parameter to override the default header and thus outsmart Calendarific.
+From the point of view of this chapter, the last few lines of the script are the most exciting ones. json.loads(txt) turns the JSON document into a Python object tree. data['response']['holidays'] returns a list of holiday dictionaries, which are then evaluated in a loop. As you can see, once the hurdles of downloading are overcome, the JSON analysis is rather easy to perform.
+# Sample file holidays.py# perform web requestquery = "https://calendarific.com/api/v2/         holidays?api_key=%s&country=%s&year=%s"url = query % (api_key, country, year)req = urllib.request.Request(url,                             headers={"User-Agent": "curl"})response = urllib.request.urlopen(req)txt = response.read().decode("utf-8")# analysis of JSON datadata = json.loads(txt)for holiday in data['response']['holidays']:    name = holiday['name']    date = holiday['date']['iso']    descr = holiday['description']    print('%s: %s' % (date, name))    print('  %s' % (descr)) 
+
+requests instead of request
+Instead of the request module, Python also has the requests module (with plural S). This module must be installed separately, but it is much more convenient to use. For examples of its use, refer to

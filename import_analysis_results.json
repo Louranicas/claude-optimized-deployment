@@ -1,0 +1,279 @@
+{
+  "files_analyzed": 27,
+  "total_imports": 44,
+  "missing_modules": [
+    "automation.deployment_orchestrator",
+    "bash_god_mcp",
+    "torch",
+    "python_src.learning",
+    "torch.nn",
+    "rust_src",
+    "python_src",
+    "python_src.quality_learning",
+    "torch.optim",
+    "automation.auto_scaling"
+  ],
+  "total_failed_imports": 11,
+  "results": {
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/tests/test_development_server.py": {
+      "file": "mcp_learning_system/servers/development/tests/test_development_server.py",
+      "imports": "{'asyncio', 'uuid', 'time', 'pytest', 'rust_src', 'pathlib', 'typing', 'python_src', 'sys'}",
+      "relative_imports": "set()",
+      "failed_imports": {
+        "rust_src": "Module not found",
+        "python_src": "Module not found"
+      },
+      "parse_errors": [],
+      "total_imports": 9,
+      "failed_count": 2
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/python_src/learning.py": {
+      "file": "mcp_learning_system/servers/development/python_src/learning.py",
+      "imports": "{'asyncio', 'numpy', 're', 'dataclasses', 'typing', 'datetime', 'pickle', 'logging'}",
+      "relative_imports": "{'.dependency_predictor', '.style_classifier', '.embeddings'}",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 8,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/python_src/style_classifier.py": {
+      "file": "mcp_learning_system/servers/development/python_src/style_classifier.py",
+      "imports": "{'collections', 'logging', 'typing', 're'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 4,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/python_src/embeddings.py": {
+      "file": "mcp_learning_system/servers/development/python_src/embeddings.py",
+      "imports": "{'numpy', 'asyncio', 're', 'collections', 'typing', 'hashlib', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 7,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/python_src/server.py": {
+      "file": "mcp_learning_system/servers/development/python_src/server.py",
+      "imports": "{'asyncio', 'json', 'dataclasses', 'os', 'typing', 'datetime', 'sys', 'logging'}",
+      "relative_imports": "{'.dependency_predictor', '.style_classifier', '.embeddings', '.learning', '.integration'}",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 8,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/python_src/dependency_predictor.py": {
+      "file": "mcp_learning_system/servers/development/python_src/dependency_predictor.py",
+      "imports": "{'collections', 'logging', 'typing', 're'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 4,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/python_src/__init__.py": {
+      "file": "mcp_learning_system/servers/development/python_src/__init__.py",
+      "imports": "set()",
+      "relative_imports": "{'.dependency_predictor', '.style_classifier', '.embeddings', '.learning', '.integration'}",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 0,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/python_src/integration.py": {
+      "file": "mcp_learning_system/servers/development/python_src/integration.py",
+      "imports": "{'asyncio', 'json', 'pathlib', 'typing', 'datetime', 'logging'}",
+      "relative_imports": "{'.learning', '.embeddings'}",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 6,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development/benchmarks/benchmark_development_server.py": {
+      "file": "mcp_learning_system/servers/development/benchmarks/benchmark_development_server.py",
+      "imports": "{'asyncio', 'random', 'time', 'statistics', 'json', 'pathlib', 'typing', 'string', 'python_src', 'sys'}",
+      "relative_imports": "set()",
+      "failed_imports": {
+        "python_src": "Module not found"
+      },
+      "parse_errors": [],
+      "total_imports": 10,
+      "failed_count": 1
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/commands/library.py": {
+      "file": "mcp_learning_system/servers/bash_god/commands/library.py",
+      "imports": "{'dataclasses', 'typing', 'enum', 're'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 4,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/python_src/learning.py": {
+      "file": "mcp_learning_system/servers/bash_god/python_src/learning.py",
+      "imports": "{'asyncio', 'numpy', 're', 'json', 'collections', 'dataclasses', 'typing', 'datetime', 'hashlib'}",
+      "relative_imports": "{'.context_analyzer', '.command_predictor', '.chain_optimizer', '.safety_learner'}",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 9,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/python_src/server.py": {
+      "file": "mcp_learning_system/servers/bash_god/python_src/server.py",
+      "imports": "{'asyncio', 'bash_god_mcp', 'psutil', 'json', 'traceback', 'typing', 'datetime', 'logging'}",
+      "relative_imports": "{'.safety_learner', '.context_analyzer', '.learning', '.chain_optimizer', '.command_predictor'}",
+      "failed_imports": {
+        "bash_god_mcp": "Module not found"
+      },
+      "parse_errors": [],
+      "total_imports": 8,
+      "failed_count": 1
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/python_src/command_predictor.py": {
+      "file": "mcp_learning_system/servers/bash_god/python_src/command_predictor.py",
+      "imports": "{'numpy', 'sklearn.metrics.pairwise', 're', 'collections', 'dataclasses', 'os', 'typing', 'sklearn.feature_extraction.text', 'hashlib', 'pickle'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 10,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/python_src/context_analyzer.py": {
+      "file": "mcp_learning_system/servers/bash_god/python_src/context_analyzer.py",
+      "imports": "{'asyncio', 'numpy', 're', 'collections', 'dataclasses', 'typing', 'datetime'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 7,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/python_src/__init__.py": {
+      "file": "mcp_learning_system/servers/bash_god/python_src/__init__.py",
+      "imports": "set()",
+      "relative_imports": "{'.safety_learner', '.context_analyzer', '.learning', '.server', '.chain_optimizer', '.command_predictor'}",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 0,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/python_src/safety_learner.py": {
+      "file": "mcp_learning_system/servers/bash_god/python_src/safety_learner.py",
+      "imports": "{'asyncio', 're', 'collections', 'dataclasses', 'typing', 'datetime', 'hashlib'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 7,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/python_src/chain_optimizer.py": {
+      "file": "mcp_learning_system/servers/bash_god/python_src/chain_optimizer.py",
+      "imports": "{'asyncio', 'numpy', 're', 'collections', 'dataclasses', 'typing'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 6,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/safety/validator.py": {
+      "file": "mcp_learning_system/servers/bash_god/safety/validator.py",
+      "imports": "{'re', 'subprocess', 'os', 'dataclasses', 'pathlib', 'typing', 'enum', 'hashlib'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 8,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god/optimization/engine.py": {
+      "file": "mcp_learning_system/servers/bash_god/optimization/engine.py",
+      "imports": "{'re', 'time', 'subprocess', 'json', 'collections', 'dataclasses', 'typing', 'enum', 'hashlib'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 9,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/devops/main.py": {
+      "file": "mcp_learning_system/servers/devops/main.py",
+      "imports": "{'asyncio', 'automation.deployment_orchestrator', 'python_src.learning', 'automation.auto_scaling', 'json', 'yaml', 'os', 'pathlib', 'typing', 'datetime', 'sys', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {
+        "automation.deployment_orchestrator": "Import error: No module named 'automation'",
+        "python_src.learning": "Import error: No module named 'python_src'",
+        "automation.auto_scaling": "Import error: No module named 'automation'"
+      },
+      "parse_errors": [],
+      "total_imports": 12,
+      "failed_count": 3
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/devops/automation/auto_scaling.py": {
+      "file": "mcp_learning_system/servers/devops/automation/auto_scaling.py",
+      "imports": "{'asyncio', 'json', 'yaml', 'dataclasses', 'typing', 'enum', 'datetime', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 8,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/devops/automation/deployment_orchestrator.py": {
+      "file": "mcp_learning_system/servers/devops/automation/deployment_orchestrator.py",
+      "imports": "{'asyncio', 'uuid', 'json', 'yaml', 'dataclasses', 'typing', 'enum', 'datetime', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 9,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/devops/python_src/learning.py": {
+      "file": "mcp_learning_system/servers/devops/python_src/learning.py",
+      "imports": "{'asyncio', 'numpy', 'sklearn.model_selection', 'sklearn.metrics', 'sklearn.ensemble', 'torch', 'torch.nn', 'json', 'pandas', 'dataclasses', 'typing', 'datetime', 'sklearn.preprocessing', 'torch.optim', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {
+        "torch": "Module not found",
+        "torch.nn": "Import error: No module named 'torch'",
+        "torch.optim": "Import error: No module named 'torch'"
+      },
+      "parse_errors": [],
+      "total_imports": 15,
+      "failed_count": 3
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/devops/python_src/__init__.py": {
+      "file": "mcp_learning_system/servers/devops/python_src/__init__.py",
+      "imports": "set()",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 0,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/quality/main.py": {
+      "file": "mcp_learning_system/servers/quality/main.py",
+      "imports": "{'asyncio', 'argparse', 'json', 'yaml', 'os', 'pathlib', 'traceback', 'typing', 'datetime', 'python_src.quality_learning', 'sys', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {
+        "python_src.quality_learning": "Import error: No module named 'python_src'"
+      },
+      "parse_errors": [],
+      "total_imports": 12,
+      "failed_count": 1
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/quality/test_quality_server.py": {
+      "file": "mcp_learning_system/servers/quality/test_quality_server.py",
+      "imports": "{'asyncio', 'time', 'json', 'pathlib', 'typing', 'datetime', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 7,
+      "failed_count": 0
+    },
+    "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/quality/python_src/quality_learning.py": {
+      "file": "mcp_learning_system/servers/quality/python_src/quality_learning.py",
+      "imports": "{'asyncio', 'numpy', 'sklearn.model_selection', 'sklearn.metrics', 'sklearn.ensemble', 'joblib', 'json', 'dataclasses', 'pathlib', 'typing', 'enum', 'datetime', 'sklearn.preprocessing', 'logging'}",
+      "relative_imports": "set()",
+      "failed_imports": {},
+      "parse_errors": [],
+      "total_imports": 14,
+      "failed_count": 0
+    }
+  }
+}

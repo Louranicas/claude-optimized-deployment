@@ -1,0 +1,38 @@
+# Security Chapter Extract
+Book: Debrupa Palit - Cybersecurity Today_ Cyber attacks, network security, and threat prevention (2024) - libgen.li
+Chapter: 64 - A complete specification of DES requires the definition of the following three critical components:
+Security Relevance Score: 3
+Word Count: 528
+Extracted: 2025-06-13 23:40:49
+
+---
+
+A complete specification of DES requires the definition of the following three critical components:
+
+Round function: This cryptographic kernel executes a series of substitutions and permutations on the data block within each encryption iteration.
+Key schedule: This mechanism accurately generates a sequence of subkeys from the primary secret key employed for encryption and decryption processes. Each round of the Feistel network utilizes a distinct subkey for enhanced security.
+Initial and final permutations: The data block undergoes a well-defined initial permutation before being processed by the Feistel network. Conversely, upon completion of the final round, the Feistel network's output is subjected to a final permutation, resulting in the ciphertext.
+The DES incorporates two critical cryptographic properties that bolster its robustness against cryptanalysis.
+
+Avalanche effect: DES exhibits a strong avalanche effect, signifying that a minimal change in the plain text (unencrypted message) significantly alters the ciphertext (encrypted message). This property ensures that even minor variations in the plain text lead to vastly different ciphertexts, hindering attempts to gain information by analyzing ciphertext patterns.
+Completeness: DES achieves a high degree of completeness. This implies that every bit within the ciphertext demonstrably depends on the diffusion of bits from the original plain text. Consequently, modifying a single bit in the ciphertext will have a cascading effect, disrupting the entire message and rendering it exceedingly challenging for attackers to forge or manipulate encrypted data.
+
+International Data Encryption Algorithm
+It is a block cipher employing a 128-bit key to encrypt data in 64-bit blocks. Its design goals encompass cryptographic strength and ease of implementation. Regarding cryptographic strength, IDEA is designed with specific characteristics:
+
+Block length: Determined through statistical analysis, the block length is balanced against the complexity of implementing an effective encryption function. While larger block sizes offer statistical advantages, they exponentially increase implementation complexity.
+Key strength: IDEA employs a 128-bit key length and effectively thwarts exhaustive key search attacks, ensuring security for the foreseeable future.
+Confusion: The ciphertext's dependency on the plain text and the key should be intricate and convoluted. IDEA achieves this through three distinct operations, a departure from DES, which primarily relies on XOR operations and small non-linear S-boxes.
+Diffusion: Each bit of the plain text should influence every bit of the ciphertext, and similarly, each key bit should influence every bit of the ciphertext. By spreading out a single plain text bit over multiple ciphertext bits, IDEA effectively obscures the statistical structure of the plain text, demonstrating significant effectiveness in this aspect.
+
+Blowfish
+Blowfish operates as a symmetric block cipher, employing a single secret key for encryption and decryption. Its flexible key size enables users to adjust their security strength according to their needs. Blowfish enhances its resilience against attacks by utilizing multiple subkeys and rounds, bolstering its overall robustness. Incorporating S-boxes introduces a crucial non-linear element, significantly bolstering the cipher's resistance to cryptanalysis. Blowfish operates as a symmetric block cipher with the following characteristics:
+
+Block size: 64-bits
+Key size: Variable, ranging from 32-bits to 448-bits
+Number of subkeys: 18 
+Number of rounds: 16
+Number of substitution boxes: 4, each housing 512 entries of 32-bits each
+
+Rivest Cipher 4
+It is a stream cipher designed by Ron Rivest in

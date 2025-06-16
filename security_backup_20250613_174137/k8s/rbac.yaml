@@ -1,0 +1,294 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-deployment-api
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: api
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-deployment-worker
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: worker
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-deployment-monitor
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: monitoring
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-deployment-admin
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: admin
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-deployment-psp-restricted
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - claude-deployment-restricted
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-deployment-psp-baseline
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - claude-deployment-baseline
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-deployment-psp-privileged
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames:
+  - claude-deployment-privileged
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: claude-deployment
+  name: claude-deployment-api-role
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: claude-deployment
+  name: claude-deployment-worker-role
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["create", "get", "list", "watch", "update", "patch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: claude-deployment
+  name: claude-deployment-monitor-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses", "networkpolicies"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-deployment-monitor-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "nodes/metrics", "services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: claude-deployment
+  name: claude-deployment-admin-role
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-deployment-api-binding
+  namespace: claude-deployment
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-api
+  namespace: claude-deployment
+roleRef:
+  kind: Role
+  name: claude-deployment-api-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-deployment-worker-binding
+  namespace: claude-deployment
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-worker
+  namespace: claude-deployment
+roleRef:
+  kind: Role
+  name: claude-deployment-worker-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-deployment-monitor-binding
+  namespace: claude-deployment
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-monitor
+  namespace: claude-deployment
+roleRef:
+  kind: Role
+  name: claude-deployment-monitor-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-deployment-monitor-cluster-binding
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-monitor
+  namespace: claude-deployment
+roleRef:
+  kind: ClusterRole
+  name: claude-deployment-monitor-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-deployment-admin-binding
+  namespace: claude-deployment
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-admin
+  namespace: claude-deployment
+roleRef:
+  kind: Role
+  name: claude-deployment-admin-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-deployment-api-psp-restricted
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-api
+  namespace: claude-deployment
+roleRef:
+  kind: ClusterRole
+  name: claude-deployment-psp-restricted
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-deployment-worker-psp-restricted
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-worker
+  namespace: claude-deployment
+roleRef:
+  kind: ClusterRole
+  name: claude-deployment-psp-restricted
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-deployment-monitor-psp-baseline
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-monitor
+  namespace: claude-deployment
+roleRef:
+  kind: ClusterRole
+  name: claude-deployment-psp-baseline
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-deployment-admin-psp-privileged
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-admin
+  namespace: claude-deployment
+roleRef:
+  kind: ClusterRole
+  name: claude-deployment-psp-privileged
+  apiGroup: rbac.authorization.k8s.io

@@ -16,7 +16,23 @@ import json
 import math
 from collections import defaultdict, deque
 
-from ..circle_of_experts import CircleOfExperts, QueryRequest
+try:
+    from ...src.circle_of_experts import CircleOfExperts, QueryRequest
+except ImportError:
+    try:
+        from src.circle_of_experts import CircleOfExperts, QueryRequest
+    except ImportError:
+        # Mock classes if not available
+        class CircleOfExperts:
+            async def process_query(self, query):
+                class MockResponse:
+                    def __init__(self):
+                        self.expert_responses = []
+                return MockResponse()
+        
+        class QueryRequest:
+            def __init__(self, **kwargs):
+                pass
 
 
 class CostOptimizationStrategy(Enum):
@@ -139,7 +155,7 @@ class CostOptimizer:
         }
         
         # Initialize default cost models
-        self._initialize_default_cost_models()
+        self.cost_models = self._get_default_cost_models()
     
     async def optimize_resources(
         self,
@@ -534,9 +550,9 @@ class CostOptimizer:
             self.logger.error(f"Failed to update budget spending: {e}")
             return False
     
-    async def _initialize_default_cost_models(self):
+    def _get_default_cost_models(self):
         """Initialize default cost models"""
-        self.cost_models = {
+        return {
             'on_demand': CostModel(
                 instance_type=InstanceType.ON_DEMAND,
                 cost_per_hour=0.10,

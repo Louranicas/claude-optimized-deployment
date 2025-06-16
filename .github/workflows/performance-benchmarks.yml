@@ -1,0 +1,315 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: '0 2 * * *'  # Nightly at 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      benchmark_categories:
+        description: 'Benchmark categories to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - micro
+          - integration
+          - load
+          - chaos
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  BENCHMARK_RESULTS_PATH: 'benchmark_results'
+
+jobs:
+  benchmark:
+    name: Run Performance Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git commit info
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libssl-dev \
+            libffi-dev \
+            python3-dev \
+            jq \
+            bc
+      
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Install Node Dependencies
+        run: npm ci
+      
+      - name: Setup Benchmark Environment
+        run: |
+          # Create directories
+          mkdir -p benchmarks/baseline benchmarks/results
+          
+          # Download baseline if exists
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # Try to download baseline from main branch
+            git fetch origin main:main || true
+            if git show main:benchmarks/baseline/current.json > benchmarks/baseline/current.json 2>/dev/null; then
+              echo "✅ Baseline loaded from main branch"
+            else
+              echo "⚠️ No baseline found, will create new one"
+            fi
+          fi
+      
+      - name: Start Services
+        run: |
+          # Start required services for benchmarks
+          docker-compose -f docker-compose.test.yml up -d
+          
+          # Wait for services to be ready
+          sleep 10
+      
+      - name: Run Benchmarks
+        id: run_benchmarks
+        run: |
+          CATEGORIES="${{ github.event.inputs.benchmark_categories || 'all' }}"
+          
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            # Nightly runs: all categories
+            CATEGORIES="all"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # PR runs: lighter benchmark set
+            CATEGORIES="micro integration"
+          fi
+          
+          echo "Running benchmarks: $CATEGORIES"
+          
+          # Run benchmarks
+          python benchmarks/scripts/run_comprehensive_benchmarks.py \
+            --output "${{ env.BENCHMARK_RESULTS_PATH }}" \
+            --categories $CATEGORIES
+          
+          # Find results file
+          RESULTS_FILE=$(find "${{ env.BENCHMARK_RESULTS_PATH }}" -name "benchmark_results_*.json" | head -1)
+          echo "results_file=$RESULTS_FILE" >> $GITHUB_OUTPUT
+          
+          # Extract timestamp
+          TIMESTAMP=$(basename "$RESULTS_FILE" | grep -oE '[0-9]{8}_[0-9]{6}')
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+      
+      - name: Analyze Results
+        id: analyze
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          RESULTS_FILE="${{ steps.run_benchmarks.outputs.results_file }}"
+          ANALYSIS_FILE="${{ env.BENCHMARK_RESULTS_PATH }}/analysis.json"
+          
+          # Run analysis
+          if [[ -f "benchmarks/baseline/current.json" ]]; then
+            python benchmarks/scripts/analyze_benchmarks.py \
+              --current "$RESULTS_FILE" \
+              --baseline "benchmarks/baseline/current.json" \
+              --output "$ANALYSIS_FILE" \
+              --generate-report || true
+          else
+            echo '{"regression": false, "summary": "No baseline for comparison"}' > "$ANALYSIS_FILE"
+          fi
+          
+          # Extract summary for PR comment
+          SUMMARY=$(jq -r '.summary' "$ANALYSIS_FILE")
+          echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
+          
+          # Check for regressions
+          REGRESSION=$(jq -r '.regression' "$ANALYSIS_FILE")
+          echo "regression=$REGRESSION" >> $GITHUB_OUTPUT
+          
+          # Get key metrics
+          if [[ -f "${ANALYSIS_FILE%.json}.md" ]]; then
+            # Extract metrics from markdown report
+            METRICS=$(head -20 "${ANALYSIS_FILE%.json}.md" | tail -10)
+            echo "metrics<<EOF" >> $GITHUB_OUTPUT
+            echo "$METRICS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload Benchmark Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results-${{ steps.run_benchmarks.outputs.timestamp }}
+          path: ${{ env.BENCHMARK_RESULTS_PATH }}
+          retention-days: 30
+      
+      - name: Upload to Benchmark Storage
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'customSmallerIsBetter'
+          output-file-path: ${{ steps.run_benchmarks.outputs.results_file }}
+          benchmark-data-dir-path: 'dev/bench'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '110%'
+          comment-on-alert: true
+          fail-on-alert: true
+      
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read analysis results
+            const analysisPath = '${{ env.BENCHMARK_RESULTS_PATH }}/analysis.json';
+            let analysis = { summary: 'Benchmark results unavailable' };
+            
+            try {
+              const analysisContent = fs.readFileSync(analysisPath, 'utf8');
+              analysis = JSON.parse(analysisContent);
+            } catch (e) {
+              console.error('Failed to read analysis:', e);
+            }
+            
+            // Build comment
+            let comment = `## 📊 Performance Benchmark Results\n\n`;
+            comment += `${analysis.summary}\n\n`;
+            
+            if (analysis.performance_comparison) {
+              comment += `### Key Metrics\n`;
+              
+              if (analysis.performance_comparison.response_time_p95) {
+                const rt = analysis.performance_comparison.response_time_p95;
+                comment += `- **Response Time P95**: ${rt.current.toFixed(3)}ms (${rt.change})\n`;
+              }
+              
+              if (analysis.performance_comparison.throughput) {
+                const tp = analysis.performance_comparison.throughput;
+                comment += `- **Throughput**: ${tp.current.toFixed(0)} req/s (${tp.change})\n`;
+              }
+            }
+            
+            // Add regression details if any
+            if (analysis.regressions) {
+              const criticalCount = analysis.regressions.critical?.length || 0;
+              const warningCount = analysis.regressions.warning?.length || 0;
+              
+              if (criticalCount > 0) {
+                comment += `\n### 🚨 Critical Regressions (${criticalCount})\n`;
+                for (const reg of analysis.regressions.critical.slice(0, 3)) {
+                  comment += `- **${reg.metric}**: ${reg.change_percent.toFixed(1)}% regression\n`;
+                }
+              }
+              
+              if (warningCount > 0) {
+                comment += `\n### ⚠️ Warnings (${warningCount})\n`;
+                for (const reg of analysis.regressions.warning.slice(0, 3)) {
+                  comment += `- **${reg.metric}**: ${reg.change_percent.toFixed(1)}% change\n`;
+                }
+              }
+            }
+            
+            // Add link to full results
+            comment += `\n[View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            
+            // Post comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      - name: Update Baseline
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.analyze.outputs.regression != 'true'
+        run: |
+          # Update baseline with current results
+          cp "${{ steps.run_benchmarks.outputs.results_file }}" benchmarks/baseline/current.json
+          
+          # Commit and push if changed
+          if [[ -n $(git status -s benchmarks/baseline/) ]]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add benchmarks/baseline/current.json
+            git commit -m "Update performance baseline [skip ci]"
+            git push
+          fi
+      
+      - name: Fail on Regression
+        if: steps.analyze.outputs.regression == 'true' && github.event_name == 'pull_request'
+        run: |
+          echo "❌ Performance regression detected!"
+          echo "Please review the benchmark results and address the regressions."
+          exit 1
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.test.yml down || true
+
+  benchmark-trends:
+    name: Generate Trend Report
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: benchmark
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Download Recent Results
+        uses: actions/download-artifact@v3
+        with:
+          path: benchmark-artifacts
+      
+      - name: Generate Trend Report
+        run: |
+          # Aggregate results from multiple runs
+          python benchmarks/scripts/generate_trend_report.py \
+            --input-dir benchmark-artifacts \
+            --output benchmarks/reports/trend_report.html
+      
+      - name: Upload Trend Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-trend-report
+          path: benchmarks/reports/trend_report.html
+          retention-days: 90
+      
+      - name: Notify Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"📊 Weekly performance trend report is ready: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' \
+            $SLACK_WEBHOOK_URL

@@ -1,0 +1,163 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 4 - Hybrid Model(1D CNN & LSTM)
+358,114
+Security Relevance Score: 3
+Word Count: 875
+Extracted: 2025-06-13 23:40:52
+
+---
+
+Hybrid Model(1D CNN & LSTM)
+358,114
+
+
+
+
+The results are compared using various performance metrics, such as accuracy, precision, recall, F1 Score, and Receiver Operating Characteristic-Area Under the Curve (ROC-AUC), to determine how well the models handle varying class distributions. Additionally, we explore the impact of different hyperparameters and techniques like resampling on model performance.
+
+4.6.1 Evaluation Metrics
+The performances of the model on the two datasets were evaluated on various metrics which includes Accuracy, Precision, Recall, F1 Score.
+
+4.6.1.1 Accuracy
+It is one of the most straightforward performance metrics for classification problems. Accuracy is the ratio of correctly predicted observations to the total observations.
+Accuracy=TP+TNTP+TN+FP+FN(4.3)
+where:
+True Positives (TP) represent the number of instances correctly predicted as positive. And in that sense, it denotes the number of instances properly classified in its right class, “Attack.”
+False Positives (FP) represent the number of instances incorrectly predicted as positive (Type I Error). This denoted the number of instances which are of the “Normal” class but were classified under “Attack” class.
+True Negatives (TN) represent the number of instances correctly predicted as negative. This denoted the number of instances properly classified under the right class, “Normal.”
+False Negatives (FN) represent the number of instances incorrectly predicted as negative (Type II Error). This denoted the number of instances which are of the “Attack” class but were classified under “Normal” class.
+
+
+4.6.1.2 Precision
+Precision (also called Positive Predictive Value) is the ratio of correctly predicted positive observations to the total predicted positives. The equation for the same is given as:
+Precision=TPTP+FP(4.4)
+
+
+4.6.1.3 Recall
+Recall (also known as Sensitivity or True Positive Rate) is the ratio of correctly predicted positive observations to all the observations in the actual class.
+Recall=TPTP+FN(4.5)
+
+
+4.6.1.4 F1 Score
+The F1 Score is the harmonic mean of precision and recall. It is useful when you need a balance between precision and recall.
+F1 Score=2×Precision×RecallPrecision+Recall(4.6)
+
+
+4.6.1.5 ROC-AUC
+ROC-AUC, which stands for Receiver Operating Characteristic-Area Under the Curve, is a performance metric used to evaluate the performance of binary classification models.
+ROC Curve: The metric provides a score and a graphical representation of the true positive rate (Sensitivity) against the false positive rate (1-Specificity) for different threshold values of a classification model.
+AUC: It quantifies the overall performance of a binary classification model based on the ROC curve. Specifically, it represents the probability that the model will rank a randomly chosen positive example higher than a randomly chosen negative example.
+In the case of our imbalanced data, the ROC-AUC proved very effective in determining the effectiveness of the model for the classification task. Always use predicted probabilities (or decision function scores) instead of binary predictions to plot the ROC curve.
+
+
+4.6.1.6 Friedman-Tukey Rank Index
+From the provided results shown in Table 4.1, more than 90% aggregate score was obtained by each algorithm across various evaluation metrics used on each dataset. Each algorithm was ranked using the provided metrics to determine the strength of each algorithm within the IDS network framework. We used the Friedman Test followed by the Tukey’s Honestly Significant Difference (HSD) post-hoc analysis to rank the performance of each algorithm. The choice of this technique is to:
+
+Address Multiple Comparisons Problem: The Friedman Test is a non-parametric statistical test used to detect differences in treatments across multiple test attempts. Intraarticularly useful in comparing multiple algorithms across different datasets and metrics, addressing the issue of multiple comparisons by reducing the risk of Type I errors.
+Rank-Based Comparison: Unlike other parametric tests, the Friedman Test ranks the algorithms instead of comparing their actual values. This is beneficial in scenarios where the data does not meet the assumptions of normality and homoscedasticity.
+
+By using this robust statistical method, we ensured a comprehensive and reliable evaluation of the algorithms, leading to a more informed selection process for the IDS network framework.
+Based on two core concepts, the Friedman test and the Tukey’s range test, Friedman-Tukey rank index merges the rank-based approach of the Friedman test with the pairwise comparison strength of Tukey’s test to rank multiple algorithms. It calculates the average rank of each algorithm. The Friedman statistic equation follows a chi-squared distribution with k − 1 degrees of freedom.
+The Friedman statistic equation is given as:
+xF2=12Nk(k+1)[Σj-1kRj2-k(k+1)(k+1)4](4.7)
+where:
+N is the number of datasets or blocks,
+k is the number of algorithms,
+Rj is the sum of ranks of the j-th algorithm.
+Tukey’s HSD post-hoc analysis is subsequently applied to determine significant differences between pairs of algorithms based on their ranks (Table 4.3).
+
+
+TABLE 4.3 Evaluation Metrics Table
+
+
+Dataset
+Algorithm
+Accuracy
+Precision
+Recall
+F1 Score
+ROC-AUC
+FT Rank Index
+
+
+
+
+ 
+Random Forest
+0.991
+0.993
+0.991
+0.992
+0.991
+3.3 ~ 4
+
+
+Stacked LSTM
+0.991
+0.998
+0.993
+0.995
+0.999
+2.1 ~ 2
+
+
+Imbalanced
+1D CNN
+0.997
+0.999
+0.997
+0.998
+0.994
+1.4 ~ 1
+
+
+Hybrid Model
+0.996
+0.955
+0.990
+0.972
+0.998
+3.2 ~ 3
+
+
+Random Forest
+0.984
+0.984
+0.984
+0.9844
+0.984
+3.4 ~ 3
+
+
+Balanced
+Stacked LSTM
+0.982
+0.991
+0.973
+0.981
+0.995
+3.4 ~ 3
+
+
+1D CNN
+0.991
+0.988
+0.995
+0.991
+0.997
+2.0 ~ 2
+
+
+Hybrid Model
+0.994
+0.994
+0.994
+0.994
+0.998
+1.2 ~ 1
+
+
+
+
+We also ranked the algorithms with a graph plot to determine the efficiency in predicting various data point counts. The diagram can be seen in Figures 4.10 and 4.

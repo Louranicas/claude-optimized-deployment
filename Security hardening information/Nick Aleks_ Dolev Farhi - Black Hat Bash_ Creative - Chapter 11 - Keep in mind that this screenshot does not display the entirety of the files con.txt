@@ -1,0 +1,21 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 11 - (Keep in mind that this screenshot does not display the entirety of the file’s contents in the request body.)
+Security Relevance Score: 6
+Word Count: 178
+Extracted: 2025-06-13 23:40:57
+
+---
+
+(Keep in mind that this screenshot does not display the entirety of the file’s contents in the request body.)
+
+Figure 6-11: Uploading the malicious app.py file containing a web shell route
+
+If the request worked, you should get a File upload was successful! message.
+Note that the exploit preserved all the app.py file’s original functionality. This undercover web shell exploitation helps us evade detection, since we kept the site’s core behavior intact and didn’t create any new files. An analyst reviewing the /uploads directory won’t find a web shell, as we added the shell to the web application’s source code. However, security systems such as file integrity monitoring (FIM) may catch that a file’s hash was changed.
+In real-world scenarios, be very careful when attempting to overwrite an application. It may not always work on the first attempt, and you could break the application if a code error exists in the modified version. Always seek authorization when attempting dangerous penetration-testing techniques.
+
+
+
+Executing Web Shell Commands
+After chaining together three separate vulnerabilities, we can now execute commands on p-web-

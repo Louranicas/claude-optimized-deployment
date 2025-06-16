@@ -1,0 +1,63 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 6 - In the subsequent stage, we applied the selection criteria to the full text, excluded 34 studies, and retained 36 studies. The majority of 
+the papers excluded in this stage either met E5 or E6. Backward snowballing was 
+conducted to add more papers to the ﬁnal set to extract more relevant results. From the 36 papers, we collected 578 studies. From these 578 studies, 493 were excluded 
+based on the title and keywords, and 67 were excluded based on the abstract. From 
+applying the selection criteria to the full text, 15 studies were excluded. In total, from the backward snowballing process, we obtained three additional papers. Since 
+the snowballing process was the last process before the classiﬁcation framework 
+deﬁnition, our ﬁnal set of papers contains 39 studies that can be used to build this taxonomy.
+Security Relevance Score: 8
+Word Count: 592
+Extracted: 2025-06-13 23:40:22
+
+---
+
+In the subsequent stage, we applied the selection criteria to the full text, excluded 34 studies, and retained 36 studies. The majority of 
+the papers excluded in this stage either met E5 or E6. Backward snowballing was 
+conducted to add more papers to the ﬁnal set to extract more relevant results. From the 36 papers, we collected 578 studies. From these 578 studies, 493 were excluded 
+based on the title and keywords, and 67 were excluded based on the abstract. From 
+applying the selection criteria to the full text, 15 studies were excluded. In total, from the backward snowballing process, we obtained three additional papers. Since 
+the snowballing process was the last process before the classiﬁcation framework 
+deﬁnition, our ﬁnal set of papers contains 39 studies that can be used to build this taxonomy. 
+1.6 Taxonomy Results 
+In this section, we present a summary of the ﬁndings from our data analysis. We 
+not only identify the different categories of PLC vulnerabilities but also explore 
+the interconnections among them, as well as between vulnerabilities, attacks, and solutions. 
+1.6.1 Security Vulnerabilities 
+During the data extraction process, ten primary categories of vulnerabilities were identiﬁed. While some of these categories are interconnected (e.g., lack of encryp-
+tion or authentication may stem from protocols’ lack of security when used on the
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 15
+Fig. 1.4 Vulnerabilities in PLC systems 
+Internet), we classiﬁed them separately as authentication, encryption, and network 
+to avoid any potential bias. Additionally, this categorization allows us to see how 
+many studies address networks generally versus speciﬁc areas. Figure 1.4 provides 
+a visual summary of the results. 
+The category with the highest number of publications is related to authentication, 
+with 19 studies dedicated to this topic. This category primarily discusses the vulner-
+abilities associated with hard-coded passwords, lack of two-factor authentication 
+mechanisms, and absence of passwords altogether. 
+The categories that receive the most attention in terms of publications are 
+authentication and encryption. This is mainly because communication protocols 
+used in ICS lack security features. Studies such as S4, S8, and S9 focus on this 
+issue. For instance, the Modbus communication protocol, which is one of the oldest 
+and most commonly used protocols in ICS, does not offer any authentication or 
+encryption. As a result, an attacker can easily obtain the necessary information for a 
+Modbus session to be valid (e.g., function code and address) from a network sniffer 
+like Wireshark and launch an attack. Moreover, Modbus messages are not encrypted 
+and are transmitted in plain text. This issue is not limited to Modbus, as other widely 
+used protocols such as Proﬁbus, Proﬁnet, EtherCAT, and more also lack encryption. 
+The absence of anomaly detection mechanisms is highlighted as a vulnerability 
+in ﬁve studies, as they emphasize that the inability to detect unusual behavior of 
+PLCs in real time can result in disastrous consequences. This vulnerability is not 
+only perilous because of the critical systems that are governed by PLCs but also 
+because it is challenging to identify the root cause of the attack while it spreads 
+throughout the system [ 16]. 
+Operating system security is identiﬁed as a vulnerability in four studies that 
+focus on industrial PLC software. Similar to other operating systems, the operating 
+systems used in these PLCs also have vulnerabilities that can be exploited by 
+attackers. For instance, some of the vulnerabilities mentioned in these studies
+16 E. P. Enoiu et al.
+include the Microsoft Windows server service vulnerability (MS-08-067), the 
+print spooler vulnerability (MS10-061), and the Microsoft Windows.LNK/.PIF 
+vulnerability (MS10-046), as noted in S

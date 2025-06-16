@@ -1,0 +1,305 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 6 - THE FIND COMMAND
+The find command supports many options, including one for printing (displaying) the files returned by the find command, and another one for removing the files returned by the find command.
+In addition, you can specify logical operators such as -a (AND) as well as -o (OR) in a find command. You can also specify switches to find the files (if any) that were created, accessed, or modified before (or after) a specific date.
+Several examples are here:
+find . –print displays all the files (including sub-directories)
+find . –print |grep "abc" displays all the files whose names contain the string abc
+find . –print |grep "sh$" displays all the files whose names have the suffix sh
+find . –depth 2 –print displays all files of depth at most 2 (including sub-directories)
+You can also specify access times pertaining to files. For example, atime, ctime, and mtime refer to the access time, creation time, and modification time of a file.
+As another example, the following command finds all the files modified in less than 2 days and prints the record count of each:
+$ find . –mtime –2 -exec wc –l {} ;
+You can remove a set of files with the find command. For example, you can remove all the files in the current directory tree that have the suffix “m” as follows:
+find . –name "*m$" –print –exec rm {}
+NOTE
+Be careful when you remove files: run the preceding command without “exec rm {}” to review the list of files before deleting them.
+THE TEE COMMAND
+The tee command enables you to display output to the screen and also redirect the output to a file at the same time. The –a option will append subsequent output to the named file instead of overwriting the file. Here is a simple example:
+find . –print |xargs grep "sh$" | tee /tmp/blue
+The preceding code snippet redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that end with the string “sh.” The result is displayed on the screen and also redirected to the file / tmp/blue.
+find . – print |xargs grep "^abc$" | tee – a /tmp/blue
+The preceding code snippet also redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that contain only the string “abc.” The result is displayed on the screen and also appended to the file /tmp/blue.
+FILE COMPRESSION COMMANDS
+Bash supports various commands for compressing sets of files, including the tar, cpio, gzip, and gunzip commands. The following subsections contain simple examples of how to use these commands.
+The tar command
+The tar command enables you to compress a set of files in a directory to create a new tar file, uncompress an existing tar file, and also display the contents of a tar file.
+The “c” option specifies “create,” the “f” option specifies “file” and the “v” option specifies “verbose.” For example, the following command creates a compressed file called testing.tar and displays the files that are included in testing.tar during the creation of this file:
+tar cvf testing.tar *.txt
+The compressed file testing.tar contains the files with the suffix txt in the current directory and you will see the following output:
+a apple-care.txt
+a checkin-commands.txt
+a iphonemeetup.txt
+a kyrgyzstan.txt
+a outfile.txt
+a output.txt
+a ssl-instructions.txt
+The following command extracts the files that are in the tar file testing.tar:
+tar xvf testing.tar
+The following command displays the contents of a tar file without uncompressing its contents:
+tar tvf testing.tar
+The preceding command displays the same output as the “ls –l” command that displays a long listing.
+The “z” option uses gzip compression. For example, the following command creates a compressed file called testing.tar.gz:
+tar czvf testing.tar.gz *.txt
+The cpio Command
+The cpio command provides further compression after you create a tar file. For example, the following command creates the file archive.cpio:
+ls file1 file2 file3 | cpio -ov > archive.cpio
+The “-o” option specifies an output file and the “-v” option specifies verbose, which means that the files are displayed as they are placed in the archive file. The “-I” option specifies input, and the “-d” option specifies “display”.
+You can combine other commands (such as the find command) with the cpio command, an example of which is here:
+find . –name ".sh" | cpio -ov > shell-scripts.cpio
+You can display the contents of the file archive.cpio with the following command:
+cpio -id < archive.cpio
+The output of the preceding command is here:
+file1
+file2
+file3
+1 block
+The gzip and gunzip Commands
+The gzip command creates a compressed file. For example, the following command creates the compressed file filename.gz:
+gzip filename
+Extract the contents of the compressed file filename.gz with the gunzip command:
+gunzip filename.gz
+You can create gzipped tarballs using the following methods:
+Method #1:
+tar -czvvf archive.tar.gz [YOUR-LIST-OF-FILES]
+Method #2:
+tar -cavvf archive.tar.gz [YOUR-LIST-OF-FILES]
+The -a option specifies that the compression format should automatically be detected from the extension.
+The bunzip2 Command
+The bunzip2 utility uses a compression technique that is similar to gunzip2, except that bunzip2 typically produces smaller (more compressed) files than gzip. It comes with all Linux distributions. In order to compress with bzip2 use:
+bzip2 filename
+ls
+filename.bz2
+The zip Command
+The zip command is another utility for creating zip files. For example, if you have the files called file1, file2, and file3, then the following command creates the file file1.zip that contains these three files:
+zip file?
+The zip command has useful options (such as –x for excluding files), and you can find more information in online tutorials.
+COMMANDS FOR ZIP FILES AND BZ FILES
+There are various commands for handling zip files, including zdiff, zcmp, zmore, zless, zcat, zipgrep, zipsplit, zipinfo, zgrep, zfgrep, and zegrep.
+Remove the initial “z” or “zip” from these commands to obtain the corresponding “regular” bash command.
+For example, the zcat command is the counterpart to the cat command, so you can display the contents of a file in a .gz file without manually extracting that file and also without modifying the contents of the .gz file. Here is an example:
+ls test.gz
+zcat test.gz
+Another set of utilities for bz files includes bzcat, bzcmp, bzdiff, bzegrep, bzfgrep, bzgrep, bzless, and bzmore.
+Read the online documentation to find out more about these commands.
+INTERNAL FIELD SEPARATOR (IFS)
+The Internal Field Separator is an important concept in shell scripting that is useful while manipulating text data. An Internal Field Separator (IFS) is an environment variable that stores delimiting characters. The IFS is the default delimiter string used by a running shell environment.
+Consider the case where we need to iterate through words in a string or comma separated values (CSV). Specify IFS="," in order to display each substring on a separate line. For example, suppose that a shell script contains the following lines:
+data="age,gender,street,state"
+IFS=$','
+for item in $data
+do
+   echo Item: $item
+done
+The output of the preceding code block is here:
+Item: age
+Item: gender
+Item: street
+Item: state
+Note that you can also use the awk command (discussed in Chapter 7) to produce the same output.
+The next section contains a code sample that relies on the value of IFS in order to extract data correctly from a dataset.
+DATA FROM A RANGE OF COLUMNS IN A DATASET
+Listing 3.6 displays the contents of the dataset datacolumns1.txt and Listing 3.7 displays the contents of the shell script datacolumns1.sh that illustrates how to extract data from a range of columns from the dataset in Listing 3.6.
+Incidentally, this code sample contains a while loop, which is one of several types of loops that are available in bash, and are discussed in more detail in Chapter 3. As such, this code sample involves “forward referencing”: using a bash construct before it’s been discussed in detail. However, you are either already familiar with the concept of a while loop, or you have an intuitive grasp vis-à-vis its purpose, so you’ll be able to understand the code in this code sample.
+Listing 3.6 datacolumns1.txt
+#23456789012345678901234567890
+  1000      Jane     Edwards
+  2000      Tom      Smith
+  3000      Dave     Del Ray
+Listing 3.7 datacolumns1.sh
+# empid: 03-09
+# fname: 11-20
+# lname: 21-30
+IFS=''
+inputfile="datacolumns1.txt"
+Security Relevance Score: 4
+Word Count: 1966
+Extracted: 2025-06-13 23:40:50
+
+---
+
+THE FIND COMMAND
+The find command supports many options, including one for printing (displaying) the files returned by the find command, and another one for removing the files returned by the find command.
+In addition, you can specify logical operators such as -a (AND) as well as -o (OR) in a find command. You can also specify switches to find the files (if any) that were created, accessed, or modified before (or after) a specific date.
+Several examples are here:
+find . –print displays all the files (including sub-directories)
+find . –print |grep "abc" displays all the files whose names contain the string abc
+find . –print |grep "sh$" displays all the files whose names have the suffix sh
+find . –depth 2 –print displays all files of depth at most 2 (including sub-directories)
+You can also specify access times pertaining to files. For example, atime, ctime, and mtime refer to the access time, creation time, and modification time of a file.
+As another example, the following command finds all the files modified in less than 2 days and prints the record count of each:
+$ find . –mtime –2 -exec wc –l {} ;
+You can remove a set of files with the find command. For example, you can remove all the files in the current directory tree that have the suffix “m” as follows:
+find . –name "*m$" –print –exec rm {}
+NOTE
+Be careful when you remove files: run the preceding command without “exec rm {}” to review the list of files before deleting them.
+THE TEE COMMAND
+The tee command enables you to display output to the screen and also redirect the output to a file at the same time. The –a option will append subsequent output to the named file instead of overwriting the file. Here is a simple example:
+find . –print |xargs grep "sh$" | tee /tmp/blue
+The preceding code snippet redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that end with the string “sh.” The result is displayed on the screen and also redirected to the file / tmp/blue.
+find . – print |xargs grep "^abc$" | tee – a /tmp/blue
+The preceding code snippet also redirects the list of all files in the current directory (and those in any sub-directories) to the xargs command, which then searches – and prints – all the lines that contain only the string “abc.” The result is displayed on the screen and also appended to the file /tmp/blue.
+FILE COMPRESSION COMMANDS
+Bash supports various commands for compressing sets of files, including the tar, cpio, gzip, and gunzip commands. The following subsections contain simple examples of how to use these commands.
+The tar command
+The tar command enables you to compress a set of files in a directory to create a new tar file, uncompress an existing tar file, and also display the contents of a tar file.
+The “c” option specifies “create,” the “f” option specifies “file” and the “v” option specifies “verbose.” For example, the following command creates a compressed file called testing.tar and displays the files that are included in testing.tar during the creation of this file:
+tar cvf testing.tar *.txt
+The compressed file testing.tar contains the files with the suffix txt in the current directory and you will see the following output:
+a apple-care.txt
+a checkin-commands.txt
+a iphonemeetup.txt
+a kyrgyzstan.txt
+a outfile.txt
+a output.txt
+a ssl-instructions.txt
+The following command extracts the files that are in the tar file testing.tar:
+tar xvf testing.tar
+The following command displays the contents of a tar file without uncompressing its contents:
+tar tvf testing.tar
+The preceding command displays the same output as the “ls –l” command that displays a long listing.
+The “z” option uses gzip compression. For example, the following command creates a compressed file called testing.tar.gz:
+tar czvf testing.tar.gz *.txt
+The cpio Command
+The cpio command provides further compression after you create a tar file. For example, the following command creates the file archive.cpio:
+ls file1 file2 file3 | cpio -ov > archive.cpio
+The “-o” option specifies an output file and the “-v” option specifies verbose, which means that the files are displayed as they are placed in the archive file. The “-I” option specifies input, and the “-d” option specifies “display”.
+You can combine other commands (such as the find command) with the cpio command, an example of which is here:
+find . –name ".sh" | cpio -ov > shell-scripts.cpio
+You can display the contents of the file archive.cpio with the following command:
+cpio -id < archive.cpio
+The output of the preceding command is here:
+file1
+file2
+file3
+1 block
+The gzip and gunzip Commands
+The gzip command creates a compressed file. For example, the following command creates the compressed file filename.gz:
+gzip filename
+Extract the contents of the compressed file filename.gz with the gunzip command:
+gunzip filename.gz
+You can create gzipped tarballs using the following methods:
+Method #1:
+tar -czvvf archive.tar.gz [YOUR-LIST-OF-FILES]
+Method #2:
+tar -cavvf archive.tar.gz [YOUR-LIST-OF-FILES]
+The -a option specifies that the compression format should automatically be detected from the extension.
+The bunzip2 Command
+The bunzip2 utility uses a compression technique that is similar to gunzip2, except that bunzip2 typically produces smaller (more compressed) files than gzip. It comes with all Linux distributions. In order to compress with bzip2 use:
+bzip2 filename
+ls
+filename.bz2
+The zip Command
+The zip command is another utility for creating zip files. For example, if you have the files called file1, file2, and file3, then the following command creates the file file1.zip that contains these three files:
+zip file?
+The zip command has useful options (such as –x for excluding files), and you can find more information in online tutorials.
+COMMANDS FOR ZIP FILES AND BZ FILES
+There are various commands for handling zip files, including zdiff, zcmp, zmore, zless, zcat, zipgrep, zipsplit, zipinfo, zgrep, zfgrep, and zegrep.
+Remove the initial “z” or “zip” from these commands to obtain the corresponding “regular” bash command.
+For example, the zcat command is the counterpart to the cat command, so you can display the contents of a file in a .gz file without manually extracting that file and also without modifying the contents of the .gz file. Here is an example:
+ls test.gz
+zcat test.gz
+Another set of utilities for bz files includes bzcat, bzcmp, bzdiff, bzegrep, bzfgrep, bzgrep, bzless, and bzmore.
+Read the online documentation to find out more about these commands.
+INTERNAL FIELD SEPARATOR (IFS)
+The Internal Field Separator is an important concept in shell scripting that is useful while manipulating text data. An Internal Field Separator (IFS) is an environment variable that stores delimiting characters. The IFS is the default delimiter string used by a running shell environment.
+Consider the case where we need to iterate through words in a string or comma separated values (CSV). Specify IFS="," in order to display each substring on a separate line. For example, suppose that a shell script contains the following lines:
+data="age,gender,street,state"
+IFS=$','
+for item in $data
+do
+   echo Item: $item
+done
+The output of the preceding code block is here:
+Item: age
+Item: gender
+Item: street
+Item: state
+Note that you can also use the awk command (discussed in Chapter 7) to produce the same output.
+The next section contains a code sample that relies on the value of IFS in order to extract data correctly from a dataset.
+DATA FROM A RANGE OF COLUMNS IN A DATASET
+Listing 3.6 displays the contents of the dataset datacolumns1.txt and Listing 3.7 displays the contents of the shell script datacolumns1.sh that illustrates how to extract data from a range of columns from the dataset in Listing 3.6.
+Incidentally, this code sample contains a while loop, which is one of several types of loops that are available in bash, and are discussed in more detail in Chapter 3. As such, this code sample involves “forward referencing”: using a bash construct before it’s been discussed in detail. However, you are either already familiar with the concept of a while loop, or you have an intuitive grasp vis-à-vis its purpose, so you’ll be able to understand the code in this code sample.
+Listing 3.6 datacolumns1.txt
+#23456789012345678901234567890
+  1000      Jane     Edwards
+  2000      Tom      Smith
+  3000      Dave     Del Ray
+Listing 3.7 datacolumns1.sh
+# empid: 03-09
+# fname: 11-20
+# lname: 21-30
+IFS=''
+inputfile="datacolumns1.txt"
+
+while read line
+do
+  pound="`echo $line |grep '^#'`"
+
+  if [ x"$pound" == x"" ]
+  then
+
+   echo "line: $line"
+    empid=`echo "$line" |cut -c3-9`
+    echo "empid: $empid"
+
+    fname=`echo "$line" |cut -c11-19`
+    echo "fname: $fname"
+
+    lname=`echo "$line" |cut -c21-29`
+    echo "lname: $lname"
+    echo "--------------"
+  fi
+done < $inputfile
+Listing 3.7 sets the value of IFS to an empty string, which is required for this shell script to work correctly (try running this script without setting IFS and see what happens). The body of this script contains a while loop that reads each line from the input file called datacolumns1.txt and sets the pound variable equal to “v” if a line does not start with the “#” character OR sets the pound variable equal to the entire line if it does start with the “#” character. This is a simple technique for “filtering” lines based on their initial character.
+The if statement executes for lines that do not start with a “#” character, and the variables empid, fname, and lname are initialized to the characters in Columns 3 through 9, then 11 through 19, and then 21 through 29, respectively. The values of those three variables are printed each time they are initialized. As you can see, these variables are initialized by a combination of the echo command and the cut command, and the value of IFS is required in order to ensure that the echo command does not remove blank spaces.
+The output from Listing 3.7 is shown below:
+line: 1000     Jane        Edwards
+empid: 1000
+fname: Jane
+lname: Edwards
+--------------
+line: 2000     Tom         Smith
+empid: 2000
+fname: Tom
+lname: Smith
+--------------
+line: 3000     Dave        Del Ray
+empid: 3000
+fname: Dave
+lname: Del Ray
+--------------
+WORKING WITH UNEVEN ROWS IN DATASETS
+Listing 3.8 displays the contents of the dataset uneven.txt that contains rows with a different number of columns. Listing 3.9 displays the contents of the bash script uneven.sh that illustrates how to generate a dataset whose rows have the same number of columns.
+Listing 3.8: uneven.txt
+abc1 abc2 abc3 abc4
+abc5 abc6
+abc1 abc2 abc3 abc4
+abc5 abc6
+Listing 3.9: uneven.sh
+inputfile="uneven.txt"
+outputfile="even2.txt"
+
+# ==> four fields per line
+
+#method #1: four fields per line
+cat $inputfile | xargs -n 4 >$outputfile
+
+#method #2: two equal rows
+#xargs -L 2 <$inputfile > $outputfile
+
+echo "input file:"
+cat $inputfile
+
+echo "output file:"
+cat $outputfile
+Listing 3.9 contains two techniques for realigning the text in the input file so that the output appears with four columns in each row. As you can see, both techniques involve the xargs command (which is an interesting use of the xargs command).
+Launch the code in Listing 3.9 and you will see the following output:
+abc1 abc2 abc3 abc4
+abc5 abc6 abc1 abc2
+abc3 abc4 abc5 abc6
+SUMMARY
+This chapter showed you examples of how to use some useful and versatile bash commands. First, you learned about the bash commands join, fold, split, sort, and uniq. Next, you learned about the find command and the xargs command. You also learned about various ways to use the tr command, which is also in the use case in this chapter.
+Then you saw some compression-related commands, such as cpio and tar, which help you create new compressed files and also help you examine the contents of compressed files.
+In addition, you learned how to extract column ranges of data, as well as the usefulness of the IFS option.

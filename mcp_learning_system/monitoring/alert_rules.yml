@@ -1,0 +1,157 @@
+# Alert rules for MCP Learning System
+
+groups:
+  - name: mcp_learning_alerts
+    interval: 30s
+    rules:
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (mcp_learning_memory_bytes / (12 * 1024 * 1024 * 1024)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: learning
+        annotations:
+          summary: "High memory usage in learning system"
+          description: "Memory usage is above 80% of allocated 12GB ({{ $value | humanizePercentage }})"
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: |
+          (mcp_learning_memory_bytes / (12 * 1024 * 1024 * 1024)) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          component: learning
+        annotations:
+          summary: "Critical memory usage in learning system"
+          description: "Memory usage is above 95% of allocated 12GB ({{ $value | humanizePercentage }})"
+
+      # Low model accuracy
+      - alert: LowModelAccuracy
+        expr: mcp_model_accuracy < 0.7
+        for: 10m
+        labels:
+          severity: warning
+          component: model
+        annotations:
+          summary: "Model accuracy below threshold"
+          description: "Model {{ $labels.model_id }} accuracy is {{ $value }}, below 0.7 threshold"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          rate(mcp_learning_tasks_total{status="failed"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: tasks
+        annotations:
+          summary: "High task failure rate"
+          description: "Task failure rate is {{ $value | humanizePercentage }} over last 5 minutes"
+
+      # Slow message processing
+      - alert: SlowMessageProcessing
+        expr: |
+          histogram_quantile(0.95, rate(mcp_message_latency_us_bucket[5m])) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: core
+        annotations:
+          summary: "Slow message processing detected"
+          description: "95th percentile message latency is {{ $value }}μs, above 1ms threshold"
+
+      # Ring buffer saturation
+      - alert: RingBufferSaturation
+        expr: |
+          (mcp_ring_buffer_used_bytes / mcp_ring_buffer_size_bytes) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          component: ipc
+        annotations:
+          summary: "Ring buffer near capacity"
+          description: "Ring buffer is {{ $value | humanizePercentage }} full"
+
+      # Learning task queue backup
+      - alert: LearningTaskQueueBackup
+        expr: mcp_active_learners > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: queue
+        annotations:
+          summary: "Learning task queue backing up"
+          description: "{{ $value }} active learning tasks, may indicate processing bottleneck"
+
+      # Pattern detection anomaly
+      - alert: HighAnomalyRate
+        expr: |
+          rate(mcp_pattern_anomalies_total[5m]) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          component: patterns
+        annotations:
+          summary: "High anomaly detection rate"
+          description: "Anomaly rate is {{ $value | humanizePercentage }}, may indicate system issues"
+
+      # Adaptation failure
+      - alert: AdaptationFailures
+        expr: |
+          increase(mcp_adaptation_failures_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: adaptation
+        annotations:
+          summary: "Multiple adaptation failures"
+          description: "{{ $value }} adaptation failures in last 5 minutes"
+
+      # Shared memory issues
+      - alert: SharedMemoryError
+        expr: |
+          increase(mcp_shared_memory_errors_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: ipc
+        annotations:
+          summary: "Shared memory errors detected"
+          description: "{{ $value }} shared memory errors in last 5 minutes, IPC may be broken"
+
+      # Service down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} has been down for more than 1 minute"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          rate(process_cpu_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% for {{ $labels.job }}"
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/data"} / node_filesystem_size_bytes{mountpoint="/data"}) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: storage
+        annotations:
+          summary: "Low disk space on data volume"
+          description: "Less than 10% disk space remaining on /data"

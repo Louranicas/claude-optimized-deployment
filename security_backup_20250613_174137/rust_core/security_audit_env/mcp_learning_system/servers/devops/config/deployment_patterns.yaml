@@ -1,0 +1,215 @@
+# Deployment Pattern Definitions for DevOps MCP Server
+
+patterns:
+  # Rolling Update Pattern
+  rolling_update:
+    name: "Rolling Update"
+    description: "Gradually replace old instances with new ones"
+    risk_level: low
+    
+    parameters:
+      max_surge: 25%         # Maximum number of instances above desired count
+      max_unavailable: 25%   # Maximum number of unavailable instances
+      min_ready_seconds: 30  # Time to wait before considering instance ready
+      
+    success_indicators:
+      - metric: error_rate
+        threshold: 0.01      # Less than 1% error rate
+      - metric: response_time
+        threshold: 200       # Less than 200ms p95 latency
+        
+    failure_indicators:
+      - metric: health_check_failures
+        threshold: 3         # More than 3 consecutive failures
+      - metric: rollback_triggered
+        threshold: 1         # Any rollback
+        
+    optimal_conditions:
+      time_windows:
+        - days: ["tuesday", "wednesday", "thursday"]
+          hours: [2, 3, 4, 5]  # 2-6 AM
+      max_concurrent_deployments: 5
+      required_resources:
+        cpu_headroom: 30%    # At least 30% CPU available
+        memory_headroom: 25% # At least 25% memory available
+        
+  # Blue-Green Deployment Pattern
+  blue_green:
+    name: "Blue-Green Deployment"
+    description: "Switch traffic between two identical environments"
+    risk_level: medium
+    
+    parameters:
+      traffic_split_initial: 0    # Start with 0% to green
+      traffic_split_steps: [10, 25, 50, 100]  # Gradual traffic shift
+      validation_duration: 300    # 5 minutes between steps
+      rollback_threshold: 0.05    # 5% error rate triggers rollback
+      
+    success_indicators:
+      - metric: service_availability
+        threshold: 0.999     # 99.9% availability
+      - metric: data_consistency
+        threshold: 1.0       # 100% data consistency
+        
+    failure_indicators:
+      - metric: split_brain
+        threshold: 0         # Any split-brain detection
+      - metric: data_corruption
+        threshold: 0         # Any data corruption
+        
+    optimal_conditions:
+      required_infrastructure:
+        duplicate_environment: true
+        load_balancer_type: ["application", "network"]
+      minimum_traffic_volume: 1000  # requests per minute
+      
+  # Canary Deployment Pattern
+  canary:
+    name: "Canary Deployment"
+    description: "Test new version with small percentage of traffic"
+    risk_level: low
+    
+    parameters:
+      initial_percentage: 5       # Start with 5% traffic
+      increment_percentage: 10    # Increase by 10% each step
+      increment_interval: 600     # 10 minutes between increments
+      success_criteria:
+        error_rate_increase: 0.01 # Max 1% increase in errors
+        latency_increase: 0.1     # Max 10% increase in latency
+        
+    success_indicators:
+      - metric: canary_error_rate
+        comparison: baseline
+        threshold: 1.1            # Within 110% of baseline
+      - metric: canary_performance
+        comparison: baseline
+        threshold: 1.2            # Within 120% of baseline
+        
+    failure_indicators:
+      - metric: canary_crashes
+        threshold: 1              # Any crash
+      - metric: customer_complaints
+        threshold: 5              # More than 5 complaints
+        
+    optimal_conditions:
+      minimum_replicas: 10        # Need enough instances for meaningful split
+      feature_flags_enabled: true
+      monitoring_coverage: 0.95   # 95% of metrics covered
+      
+  # Recreate Pattern
+  recreate:
+    name: "Recreate Deployment"
+    description: "Stop all old instances then start new ones"
+    risk_level: high
+    
+    parameters:
+      shutdown_grace_period: 30   # Seconds to wait for graceful shutdown
+      startup_probe_delay: 10     # Initial delay for startup probe
+      startup_probe_period: 5     # Check every 5 seconds
+      
+    success_indicators:
+      - metric: startup_time
+        threshold: 300            # Less than 5 minutes total
+      - metric: all_instances_ready
+        threshold: 1.0            # 100% instances ready
+        
+    failure_indicators:
+      - metric: startup_failures
+        threshold: 0.1            # More than 10% failed to start
+      - metric: downtime_duration
+        threshold: 600            # More than 10 minutes downtime
+        
+    optimal_conditions:
+      allowed_environments: ["development", "testing"]
+      maintenance_window_required: true
+      max_downtime_tolerance: 900 # 15 minutes
+      
+  # A/B Testing Pattern
+  ab_testing:
+    name: "A/B Testing Deployment"
+    description: "Run multiple versions simultaneously for testing"
+    risk_level: medium
+    
+    parameters:
+      version_split:
+        control: 50
+        variant: 50
+      minimum_sample_size: 10000
+      statistical_significance: 0.95
+      
+    success_indicators:
+      - metric: conversion_rate_improvement
+        threshold: 0.05           # 5% improvement
+      - metric: user_satisfaction_score
+        threshold: 0.0            # No decrease
+        
+    optimal_conditions:
+      analytics_enabled: true
+      session_stickiness: true
+      minimum_test_duration: 604800  # 1 week in seconds
+
+# Pattern Selection Rules
+selection_rules:
+  - condition: "environment == 'production' AND critical_service == true"
+    preferred_patterns: ["canary", "blue_green"]
+    excluded_patterns: ["recreate"]
+    
+  - condition: "environment == 'staging'"
+    preferred_patterns: ["rolling_update", "blue_green"]
+    
+  - condition: "environment == 'development'"
+    preferred_patterns: ["recreate", "rolling_update"]
+    
+  - condition: "service_type == 'stateless' AND replicas > 10"
+    preferred_patterns: ["rolling_update", "canary"]
+    
+  - condition: "service_type == 'stateful'"
+    preferred_patterns: ["blue_green"]
+    excluded_patterns: ["recreate"]
+    
+  - condition: "deployment_frequency > 10 AND deployment_size < 100MB"
+    preferred_patterns: ["canary", "rolling_update"]
+    
+  - condition: "compliance_required == true"
+    preferred_patterns: ["blue_green"]
+    required_validations:
+      - audit_trail
+      - approval_workflow
+      - rollback_plan
+
+# Learning Parameters
+learning_config:
+  # Pattern success tracking
+  success_tracking:
+    metrics_to_track:
+      - deployment_duration
+      - error_rate_delta
+      - rollback_rate
+      - user_impact_score
+      - resource_utilization
+      
+    aggregation_window: 86400     # 24 hours
+    minimum_samples: 10
+    
+  # Pattern optimization
+  optimization:
+    parameter_tuning:
+      enabled: true
+      algorithm: "bayesian_optimization"
+      exploration_rate: 0.1
+      
+    feedback_incorporation:
+      sources:
+        - automated_metrics
+        - manual_feedback
+        - incident_reports
+      weight_decay: 0.95          # Decay factor for old feedback
+      
+  # Anomaly detection
+  anomaly_detection:
+    methods:
+      - statistical_deviation
+      - pattern_matching
+      - ml_clustering
+    sensitivity: 0.8
+    alert_threshold: 0.95

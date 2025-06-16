@@ -1,0 +1,389 @@
+# Security Chapter Extract
+Book: Gregory C. Rasner - Cybersecurity and Third-Party Risk_ Third Party Threat Hunting (2021, Wiley) - libgen.li
+Chapter: 8600 - Requests to the Publisher for permission should be addressed to the 
+Permissions Department, John Wiley & Sons, Inc., 111 River Street, Hoboken, NJ 07030, (201)  
+748-6011, fax (201) 748-6008, or online at www.wiley.com/go/permissions.
+Limit of Liability/Disclaimer of Warranty: While the publisher and author have used their best 
+efforts in preparing this book, they make no representations or warranties with respect to the accuracy 
+or completeness of the contents of this book and specifically disclaim any implied warranties of 
+merchantability or fitness for a particular purpose. No warranty may be created or extended by sales 
+representatives or written sales materials. The advice and strategies contained herein may not be 
+suitable for your situation. You should consult with a professional where appropriate. Neither the 
+publisher nor author shall be liable for any loss of profit or any other commercial damages, including 
+but not limited to special, incidental, consequential, or other damages.
+For general information on our other products and services please contact our Customer Care 
+Department within the United States at (877) 762-2974, outside the United States at (317) 572-3993 
+or fax (317) 572-4002.
+Wiley also publishes its books in a variety of electronic formats. Some content that appears in print 
+may not be available in electronic formats. For more information about Wiley products, visit our web 
+site at www.wiley.com.
+Library of Congress Control Number: 2021935895
+Trademarks: WILEY and the Wiley logo are trademarks or registered trademarks of John Wiley & 
+Sons, Inc. and/or its affiliates, in the United States and other countries, and may not be used without 
+written permission. All other trademarks are the property of their respective owners. John Wiley & Sons, 
+Inc. is not associated with any product or vendor mentioned in this book.
+Cover image: © AF-studio/Getty Images
+Cover design: Wiley 
+I dedicate this book to two women in my life who made 
+this book possible. First is my mom, who emphasized a 
+love of reading and education that gave me the capac-
+ity to write. Second is my wife, who has been my biggest 
+fan, encouraged me to write the book, and put up with 
+the hours of me sitting at my desk writing it. And to my 
+father, who taught me the qualities of a great business 
+leader, father, and husband.
+iv
+(ISC)2 books published by Wiley provide aspiring and expe-
+rienced cybersecurity professionals with unique insights and 
+advice for delivering on (ISC)2’s vision of inspiring a safe and 
+secure world.
+(ISC)2 is an international nonprofit membership  association 
+focused on inspiring a safe and secure cyber world. Best known 
+for the acclaimed Certified Information Systems Security 
+ Professional (CISSP) certification, (ISC)2 offers a portfolio of 
+credentials that are part of a holistic, programmatic approach 
+to security. (ISC)2’s membership is made up of certified cyber, 
+ information, software and infrastructure security professionals 
+who are making a difference and helping to advance the industry.(ISC)2®
+vGregory C. Rasner has worked as a cybersecurity and IT 
+leader in Finance, Biotech, T echnology, and Software fields. 
+He holds a BA from Claremont McKenna College along with 
+certifications: CISSP , CCNA, CIPM, ITIL. Along with the book 
+Cybersecurity and Third-Party Risk published by Wiley, he has 
+written several online articles for major publications, and is a 
+frequent speaker at forums and conferences on related topics. He 
+has five kids and a wife who is also a cybersecurity professional. 
+Rasner was in the USMC and has held leadership roles in several 
+veterans organizations. Greg was instrumental in establishing 
+the cybersecurity program at Johnston Community College, is a 
+board member on the  T echnology Advisory Board, and teaches 
+part-time at JCC as well. Fun for him is camping and traveling 
+with his family.About the Author
+vi
+Narendra Patlolla is a senior information security leader. He 
+is currently head of cybersecurity architecture at Arthur 
+J Gallagher & Co. With over 20 years of progressive experience 
+in the industry and cybersecurity discipline, Patlolla previously 
+held key leadership roles at multiple Fortune 500 enterprises, 
+where he established identity and security architecture programs 
+and gained extensive experience in implementing multiple ven-
+dor and bespoke solutions. He has managed large security pro-
+grams across multiple industry verticals (insurance, financial 
+services, technology, healthcare, and marketing services).
+Narendra holds a B.S in mechanical engineering, M.S in 
+computer information technology, and M.B.A in finance and 
+management. He is also a Certified Information Security Man-
+ager (CISM), a Certified Information Systems Security Pro-
+fessional (CISSP), and a Certified Open Group Architecture 
+Framework (TOGAF) architect. Narendra is a member of the 
+IDSA Executive Advisory Board.About the Technical Editor
+viiFirst, I acknowledge God’s gifts and blessings to me to be able 
+to write this book. Second, to my T echnical Editor,  Narendra 
+Patlolla, for such a great job at making the work better. Next 
+are my colleagues and friends who have been so critical to what 
+I  learned in leadership, cybersecurity, and operations: John 
+ Stewart, Edna Conway, Michelle Guel, Oisin Mac Alasdair, Mark 
+Sullivan, Steve Scott, Ed Goff, Christina Bray, James Claypool, 
+David Quinlan, Ikenna Iloabuchi, Alexander Mulnick, Noah 
+Shindler, Vincent Lau, KC Udoh, Karen Heflin, and many oth-
+ers who have helped me learn and lead. Lastly, the Wiley team, 
+Jim Minatel, Pete Gaughan, and Jan Lynn, who were awesome.Acknowledgments
+viii
+Foreword xvi
+Introduction xviii
+Section 1 Cybersecurity Third-Party Risk
+Chapter 1 What Is the Risk? 1
+The SolarWinds Supply-Chain Attack 4
+The VGCA Supply-Chain Attack 6
+The Zyxel Backdoor Attack 9
+Other Supply-Chain Attacks 10
+Problem Scope 12
+Compliance Does Not Equal Security 15
+Third-Party Breach Examples 17
+Third-Party Risk Management 24
+Cybersecurity and Third-Party Risk 27
+Cybersecurity Third-Party Risk as a Force  
+Multiplier 32
+Conclusion 33
+Chapter 2 Cybersecurity Basics 35
+Cybersecurity Basics for Third-Party Risk 38
+Cybersecurity Frameworks 46
+Due Care and Due Diligence 53
+Cybercrime and Cybersecurity 56Contents
+Contents ix
+T ypes of Cyberattacks 59
+Analysis of a Breach 63
+The Third-Party Breach Timeline: T arget 66
+Inside Look: Home Depot Breach 68
+Conclusion 72
+Chapter 3 What the COVID-19 Pandemic Did to 
+Cybersecurity and Third-Party Risk 75
+The Pandemic Shutdown 77
+Timeline of the Pandemic Impact on  
+Cybersecurity 80
+Post-Pandemic Changes and T rends 84
+Regulated Industries 98
+An Inside Look: P&N Bank 100
+SolarWinds Attack Update 102
+Conclusion 104
+Chapter 4 Third-Party Risk Management 107
+Third-Party Risk Management Frameworks 113
+ISO 27036:2013+ 114
+NIST 800-SP 116
+NIST 800-161 Revision 1: Upcoming  
+Revision 125
+NISTIR 8272 Impact Analysis T ool for  
+Interdependent Cyber Supply-Chain Risks 125
+The Cybersecurity and Third-Party Risk  
+Program Management 127
+Kristina Conglomerate (KC) Enterprises 128
+KC Enterprises’ Cyber Third-Party Risk  
+Program 131
+Inside Look: Marriott 140
+Conclusion 141
+Chapter 5 Onboarding Due Diligence 143
+Intake 145
+Data Privacy 146
+x Contents
+Cybersecurity 147
+Amount of Data 149
+Country Risk and Locations 149
+Connectivity 150
+Data T ransfer 150
+Data Location 151
+Service- Level Agreement or Recovery  
+Time Objective 151
+Fourth Parties 152
+Software Security 152
+KC Enterprises Intake/Inherent Risk  
+Cybersecurity Questionnaire 153
+Cybersecurity in Request for Proposals 154
+Data Location 155
+Development 155
+Identity and Access Management 156
+Encryption 156
+Intrusion Detection/Prevention System 157
+Antivirus and Malware 157
+Data Segregation 158
+Data Loss Prevention 158
+Notification 158
+Security Audits 159
+Cybersecurity Third- Party Intake 160
+Data Security Intake Due Diligence 161
+Next Steps 167
+Ways to Become More Efficient 173
+Systems and Organization Controls Reports 174
+Chargebacks 177
+Go- Live Production Reviews 179
+Connectivity Cyber Reviews 179
+Inside Look: Ticketmaster and Fourth Parties 182
+Conclusion 183
+Contents xi
+Chapter 6 Ongoing Due Diligence 185
+Low- Risk Vendor Ongoing Due Diligence 189
+Moderate- Risk Vendor Ongoing Due Diligence 193
+High- Risk Vendor Ongoing Due Diligence 196
+“T oo Big to Care”  197
+A Note on Phishing 200
+Intake and Ongoing Cybersecurity Personnel 203
+Ransomware: A History and Future 203
+Asset Management 205
+Vulnerability and Patch Management 206
+Security Relevance Score: 16
+Word Count: 1304
+Extracted: 2025-06-13 23:40:22
+
+---
+
+Requests to the Publisher for permission should be addressed to the 
+Permissions Department, John Wiley & Sons, Inc., 111 River Street, Hoboken, NJ 07030, (201)  
+748-6011, fax (201) 748-6008, or online at www.wiley.com/go/permissions.
+Limit of Liability/Disclaimer of Warranty: While the publisher and author have used their best 
+efforts in preparing this book, they make no representations or warranties with respect to the accuracy 
+or completeness of the contents of this book and specifically disclaim any implied warranties of 
+merchantability or fitness for a particular purpose. No warranty may be created or extended by sales 
+representatives or written sales materials. The advice and strategies contained herein may not be 
+suitable for your situation. You should consult with a professional where appropriate. Neither the 
+publisher nor author shall be liable for any loss of profit or any other commercial damages, including 
+but not limited to special, incidental, consequential, or other damages.
+For general information on our other products and services please contact our Customer Care 
+Department within the United States at (877) 762-2974, outside the United States at (317) 572-3993 
+or fax (317) 572-4002.
+Wiley also publishes its books in a variety of electronic formats. Some content that appears in print 
+may not be available in electronic formats. For more information about Wiley products, visit our web 
+site at www.wiley.com.
+Library of Congress Control Number: 2021935895
+Trademarks: WILEY and the Wiley logo are trademarks or registered trademarks of John Wiley & 
+Sons, Inc. and/or its affiliates, in the United States and other countries, and may not be used without 
+written permission. All other trademarks are the property of their respective owners. John Wiley & Sons, 
+Inc. is not associated with any product or vendor mentioned in this book.
+Cover image: © AF-studio/Getty Images
+Cover design: Wiley 
+I dedicate this book to two women in my life who made 
+this book possible. First is my mom, who emphasized a 
+love of reading and education that gave me the capac-
+ity to write. Second is my wife, who has been my biggest 
+fan, encouraged me to write the book, and put up with 
+the hours of me sitting at my desk writing it. And to my 
+father, who taught me the qualities of a great business 
+leader, father, and husband.
+iv
+(ISC)2 books published by Wiley provide aspiring and expe-
+rienced cybersecurity professionals with unique insights and 
+advice for delivering on (ISC)2’s vision of inspiring a safe and 
+secure world.
+(ISC)2 is an international nonprofit membership  association 
+focused on inspiring a safe and secure cyber world. Best known 
+for the acclaimed Certified Information Systems Security 
+ Professional (CISSP) certification, (ISC)2 offers a portfolio of 
+credentials that are part of a holistic, programmatic approach 
+to security. (ISC)2’s membership is made up of certified cyber, 
+ information, software and infrastructure security professionals 
+who are making a difference and helping to advance the industry.(ISC)2®
+vGregory C. Rasner has worked as a cybersecurity and IT 
+leader in Finance, Biotech, T echnology, and Software fields. 
+He holds a BA from Claremont McKenna College along with 
+certifications: CISSP , CCNA, CIPM, ITIL. Along with the book 
+Cybersecurity and Third-Party Risk published by Wiley, he has 
+written several online articles for major publications, and is a 
+frequent speaker at forums and conferences on related topics. He 
+has five kids and a wife who is also a cybersecurity professional. 
+Rasner was in the USMC and has held leadership roles in several 
+veterans organizations. Greg was instrumental in establishing 
+the cybersecurity program at Johnston Community College, is a 
+board member on the  T echnology Advisory Board, and teaches 
+part-time at JCC as well. Fun for him is camping and traveling 
+with his family.About the Author
+vi
+Narendra Patlolla is a senior information security leader. He 
+is currently head of cybersecurity architecture at Arthur 
+J Gallagher & Co. With over 20 years of progressive experience 
+in the industry and cybersecurity discipline, Patlolla previously 
+held key leadership roles at multiple Fortune 500 enterprises, 
+where he established identity and security architecture programs 
+and gained extensive experience in implementing multiple ven-
+dor and bespoke solutions. He has managed large security pro-
+grams across multiple industry verticals (insurance, financial 
+services, technology, healthcare, and marketing services).
+Narendra holds a B.S in mechanical engineering, M.S in 
+computer information technology, and M.B.A in finance and 
+management. He is also a Certified Information Security Man-
+ager (CISM), a Certified Information Systems Security Pro-
+fessional (CISSP), and a Certified Open Group Architecture 
+Framework (TOGAF) architect. Narendra is a member of the 
+IDSA Executive Advisory Board.About the Technical Editor
+viiFirst, I acknowledge God’s gifts and blessings to me to be able 
+to write this book. Second, to my T echnical Editor,  Narendra 
+Patlolla, for such a great job at making the work better. Next 
+are my colleagues and friends who have been so critical to what 
+I  learned in leadership, cybersecurity, and operations: John 
+ Stewart, Edna Conway, Michelle Guel, Oisin Mac Alasdair, Mark 
+Sullivan, Steve Scott, Ed Goff, Christina Bray, James Claypool, 
+David Quinlan, Ikenna Iloabuchi, Alexander Mulnick, Noah 
+Shindler, Vincent Lau, KC Udoh, Karen Heflin, and many oth-
+ers who have helped me learn and lead. Lastly, the Wiley team, 
+Jim Minatel, Pete Gaughan, and Jan Lynn, who were awesome.Acknowledgments
+viii
+Foreword xvi
+Introduction xviii
+Section 1 Cybersecurity Third-Party Risk
+Chapter 1 What Is the Risk? 1
+The SolarWinds Supply-Chain Attack 4
+The VGCA Supply-Chain Attack 6
+The Zyxel Backdoor Attack 9
+Other Supply-Chain Attacks 10
+Problem Scope 12
+Compliance Does Not Equal Security 15
+Third-Party Breach Examples 17
+Third-Party Risk Management 24
+Cybersecurity and Third-Party Risk 27
+Cybersecurity Third-Party Risk as a Force  
+Multiplier 32
+Conclusion 33
+Chapter 2 Cybersecurity Basics 35
+Cybersecurity Basics for Third-Party Risk 38
+Cybersecurity Frameworks 46
+Due Care and Due Diligence 53
+Cybercrime and Cybersecurity 56Contents
+Contents ix
+T ypes of Cyberattacks 59
+Analysis of a Breach 63
+The Third-Party Breach Timeline: T arget 66
+Inside Look: Home Depot Breach 68
+Conclusion 72
+Chapter 3 What the COVID-19 Pandemic Did to 
+Cybersecurity and Third-Party Risk 75
+The Pandemic Shutdown 77
+Timeline of the Pandemic Impact on  
+Cybersecurity 80
+Post-Pandemic Changes and T rends 84
+Regulated Industries 98
+An Inside Look: P&N Bank 100
+SolarWinds Attack Update 102
+Conclusion 104
+Chapter 4 Third-Party Risk Management 107
+Third-Party Risk Management Frameworks 113
+ISO 27036:2013+ 114
+NIST 800-SP 116
+NIST 800-161 Revision 1: Upcoming  
+Revision 125
+NISTIR 8272 Impact Analysis T ool for  
+Interdependent Cyber Supply-Chain Risks 125
+The Cybersecurity and Third-Party Risk  
+Program Management 127
+Kristina Conglomerate (KC) Enterprises 128
+KC Enterprises’ Cyber Third-Party Risk  
+Program 131
+Inside Look: Marriott 140
+Conclusion 141
+Chapter 5 Onboarding Due Diligence 143
+Intake 145
+Data Privacy 146
+x Contents
+Cybersecurity 147
+Amount of Data 149
+Country Risk and Locations 149
+Connectivity 150
+Data T ransfer 150
+Data Location 151
+Service- Level Agreement or Recovery  
+Time Objective 151
+Fourth Parties 152
+Software Security 152
+KC Enterprises Intake/Inherent Risk  
+Cybersecurity Questionnaire 153
+Cybersecurity in Request for Proposals 154
+Data Location 155
+Development 155
+Identity and Access Management 156
+Encryption 156
+Intrusion Detection/Prevention System 157
+Antivirus and Malware 157
+Data Segregation 158
+Data Loss Prevention 158
+Notification 158
+Security Audits 159
+Cybersecurity Third- Party Intake 160
+Data Security Intake Due Diligence 161
+Next Steps 167
+Ways to Become More Efficient 173
+Systems and Organization Controls Reports 174
+Chargebacks 177
+Go- Live Production Reviews 179
+Connectivity Cyber Reviews 179
+Inside Look: Ticketmaster and Fourth Parties 182
+Conclusion 183
+Contents xi
+Chapter 6 Ongoing Due Diligence 185
+Low- Risk Vendor Ongoing Due Diligence 189
+Moderate- Risk Vendor Ongoing Due Diligence 193
+High- Risk Vendor Ongoing Due Diligence 196
+“T oo Big to Care”  197
+A Note on Phishing 200
+Intake and Ongoing Cybersecurity Personnel 203
+Ransomware: A History and Future 203
+Asset Management 205
+Vulnerability and Patch Management 206
+802.1x or Network Access Control (NAC) 206
+Inside Look: GE Breach 207
+Conclusion 208

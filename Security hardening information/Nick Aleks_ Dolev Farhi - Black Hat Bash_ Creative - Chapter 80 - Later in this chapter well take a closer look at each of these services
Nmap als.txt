@@ -1,0 +1,60 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 80 - Later in this chapter, we’ll take a closer look at each of these services.
+Nmap also allows you to pass the --open flag on the command line to show only the ports that were found open:
+$ nmap -sV -iL 172-16-10-hosts.txt --open
+Kali’s own interface IP (172.16.10.1) will be captured in this port scan, since it is part of the hosts file. You can use Nmap’s --exclude option to exclude this specific IP when performing a network-wide scan: --exclude 172.16.10.1. You can also remove it manually from the file for convenience.
+Use man nmap to learn more about Nmap’s scanning and filtering capabilities.
+Security Relevance Score: 7
+Word Count: 605
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Later in this chapter, we’ll take a closer look at each of these services.
+Nmap also allows you to pass the --open flag on the command line to show only the ports that were found open:
+$ nmap -sV -iL 172-16-10-hosts.txt --open
+Kali’s own interface IP (172.16.10.1) will be captured in this port scan, since it is part of the hosts file. You can use Nmap’s --exclude option to exclude this specific IP when performing a network-wide scan: --exclude 172.16.10.1. You can also remove it manually from the file for convenience.
+Use man nmap to learn more about Nmap’s scanning and filtering capabilities.
+
+
+RustScan
+RustScan is becoming more popular in the bug-bounty and penetration-testing spaces because of its speed and extensibility. The following rustscan command runs a port scan. The -a (address) argument accepts a single address or an address range:
+$ rustscan -a 172.16.10.0/24
+
+Open 172.16.10.11:21
+Open 172.16.10.1:22
+Open 172.16.10.13:22
+--snip--
+
+RustScan’s output is fairly easy to parse with bash. Lines starting with Open indicate that an open port was found on a specific IP address. These are followed by the IP address and port, separated by a colon.
+When you run RustScan, you may notice that the initial output contains banners, author credits, and additional information not directly related to the scan results. Use the -g (greppable) option to show only the scanning information. The following command uses the greppable output mode to scan 172.16.10.0/24 on the first 1,024 ports (also called privileged ports) with the -r (range) option:
+$ rustscan -g -a 172.16.10.0/24 -r 1-1024
+
+172.16.10.11 -> [80]
+172.16.10.12 -> [80]
+
+Now the output is more grep friendly. To parse it, all we need to do is pass the delimiter ->, which separates the IP address and port, with awk:
+$ rustscan -g -a 172.16.10.0/24 -r 1-1024 | awk -F'->' '{print $1,$2}'
+This command outputs two fields: the IP address and the port. To get rid of the [] surrounding the port number, we use the tr command and the -d (delete) argument followed by the characters to delete:
+$ rustscan -g -a 172.16.10.0/24 -r 1-1024 | awk -F'->' '{print $1,$2}' | tr -d '[]'
+This should return a cleaner output.
+
+WARNING
+
+Remember that running port scanners in aggressive modes increases the chances of getting caught, especially if the target implements an intrusion detection system or endpoint detection and response system. Also, if you scan at a rapid pace, you may cause a denial of service as a result of the network flood.
+
+
+Netcat
+You can also use Netcat for port scanning activities. People often use this tool when they want to check the state of a single port (such as whether it’s open or closed), but Netcat also enables you to scan multiple ports with a single command. Let’s see how this can be achieved.
+Run the following command to scan TCP ports 1–1024 on 172.16.10.11:
+$ nc -zv 172.16.10.11 1-1024
+
+--snip--
+
+(UNKNOWN) [172.16.10.11] 80 (http) open
+(UNKNOWN) [172.16.10.11] 21 (ftp) open
+
+We use nc with the -z flag (zero input/output, or I/O, mode, which won’t send any data) and the -v (verbose) flag, followed by the target IP and the port range separated by a hyphen (-). As you can see in the output, two ports were found open.
+Exercise 4: Organizing Scan Results
+Sorting your scan results into categories of interest is often useful. For example, you could dump results for each IP address into a dedicated file or organize the results based on the versions of the software found. In this exercise, you’ll organize your scan results based on port numbers. Write a script that does the following:

@@ -35,6 +35,7 @@ struct McpServerInstance {
     status: ServerStatus,
     pid: Option<u32>,
     restart_count: u32,
+    #[serde(skip)]
     last_health_check: Option<std::time::Instant>,
 }
 
@@ -416,7 +417,7 @@ impl McpLauncher {
                 }
             }
             
-            if let Some(server) = servers.get_mut(name) {
+            if let Some(server) = servers.get_mut(&name) {
                 server.status = ServerStatus::Stopped;
                 server.pid = None;
             }

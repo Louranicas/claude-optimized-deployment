@@ -1,0 +1,979 @@
+# Security Chapter Extract
+Book: Ilya Shpigor [Илья Шпигорь] - Bash programming from scratch (2021, leanpub.com) - libgen.li
+Chapter: 1960 - Digital Equipment Corpo-
+ration⁵⁰implemented the interactive mode for their minicomputer ⁵¹PDP-1⁵²in 1959. It was a
+⁴⁴https://en.wikipedia.org/wiki/Preemption_(computing)
+⁴⁵https://en.wikipedia.org/wiki/Scheduling_(computing)
+⁴⁶https://en.wikipedia.org/wiki/Multi-core_processor
+⁴⁷https://en.wikipedia.org/wiki/Personal_computer
+⁴⁸https://en.wikipedia.org/wiki/Embedded_system
+⁴⁹https://en.wikipedia.org/wiki/Graphical_user_interface
+⁵⁰https://en.wikipedia.org/wiki/Digital_Equipment_Corporation
+⁵¹https://en.wikipedia.org/wiki/Minicomputer
+⁵²https://en.wikipedia.org/wiki/PDP-1
+GeneralInformation 15
+fundamentallynewapproach.Beforethat,IBMcomputersdominatedthemarketinthe1950s.They
+worked in batch processing mode only. IBM OSes with multiprogramming automated program
+loadingandprovidedhighperformanceforcalculationtasks.
+TheideaofinteractiveworkwiththecomputerappearedfirstintheSAGEmilitaryproject.TheUS
+AirForcewasitscustomer.Thegoaloftheprojectwastodevelopanautomatedairdefensesystem
+todetectSovietbombers.
+When working on the SAGE project, engineers faced the problem. The user of the system should
+analyzedatafromradarsinreal-time.Ifhedetectsathreat,heshouldreactasquicklyaspossibleand
+commandtointerceptthebombers.However,theexistedmethodsofinteractionwiththecomputer
+didnotfitthistask.Theydidnotallowshowinginformationtotheuserinreal-timeandreceivehis
+inputatanymoment.
+Engineers came to the idea of the interactive mode. They implemented it in the first interactive
+computer AN/FSQ-7 ⁵³in1955(seeFigure1-5).Thecomputerusedthemonitorwitha cathode-ray
+tube⁵⁴todisplayinformationfromradars.The light pen⁵⁵allowedtheusertocommandthesystem.
+Figure 1-5. Computer AN/FSQ-7
+Thenewwayofinteractionwithcomputersbecameknowninscientificcircles.Itgainedpopularity
+⁵³https://en.wikipedia.org/wiki/AN/FSQ-7_Combat_Direction_Central
+⁵⁴https://en.wikipedia.org/wiki/Cathode-ray_tube
+⁵⁵https://en.wikipedia.org/wiki/Light_pen
+GeneralInformation 16
+quickly. The existing batch processing mode coped with program execution well. However, this
+modewasinconvenientfordevelopmentand debugging ⁵⁶applications.
+Debuggingaprogramissearchingandeliminatingitserrors.
+Supposethatyouarewritingaprogramforthecomputerwithbatchprocessing.Youshouldprepare
+your code and write it to the storage device. When the device is ready, you put it in a queue. The
+computer’s operator takes devices from the queue and loads them to the computer one by one.
+Therefore, your task can wait in the queue for several hours. Now assume that an error happened
+inyourprogram.Inthiscase,youshouldfixit,preparethenewversionoftheprogramandwriteit
+tothedevice.Youputitinthequeueagainandwaitforhours.Becauseofthisworkflow,youneed
+severaldaystomakeevenasmallprogramworking.
+The software development workflow differs when you use an interactive mode. You prepare
+your program and load it to the computer. Then it launches the program and shows you results.
+Immediately, you can analyze a possible error, fix it and relaunch the program. This workflow
+accelerates software development and debugging tasks significantly. Now you spend few hours on
+thetaskthatrequiresdayswithbatchprocessingmode.
+Theinteractivemodebroughtnewchallengesforcomputerengineers.Thismoderequiresthesystem
+that reacts to user actions immediately. And providing a short reaction time required a new load-
+balancingmechanism.Themultitaskingconceptbecameasolutionforthistask.
+There are alternative solutions for providing interactive mode. For example, there are interactive
+single-taskingOSeslike MS-DOS⁵⁷.MS-DOSwasthesystemforcheapPCsofthe1980s.
+However,itwasinadvisabletoapplysingle-taskinginthe1960swhencomputersweretooexpensive.
+These computers executed many programs in parallel. Such a mode was called time-sharing ⁵⁸. It
+allowssharingexpensivehardwareresourcesamongseveralusers.Thesingle-taskingapproachdoes
+notfitsuchausecasebecauseitisnotcompatiblewithtime-sharing.
+Whenthefirstrelativelycheappersonalcomputersappearedinthe1980s,theyusedsingle-tasking
+OSes.Suchsystemsrequirefewerhardwareresourcesthantheiranalogswithmultitasking.Despite
+its simplicity, single-tasking OSes support interactive mode for the running program. This mode
+becameespeciallyattractiveforPCusers.
+Wheninteractivemodebecamemoreandmorepopular,computerengineersmeetanewchallenge.
+The existing devices for interacting with computers turned out to be inconvenient. Magnetic tapes
+andprinterswerewidespreadthroughthe1950sandearly1960s.Theydidnotfitinteractivemode
+absolutely.
+Teletype⁵⁹(TTY) became a prototype of a device for interactive work with a computer. Figure 1-
+6 shows the Model 33 teletype. It is an electromechanical typewriter. It is connected to the same
+⁵⁶https://en.wikipedia.org/wiki/Debugging
+⁵⁷https://en.wikipedia.org/wiki/MS-DOS
+⁵⁸https://en.wikipedia.org/wiki/Time-sharing
+⁵⁹https://en.wikipedia.org/wiki/Teleprinter
+GeneralInformation 17
+typewriter through wires. Once two teletypes are connected, operators can send text messages to
+each other. The sender types text on his device. The keystrokes are transmitted to the receiver’s
+device.Itprintsouteachreceivedletteronpaper.
+Figure 1-6. A Teletype Model 33
+Teletype⁶⁰(TTY)becameaprototypeofadeviceforinteractiveworkwithacomputer.Theoriginal
+ideabehindthisdevicewastoconnecttwoofthemviawires.Itallowsusersonbothsidestosend
+each other text messages. One user types the message on the keyboard. Then his device transmits
+thekeystrokestothereceiver.Whentheteletypeontheothersidereceivesdata,itprintsthetexton
+paper.
+Computerengineersconnectedtheteletypetothecomputer.Thissolutionallowedtheusertosend
+textcommandstothemachineandreceiveresults.Suchaworkflowbecameknownasa command-
+line interface ⁶¹(CLI).Figure1-6showstheModel33teletype.Itwasoneofthemostpopulardevices
+inthe1960s.
+Teletypeusestheprinterasanoutputdevice.Itworksveryslowandrequiresaround10secondsto
+printasingleline.Thenextstepofdevelopingtheuserinterfacewasreplacingtheprinterwiththe
+monitor. This increased the data output speed several times. The new device with a keyboard and
+⁶⁰https://en.wikipedia.org/wiki/Teleprinter
+⁶¹https://en.wikipedia.org/wiki/Command-line_interface
+GeneralInformation 18
+monitorwascalledthe terminal⁶².Itreplacedteletypesinthe1970s.
+Figure 1-7 shows a modern command-line interface. You can see the terminal emulator ⁶³applica-
+tionthere.Thisapplicationemulatestheterminaldeviceforthesakeofcompatibility.Itallowsyou
+to run programs that work with the real terminal only. The emulator application in Figure 1-7 is
+calledTerminator ⁶⁴.TheBashcommand-lineinterpreterisrunningintheTerminatorwindow.The
+windowdisplaystheresultsofthepingandlsprograms.
+Figure 1-7. Command-line interface
+The command-line interface is still in demand today. It has several advantages over the graphical
+interface. For example, CLI does not require as many resources as GUI. CLI runs reliably on low-
+performance embedded computers as well as on powerful servers. If you use CLI to access the
+computer remotely, you can use a low bandwidth communication channel. The server will receive
+yourcommandsinthiscase.
+The command-line interface has some disadvantages. Learning to use CLI effectively is a serious
+challenge.Youhavetorememberaroundahundredcommands.Eachcommandhasseveralmodes
+thatchangeitsbehavior.Therefore,youshouldkeepinmindthesemodestoo.Ittakessometimeto
+rememberatleastaminimumsetofcommandsfordailywork.
+⁶²https://en.wikipedia.org/wiki/Computer_terminal
+⁶³https://en.wikipedia.org/wiki/Terminal_emulator
+⁶⁴https://en.wikipedia.org/wiki/Terminator_(terminal_emulator)
+GeneralInformation 19
+Thereisanoptiontomakethecommand-lineinterfacemoreuser-friendly.Youcangiveahinttothe
+useraboutavailablecommands.Itwasdoneinthe text-based interface ⁶⁵(TUI).Theinterfaceuses
+box-drawing characters ⁶⁶alongwithalphanumericsymbols.Thebox-drawingcharactersdisplay
+the graphic primitives on the screen. Primitives are lines, rectangles, triangles, etc. They guide the
+userabouttheavailableactionshecandowiththeapplication.
+Figure1-8showsatypicaltext-basedinterface.Thereisanoutputofsystemresourceusagebythe
+htopprogram.
+Figure 1-8. Text-based user interface
+The further performance gain of computers allowed OS developers to replace box-drawing charac-
+terswithrealgraphicelements.Thereareexamplesofsuchelements:windows,icons,buttons,etc.
+Itwasamomentwhenthefull-fledgedgraphicalinterfacecame.ModernOSesprovidethiskindof
+interface.
+Figure 1-9 demonstrates the Windows GUI. You can see the desktop. There are windows of three
+applicationsthere.TheapplicationsareExplorer,NotepadandCalculator.Theyworkinparallel.
+⁶⁵https://en.wikipedia.org/wiki/Text-based_user_interface
+⁶⁶https://en.wikipedia.org/wiki/Box-drawing_character
+GeneralInformation 20
+Figure 1-9. Windows GUI
+ThefirstGUIappearedinthe XeroxAlto ⁶⁷minicomputer(seeFigure1-10).Itwasdevelopedinthe
+researchcenter XeroxPARC ⁶⁸in1973.However,thegraphicalinterfacedidnotspreadwidelyuntil
+the 1980s. It happens because GUI requires a lot of memory and high computer performance. PCs
+withsuchfeaturesweretooexpensiveforordinaryusersatthattime.
+AppleproducedthefirstrelativelycheapPCwithGUIin1983.ItwascalledLisa.
+⁶⁷https://en.wikipedia.org/wiki/Xerox_Alto
+⁶⁸https://en.wikipedia.org/wiki/PARC_(company)
+GeneralInformation 21
+Figure 1-10. Minicomputer Xerox Alto
+Families of OSes
+Therearethree familiesofOSes ⁶⁹thatdominatethemarkettoday.Herearethesefamilies:
+•Windows⁷⁰
+•Linux⁷¹
+•macOS⁷²
+Theterm“family”meansseveralOSversionsthatfollowthesamearchitecturalsolutions.Therefore,
+mostfunctionsintheseversionsareimplementedinthesameway.
+The developers of the OS family follow the same architecture. They do not offer something
+fundamentallynewintheupcomingversionsoftheirproduct.Why?
+Actually,changesinmodernOSeshappengraduallyandslowly.Thereasonforthisisa backward
+compatibility ⁷³problem. This compatibility means that newer OS versions provide the features of
+⁶⁹https://en.wikipedia.org/wiki/Category:Operating_system_families
+⁷⁰https://en.wikipedia.org/wiki/Microsoft_Windows
+⁷¹https://en.wikipedia.org/wiki/Linux
+⁷²https://en.wikipedia.org/wiki/MacOS
+⁷³https://en.wikipedia.org/wiki/Backward_compatibility
+GeneralInformation 22
+older versions. Most existing programs require these features for their work. You can suppose that
+backward compatibility is an optional requirement. However, it is a severe limitation for software
+development.Let’sfindoutwhyitis.
+Imagine that you wrote a program for Windows and sell it. Sometimes users meet errors in the
+program.Youreceivebugreportsandfixthem.Also,youaddnewfeaturesfromtimetotime.
+Your business goes well until the new Windows version comes. Let’s assume that Microsoft has
+changeditsarchitecturecompletely.Therefore,yourprogramdoesnotworkonthenewOSversion.
+Thisleadsusersofyourprogramtothefollowingchoice:
+•UpdateWindowsandwaitforthenewversionofyourprogramthatworksthere.
+•DonotupdateWindowsandcontinuetouseyourprogram.
+If users need your program for daily work, they refuse the Windows update. Using the program is
+moreimportantthangettingnewOSfeatures.
+WeknowthatMicrosofthaschangedtheWindowsarchitecturecompletely.Itmeansthatyoushould
+rewrite your program from scratch. Now count all the time that you have spent fixing bugs and
+addingnewfeatures.Youshouldrepeatallthisworkassoonaspossible.Mostlikely,youwillgive
+upthisideaandsuggestthatusersofyourprogramstayontheoldWindowsversion.
+Windows is a very popular and widespread OS. It means that there are many programs like yours.
+Their developers will come to the same decision as you. As a result, nobody updates to the new
+Windows version. This situation demonstrates the backward compatibility problem. This problem
+forces OS developers to be careful with changing their products. The best solution for them is to
+makeafamilyofsimilarOSes.
+ThereisasignificantinfluenceofuserapplicationsonOSdevelopment.Forexample,Windowsand
+IBM computers owe their success to a table processor Lotus 1-2-3 ⁷⁴. You need both IBM PC and
+WindowstolunchLotus1-2-3.ForthesakeofLotus1-2-3,usersboughtboththecomputerandOS.
+The specific combination of the hardware and software is called the computing platform ⁷⁵. The
+popularapplication,whichbringstheplatformtothebroadmarket,iscalled killer application ⁷⁶.
+The tabular processor VisiCalc⁷⁷was another killer application. It promoted the distribution of the
+AppleII⁷⁸computers.Inthesameway,freecompilersforC,FortranandPascallanguageshelpUnix
+OStobecomepopularinuniversitycircles.
+There was the killer application behind each of the modern OS families. This application gives the
+OS the initial success. Further distribution of the OS happens thanks to the network effect ⁷⁹. This
+effectmeansthatdeveloperstendtochoosethemostwidespreadcomputingplatformsfortheirnew
+applications.
+⁷⁴https://en.wikipedia.org/wiki/Lotus_1-2-3
+⁷⁵https://en.wikipedia.org/wiki/Computing_platform
+⁷⁶https://en.wikipedia.org/wiki/Killer_application
+⁷⁷https://en.wikipedia.org/wiki/VisiCalc
+⁷⁸https://en.wikipedia.org/wiki/Apple_II_series
+⁷⁹https://en.wikipedia.org/wiki/Network_effect
+GeneralInformation 23
+WhatarethedifferencesbetweentheOSfamilies?WindowsandLinuxareremarkablebecausethey
+do not depend on the hardware. It means that you can install them on any modern PC or laptop.
+macOSrunsonApplecomputersonly.IfyouwanttousemacOSondifferenthardware,youwould
+needtheunofficial modifiedversion ⁸⁰ofOS.
+HardwarecompatibilityisanexampleofthedesigndecisionoftheOSdevelopment.Therearemany
+suchdecisions.TogethertheydefinethefeaturesanddesignofeachOSfamily.
+ThereisonemoreimportantpointforsoftwaredevelopmentbesidestheOSdesign.OSdictatesthe
+infrastructurefortheprogrammer.Theinfrastructuremeansdevelopmenttools.Examplesofthese
+toolsareIDE,compiler,buildsystem.ToolstogetherwithOSAPIimposesomedesigndecisionsfor
+the applications. It leads to a specific culture for program development. Please keep in mind that
+youshoulddevelopapplicationsdifferentlyforeachOS.Takeitintoaccountwhenyoudesignyour
+programs.
+Let’sconsidertheoriginsofsoftwaredevelopmentculturesforWindowsandLinux.
+Windows
+Windows is proprietary software ⁸¹. The source code of such software is unavailable for users. You
+cannotreadormodifyitasyouwant.Inotherwords,thereisnolegalwaytoknowaboutproprietary
+softwaremorethanitsdocumentationtellsyou.
+If you want to install Windows on your computer, you should buy it from Microsoft. However,
+manufacturers of computers pre-install Windows on their devices often. In this case, the final cost
+ofthecomputerincludesthepriceoftheOS.
+ThetargetdevicesforWindowsarerelativelycheapPCsandlaptops.Manypeoplecanbuysucha
+device.Therefore,thereisahugemarketofpotentialusers.Microsofttendstokeepitscompetitive
+edgeinthismarket.Thebest waytoreachit istopreventappearingofWindowsanalogs withthe
+same features from other companies. For reaching this goal, Microsoft takes care of protecting its
+intellectual property. The company does it in both technical and legal ways. An example of legal
+protectionistheuseragreement.ItprohibitsyoutoexploretheinternalsoftheOS.
+The Windows OS family has a long history. Also, it is popular and widespread. It leads many
+developerstochosethisOSasthetargetfortheirapplications.However,theMicrosoftcompanyhas
+developedthefirstWindowsapplicationsonitsown.Anexampleisthepackageofofficeprograms
+MicrosoftOffice ⁸².Suchapplicationsbecameastandardtofollowforotherdevelopers.
+MicrosoftfollowedthesameprinciplewhendevelopingbothWindowsandapplicationsforit.Itis
+asecrecyprinciple:
+•Sourcecodesarenotavailabletousers.
+•Dataformatsareundocumented.
+⁸⁰https://en.wikipedia.org/wiki/Hackintosh
+⁸¹https://en.wikipedia.org/wiki/Proprietary_software
+⁸²https://en.wikipedia.org/wiki/Microsoft_Office
+GeneralInformation 24
+•Third-partyutilitiesdonothaveaccesstosoftwarefeatures.
+Thegoalofthesedecisionsistoprotectintellectualproperty.
+Other software developers have followed the example of Microsoft. They stuck with the same
+philosophy of secrecy. As a result, their applications are self-contained and independent of each
+other.Theformatsoftheirdataareencodedandundocumented.
+Ifyouareanexperiencedcomputeruser,youimmediatelyrecognizeatypicalWindowsapplication.
+It has a window with control elements ⁸³like buttons, input fields, tabs, etc. You manipulate some
+datausingthesecontrolelements.Examplesofdataaretext,image,soundrecord,video.Whenyou
+are done, you save your results on the hard disk. You can open it again in the same application. If
+youwriteyourownWindowsprogram,itwilllookandworksimilarly.Thissuccessionofsolutions
+iscalledthedevelopmentculture.
+Linux
+Linux has borrowed most of the ideas and solutions from the Unix⁸⁴. Both OSes follow the set of
+standards that is called POSIX⁸⁵(Portable Operating System Interface). POSIX defines interfaces
+betweenapplicationsandtheOS.LinuxandUnixgotthesamedesignbecausetheyfollowthesame
+standard.WeshouldhavealookattheUnixoriginstogetthisdesign.
+The Unix appeared in the late 1960s. Two engineers from the Bell Labs company have developed
+it. Unix was a hobby project of Ken Thompson ⁸⁶andDennis Ritchie ⁸⁷. In their daily work, they
+developedthe Multics⁸⁸OS.ItwasajointprojectoftheMassachusettsInstituteofTechnology(MIT),
+General Electric (GE) and Bell Labs. General Electric planned to use Multics for its new computer
+GE-645.Figure1-11demonstratesthismachine.
+⁸³https://en.wikipedia.org/wiki/Graphical_widget
+⁸⁴https://en.wikipedia.org/wiki/Unix
+⁸⁵https://en.wikipedia.org/wiki/POSIX
+⁸⁶https://en.wikipedia.org/wiki/Ken_Thompson
+⁸⁷https://en.wikipedia.org/wiki/Dennis_Ritchie
+⁸⁸https://en.wikipedia.org/wiki/Multics
+GeneralInformation 25
+Figure 1-11. Mainframe GE-645
+The Multics developers have invented several innovative solutions. One of them was time-sharing.
+It allows several users to work with the computer at the same time. Multics uses the multitasking
+concepttoshareresourcesamongallusers.
+Becauseofmanyinnovationsandhighrequirements,Multicsturnedouttobetoocomplicated.The
+projectconsumedmoretimeandmoneythanitwasplanned.ThiswasareasonwhyBellLabsleft
+theproject.
+The Multics project was interesting from a technical point of view. Therefore, many Bell Labs
+engineerswantedtocontinueworkingonit.KenThompsonwasoneofthem.Hedecidedtocreate
+his own operating system for the computer GE-645. Thompson started to write the system kernel
+andduplicatedsomeMulticsmechanisms.However,GeneralElectricdemandedthereturnofitsGE-
+645soon.BellLabshasreceivedthiscomputeronloanonly.Asaresult,Thompsonlostahardware
+platformforhisdevelopment.
+WhenworkingontheMulticsanalog,Thompsonhadapetprojecttocreateacomputergame.Itwas
+calledSpaceTravel ⁸⁹.HelaunchedthegameonthepastgenerationcomputerGE-635fromGeneral
+Electric. It had the GECOS⁹⁰OS. GE-635 consisted of several modules. Each module was a cabinet
+with electronics. The overall computer cost was about $7500000. Bell Labs engineers actively used
+thismachine.Therefore,Thompsonwasrarelyabletoworkwithittodevelophisgame.
+The limited access to the GE-635 machine was a problem. Therefore, Thompson decided to port
+his game to a relatively inexpensive and rarely used computer PDP-7⁹¹(see Figure 1-12). Its cost
+was about $72000. When doing that, Thompson met one problem. Space Travel used the features
+of the GECOS OS. The software of PDP-7 did not provide such features. Thompson was joined by
+hiscolleagueDennisRitchie.TheyimplementedGECOSfeaturesforPDP-7together.Itwasasetof
+librariesandsubsystems.Overtime,thesemodulesweredevelopedintoaself-sufficientOS.Itwas
+calledUnix.
+⁸⁹https://en.wikipedia.org/wiki/Space_Travel_(video_game)
+⁹⁰https://en.wikipedia.org/wiki/General_Comprehensive_Operating_System
+⁹¹https://en.wikipedia.org/wiki/PDP-7
+GeneralInformation 26
+Figure 1-12. Minicomputer PDP-7
+ThompsonandRitchiewerenotgoingtosellUnix.Therefore,theyneverhadagoaltoprotecttheir
+intellectual property. They developed Unix for their own needs. Afterward, they distributed it for
+freewiththesourcecode.EveryonecouldcopyandusethisOS.Itwasreasonablebecausethefirst
+UnixuserswereBellLabsemployeesonly.
+Unix became popular among Bell Labs employees. Thompson and Ritchie presented the OS at the
+Symposium on Operating Systems Principles conference. Then they got a lot of requests for the
+system.However,BellLabsbelongedtoAT&Tcompany.Therefore,BellLabsdidnothavetheright
+todistributeanysoftwareonitsown.
+AT&T noticed the new perspective OS. The company started to sell its source code to universities
+for$20000.Thus,universitycirclesgotachancetoimproveanddevelopUnix.
+Linus Torvalds ⁹²met Unix when he had studied at the University of Helsinki. Unix encouraged
+him to create his own OS called Linux. It was not a pet project for fun. Torvalds met a practical
+problem.HeneededaUnix-compatibleOSforhisPCtodouniversitytasksathome.SuchOSwas
+notavailableatthatmoment.
+AttheUniversityofHelsinki,studentsperformedstudyassignmentsusingtheMicroVAXcomputer
+running Unix. Many of them had PCs at home. However, there was no Unix version for PC. The
+onlyUnixalternativeforstudentswas Minix⁹³OS.
+AndrewTanenbaumdevelopedthisOSforIBMPCswithIntel80268processorsin1987.Hecreated
+Minixforeducationalpurposesonly.ThiswasareasonwhyherefusedtoapplychangestohisOS
+forsupportingmodernPCs.Tanenbaumwasafraidthathissystembecomestoocomplicated.Then
+hecannotuseitforteachingstudents.
+Torvalds had a goal to write a Unix-compatible OS for his new IBM computer with Intel 80386
+processor. He took Minix as the prototype for his work. Like the Unix creators, Torvalds had no
+commercial interests and was not going to sell his software. He developed the OS for his own
+⁹²https://en.wikipedia.org/wiki/Linus_Torvalds
+⁹³https://en.wikipedia.org/wiki/MINIX
+GeneralInformation 27
+needsandwantedtoshareitwitheveryone.LinuxOSbecamefreeinthisway.Torvaldsdecidedto
+distributeitwithsourcecodeforfreeviatheInternet.ThisdecisionmadeLinuxknownandpopular.
+Torvalds developed the kernel of OS only. The kernel provides memory management, file system,
+peripherals drivers and processor time scheduler. However, users needed an interface to access the
+kernel’sfeatures.ItmeansthattheLinuxOSwasnotreadyforuseasitis.
+Thesolutiontotheproblemcamefromthe GNUsoftwareproject ⁹⁴.RichardStallman ⁹⁵startedthis
+projectatMITin1983.Hisideawastodevelopthemostnecessarysoftwareforcomputersandmake
+it free. The major products of the GNU project are the GCC compiler, glibc system library, system
+utilitiesandBashshell.Torvaldsincludedtheseproductsinhisprojectandreleasedthefirst Linux
+distribution ⁹⁶in1991.
+The first versions of Linux did not have a graphical interface. The only way to interact with the
+system was a command-line shell. Some complex applications had a text interface, but they were
+the minority. Linux got a GUI in the middle of the 1990s. This interface was based on X Window
+System⁹⁷freesoftware.XWindowalloweddeveloperstocreategraphicalapplications.
+UnixandLinuxevolvedinveryspecificconditions.Theydifferfromatypicalcycleofcommercial
+software development. These conditions made a unique development culture. Both systems devel-
+opedinuniversitycircles.ComputerscienceteachersandstudentsusedtheOSesindailywork.They
+understood this software well. Therefore, they fixed software errors and added new features there
+willingly.
+Let’shavealookatwhatistheUnixdevelopmentculture.Unixusersprefertousehighlyspecialized
+command-lineutilities.Youcanfindatoolalmostforeachspecifictask.Suchtoolsarewellwritten,
+tested many times and worked as efficiently as possible. However, all features of one utility are
+focusedononespecifictask.Theutilityisnotuniversalsoftwaretocovermostofyourneeds.
+Whenyoumeetacomplextask,thereisnosingleutilitytosolveit.However,youcaneasilycombine
+severalutilitiesandsolveyourtaskthisway.Suchaninteractionbecomesavailablethankstoaclear
+data format. Most Unix utilities use the text data⁹⁸format. It is simple and self-explained. You can
+startworkingwithitimmediately.
+The Linux development culture follows the Unix traditions. It differs from the standards that are
+adopted in Windows. Every application is monolithic and performs all its tasks by itself in the
+Windows world. The application does not rely on third-party utilities. The reason is the most
+software for Windows costs money and can be unavailable to the user. Therefore, each developer
+reliesonhimself.Hecannotforcetheusertobuysomethingextratomakethespecificapplication
+working.
+ThesoftwaredependencylooksdifferentinLinux.Mostoftheutilitiesarefree,interchangeableand
+accessible via the Internet. Therefore, it is natural that one program requires you to download and
+installamissingsystemcomponentoranotherprogram.
+⁹⁴https://en.wikipedia.org/wiki/GNU_Project
+⁹⁵https://en.wikipedia.org/wiki/Richard_Stallman
+⁹⁶https://en.wikipedia.org/wiki/Linux_distribution
+⁹⁷https://en.wikipedia.org/wiki/X_Window_System
+⁹⁸https://en.wikipedia.org/wiki/Plain_text
+GeneralInformation 28
+TheinteractionofprogramsiscrucialinLinux.EvenmonolithicgraphicalLinuxapplicationsusually
+provideacommand-lineinterface.Thisway,theyfitsmoothlyintotheecosystem.Itleadsthatyou
+canintegratethemwithotherutilitiesandapplications.
+Suppose that you are solving a complex task in Linux. You should assemble a single computing
+process from a combination of highly specialized utilities. It means that you make a computation
+algorithmthatcanbecomplexbyitself.Linuxprovidesatoolforthisspecifictask.Thetooliscalled
+shell⁹⁹. Using the shell, you type commands and the system performs them. The first Unix shell
+appearedin1979.Itwascalled Bourneshell ¹⁰⁰.Nowitisdeprecated.The Bash¹⁰¹shellhasreplaced
+itinmostLinuxdistributions.WewillconsiderBashinthisbook.
+We have considered Linux and Windows cultures. You cannot give a preference to one or another.
+Comparing them causes endless disputes on the Internet. Each culture has its advantages and
+disadvantages. For example, the Window-style monolithic applications cope well the tasks that
+requireintensivecalculations.WhenyoucombinespecializedLinuxutilitiesforthesametask,you
+get an overhead. The overhead happens because of launching many utilities and transferring data
+betweenthem.Thisrequiresextratime.Asaresult,youwaitlongertocompleteyourtask.
+Today, we observe a synthesis of Windows and Linux cultures. More and more commercial
+applications are being ported to Linux: browsers, development tools, games, messengers, etc.
+However, their developers are not ready for changes that the Linux culture dictates. Such changes
+require too much time and effort. They also make it more challenging to maintain the product.
+Insteadofoneapplication,therearetwo:eachplatformhasadifferentversion.Therefore,developers
+porttheirapplicationswithoutsignificantchanges.Asaresult,youfindmoreandmoreWindows-
+style applications on Linux. One can argue about the pros and cons of this process. However, the
+moreapplicationsrunonthespecificOS,themorepopularitbecomes,thankstothenetworkeffect.
+ReadmoreaboutthedevelopmentcultureinUnixandLinuxinEricRaymond’sbook “The
+ArtofProgramminginUnix” ¹⁰².
+Computer Program
+Wegotacquaintedwithoperatingsystems.Theyareresponsibleforstartingandrunningcomputer
+programs.Theprogramorapplicationsolvestheuser’sspecifictask.Forexample,atexteditorallows
+youtowriteandeditdocuments.
+A program is a set of elementary steps. They are called instructions. The computer performs these
+stepssequentially.Itfollowsthestrictorderofactionsandcopeswithcomplextasks.Let’sconsider
+howthecomputerlaunchesandexecutestheprogramindetail.
+⁹⁹https://en.wikipedia.org/wiki/Unix_shell
+¹⁰⁰https://en.wikipedia.org/wiki/Bourne_shell
+¹⁰¹https://en.wikipedia.org/wiki/Bash_(Unix_shell)
+¹⁰²https://en.wikipedia.org/wiki/Unix_philosophy#Eric_Raymond’s_17_Unix_Rules
+GeneralInformation 29
+Computer Memory
+A hard disk stores all instructions of the program. If the program is relatively small and simple it
+fitsasinglefile.Complexapplicationsoccupyseveralfiles.
+Suppose that you have a single file program. When you launch it, the OS loads the file into the
+computer memory called RAM. Then the OS allocates a part of processor time for the new task.
+Thisway,theprocessorperformstheprogram’sinstructionsatspecifiedintervals.
+The first step of launching a program is to load it into RAM. We should consider the computer
+memoryinternalstounderstandthisstepbetter.
+Thesingleunitofthecomputermemoryis byte¹⁰³.Thebyteistheminimumamountofinformation
+that the processor can reference and load into its memory. However, the CPU can handle smaller
+amountsofdataifyouapplyspecialtechniques.Youoperatebitsinthiscase.A bit¹⁰⁴isthesmallest
+amount of information you cannot divide. You can imagine the bit as a single logical state. It has
+oneoftwopossiblevalues.Thereareseveralwaystointerpretthem:
+•0or1
+•TrueorFalse
+•YesorNo
+•+or—
+•OnorOff.
+Anotherwaytoimagineonebitistocompareitwithalampswitch.Ithastwopossiblestates:
+•Theswitchclosesthecircuit.Thenthelampison.
+•Theswitchopensthecircuit.Thenthelampisoff.
+Abyteisamemoryblockofeightbits.Hereyoucanaskwhydoweneedthispackaging?CPUcan
+operateasinglebit,right?Thenitshouldbeabletorefertoaspecificbitinmemory.
+CPU cannot refer to a single bit. There are technical reasons for that. The primary task of the
+first computers was arithmetic calculations. For example, these computers calculated the ballistic
+tables¹⁰⁵. You should operate integers and fractional numbers to solve such a task. The computer
+does the same. However, a single bit is not enough to store a number in memory. Therefore, the
+computerneedsmemoryblockstostorenumbers.Thebytesbecamesuchblocks.
+Introducing bytes affected the architecture of processors. Engineers have expected that the CPU
+performsmostoperationsovernumbers.Therefore,theyaddedafeaturetoloadandprocessallbits
+ofthenumberatonce.Thissolutionincreasedcomputers’performancebyorderofmagnitude.Atthe
+sametime,loadingofthesinglebitintheCPUhappensrarely.Supportingthisfeatureinhardware
+bringssignificantoverhead.Therefore,engineershaveexcludeditfrommodernprocessors.
+¹⁰³https://en.wikipedia.org/wiki/Byte
+¹⁰⁴https://en.wikipedia.org/wiki/Bit
+¹⁰⁵https://www.wikiwand.com/en/Ballistic_table
+GeneralInformation 30
+Thereisonemorequestion.Whydoesabyteconsistofeightbits?Itwasnotalwaysthisway.The
+bytewasequalto sixbits¹⁰⁶inthefirstcomputers.Suchamemoryblockwasenoughtoencodeallthe
+Englishalphabetcharactersinupperandlowercase,numbers,punctuationmarksandmathematical
+operations.
+Six-bitsencodingswereinsufficientforrepresentingcontrolandbox-drawingcharacters.Therefore,
+theseencodingswereextendedtosevenbitsintheearly1960s.The ASCIIencoding ¹⁰⁷appearedat
+that moment. It became the standard for encoding characters. ASCII defines characters for codes
+from0to127.Themaximumseven-bitnumber127limitsthisrange.
+ThenIBMreleasedthecomputer IBMSystem/360 ¹⁰⁸in1964.Thesizeofabytewaseightbitsinthis
+computer. IBM chose this size for supporting old character encodings from the past projects. The
+IBMSystem/360computerwaspopularandwidespread.Itledthateight-bitpackagingbecamethe
+industrystandard.
+Table1-1showsfrequentlyused unitsofinformation ¹⁰⁹besidesbitsandbytes.
+Table 1-1. Units of information
+Title Abbreviation ¹¹⁰ Number of bytes Number of bits
+kilobyte KB 1000 8000
+megabyte MB 1000000 8000000
+gigabyte GB 1000000000 8000000000
+terabyte TB 10000000000 8000000000000
+Table1-2showsstandardstoragedevicesandtheircapacity.YoucancomparethemusingTable1-1.
+Table 1-2. Storage devices
+Storage device Capacity
+Floppydisk3.5” ¹¹¹ 1.44MB
+Compactdisk ¹¹² 700MB
+DVD¹¹³ upto17GB
+USBflashdrive ¹¹⁴ upto2TB
+Harddiskdrive ¹¹⁵ upto16TB
+SolidStateDrive ¹¹⁶ upto100TB
+We got acquainted with units of information. Now let’s get back to the execution of the program.
+Why does the OS load it into RAM? In theory, the processor can read the program instructions
+¹⁰⁶https://en.wikipedia.org/wiki/Six-bit_character_code
+¹⁰⁷https://en.wikipedia.org/wiki/ASCII
+¹⁰⁸https://en.wikipedia.org/wiki/IBM_System/360
+¹⁰⁹https://en.wikipedia.org/wiki/Units_of_information
+¹¹¹https://en.wikipedia.org/wiki/Floppy_disk
+¹¹²https://en.wikipedia.org/wiki/Compact_disc
+¹¹³https://en.wikipedia.org/wiki/DVD
+¹¹⁴https://en.wikipedia.org/wiki/USB_flash_drive
+¹¹⁵https://en.wikipedia.org/wiki/Hard_disk_drive
+¹¹⁶https://en.wikipedia.org/wiki/Solid-state_drive
+GeneralInformation 31
+directlyfromtheharddiskdrive,right?
+Amoderncomputerhasfourlevelsofthe memoryhierarchy ¹¹⁷.Eachlevelmatchestheredrectangle
+in Figure 1-13. Each rectangle match a separate device. The only exception is the CPU chip. It
+containsbothregistersandamemorycache.Theseareseparatemodulesofthechip.
+YouseethearrowsinFigure1-13.Theyrepresentdataflows.Datatransferoccursbetweenadjacent
+memorylevels.
+Suppose that you want to process some data on the CPU. Then you should load these data to its
+registers.Thisistheonlyplacewheretheprocessorcantakedataforcalculations.IftheCPUneeds
+somethingfromthediskdrive,thefollowingdatatransfershappen:
+Security Relevance Score: 5
+Word Count: 2576
+Extracted: 2025-06-13 23:40:26
+
+---
+
+Digital Equipment Corpo-
+ration⁵⁰implemented the interactive mode for their minicomputer ⁵¹PDP-1⁵²in 1959. It was a
+⁴⁴https://en.wikipedia.org/wiki/Preemption_(computing)
+⁴⁵https://en.wikipedia.org/wiki/Scheduling_(computing)
+⁴⁶https://en.wikipedia.org/wiki/Multi-core_processor
+⁴⁷https://en.wikipedia.org/wiki/Personal_computer
+⁴⁸https://en.wikipedia.org/wiki/Embedded_system
+⁴⁹https://en.wikipedia.org/wiki/Graphical_user_interface
+⁵⁰https://en.wikipedia.org/wiki/Digital_Equipment_Corporation
+⁵¹https://en.wikipedia.org/wiki/Minicomputer
+⁵²https://en.wikipedia.org/wiki/PDP-1
+GeneralInformation 15
+fundamentallynewapproach.Beforethat,IBMcomputersdominatedthemarketinthe1950s.They
+worked in batch processing mode only. IBM OSes with multiprogramming automated program
+loadingandprovidedhighperformanceforcalculationtasks.
+TheideaofinteractiveworkwiththecomputerappearedfirstintheSAGEmilitaryproject.TheUS
+AirForcewasitscustomer.Thegoaloftheprojectwastodevelopanautomatedairdefensesystem
+todetectSovietbombers.
+When working on the SAGE project, engineers faced the problem. The user of the system should
+analyzedatafromradarsinreal-time.Ifhedetectsathreat,heshouldreactasquicklyaspossibleand
+commandtointerceptthebombers.However,theexistedmethodsofinteractionwiththecomputer
+didnotfitthistask.Theydidnotallowshowinginformationtotheuserinreal-timeandreceivehis
+inputatanymoment.
+Engineers came to the idea of the interactive mode. They implemented it in the first interactive
+computer AN/FSQ-7 ⁵³in1955(seeFigure1-5).Thecomputerusedthemonitorwitha cathode-ray
+tube⁵⁴todisplayinformationfromradars.The light pen⁵⁵allowedtheusertocommandthesystem.
+Figure 1-5. Computer AN/FSQ-7
+Thenewwayofinteractionwithcomputersbecameknowninscientificcircles.Itgainedpopularity
+⁵³https://en.wikipedia.org/wiki/AN/FSQ-7_Combat_Direction_Central
+⁵⁴https://en.wikipedia.org/wiki/Cathode-ray_tube
+⁵⁵https://en.wikipedia.org/wiki/Light_pen
+GeneralInformation 16
+quickly. The existing batch processing mode coped with program execution well. However, this
+modewasinconvenientfordevelopmentand debugging ⁵⁶applications.
+Debuggingaprogramissearchingandeliminatingitserrors.
+Supposethatyouarewritingaprogramforthecomputerwithbatchprocessing.Youshouldprepare
+your code and write it to the storage device. When the device is ready, you put it in a queue. The
+computer’s operator takes devices from the queue and loads them to the computer one by one.
+Therefore, your task can wait in the queue for several hours. Now assume that an error happened
+inyourprogram.Inthiscase,youshouldfixit,preparethenewversionoftheprogramandwriteit
+tothedevice.Youputitinthequeueagainandwaitforhours.Becauseofthisworkflow,youneed
+severaldaystomakeevenasmallprogramworking.
+The software development workflow differs when you use an interactive mode. You prepare
+your program and load it to the computer. Then it launches the program and shows you results.
+Immediately, you can analyze a possible error, fix it and relaunch the program. This workflow
+accelerates software development and debugging tasks significantly. Now you spend few hours on
+thetaskthatrequiresdayswithbatchprocessingmode.
+Theinteractivemodebroughtnewchallengesforcomputerengineers.Thismoderequiresthesystem
+that reacts to user actions immediately. And providing a short reaction time required a new load-
+balancingmechanism.Themultitaskingconceptbecameasolutionforthistask.
+There are alternative solutions for providing interactive mode. For example, there are interactive
+single-taskingOSeslike MS-DOS⁵⁷.MS-DOSwasthesystemforcheapPCsofthe1980s.
+However,itwasinadvisabletoapplysingle-taskinginthe1960swhencomputersweretooexpensive.
+These computers executed many programs in parallel. Such a mode was called time-sharing ⁵⁸. It
+allowssharingexpensivehardwareresourcesamongseveralusers.Thesingle-taskingapproachdoes
+notfitsuchausecasebecauseitisnotcompatiblewithtime-sharing.
+Whenthefirstrelativelycheappersonalcomputersappearedinthe1980s,theyusedsingle-tasking
+OSes.Suchsystemsrequirefewerhardwareresourcesthantheiranalogswithmultitasking.Despite
+its simplicity, single-tasking OSes support interactive mode for the running program. This mode
+becameespeciallyattractiveforPCusers.
+Wheninteractivemodebecamemoreandmorepopular,computerengineersmeetanewchallenge.
+The existing devices for interacting with computers turned out to be inconvenient. Magnetic tapes
+andprinterswerewidespreadthroughthe1950sandearly1960s.Theydidnotfitinteractivemode
+absolutely.
+Teletype⁵⁹(TTY) became a prototype of a device for interactive work with a computer. Figure 1-
+6 shows the Model 33 teletype. It is an electromechanical typewriter. It is connected to the same
+⁵⁶https://en.wikipedia.org/wiki/Debugging
+⁵⁷https://en.wikipedia.org/wiki/MS-DOS
+⁵⁸https://en.wikipedia.org/wiki/Time-sharing
+⁵⁹https://en.wikipedia.org/wiki/Teleprinter
+GeneralInformation 17
+typewriter through wires. Once two teletypes are connected, operators can send text messages to
+each other. The sender types text on his device. The keystrokes are transmitted to the receiver’s
+device.Itprintsouteachreceivedletteronpaper.
+Figure 1-6. A Teletype Model 33
+Teletype⁶⁰(TTY)becameaprototypeofadeviceforinteractiveworkwithacomputer.Theoriginal
+ideabehindthisdevicewastoconnecttwoofthemviawires.Itallowsusersonbothsidestosend
+each other text messages. One user types the message on the keyboard. Then his device transmits
+thekeystrokestothereceiver.Whentheteletypeontheothersidereceivesdata,itprintsthetexton
+paper.
+Computerengineersconnectedtheteletypetothecomputer.Thissolutionallowedtheusertosend
+textcommandstothemachineandreceiveresults.Suchaworkflowbecameknownasa command-
+line interface ⁶¹(CLI).Figure1-6showstheModel33teletype.Itwasoneofthemostpopulardevices
+inthe1960s.
+Teletypeusestheprinterasanoutputdevice.Itworksveryslowandrequiresaround10secondsto
+printasingleline.Thenextstepofdevelopingtheuserinterfacewasreplacingtheprinterwiththe
+monitor. This increased the data output speed several times. The new device with a keyboard and
+⁶⁰https://en.wikipedia.org/wiki/Teleprinter
+⁶¹https://en.wikipedia.org/wiki/Command-line_interface
+GeneralInformation 18
+monitorwascalledthe terminal⁶².Itreplacedteletypesinthe1970s.
+Figure 1-7 shows a modern command-line interface. You can see the terminal emulator ⁶³applica-
+tionthere.Thisapplicationemulatestheterminaldeviceforthesakeofcompatibility.Itallowsyou
+to run programs that work with the real terminal only. The emulator application in Figure 1-7 is
+calledTerminator ⁶⁴.TheBashcommand-lineinterpreterisrunningintheTerminatorwindow.The
+windowdisplaystheresultsofthepingandlsprograms.
+Figure 1-7. Command-line interface
+The command-line interface is still in demand today. It has several advantages over the graphical
+interface. For example, CLI does not require as many resources as GUI. CLI runs reliably on low-
+performance embedded computers as well as on powerful servers. If you use CLI to access the
+computer remotely, you can use a low bandwidth communication channel. The server will receive
+yourcommandsinthiscase.
+The command-line interface has some disadvantages. Learning to use CLI effectively is a serious
+challenge.Youhavetorememberaroundahundredcommands.Eachcommandhasseveralmodes
+thatchangeitsbehavior.Therefore,youshouldkeepinmindthesemodestoo.Ittakessometimeto
+rememberatleastaminimumsetofcommandsfordailywork.
+⁶²https://en.wikipedia.org/wiki/Computer_terminal
+⁶³https://en.wikipedia.org/wiki/Terminal_emulator
+⁶⁴https://en.wikipedia.org/wiki/Terminator_(terminal_emulator)
+GeneralInformation 19
+Thereisanoptiontomakethecommand-lineinterfacemoreuser-friendly.Youcangiveahinttothe
+useraboutavailablecommands.Itwasdoneinthe text-based interface ⁶⁵(TUI).Theinterfaceuses
+box-drawing characters ⁶⁶alongwithalphanumericsymbols.Thebox-drawingcharactersdisplay
+the graphic primitives on the screen. Primitives are lines, rectangles, triangles, etc. They guide the
+userabouttheavailableactionshecandowiththeapplication.
+Figure1-8showsatypicaltext-basedinterface.Thereisanoutputofsystemresourceusagebythe
+htopprogram.
+Figure 1-8. Text-based user interface
+The further performance gain of computers allowed OS developers to replace box-drawing charac-
+terswithrealgraphicelements.Thereareexamplesofsuchelements:windows,icons,buttons,etc.
+Itwasamomentwhenthefull-fledgedgraphicalinterfacecame.ModernOSesprovidethiskindof
+interface.
+Figure 1-9 demonstrates the Windows GUI. You can see the desktop. There are windows of three
+applicationsthere.TheapplicationsareExplorer,NotepadandCalculator.Theyworkinparallel.
+⁶⁵https://en.wikipedia.org/wiki/Text-based_user_interface
+⁶⁶https://en.wikipedia.org/wiki/Box-drawing_character
+GeneralInformation 20
+Figure 1-9. Windows GUI
+ThefirstGUIappearedinthe XeroxAlto ⁶⁷minicomputer(seeFigure1-10).Itwasdevelopedinthe
+researchcenter XeroxPARC ⁶⁸in1973.However,thegraphicalinterfacedidnotspreadwidelyuntil
+the 1980s. It happens because GUI requires a lot of memory and high computer performance. PCs
+withsuchfeaturesweretooexpensiveforordinaryusersatthattime.
+AppleproducedthefirstrelativelycheapPCwithGUIin1983.ItwascalledLisa.
+⁶⁷https://en.wikipedia.org/wiki/Xerox_Alto
+⁶⁸https://en.wikipedia.org/wiki/PARC_(company)
+GeneralInformation 21
+Figure 1-10. Minicomputer Xerox Alto
+Families of OSes
+Therearethree familiesofOSes ⁶⁹thatdominatethemarkettoday.Herearethesefamilies:
+•Windows⁷⁰
+•Linux⁷¹
+•macOS⁷²
+Theterm“family”meansseveralOSversionsthatfollowthesamearchitecturalsolutions.Therefore,
+mostfunctionsintheseversionsareimplementedinthesameway.
+The developers of the OS family follow the same architecture. They do not offer something
+fundamentallynewintheupcomingversionsoftheirproduct.Why?
+Actually,changesinmodernOSeshappengraduallyandslowly.Thereasonforthisisa backward
+compatibility ⁷³problem. This compatibility means that newer OS versions provide the features of
+⁶⁹https://en.wikipedia.org/wiki/Category:Operating_system_families
+⁷⁰https://en.wikipedia.org/wiki/Microsoft_Windows
+⁷¹https://en.wikipedia.org/wiki/Linux
+⁷²https://en.wikipedia.org/wiki/MacOS
+⁷³https://en.wikipedia.org/wiki/Backward_compatibility
+GeneralInformation 22
+older versions. Most existing programs require these features for their work. You can suppose that
+backward compatibility is an optional requirement. However, it is a severe limitation for software
+development.Let’sfindoutwhyitis.
+Imagine that you wrote a program for Windows and sell it. Sometimes users meet errors in the
+program.Youreceivebugreportsandfixthem.Also,youaddnewfeaturesfromtimetotime.
+Your business goes well until the new Windows version comes. Let’s assume that Microsoft has
+changeditsarchitecturecompletely.Therefore,yourprogramdoesnotworkonthenewOSversion.
+Thisleadsusersofyourprogramtothefollowingchoice:
+•UpdateWindowsandwaitforthenewversionofyourprogramthatworksthere.
+•DonotupdateWindowsandcontinuetouseyourprogram.
+If users need your program for daily work, they refuse the Windows update. Using the program is
+moreimportantthangettingnewOSfeatures.
+WeknowthatMicrosofthaschangedtheWindowsarchitecturecompletely.Itmeansthatyoushould
+rewrite your program from scratch. Now count all the time that you have spent fixing bugs and
+addingnewfeatures.Youshouldrepeatallthisworkassoonaspossible.Mostlikely,youwillgive
+upthisideaandsuggestthatusersofyourprogramstayontheoldWindowsversion.
+Windows is a very popular and widespread OS. It means that there are many programs like yours.
+Their developers will come to the same decision as you. As a result, nobody updates to the new
+Windows version. This situation demonstrates the backward compatibility problem. This problem
+forces OS developers to be careful with changing their products. The best solution for them is to
+makeafamilyofsimilarOSes.
+ThereisasignificantinfluenceofuserapplicationsonOSdevelopment.Forexample,Windowsand
+IBM computers owe their success to a table processor Lotus 1-2-3 ⁷⁴. You need both IBM PC and
+WindowstolunchLotus1-2-3.ForthesakeofLotus1-2-3,usersboughtboththecomputerandOS.
+The specific combination of the hardware and software is called the computing platform ⁷⁵. The
+popularapplication,whichbringstheplatformtothebroadmarket,iscalled killer application ⁷⁶.
+The tabular processor VisiCalc⁷⁷was another killer application. It promoted the distribution of the
+AppleII⁷⁸computers.Inthesameway,freecompilersforC,FortranandPascallanguageshelpUnix
+OStobecomepopularinuniversitycircles.
+There was the killer application behind each of the modern OS families. This application gives the
+OS the initial success. Further distribution of the OS happens thanks to the network effect ⁷⁹. This
+effectmeansthatdeveloperstendtochoosethemostwidespreadcomputingplatformsfortheirnew
+applications.
+⁷⁴https://en.wikipedia.org/wiki/Lotus_1-2-3
+⁷⁵https://en.wikipedia.org/wiki/Computing_platform
+⁷⁶https://en.wikipedia.org/wiki/Killer_application
+⁷⁷https://en.wikipedia.org/wiki/VisiCalc
+⁷⁸https://en.wikipedia.org/wiki/Apple_II_series
+⁷⁹https://en.wikipedia.org/wiki/Network_effect
+GeneralInformation 23
+WhatarethedifferencesbetweentheOSfamilies?WindowsandLinuxareremarkablebecausethey
+do not depend on the hardware. It means that you can install them on any modern PC or laptop.
+macOSrunsonApplecomputersonly.IfyouwanttousemacOSondifferenthardware,youwould
+needtheunofficial modifiedversion ⁸⁰ofOS.
+HardwarecompatibilityisanexampleofthedesigndecisionoftheOSdevelopment.Therearemany
+suchdecisions.TogethertheydefinethefeaturesanddesignofeachOSfamily.
+ThereisonemoreimportantpointforsoftwaredevelopmentbesidestheOSdesign.OSdictatesthe
+infrastructurefortheprogrammer.Theinfrastructuremeansdevelopmenttools.Examplesofthese
+toolsareIDE,compiler,buildsystem.ToolstogetherwithOSAPIimposesomedesigndecisionsfor
+the applications. It leads to a specific culture for program development. Please keep in mind that
+youshoulddevelopapplicationsdifferentlyforeachOS.Takeitintoaccountwhenyoudesignyour
+programs.
+Let’sconsidertheoriginsofsoftwaredevelopmentculturesforWindowsandLinux.
+Windows
+Windows is proprietary software ⁸¹. The source code of such software is unavailable for users. You
+cannotreadormodifyitasyouwant.Inotherwords,thereisnolegalwaytoknowaboutproprietary
+softwaremorethanitsdocumentationtellsyou.
+If you want to install Windows on your computer, you should buy it from Microsoft. However,
+manufacturers of computers pre-install Windows on their devices often. In this case, the final cost
+ofthecomputerincludesthepriceoftheOS.
+ThetargetdevicesforWindowsarerelativelycheapPCsandlaptops.Manypeoplecanbuysucha
+device.Therefore,thereisahugemarketofpotentialusers.Microsofttendstokeepitscompetitive
+edgeinthismarket.Thebest waytoreachit istopreventappearingofWindowsanalogs withthe
+same features from other companies. For reaching this goal, Microsoft takes care of protecting its
+intellectual property. The company does it in both technical and legal ways. An example of legal
+protectionistheuseragreement.ItprohibitsyoutoexploretheinternalsoftheOS.
+The Windows OS family has a long history. Also, it is popular and widespread. It leads many
+developerstochosethisOSasthetargetfortheirapplications.However,theMicrosoftcompanyhas
+developedthefirstWindowsapplicationsonitsown.Anexampleisthepackageofofficeprograms
+MicrosoftOffice ⁸².Suchapplicationsbecameastandardtofollowforotherdevelopers.
+MicrosoftfollowedthesameprinciplewhendevelopingbothWindowsandapplicationsforit.Itis
+asecrecyprinciple:
+•Sourcecodesarenotavailabletousers.
+•Dataformatsareundocumented.
+⁸⁰https://en.wikipedia.org/wiki/Hackintosh
+⁸¹https://en.wikipedia.org/wiki/Proprietary_software
+⁸²https://en.wikipedia.org/wiki/Microsoft_Office
+GeneralInformation 24
+•Third-partyutilitiesdonothaveaccesstosoftwarefeatures.
+Thegoalofthesedecisionsistoprotectintellectualproperty.
+Other software developers have followed the example of Microsoft. They stuck with the same
+philosophy of secrecy. As a result, their applications are self-contained and independent of each
+other.Theformatsoftheirdataareencodedandundocumented.
+Ifyouareanexperiencedcomputeruser,youimmediatelyrecognizeatypicalWindowsapplication.
+It has a window with control elements ⁸³like buttons, input fields, tabs, etc. You manipulate some
+datausingthesecontrolelements.Examplesofdataaretext,image,soundrecord,video.Whenyou
+are done, you save your results on the hard disk. You can open it again in the same application. If
+youwriteyourownWindowsprogram,itwilllookandworksimilarly.Thissuccessionofsolutions
+iscalledthedevelopmentculture.
+Linux
+Linux has borrowed most of the ideas and solutions from the Unix⁸⁴. Both OSes follow the set of
+standards that is called POSIX⁸⁵(Portable Operating System Interface). POSIX defines interfaces
+betweenapplicationsandtheOS.LinuxandUnixgotthesamedesignbecausetheyfollowthesame
+standard.WeshouldhavealookattheUnixoriginstogetthisdesign.
+The Unix appeared in the late 1960s. Two engineers from the Bell Labs company have developed
+it. Unix was a hobby project of Ken Thompson ⁸⁶andDennis Ritchie ⁸⁷. In their daily work, they
+developedthe Multics⁸⁸OS.ItwasajointprojectoftheMassachusettsInstituteofTechnology(MIT),
+General Electric (GE) and Bell Labs. General Electric planned to use Multics for its new computer
+GE-645.Figure1-11demonstratesthismachine.
+⁸³https://en.wikipedia.org/wiki/Graphical_widget
+⁸⁴https://en.wikipedia.org/wiki/Unix
+⁸⁵https://en.wikipedia.org/wiki/POSIX
+⁸⁶https://en.wikipedia.org/wiki/Ken_Thompson
+⁸⁷https://en.wikipedia.org/wiki/Dennis_Ritchie
+⁸⁸https://en.wikipedia.org/wiki/Multics
+GeneralInformation 25
+Figure 1-11. Mainframe GE-645
+The Multics developers have invented several innovative solutions. One of them was time-sharing.
+It allows several users to work with the computer at the same time. Multics uses the multitasking
+concepttoshareresourcesamongallusers.
+Becauseofmanyinnovationsandhighrequirements,Multicsturnedouttobetoocomplicated.The
+projectconsumedmoretimeandmoneythanitwasplanned.ThiswasareasonwhyBellLabsleft
+theproject.
+The Multics project was interesting from a technical point of view. Therefore, many Bell Labs
+engineerswantedtocontinueworkingonit.KenThompsonwasoneofthem.Hedecidedtocreate
+his own operating system for the computer GE-645. Thompson started to write the system kernel
+andduplicatedsomeMulticsmechanisms.However,GeneralElectricdemandedthereturnofitsGE-
+645soon.BellLabshasreceivedthiscomputeronloanonly.Asaresult,Thompsonlostahardware
+platformforhisdevelopment.
+WhenworkingontheMulticsanalog,Thompsonhadapetprojecttocreateacomputergame.Itwas
+calledSpaceTravel ⁸⁹.HelaunchedthegameonthepastgenerationcomputerGE-635fromGeneral
+Electric. It had the GECOS⁹⁰OS. GE-635 consisted of several modules. Each module was a cabinet
+with electronics. The overall computer cost was about $7500000. Bell Labs engineers actively used
+thismachine.Therefore,Thompsonwasrarelyabletoworkwithittodevelophisgame.
+The limited access to the GE-635 machine was a problem. Therefore, Thompson decided to port
+his game to a relatively inexpensive and rarely used computer PDP-7⁹¹(see Figure 1-12). Its cost
+was about $72000. When doing that, Thompson met one problem. Space Travel used the features
+of the GECOS OS. The software of PDP-7 did not provide such features. Thompson was joined by
+hiscolleagueDennisRitchie.TheyimplementedGECOSfeaturesforPDP-7together.Itwasasetof
+librariesandsubsystems.Overtime,thesemodulesweredevelopedintoaself-sufficientOS.Itwas
+calledUnix.
+⁸⁹https://en.wikipedia.org/wiki/Space_Travel_(video_game)
+⁹⁰https://en.wikipedia.org/wiki/General_Comprehensive_Operating_System
+⁹¹https://en.wikipedia.org/wiki/PDP-7
+GeneralInformation 26
+Figure 1-12. Minicomputer PDP-7
+ThompsonandRitchiewerenotgoingtosellUnix.Therefore,theyneverhadagoaltoprotecttheir
+intellectual property. They developed Unix for their own needs. Afterward, they distributed it for
+freewiththesourcecode.EveryonecouldcopyandusethisOS.Itwasreasonablebecausethefirst
+UnixuserswereBellLabsemployeesonly.
+Unix became popular among Bell Labs employees. Thompson and Ritchie presented the OS at the
+Symposium on Operating Systems Principles conference. Then they got a lot of requests for the
+system.However,BellLabsbelongedtoAT&Tcompany.Therefore,BellLabsdidnothavetheright
+todistributeanysoftwareonitsown.
+AT&T noticed the new perspective OS. The company started to sell its source code to universities
+for$20000.Thus,universitycirclesgotachancetoimproveanddevelopUnix.
+Linus Torvalds ⁹²met Unix when he had studied at the University of Helsinki. Unix encouraged
+him to create his own OS called Linux. It was not a pet project for fun. Torvalds met a practical
+problem.HeneededaUnix-compatibleOSforhisPCtodouniversitytasksathome.SuchOSwas
+notavailableatthatmoment.
+AttheUniversityofHelsinki,studentsperformedstudyassignmentsusingtheMicroVAXcomputer
+running Unix. Many of them had PCs at home. However, there was no Unix version for PC. The
+onlyUnixalternativeforstudentswas Minix⁹³OS.
+AndrewTanenbaumdevelopedthisOSforIBMPCswithIntel80268processorsin1987.Hecreated
+Minixforeducationalpurposesonly.ThiswasareasonwhyherefusedtoapplychangestohisOS
+forsupportingmodernPCs.Tanenbaumwasafraidthathissystembecomestoocomplicated.Then
+hecannotuseitforteachingstudents.
+Torvalds had a goal to write a Unix-compatible OS for his new IBM computer with Intel 80386
+processor. He took Minix as the prototype for his work. Like the Unix creators, Torvalds had no
+commercial interests and was not going to sell his software. He developed the OS for his own
+⁹²https://en.wikipedia.org/wiki/Linus_Torvalds
+⁹³https://en.wikipedia.org/wiki/MINIX
+GeneralInformation 27
+needsandwantedtoshareitwitheveryone.LinuxOSbecamefreeinthisway.Torvaldsdecidedto
+distributeitwithsourcecodeforfreeviatheInternet.ThisdecisionmadeLinuxknownandpopular.
+Torvalds developed the kernel of OS only. The kernel provides memory management, file system,
+peripherals drivers and processor time scheduler. However, users needed an interface to access the
+kernel’sfeatures.ItmeansthattheLinuxOSwasnotreadyforuseasitis.
+Thesolutiontotheproblemcamefromthe GNUsoftwareproject ⁹⁴.RichardStallman ⁹⁵startedthis
+projectatMITin1983.Hisideawastodevelopthemostnecessarysoftwareforcomputersandmake
+it free. The major products of the GNU project are the GCC compiler, glibc system library, system
+utilitiesandBashshell.Torvaldsincludedtheseproductsinhisprojectandreleasedthefirst Linux
+distribution ⁹⁶in1991.
+The first versions of Linux did not have a graphical interface. The only way to interact with the
+system was a command-line shell. Some complex applications had a text interface, but they were
+the minority. Linux got a GUI in the middle of the 1990s. This interface was based on X Window
+System⁹⁷freesoftware.XWindowalloweddeveloperstocreategraphicalapplications.
+UnixandLinuxevolvedinveryspecificconditions.Theydifferfromatypicalcycleofcommercial
+software development. These conditions made a unique development culture. Both systems devel-
+opedinuniversitycircles.ComputerscienceteachersandstudentsusedtheOSesindailywork.They
+understood this software well. Therefore, they fixed software errors and added new features there
+willingly.
+Let’shavealookatwhatistheUnixdevelopmentculture.Unixusersprefertousehighlyspecialized
+command-lineutilities.Youcanfindatoolalmostforeachspecifictask.Suchtoolsarewellwritten,
+tested many times and worked as efficiently as possible. However, all features of one utility are
+focusedononespecifictask.Theutilityisnotuniversalsoftwaretocovermostofyourneeds.
+Whenyoumeetacomplextask,thereisnosingleutilitytosolveit.However,youcaneasilycombine
+severalutilitiesandsolveyourtaskthisway.Suchaninteractionbecomesavailablethankstoaclear
+data format. Most Unix utilities use the text data⁹⁸format. It is simple and self-explained. You can
+startworkingwithitimmediately.
+The Linux development culture follows the Unix traditions. It differs from the standards that are
+adopted in Windows. Every application is monolithic and performs all its tasks by itself in the
+Windows world. The application does not rely on third-party utilities. The reason is the most
+software for Windows costs money and can be unavailable to the user. Therefore, each developer
+reliesonhimself.Hecannotforcetheusertobuysomethingextratomakethespecificapplication
+working.
+ThesoftwaredependencylooksdifferentinLinux.Mostoftheutilitiesarefree,interchangeableand
+accessible via the Internet. Therefore, it is natural that one program requires you to download and
+installamissingsystemcomponentoranotherprogram.
+⁹⁴https://en.wikipedia.org/wiki/GNU_Project
+⁹⁵https://en.wikipedia.org/wiki/Richard_Stallman
+⁹⁶https://en.wikipedia.org/wiki/Linux_distribution
+⁹⁷https://en.wikipedia.org/wiki/X_Window_System
+⁹⁸https://en.wikipedia.org/wiki/Plain_text
+GeneralInformation 28
+TheinteractionofprogramsiscrucialinLinux.EvenmonolithicgraphicalLinuxapplicationsusually
+provideacommand-lineinterface.Thisway,theyfitsmoothlyintotheecosystem.Itleadsthatyou
+canintegratethemwithotherutilitiesandapplications.
+Suppose that you are solving a complex task in Linux. You should assemble a single computing
+process from a combination of highly specialized utilities. It means that you make a computation
+algorithmthatcanbecomplexbyitself.Linuxprovidesatoolforthisspecifictask.Thetooliscalled
+shell⁹⁹. Using the shell, you type commands and the system performs them. The first Unix shell
+appearedin1979.Itwascalled Bourneshell ¹⁰⁰.Nowitisdeprecated.The Bash¹⁰¹shellhasreplaced
+itinmostLinuxdistributions.WewillconsiderBashinthisbook.
+We have considered Linux and Windows cultures. You cannot give a preference to one or another.
+Comparing them causes endless disputes on the Internet. Each culture has its advantages and
+disadvantages. For example, the Window-style monolithic applications cope well the tasks that
+requireintensivecalculations.WhenyoucombinespecializedLinuxutilitiesforthesametask,you
+get an overhead. The overhead happens because of launching many utilities and transferring data
+betweenthem.Thisrequiresextratime.Asaresult,youwaitlongertocompleteyourtask.
+Today, we observe a synthesis of Windows and Linux cultures. More and more commercial
+applications are being ported to Linux: browsers, development tools, games, messengers, etc.
+However, their developers are not ready for changes that the Linux culture dictates. Such changes
+require too much time and effort. They also make it more challenging to maintain the product.
+Insteadofoneapplication,therearetwo:eachplatformhasadifferentversion.Therefore,developers
+porttheirapplicationswithoutsignificantchanges.Asaresult,youfindmoreandmoreWindows-
+style applications on Linux. One can argue about the pros and cons of this process. However, the
+moreapplicationsrunonthespecificOS,themorepopularitbecomes,thankstothenetworkeffect.
+ReadmoreaboutthedevelopmentcultureinUnixandLinuxinEricRaymond’sbook “The
+ArtofProgramminginUnix” ¹⁰².
+Computer Program
+Wegotacquaintedwithoperatingsystems.Theyareresponsibleforstartingandrunningcomputer
+programs.Theprogramorapplicationsolvestheuser’sspecifictask.Forexample,atexteditorallows
+youtowriteandeditdocuments.
+A program is a set of elementary steps. They are called instructions. The computer performs these
+stepssequentially.Itfollowsthestrictorderofactionsandcopeswithcomplextasks.Let’sconsider
+howthecomputerlaunchesandexecutestheprogramindetail.
+⁹⁹https://en.wikipedia.org/wiki/Unix_shell
+¹⁰⁰https://en.wikipedia.org/wiki/Bourne_shell
+¹⁰¹https://en.wikipedia.org/wiki/Bash_(Unix_shell)
+¹⁰²https://en.wikipedia.org/wiki/Unix_philosophy#Eric_Raymond’s_17_Unix_Rules
+GeneralInformation 29
+Computer Memory
+A hard disk stores all instructions of the program. If the program is relatively small and simple it
+fitsasinglefile.Complexapplicationsoccupyseveralfiles.
+Suppose that you have a single file program. When you launch it, the OS loads the file into the
+computer memory called RAM. Then the OS allocates a part of processor time for the new task.
+Thisway,theprocessorperformstheprogram’sinstructionsatspecifiedintervals.
+The first step of launching a program is to load it into RAM. We should consider the computer
+memoryinternalstounderstandthisstepbetter.
+Thesingleunitofthecomputermemoryis byte¹⁰³.Thebyteistheminimumamountofinformation
+that the processor can reference and load into its memory. However, the CPU can handle smaller
+amountsofdataifyouapplyspecialtechniques.Youoperatebitsinthiscase.A bit¹⁰⁴isthesmallest
+amount of information you cannot divide. You can imagine the bit as a single logical state. It has
+oneoftwopossiblevalues.Thereareseveralwaystointerpretthem:
+•0or1
+•TrueorFalse
+•YesorNo
+•+or—
+•OnorOff.
+Anotherwaytoimagineonebitistocompareitwithalampswitch.Ithastwopossiblestates:
+•Theswitchclosesthecircuit.Thenthelampison.
+•Theswitchopensthecircuit.Thenthelampisoff.
+Abyteisamemoryblockofeightbits.Hereyoucanaskwhydoweneedthispackaging?CPUcan
+operateasinglebit,right?Thenitshouldbeabletorefertoaspecificbitinmemory.
+CPU cannot refer to a single bit. There are technical reasons for that. The primary task of the
+first computers was arithmetic calculations. For example, these computers calculated the ballistic
+tables¹⁰⁵. You should operate integers and fractional numbers to solve such a task. The computer
+does the same. However, a single bit is not enough to store a number in memory. Therefore, the
+computerneedsmemoryblockstostorenumbers.Thebytesbecamesuchblocks.
+Introducing bytes affected the architecture of processors. Engineers have expected that the CPU
+performsmostoperationsovernumbers.Therefore,theyaddedafeaturetoloadandprocessallbits
+ofthenumberatonce.Thissolutionincreasedcomputers’performancebyorderofmagnitude.Atthe
+sametime,loadingofthesinglebitintheCPUhappensrarely.Supportingthisfeatureinhardware
+bringssignificantoverhead.Therefore,engineershaveexcludeditfrommodernprocessors.
+¹⁰³https://en.wikipedia.org/wiki/Byte
+¹⁰⁴https://en.wikipedia.org/wiki/Bit
+¹⁰⁵https://www.wikiwand.com/en/Ballistic_table
+GeneralInformation 30
+Thereisonemorequestion.Whydoesabyteconsistofeightbits?Itwasnotalwaysthisway.The
+bytewasequalto sixbits¹⁰⁶inthefirstcomputers.Suchamemoryblockwasenoughtoencodeallthe
+Englishalphabetcharactersinupperandlowercase,numbers,punctuationmarksandmathematical
+operations.
+Six-bitsencodingswereinsufficientforrepresentingcontrolandbox-drawingcharacters.Therefore,
+theseencodingswereextendedtosevenbitsintheearly1960s.The ASCIIencoding ¹⁰⁷appearedat
+that moment. It became the standard for encoding characters. ASCII defines characters for codes
+from0to127.Themaximumseven-bitnumber127limitsthisrange.
+ThenIBMreleasedthecomputer IBMSystem/360 ¹⁰⁸in1964.Thesizeofabytewaseightbitsinthis
+computer. IBM chose this size for supporting old character encodings from the past projects. The
+IBMSystem/360computerwaspopularandwidespread.Itledthateight-bitpackagingbecamethe
+industrystandard.
+Table1-1showsfrequentlyused unitsofinformation ¹⁰⁹besidesbitsandbytes.
+Table 1-1. Units of information
+Title Abbreviation ¹¹⁰ Number of bytes Number of bits
+kilobyte KB 1000 8000
+megabyte MB 1000000 8000000
+gigabyte GB 1000000000 8000000000
+terabyte TB 10000000000 8000000000000
+Table1-2showsstandardstoragedevicesandtheircapacity.YoucancomparethemusingTable1-1.
+Table 1-2. Storage devices
+Storage device Capacity
+Floppydisk3.5” ¹¹¹ 1.44MB
+Compactdisk ¹¹² 700MB
+DVD¹¹³ upto17GB
+USBflashdrive ¹¹⁴ upto2TB
+Harddiskdrive ¹¹⁵ upto16TB
+SolidStateDrive ¹¹⁶ upto100TB
+We got acquainted with units of information. Now let’s get back to the execution of the program.
+Why does the OS load it into RAM? In theory, the processor can read the program instructions
+¹⁰⁶https://en.wikipedia.org/wiki/Six-bit_character_code
+¹⁰⁷https://en.wikipedia.org/wiki/ASCII
+¹⁰⁸https://en.wikipedia.org/wiki/IBM_System/360
+¹⁰⁹https://en.wikipedia.org/wiki/Units_of_information
+¹¹¹https://en.wikipedia.org/wiki/Floppy_disk
+¹¹²https://en.wikipedia.org/wiki/Compact_disc
+¹¹³https://en.wikipedia.org/wiki/DVD
+¹¹⁴https://en.wikipedia.org/wiki/USB_flash_drive
+¹¹⁵https://en.wikipedia.org/wiki/Hard_disk_drive
+¹¹⁶https://en.wikipedia.org/wiki/Solid-state_drive
+GeneralInformation 31
+directlyfromtheharddiskdrive,right?
+Amoderncomputerhasfourlevelsofthe memoryhierarchy ¹¹⁷.Eachlevelmatchestheredrectangle
+in Figure 1-13. Each rectangle match a separate device. The only exception is the CPU chip. It
+containsbothregistersandamemorycache.Theseareseparatemodulesofthechip.
+YouseethearrowsinFigure1-13.Theyrepresentdataflows.Datatransferoccursbetweenadjacent
+memorylevels.
+Suppose that you want to process some data on the CPU. Then you should load these data to its
+registers.Thisistheonlyplacewheretheprocessorcantakedataforcalculations.IftheCPUneeds
+somethingfromthediskdrive,thefollowingdatatransfershappen:
+1.Diskdrive->RAM
+2.RAM->Processorcache
+3.Processorcache->Processorregisters
+WhentheCPUwritesdatabacktothedisk,ithappensinthereverseorderofsteps.
+Figure 1-

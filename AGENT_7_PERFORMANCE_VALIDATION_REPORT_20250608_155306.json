@@ -1,0 +1,163 @@
+{
+  "timestamp": "20250608_155306",
+  "performance_targets": {
+    "name": "Performance Target (6x improvement)",
+    "target_rps": 15000,
+    "max_avg_response_time_ms": 25,
+    "max_p99_latency_ms": 80,
+    "max_memory_usage_gb": 19.1,
+    "max_cpu_usage_percent": 73,
+    "min_cache_hit_rate": 89,
+    "max_error_rate": 0.3
+  },
+  "baseline_targets": {
+    "name": "Baseline (Pre-optimization)",
+    "target_rps": 2500,
+    "max_avg_response_time_ms": 120,
+    "max_p99_latency_ms": 500,
+    "max_memory_usage_gb": 32.0,
+    "max_cpu_usage_percent": 100,
+    "min_cache_hit_rate": 0,
+    "max_error_rate": 100
+  },
+  "component_tests": [
+    {
+      "test_name": "CPU Intensive",
+      "duration": 30.892674684524536,
+      "throughput": 321435.4244624329,
+      "cpu_usage": 1.7,
+      "memory_usage_gb": 8.85953140258789,
+      "operations": 9930000
+    },
+    {
+      "test_name": "Memory Intensive",
+      "duration": 30.225024700164795,
+      "throughput": 3937432.679727508,
+      "cpu_usage": 1.95,
+      "memory_usage_gb": 8.86141586303711,
+      "operations": 119009000
+    },
+    {
+      "test_name": "I/O Simulation",
+      "duration": 30.02075958251953,
+      "throughput": 18027.52520343055,
+      "cpu_usage": 2.25,
+      "memory_usage_gb": 8.875995635986328,
+      "operations": 541200
+    }
+  ],
+  "existing_benchmarks": {
+    "status": "success",
+    "output": "\ud83d\ude80 Running Quick Benchmark Suite\n==================================================\n\ud83d\udda5\ufe0f  Quick CPU test...\n\ud83d\udcbe Quick memory test...\n\ud83d\udcbf Quick I/O test...\n\ud83d\udd17 Quick Rust FFI test...\n\ud83e\udde0 Quick HTM test...\n\ud83d\udee0\ufe0f  Quick tool execution test...\n\ud83c\udfe5 Quick system health check...\n\n\u2705 Quick benchmark results saved:\n\ud83d\udcca JSON Data: /home/louranicas/projects/claude-optimized-deployment/benchmarks/quick_benchmark_results_20250608_154758.json\n\ud83d\udcc4 Report: /home/louranicas/projects/claude-optimized-deployment/benchmarks/quick_benchmark_report_20250608_154758.md\n\n\ud83c\udfaf QUICK BENCHMARK SUMMARY\n========================================\nTests completed: 7\nTests successful: 7\nSuccess rate: 100.0%\nTotal duration: 6.255s\nAverage throughput: 2709657.4 ops/s\n"
+  },
+  "workload_results": {
+    "Baseline Test": {
+      "timestamp": 1749361740.1732652,
+      "rps": 643.7870438919412,
+      "avg_response_time_ms": 1.0574380985756566,
+      "p95_response_time_ms": 1.0623931884765625,
+      "p99_response_time_ms": 1.0714530944824219,
+      "memory_usage_gb": 9.135019302368164,
+      "cpu_usage_percent": 1.8,
+      "cache_hit_rate": 45.0,
+      "error_rate": 0.0,
+      "concurrent_requests": 2500,
+      "total_requests": 39272,
+      "successful_requests": 39272,
+      "failed_requests": 0
+    },
+    "Intermediate Test": {
+      "timestamp": 1749361802.1894739,
+      "rps": 782.5268318940335,
+      "avg_response_time_ms": 1.055868905389997,
+      "p95_response_time_ms": 1.0614395141601562,
+      "p99_response_time_ms": 1.069784164428711,
+      "memory_usage_gb": 8.993152618408203,
+      "cpu_usage_percent": 1.7,
+      "cache_hit_rate": 75.0,
+      "error_rate": 0.0,
+      "concurrent_requests": 7500,
+      "total_requests": 47735,
+      "successful_requests": 47735,
+      "failed_requests": 0
+    },
+    "Target Test": {
+      "timestamp": 1749361924.22102,
+      "rps": 831.3660412537567,
+      "avg_response_time_ms": 1.0569891003786136,
+      "p95_response_time_ms": 1.0609626770019531,
+      "p99_response_time_ms": 1.0685920715332031,
+      "memory_usage_gb": 8.866214752197266,
+      "cpu_usage_percent": 1.7999999999999998,
+      "cache_hit_rate": 89.0,
+      "error_rate": 0.0,
+      "concurrent_requests": 15000,
+      "total_requests": 100596,
+      "successful_requests": 100596,
+      "failed_requests": 0
+    },
+    "Target Test_validations": {
+      "rps": {
+        "target": 15000,
+        "actual": 831.3660412537567,
+        "passed": false,
+        "improvement_factor": 0.3325464165015027
+      },
+      "avg_response_time": {
+        "target_max": 25,
+        "actual": 1.0569891003786136,
+        "passed": true,
+        "improvement_factor": 113.53002595487123
+      },
+      "p99_latency": {
+        "target_max": 80,
+        "actual": 1.0685920715332031,
+        "passed": true,
+        "improvement_factor": 467.9053993752789
+      },
+      "memory_usage": {
+        "target_max": 19.1,
+        "actual": 8.866214752197266,
+        "passed": true,
+        "utilization_percent": 27.706921100616455
+      },
+      "cpu_usage": {
+        "target_max": 73,
+        "actual": 1.7999999999999998,
+        "passed": true
+      },
+      "cache_hit_rate": {
+        "target_min": 89,
+        "actual": 89.0,
+        "passed": true
+      },
+      "error_rate": {
+        "target_max": 0.3,
+        "actual": 0.0,
+        "passed": true
+      }
+    },
+    "Stress Test": {
+      "timestamp": 1749361986.2383502,
+      "rps": 835.2055572792203,
+      "avg_response_time_ms": 1.057517425817733,
+      "p95_response_time_ms": 1.0616779327392578,
+      "p99_response_time_ms": 1.0690689086914062,
+      "memory_usage_gb": 8.879425048828125,
+      "cpu_usage_percent": 1.5,
+      "cache_hit_rate": 89.0,
+      "error_rate": 0.0,
+      "concurrent_requests": 20000,
+      "total_requests": 50949,
+      "successful_requests": 50949,
+      "failed_requests": 0
+    }
+  },
+  "system_info": {
+    "cpu": "AMD Ryzen 7 7800X3D",
+    "memory": "32GB DDR5 6000MHz",
+    "threads": 16,
+    "measured_cores": 16,
+    "measured_memory_gb": 30.559593200683594
+  }
+}

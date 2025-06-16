@@ -1,0 +1,397 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 1 - This "sda1" cannot be modified unless the partition is deleted and re-established.
+After all settings are modified, click the Update Settings button in the interface to complete the editing of the disk partition.
+6) Click the "+" button in the lower left corner of the interface shown to continue to create the /boot mount point. After that select "/boot" from the Mount Point drop-down list, and in the Desired Capacity input box select the entered size is "500M".
+The /boot partition does not need to be too large, because it is only used to store some system boot information and kernel information. Click the Add mount point button so that the /boot mount point is created.
+7) Then create a mount point of swap type. Select swap in the Mount Point drop-down list, and then enter the size in the Desired Capacity input box, where 4096M is specified.
+Note that this is "swap", not "/swap".
+8) Then create the /usr and /var partitions separately. The creation method is basically the same as that of the /boot partition, but the partition size is different.
+If more application software is installed, the /usr partition can be increased appropriately. The /var partition is recommended to be set larger, because after the system runs for a long time, more logs will be generated accordingly.
+9) After creating the necessary partitions for the system, if there is enough space, you can also create a partition of your own to store your own data. Here, create a /mydata partition. Note that there is a "/" before each partition, because each partition is created under the root partition.
+In order to ensure that all the disk space can be used by Linux, divide all the remaining space of the disk to the /mydata partition. The specific operation is to enter "/mydata" in the input box of Mount Point, and then leave the Desired Capacity input box blank, so that all the remaining disk space is allocated to the /mydata partition.
+10) So far, the partition work has been basically completed, and the completed partition will be shown.
+To delete a partition, you can click the "-" button in the lower left corner of the interface to delete a partition. After all settings are completed, click the Done button in the upper left corner to enter the interface.
+11) In the interface shown, all operations related to disk partitions are displayed, including creating, resizing or deleting partitions and file systems. You can view all the changes. If you need to modify the partition again, click the Cancel & Return to Custom Partitioning button to return to the partition interface. To confirm the partition change operation, click the Accept Changes button to return to the interface.
+So far, all the basic operations on the partitioning part have been introduced. Now we will enter the network configuration section.
+What Next?
+While this section may seem complex it is very important to make your linux distro function. If not done properly your hard disk may become prone to errors. In the next chapter, we will talk about networking settings that need to be filled before installing the system. Follow along!
+Security Relevance Score: 15
+Word Count: 5986
+Extracted: 2025-06-13 23:40:27
+
+---
+
+This "sda1" cannot be modified unless the partition is deleted and re-established.
+After all settings are modified, click the Update Settings button in the interface to complete the editing of the disk partition.
+6) Click the "+" button in the lower left corner of the interface shown to continue to create the /boot mount point. After that select "/boot" from the Mount Point drop-down list, and in the Desired Capacity input box select the entered size is "500M".
+The /boot partition does not need to be too large, because it is only used to store some system boot information and kernel information. Click the Add mount point button so that the /boot mount point is created.
+7) Then create a mount point of swap type. Select swap in the Mount Point drop-down list, and then enter the size in the Desired Capacity input box, where 4096M is specified.
+Note that this is "swap", not "/swap".
+8) Then create the /usr and /var partitions separately. The creation method is basically the same as that of the /boot partition, but the partition size is different.
+If more application software is installed, the /usr partition can be increased appropriately. The /var partition is recommended to be set larger, because after the system runs for a long time, more logs will be generated accordingly.
+9) After creating the necessary partitions for the system, if there is enough space, you can also create a partition of your own to store your own data. Here, create a /mydata partition. Note that there is a "/" before each partition, because each partition is created under the root partition.
+In order to ensure that all the disk space can be used by Linux, divide all the remaining space of the disk to the /mydata partition. The specific operation is to enter "/mydata" in the input box of Mount Point, and then leave the Desired Capacity input box blank, so that all the remaining disk space is allocated to the /mydata partition.
+10) So far, the partition work has been basically completed, and the completed partition will be shown.
+To delete a partition, you can click the "-" button in the lower left corner of the interface to delete a partition. After all settings are completed, click the Done button in the upper left corner to enter the interface.
+11) In the interface shown, all operations related to disk partitions are displayed, including creating, resizing or deleting partitions and file systems. You can view all the changes. If you need to modify the partition again, click the Cancel & Return to Custom Partitioning button to return to the partition interface. To confirm the partition change operation, click the Accept Changes button to return to the interface.
+So far, all the basic operations on the partitioning part have been introduced. Now we will enter the network configuration section.
+What Next?
+While this section may seem complex it is very important to make your linux distro function. If not done properly your hard disk may become prone to errors. In the next chapter, we will talk about networking settings that need to be filled before installing the system. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Nine
+
+
+
+Network Installation Settings
+
+
+
+
+
+This chapter talks
+ about the networking settings that you need to enter before starting the Installation procedure of Linux mint. As we well know that network settings are utmost important for the functioning of a system it is mandatory ti learn about them. Let us go and configure the network setting to complete the installation procedure.
+Configuring the network
+1) In the interface that appears after the previous settings, the KDUMP option is enabled by default. Just keep it enabled so that no other additional tweaks and other settings are required. Then click the NETWORK & HOST NAME option to enter the network setting interface.
+In the left pane, the network interface information recognized by the installer is displayed. Click the network interface in the list on the left, and the detailed information will be displayed on the right.
+In this sample procedure, there is only one network card. We used ethernet. Ethernet represents the type of networking device and eno16777736 represents the device ID of the network card. Your device id may differ. You can find to using the following command.
+
+root@server : netstat
+
+
+// Look out for the “ethernet” word in the output information.
+
+You are using wireless network then search for “wlan”
+The right pane in the interface shows the connection status of this network card, such as MAC address, connection rate, etc.
+It is possible that you can also set the host name information. Enter the corresponding host name in the Host name input box in the lower left corner.
+By default, the network card is disconnected and you can click the ON/OFF (switch) button in the upper right corner to activate the network card. The activated network card cannot automatically obtain an IP address, so you need to manually set the IP address information.
+Click the Configure button in the lower right corner to enter the network card information configuration interface.
+2) In the configuration interface that appears the wired, wireless, VPN or DSL connection can be configured according to the type of network connected. Here, select Automatically and connect to this network when it is available so that All users may connect to this network. Select the box to automatically connect after the system starts.
+3) In the network configuration part, it seems that there are many options to be set, but in fact, not many need to be configured. In the interface shown select the IPv4 Settings tab to enter the IP address configuration interface. First select Method from the options(network connection mode). Commonly used are Automatic DHCP, Manual, Link-Local Only, etc.. If you are not aware or looking for more customizations then Choose Manual.
+After chosing manual then click the Add button to add an IPv4 IP address. The IP address added here is "192.234.56.101”. The subnet mask is "255.155.255.0", and the gateway is "192.987.56.1", and then add a DNS servers address “113.5.5.5”. If the network needs to set up multiple routes, you can also click the Routes button in the lower right corner to add routes.
+After all settings are completed, click the Save button to save the settings and return to the interface that you are previously in to continue the procedure.
+4) After the setting is completed, the network card will automatically try the network connectivity. The configured network will be shown as a summary for your reference. Click the Done button to complete the network settings and return to the interface that holds options for all other settings that are available.
+5) So far, the basic introduction of the Linux installation needs to be set is completed. A summary that provides all the settings that you have selected will be appeared on the screen. Make sure that the settings are correct. Click the Begin Installation button in the lower right corner to start installing the Linux system.
+Now its the end game. Install Linux in your system.
+Completing the installation
+1) After clicking the Begin Installation button, the Linux installation progress interface appears. At this time, the system will be installed on the disk. During the installation process, you also need to set the password of the Linux administrator account ROOT. Click the ROOT PASSWORD option to enter the ROOT password setting interface. Make sure that you are entering a secure password as dictionary attacks are possible to be entered using a Live USB of linux system.
+2) The installation program will verify the entered password. If a too simple password is set, it will be prompted to reset it. The ROOT user is the super administrator in the Linux system. Therefore, the password setting must be strict, and it is best to set it to include numbers, Password with a combination of letters and special characters.
+After entering the password twice, click the Done button to return to the installation interface.
+3) In the interface shown, click the USER CREATION option to create an ordinary user. Linux is a multi-user operating system. When using it, it is best not to log in to the system directly with the ROOT account, but to log in through an ordinary user, which helps the security of the system. Therefore, it is necessary to create an ordinary user to log in to the system .
+Enter the user's Full name, User name and Password to create an ordinary user. After the input is complete, click the Done button to return to the installation interface.
+4) The time required for the installation process depends on the number of selected software packages, generally it takes 10 to 60 minutes to complete the installation. As shown, after the system is installed, the settings under USER SETTINGS will be unavailable, so you need to set ROOT PASSWORD and USER CREATION before the system is installed.
+After the installation is complete, click the Reboot button to restart the system and finish installation.
+Starting Linux System
+1) After the installation is complete, the system will be automatically ejected by the CD. If the CD is not ejected, you need to remove the installation media. After the server restarts, it will automatically enter the boot interface. There are two boot options, the first is the normal boot program, the second is the boot program to enter the rescue mode, the first one is selected by default. If all done correctly as mentioned press Enter to enter the boot process.
+2) By default, a graphical interface showing a progress bar is hidden behind the startup process. If the graphical interface is not installed, the character interface will be entered by default. If the graphical interface is installed, the graphical interface will automatically start. Now click the ixdba user, and then enter the password to log in to the system. If you need to log in with another user, select the Not listed button below and enter the user who needs to log in using the desired Name and password. You can comfortably switch users to log in to the system.
+3) After logging in to the system through the graphical interface, the language selection interface will pop up. You can select the desired language as needed, and then select the default as English. Then click the Next button to enter the next interface.
+4) Enter the keyboard selection below and select the default English (US), and click the Next button to enter the next interface where all this completes.
+5) At this point, the user initialization process after installation is all over, click the Start using Linux Mint button in the interface to start the Linux learning journey.
+What to do next?
+Congratulations. You have now installed the Linux Mint in your system. After a successful installation it is highly recommended to update the system so that there will be no lags or bugs in the installed operating system. For every couple of months the linux kernel can be updated to improve the performance of the Linux Mint.
+With this, we have completed the important part of this book. In the next module of this book we will introduce complex Linux topics that are important for making Linux a better place for programmers and developers. Let us dive into the second module of this book. But before going, have a look at the next chapter that simplifies U disk installation process for you.
+
+
+
+
+
+
+
+
+
+
+
+Bonus : U-Disk Installation Process
+
+
+
+
+
+As explained
+ in the previous section there are different ways to install Linux in a desktop computer or a laptop or sometimes even in server based systems. We have discussed in the previous section using the much used CD rom files. In this section, we will discuss about USB installation procedure which is now being used as a mainstream way to install Linux. Follow along carefully to know more about it.
+U disk installation process
+Most PCs and servers nowadays are not equipped with CD-ROM drives, and are replaced by USB interface devices. At the same time, the USB 3.0 specification has been widely popularized, and the data transmission speed of U disk can reach gigabit per second. There are tons of products in market ranging from 2gb to 2tb according to your requirements.
+Due to this uprise in the installation procedure, there are now more and more applications based on the USB interface, such as USB keyboard, USB mouse, USB optical drive, etc. When installing the system, although USB optical drive can be used to install, the current cost of USB optical drive is relatively high, and the installation of the system through U disk is not only of low cost, but also fast and convenient. In large-scale systems installation, through U disk has become a mainstream procedure.
+The basic steps for installing a Linux system through a U disk are as follows:
+1) First, a U disk of about 8GB is needed. The larger the capacity, the better it will be. The full ISO image file size of Linux Mint has reached about 7GB now a days. Always make sure to verify the file size before deciding to make an USB installation medium.
+2) Download the ISO image file of Linux Mint from the open source site (http://mirrors.163.com
+ ). Or you can just visit the official Linux mint website to select your preferred disk image file for installation.
+3) Download a U disk burning tool from the Internet. Common U disk burning tools include UltraISO, USBWriter and Rufus. USBWriter is recommended here, because USBWriter is easy to use and can be used to burn a disk image file in one step. Although UltraISO can also burn ISO images to U disk, the burned Usb disk will sometimes have problems during the installation and boot process. If you are using a windows system to make the installation medium then we highly suggest you to use Rufus for making the Usb disk as it is more convenient and recommended one.
+4) USBWriter is an open source small tool, which can be downloaded from http://sourceforge.net/projects/usbwriter/
+ . It is a U disk burning tool that is specially used for Linux systems.
+Its working principle is to divide the U disk into two partitions, a FAT32 partition (only a few megabytes in size) that is used to install the boot program, and the other Linux partition is used to store the system installation package.
+There is sometimes a known problem:
+The capacity of the U disk burned by USBWriter will automatically become smaller. This is because only one FAT32 partition is seen, and the other Linux partition is invisible under Windows. But don’t worry, it’s easy to restore the USB flash drive to its original size. Download DiskGenius utility tool from the Internet to restore the USB flash drive to its original size.
+5) Use USBWriter to burn the downloaded ISO image file to the U disk. First select the location of the ISO image file, and then specify the U disk that needs to be burned to. For example, a 16GB U disk is selected. After selecting, click the Write button to start the burning process.
+After burning the ISO file to the U disk, all the previous data on the U disk will be lost, so before burning, back up the data on the U disk.
+6) The U disk burning process is relatively fast, usually 10 to 30 minutes. If there is no error during the burning process, the burning process can basically be successful. After the U disk burning is completed, it will prompt that the burning is successful.
+7) After the U disk is successfully burned, you need to re-plug the U disk. At this time, in the Windows Disk Manager, you can see that the 16GB U disk has become about 6MB in size.
+8) After the U disk is successfully burned, insert the U disk into the USB interface of the server, then enter the BIOS, set to boot from the USB device, and then restart the system to enter the interface that provides more options.
+9) The following installation process is exactly the same as the installation method of the optical drive that we introduced before, so the introduction will not be repeated. But one thing to note is that during the disk partitioning phase, you will see two disks.
+After the installation procedure the USB disk will be ready and you can use it to install Linux in any computer easily.
+What Next?
+With this, we almost completed the first module of this book successfully. Even though being a short introduction to Linux and its installation procedure this module is opening to the much important roadmap that you are going to take now to become a Linux enthusiast and a cyber security specialist.
+In the next module of this book you will learn about important Linux topics such as Linux file system, Process management and Log analysis. There are a lot of other topics that we are going to discuss. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Linux Basics For Hackers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Introduction
+
+
+
+
+
+In the previous
+ module of this book you learned about basics of Linux that are absolutely necessary to wander around the Linux world. Learning Linux is not an easy task as it is developed by thousands of developers from twenty years.
+A small titbit:
+Do you know that the number of lines that are written to make Linux kernel work are stunningly 1 million lines? Yes, it’s right . Linux kernel is approximately 1 million lines large and is still running. So, if you want to learn all the components of Linux and all the drivers that are supposed to be run with the Linux kernel then I think that your approach is wrong.
+How to Learn Linux?
+Learn smartly not effectively should be your motto while starting to learn Linux. You are trying to be a hacker so learn Linux like a hacker should learn. Don’t worry about virtualization utilities that come with Linux kernel and focus about network monitoring and spoofing tools that can help you become a hacker.
+In the previous module we explained basic stuff that is the foundation for any Linux distro. We now think that you are ready to learn Linux as a hacker now. In the coming five chapter you will be learning about important linux topics that can seamless increase your performance as a hacker. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter One
+
+
+
+Installing Softwares and Packages in Linux
+
+
+
+
+
+As with every operating system,
+ installing software is a mandatory use case for Linux also. Linux uses organized package management systems and installs software in a more perfect way when done correctly. It may feel like a bit of complexity when first dealing with installing and updating software in linux but as time goes on you will feel how organized and easy Linux installation philosophy is. As a hacker it is important to understand and find easy ways to install software to not break the system. Even if you are dealing with Live USB to hack systems it is very essential to understand how installing packages work in Linux.
+To help you understand these concepts we are providing various use cases and examples in this chapter. Follow along!
+How is it different from Windows?
+When compared to Linux windows installation procedure may seem straightforward but it’s not. Windows installation files are especially large because they create a sandbox to include all the API’s that the software calls at different instances. This makes installation file big and may cause lag issues down the road.
+Linux however uses different approach to install files. It uses packages which are tightly enclosed and independent and are updated by their own instance. This may cause problems sometimes but most of the time it just works perfectly.
+How to install Software in Linux Mint?
+As we are aware that Mint is a light weight Debian based system that can work even under low end based systems. Different Linux distros use different package managers. For example, Arch Linux which is a developer favorite Linux distro uses Pacman to install software.
+All the Debian based systems fundamentally use “apt” to install software. Apt is a simple package manager that tightly integrates all the components and installs them in the Linux machine using the instructions provided in the script file.
+How does it work?
+When a software is called first the script file is downloaded and then the package manager will analyze all the components that are necessary for the system to function properly. If any component is already installed in the system then it skips to the next one to download it. After all the components are installed the software will be packaged and installed within seconds into the Linux system.
+Here is a command:
+
+apt-get install python
+
+
+// This will download Python to the Linux system
+
+How to search Packages?
+Apt almost provides all the famous packages that Linux enthusiasts and developers root for. However, there are a lot of third party packages that may not be available because of compatibility reasons.
+If you are trying to download a package and if not you are sure whether that package exists or not in the package manager then you can use the search command to find it. If you do not get any accurate results for your package name then it is evident that the apt is not supporting your package.
+Here is the command:
+
+root@server : apt-cache search Python4
+
+
+// This will search the apt repository and will display “no results” in the command line
+
+To get more accurate results please use the web version of apt repository where all the available packages are sorted even according to a category.
+If you are using Arch Linux, Pacman also provides a search option to check packages before downloading and installing them.
+How to remove software?
+Removing software from an operating system is as important as installing software into a system.
+You may wonder why it is important to remove software that is significantly not doing any damage to your Linux system? But listen to experts because idle software that are outdated can conflicts with the newly installed software.
+If there are potential conflicts in a Linux system it may lead to breaking the whole operating system. Removing unwanted software also improves system performance and can help users allocate those wasted memory resources to something worthwhile.
+Ethical hackers should also understand how to remove software because when they detect any trojans or spiders that are inserted by the attackers to hijack system they should be able to remove their traces from the system as soon as possible. Some high risk trojans will not get removed until you end their process by manually finding them. It is tough to remove software if a hacker users potentially dangerous ways to implement them.
+For now, we will learn about removing software by using a package manager like apt.
+Here are some commands:
+
+root@server : apt-get remove python
+
+
+// This removes python packages along with all the dependencies that are not being used by any other package in the operating system.
+
+How to update Packages/Software?
+Updates are a way to improve the performance of your software. Almost every software release updates to provide new features to their users. In windows system, when you click update it first downloads an executable file and asks you to install it manually.
+In linux however all you need to do is to use the package managers to install them and all of its dependencies. You can also manually provide instructions in the installation file to not update the repositories that you are not willing to update. In linux, updating software gives a lot of freedom unlike traditional operating systems like Windows and Mac.
+Linux also provides an easy way to update all the software that are available with a one click. During this update process Linux kernels and header files will also be updated to support the newer versions of the software.
+Here are some commands:
+
+apt-get update
+
+// Use this command to update all your software by one click
+Apt-get upgrade
+// use this command to upgrade all the software packages that are installed on the system
+Apt-get upgrade python
+
+// This command will check whether python has any updates and if there are any updates available then it will install them cumulatively.
+
+GUI based installation procedure
+Linux is a terminal centric operating system and will always support the philosophy of using commands to change the system files such as installing/removing software. However, it should be understood that GUI is also supported extensively by some Linux enthusiasts.
+There has always been a wild debate about GUI installers that are developed by third party developers. Unlike in the beginnings of Linux deployment now a days Linux is also being used as a daily operating system by a lot of users. And, it is a known fact that a lot of them are not tech savvy and prefer GUI based installers because they are more easy to operate.
+This is the reason why some of the Linux distros that have huge downloads are including GUI based installers in the operating system. For example, a popular arch based Linux distro Manjaro comes with GUI version of Pacman and solves a lot of installation problems that users may face.
+For Debian based system synaptic installer is highly recommended and is binded with a lot of Debian based distros.
+If you do not find Synaptic installer we suggest you to use the below command
+
+root@server : apt-get install synaptic
+
+
+// This will install the synaptic GUI installer in the Linux system
+
+Now, all you need to do is search your preferred package in the search column of the GUI installer so that it can be installed seamlessly along with all of it’s dependencies that are required to run the software.
+Removing software is also easy with a GUI based installer. All you need to do is find the software name and select it to remove from your system along with all of its dependencies.
+Now, in the next section of this chapter we will talk about git which is a famous developer tool that needs to be mastered if you are into open-source and working in teams. You might have already heard “Github” that uses the git structure to share code with others.
+GIT installation
+If you never heard about Github it is a git based code sharing platform that offers both free and professional plans. In the free plan your code will be public and is therefore automatically comes under open-source license.
+What does git do exactly?
+Git uses a complex technique that involves commits to automatically update the source code in a project in a way that it supports all the present code.
+It becomes handy especially if you are working in teams to check the compatibility of the newly written code. It also makes testing process easy for enterprise applications.
+For hackers, a lot of scripts that automate certain things are usually uploaded by hackers for the community. A lot of key logger tools and monitor ng tools are also uploaded by the open-source community.
+If you are a beginner and are trying to use that code for your exploitation techniques then it makes sense that you need to clone that repository into your Linux system. To make that possible use the below mentioned commands.
+
+root@server : apt-get install git
+
+// This installs the git supported system in your Linux system
+root@server : git clone https:github.com/enterurlhere
+
+// This clones your desired repository into the Linux system
+
+With this, we have completed a brief introduction to installing, updating and removing software using package managers in Linux. You can also install software in Linux using the executable .deb files after giving necessary permissions. In the next chapter, we will learn about process management that is said to be a necessary skill for hackers who are using kali linux for exploitation purposes. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Two
+
+
+
+Process management in Linux
+
+
+
+
+
+After having
+ a thorough understanding about the installation philosophy and Linux uses you are Now all set to enter into a new Linux arena which helps you to ignite much more significant thoughts as a hacker. Linux uses processes to maintain and interact all its components with Linux kernel. If there are no process running then we can confidently say that the Linux system has been shut down. As a hacker understanding processes, manipulating them and ending them whenever necessary is a blessing skill. In this chapter we will not only provide basics about processes in Linux but will also provide examples which can help you understand the foundations of Linux more concretely. Follow along!
+What are processes?
+Processes are what makes Linux programs run. They are a representation that the software/ command line utility is interacting with system resources such as Linux kernel to do what it is ought to do. Every software that is running in Linux has a process and if we end the process manually then the software will stop working.
+As a hacker, when you get access to a system you will be easily monitored by the anti virus processes that are running in the Linux system. To make them stop sending your logs to the system administrator you may need to end their processes manually.
+While it may seem simplistic to just end processes like in Task manager using windows this can have some serious consequences if done wrong. You need to have a practical experience and a good theoretical understanding of process management to achieve your wishes.
+In the coming sections you will be learning some tips to find and manage processes along with a way to automate them according to your convenience.
+How to view processes?
+Whenever a Linux system boots up some processes will start opening automatically. Every time when you open a terminal or a web browser their respective processes will also be opened. When you close them only some of the processes will be automatically shut down while other will be running in the background consuming your system resources.
+Here is the command for viewing processes:
+
+root@server : ps
+
+
+// This displays all the processes that are running in the Linux system
+
+Here is a sample output:
+
+PID
+
+45637
+
+// The numbers are the identification for a process
+
+If you want to make any changes to a particular process then you should note down the process number. The output information will also show other information such as the process name, time and the type of command it is using. If you have opened the process from a terminal then the bash cmd will appear in the output information.
+Note :
+Finding processes is sometimes an overwhelming task because you need to search from tens of processes that are running. Always make sure that you are confident before changing the process status. If you by any mean end the system processes that are running then your Linux system may stop responding until the next reboot.
+How to display additional information?
+Usually by using the ps command you can only get basic information. You can display additional information about processes using the aux command. Let us check it with an example.
+
+root@server : ps aux
+
+
+// This prints an output that describes a lot of information about a process
+
+Here is a sample output:
+
+PID - 21314 %CPU -23% %MEM - 32% Start Time - 22:34
+
+
+// It displays additional information such as the memory and CPU power it is consuming. It also displays start time to easily estimate the process name
+
+The aux command also describes about the instance that started the process. This is essential for forensic investigators because they can easily track the origin point of the attack using this procedure.
+How to filter processes?
+Imagine that you are starting to find a process that you badly need to stop but you can’t easily find it because there are a lot of other processes that are being displayed on the output screen. If you are smart you would find a way to filter the process you need instead of manually going through all the processes to find the one you want.
+If you are looking to be smart then Linux is there for you. Linux specifically provides functionalities to filter processes using the grep command. Here is an example for your understanding.
+
+root@server : burp suite
+
+// First start a process or any software that you like using the default command
+root@server : ps aux | grep burpsuite
+
+// Now use this command to filter the process that starts by using the “burp suite” command
+
+This will display an output like we have shown before with all the information that one needs to understand about the process.
+How to find problematic processes?
+Before describing about greedy processes we should talk about a scenario that have become popular these days especially in the windows systems.
+A lot of spammers and hackers are now a days including mining programs in applications to install them your system. When you willingly or by any other reason install them your computer will become very slow and will not function normally.
+Why does this happen?
+Because, the mining program forcefully uses all the system resources and will run in the background. A normal user can’t observe it because it will be hidden in an invisible tray. Only professional who can access the terminal or can analyze services in the operating system can only understand that there is a malware in the system.
+In the similar process imagine greedy processes in Linux as mining programs in window systems. They may not be harmful but are definitely a bad use case if you using Linux as your daily driver. As a system administrator or a hacker you should be aware of killing the greedy process that maybe installed by other users or maybe sometimes even hackers.
+How to find top processes?
+To find top processes all you need to do is to enter the following command in your terminal as a root user.
+
+root@server : top
+
+
+// This will display an output information that is allocated with maximum system resources
+
+If you feel that any of these top processes are not necessary for your system then you can end them with the kill command which we will be discussing in the coming section.
+How to prioritise processes in Linux?
+In a linux system with a ton of processes running as an ethical hacker or as a system administrator it is always recommended to prioritize your preferred processes using the nice command.
+Why should you prioritize?
+If you are an individual user then prioritizing may not seem intelligent because you have all the resources you need. But imagine if you are in an enterprise and are using the server resources that linux is maintained along with other users then it is impossible to use all the system resources for yourself. If you do it then your system administrator may find out and can sometimes even temporarily block your access.
+A lot of newbie hackers when they crack a system attack all the resources all at once notifying sysadmins and shutting down all the access to the system. If you are a smart hacker you will carefully prioritize the processes without gathering much attention and when you get all the sensitive information you need you will then kill the process and remove all the logs so that there won’t be any footprints left for the forensic investigators.
+What does nice command exactly do?
+nice is a linux utility command that is developed to give score to a process according to its importance. The priority number can be customized but they usually range from -19 to +

@@ -1,6 +1,11 @@
-"""Supply Chain Security MCP Server."""
 
 from __future__ import annotations
+
+"""Supply Chain Security MCP Server."""
+
+__all__ = [
+    "SupplyChainSecurityMCPServer"
+]
 import os
 import json
 import asyncio
@@ -50,8 +55,9 @@ TYPOSQUATTING_PATTERNS = [
 class SupplyChainSecurityMCPServer(MCPServer):
     """Supply Chain Security MCP Server for comprehensive dependency analysis."""
     
-    def __init__(self):
+    def __init__(self, permission_checker: Optional[Any] = None):
         """Initialize Supply Chain Security server."""
+        super().__init__(name="supply-chain-security", version="1.0.0", permission_checker=permission_checker)
         self.scan_history: List[Dict[str, Any]] = []
         self.scan_semaphore = Semaphore(3)
         self._sbom_cache: Dict[str, Any] = {}
@@ -692,11 +698,12 @@ class SupplyChainSecurityMCPServer(MCPServer):
             stdout, _ = await process.communicate()
             
             if stdout:
-                for line in stdout.decode().split('\n'):
+                for line in stdout.decode().split('
+'):
                     if line.startswith("License:"):
                         return line.split(":", 1)[1].strip()
-        except:
-            pass
+        except (asyncio.TimeoutError, subprocess.SubprocessError, OSError) as e:
+            logger.debug(f"Failed to get Python package license for {package_name}: {e}")
         
         return "Unknown"
     

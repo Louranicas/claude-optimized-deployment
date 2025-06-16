@@ -1,0 +1,21 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 6 - 4). This addition is necessary because, as an ordinary user, you’re not even allowed to read a large number of files in the /var and /etc directories.
+# files in /var/log that are larger than 250 KB$ sudo find /var/log -size +250k# files in /etc that have been modified in the last 28 days# mtime = modify time$ sudo find /etc -mtime -28# all subdirectories in /etc (-type d = directory)$ sudo find /etc -type d# PDF files in downloads that are larger than 1 MB# and have not been read for at least 60 days# (atime = access time)$ find Downloads -name '*.pdf' -size +1M -atime +60 
+6.2.1    Text Search Using grep
+The command grep pattern file.txt filters out all lines from a text file that match the search pattern pattern. In the following example, all lines containing a specific IP address are to be filtered out of a logging file from the Apache web server. Because the search pattern is processed as a regular expression (see Chapter 9), the period (.) character must be marked by a backslash. (In regular expressions, a period is a placeholder for any character.)
+$ sudo grep '175\.55\.93\.123' /var/log/apache2/access.log
+Security Relevance Score: 2
+Word Count: 221
+Extracted: 2025-06-13 23:41:06
+
+---
+
+4). This addition is necessary because, as an ordinary user, you’re not even allowed to read a large number of files in the /var and /etc directories.
+# files in /var/log that are larger than 250 KB$ sudo find /var/log -size +250k# files in /etc that have been modified in the last 28 days# mtime = modify time$ sudo find /etc -mtime -28# all subdirectories in /etc (-type d = directory)$ sudo find /etc -type d# PDF files in downloads that are larger than 1 MB# and have not been read for at least 60 days# (atime = access time)$ find Downloads -name '*.pdf' -size +1M -atime +60 
+6.2.1    Text Search Using grep
+The command grep pattern file.txt filters out all lines from a text file that match the search pattern pattern. In the following example, all lines containing a specific IP address are to be filtered out of a logging file from the Apache web server. Because the search pattern is processed as a regular expression (see Chapter 9), the period (.) character must be marked by a backslash. (In regular expressions, a period is a placeholder for any character.)
+$ sudo grep '175\.55\.93\.123' /var/log/apache2/access.log 
+
+Text Evaluation and Analysis
+I will discuss grep in much more detail in this book with regard to its function as a filter command (see

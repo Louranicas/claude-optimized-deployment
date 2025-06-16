@@ -1,0 +1,231 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 11 - 1 on cron is easier to understand if you have some prior knowledge of Linux system administration. In particular, you must be able to modify system files using a text editor.
+The examples presented in this chapter draw on working techniques from the previous chapters, such as using the curl command (see Chapter 8) or analyzing XML files (see Chapter 10).
+A good follow-up to this chapter would be Chapter 15, where you’ll find further application examples for the methods presented in this chapter.
+Security Relevance Score: 6
+Word Count: 3129
+Extracted: 2025-06-13 23:41:06
+
+---
+
+1 on cron is easier to understand if you have some prior knowledge of Linux system administration. In particular, you must be able to modify system files using a text editor.
+The examples presented in this chapter draw on working techniques from the previous chapters, such as using the curl command (see Chapter 8) or analyzing XML files (see Chapter 10).
+A good follow-up to this chapter would be Chapter 15, where you’ll find further application examples for the methods presented in this chapter.
+
+11.1    cron
+cron is a background program that runs on almost every Linux server. Its task is to start commands or scripts at fixed times, for example, every day at 3:00 am or every Sunday at 11:00 pm. cron is controlled by the /etc/crontab file, whose somewhat strange syntax I will explain in a moment.
+cron is installed by default on many Linux distributions. If the /etc/crontab file does not exist on your system, you can easily resolve the situation:
+$ sudo apt update && sudo install cron      (Debian, Ubuntu)$ sudo dnf install cronie && \              (Fedora, RHEL)  sudo systemctl enable --now crond 
+11.1.1    /etc/crontab
+The following lines show an excerpt from a crontab file:
+# File /etc/crontab# every day at 3:00 am: Backup0 3 * * * root /etc/myscripts/backup.sh# on the first day of each month at 0:00:# statistical analysis of login data0 0 1 * * root /etc/myscripts/statistics.py 
+crontab files describe the commands to be executed line by line, where each entry is composed of seven columns:
+minutes hours day-of-month month weekday user cmd 
+
+
+minutes: 0-59
+
+
+hours: 0-12
+
+
+day-of-month: 1-31
+
+
+month: 1-12
+
+
+weekday: 0-7 (0 = 7 = Sunday, 1 = Monday, etc.)
+
+
+user: Account under which the script should be executed (often root)
+
+
+cmd: The command to execute, often simply the path to a script
+
+
+Lines beginning with # are comments. The last line of the crontab file must end with a newline character. The following syntax rules apply to the first five columns in the crontab file:
+
+
+Enumerations: 7,9,12 (without spaces!)
+
+
+Sections: 3-5
+
+
+Always: *
+
+
+All n: */10 corresponds to 0,10,20,30...
+
+
+The columns are usually linked by a logical AND. An exception is if day-of-month and weekday are specified; then, a logical OR applies to these two columns. The command is executed both on the nth day of the month and on the specified day of the week.
+The following listing contains some syntax examples. You can verify your own cron time compositions at https://crontab.guru.
+# every 15 minutes*/15 * * * * root cmd# daily at 0:15, 1:15, 2:15, etc.15 * * * * peter cmd# daily at 1:3030 1 * * * maria cmd# every Saturday at 0:2929 0 * * 6 root cmd# on every 1st of the month at 6:2525 6 1 * * www-data cmd# on the 1st and 15th of the month and every Monday# always at midnight0 0 1,15 * 1 root cmd 
+Provided that cron jobs are executed on a machine where a mail server is configured, the output or error messages are sent to root@localhost. You can change this address by setting MAILTO=... within /etc/crontab.
+
+Trouble with PATH and LANG
+A different PATH default setting applies to cron jobs than in interactive mode. Changes to PATH in .bashrc are not taken into account. For this reason, commands installed outside the usual directories like /usr/bin or /usr/sbin cannot be executed! 
+You should therefore make sure to test whether your script is also executed correctly when started by cron. If necessary, you must specify the full path in the script for manually installed commands, for example, /usr/local/bin/aws to run the Amazon Web Services (AWS) client. Alternatively, for some cron implementations, you can redefine the PATH variable directly in /etc/crontab. There you need to specify all directories in which commands are to be searched for, for example as follows:
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+Another possible source of errors can be the LANG environment variable, which may have a different setting in cron jobs than when you run your scripts locally. A setting in /etc/crontab like for PATH is not possible. However, you can set LANG at the beginning of your script.
+
+11.1.2    Personal crontab Files
+Modifying /etc/crontab requires system administrator privileges. If these privileges are not available to you, you can modify your own crontab file. This file is located in /var/spool/cron/<user> or in /var/spool/cron/crontabs/<user>, depending on the Linux distribution.
+You can open your personal crontab file using the crontab -e command. By default, the vi editor is used in this context, which is not user friendly. If you’ve started the program by mistake, you can exit it by pressing (Esc), typing “:q!,” and pressing (Enter) without saving changes. If necessary, you can select a simpler editor via the EDITOR variable before running the crontab command:
+$ export EDITOR=/usr/bin/nano$ crontab -e 
+Note that the sixth column for the account is omitted in the private crontab file. The command or script is always executed with the rights of your account. This limitation is the biggest disadvantage of this method: Many admin tasks (such as system-wide backups) require root privileges and cannot be performed in “ordinary” accounts. sudo does not help in this case either because this command requires the interactive input of your password.
+11.1.3    Hourly, Daily, Weekly, and Monthly Directories
+If you don’t care about the exact time when your cron tasks are performed, you can save the script to be called in one of the following directories:
+
+
+/etc/cron.hourly
+
+
+/etc/cron.daily
+
+
+/etc/cron.weekly
+
+
+/etc/cron.monthly
+
+
+The benefit of this method is that you do not need to deal with the crontab syntax. Remember to mark your script file as executable by using chmod +x! Your scripts will be executed with root privileges.
+11.1.4    Alternatives to cron
+On Linux, systemd-timer is becoming more frequently used. The biggest advantage of systemd-timer compared to cron is that started jobs can be monitored more comprehensively. But this advantage is offset by a much higher degree of complexity. While setting up a cron job can be done in 30 seconds with a little experience, timer jobs require you create two relatively complex configuration files. A good description of the mechanism can be found on the Arch Linus wiki at https://wiki.archlinux.org/title/Systemd/Timers. This information also applies to other distributions. 
+11.1.5    Starting Jobs Automatically on macOS
+cron is also available on macOS but is considered obsolete there. The /etc/crontab file does not exist by default. However, you only need to create the file (for example, using sudo nano /etc/crontab) and insert one correct entry; then, the job will be executed without any further configuration work. In this respect, cron is the simplest solution for automating the script call for macOS until further notice.
+Apple recommends using the macOS-specific launchd program instead of cron. The configuration is done by XML files, whose syntax is documented here:
+
+
+https://bas-man.dev/post/launchd-instead-of-cron
+
+
+https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/ScheduledJobs.html
+
+
+
+
+
+
+
+
+
+
+
+11.2    Example: Web Server Monitoring
+For this example, we want to use curl to measure the time it takes to download the home page of a website. The curl command is written in the following way:
+time=$(curl --connect-timeout 2 -s -S -w '%{time_total}\n' \       -o /dev/null  2> /tmp/curl.error \       https://example.com) 
+The various components of this command have the following meanings:
+
+
+--connect-timeout 2 aborts the connection setup attempt after 2 seconds.
+
+
+-s suppresses status outputs about the download progress.
+
+
+-S allows error outputs in deviation from this option.
+
+
+-w writes the runtime of the command to the standard output. This information ends up in the time variable.
+
+
+-o redirects the downloaded HTML file to /dev/null. Nothing is stored in this Linux-specific pseudo file.
+
+
+2> redirects error outputs to the specified file.
+
+
+In the script, a similar command analyzes the TMPFILE and HOST variables. The LANG= setting ensures that curl and date format numbers and dates in an international way. (The command unsets the LANG variable.)
+If the curl command terminates with an error code, cat writes the error message to standard output. If the script is executed by cron, this output is sent by email to root@localhost (or to another address specified by MAILTO in /etc/crontab). So, if the configuration is correct, you’ll be notified by email whenever the website stops working correctly.
+If, on the other hand, curl was executed without error and without exceeding the timeout time, echo saves the required time and the current time into the file specified by LOGFILE.
+# Sample file webserver-ping.shLANG=HOST=example.comLOGFILE=/var/log/$HOST-ping-time.logTMPFILE=/tmp/curl.errortime=$(curl --connect-timeout 2 -s -S -w '%{time_total}\n' \       -o /dev/null  2> $TMPFILE \       https://$HOST)if [ $? -ne 0 ]; then  # output is sent per mail if script is  # run by cron on a Linux system with mail server  cat $TMPFILEelse  now=$(date)  echo "$time sec @ $now" >> $LOGFILEfi 
+To run the script every 15 minutes, I added the following line to /etc/crontab:
+# in /etc/crontab*/15 * * * * kofler /home/kofler/bin/webserver-ping.sh 
+Now, the script inside the home directory of kofler in the bin subdirectory should be executed every 15 minutes with the rights held by the kofler account. The resulting /var/log/example.com-ping-time.log file has the following structure:
+0.347425 sec @ Mon Feb 27 12:30:01 CET 20230.347546 sec @ Mon Feb 27 12:45:02 CET 2023... 
+11.2.1    Testing and Troubleshooting
+Unlike many other examples in this book, this script cannot be easily tried out on any computer. You would need a Linux system with cron, ideally together with a mail server.
+You also must modify the configuration variables at the beginning of the script to suit your own needs. If you do not run the script with root privileges, you must ensure that the logging file was writable for the script. If the script is executed by kofler while HOST and LOGFILE remain unchanged, you must execute the following two commands once:
+$ sudo touch /var/log/example.com-ping-time.log$ sudo chown kofler:root /var/log/example.com-ping-time.log 
+Once the script can be run manually without errors, the next step is to set up /etc/crontab. For initial tests, the recommended approach is to set the first five columns using * * * * *, which will execute the script once per minute.
+Syntax errors in /etc/crontab will prevent both your script and other cron jobs from running. To track down such errors, run systemctl status cron and journalctl -u cron, which will provide you with information about the current cron status as well as the last logging outputs.
+11.2.2    Real Monitoring
+Selling this mini script as a monitoring solution is a bit daring. “Real” monitoring software checks various server parameters, sends warning emails only on every status message (and not on every error, which leads to an abundance of monitoring mails), offers a graphical visualization of the monitored parameters, and more.
+Of course, you could conceivably implement all these capabilities using custom scripts, but using dedicated monitoring tools, such as Grafana, Prometheus, Nagios, etc., make much more sense. Although the initial startup of these tools may require considerable work, they provide a wealth of functions combined with expedient user interfaces (UIs).
+
+
+
+
+
+
+
+
+
+11.3    Microsoft Windows Task Scheduler
+Microsoft Windows Task Scheduler allows Windows to run programs and scripts at specified times and is, therefore, the Windows counterpart to cron. The program is equipped with a UI, as you would expect in the Windows environment. However, Microsoft Windows Task Scheduler has all the charm of the 1990s, to put it nicely. Its nested dialogs are, at best, as intuitive as the crontab syntax. Also, the program is amazingly slow and sometimes it hangs completely. If the start of jobs does not work as intended, no clear error messages are displayed despite event logging. In a nutshell, using this program is a pain. Why Microsoft can’t get its act together and reimplement this central Windows component remains a mystery. (The current version has not been significantly changed since 2006.) 
+
+Figure 11.1    
+            Microsoft Windows Task Scheduler’s Antiquated UI
+To become familiar with Microsoft Windows Task Scheduler, let’s create a tiny script that logs the date and time to a logging file:
+# File log-date.ps1Get-Date >> date.log 
+This script is supposed to be executed every hour. For this purpose, open Microsoft Windows Task Scheduler and click the Create Task command in the Actions sidebar. This step will take you to a dialog box with several tabs:
+
+
+GeneralIn this tab, you can give the task a name, specify in which account your script should be run (usually your own), and specify whether it should be started only after a login or always when the computer is running.
+If you want to run a script with administrator privileges, you should not change the user or group, but just click the Run with highest privileges option.
+
+
+TriggersIn this tab, you can add a new trigger to specify when and how often the action should take place. To run the script every hour, you must select Daily with the current time as the start time and Repeat task every hour as well as For a duration of: 1 day. (The more plausible setting For the duration of: Indefinitely  did not work in my tests.)
+In contrast to cron, not only does Microsoft Windows Task Scheduler support time-based triggers, but it can also execute actions when various events occur, for example, when logging in or when the computer is currently in idle mode.
+
+
+ActionsAs a new action, you specify the script to be run. The procedure is more cumbersome than you would expect: The reason is that as a program/script, you must not simply specify the path of your PowerShell script file. Instead, you need to specify pwsh for PowerShell 7.n here. Only if your script is to be executed by the older Windows PowerShell 5.n is the program name powershell.
+In the Add arguments input field, specify the -File option and enter the full path to your script. When typing, you must not make any typos. Do not forget -File!
+By default, the %Windir%\System32\ directory is active when the script is run. If you do not want to use this directory (e.g., because the script should read or write files in a different directory), you must specify the relevant directory in the Start in field. For the sample script to log the date and time in the same directory where the script file is located, you must specify this directory.
+
+
+ConditionsThis tab defaults to performing the action only when your computer is running in network mode. You can deactivate this option if you also want to run or test the task while using your notebook in battery mode.
+
+Figure 11.2    
+            The log-date.ps1 Script to Be Run by PowerShell, with C:\Users\kofler as the Active Directory
+
+
+SettingsFinally, you can adjust some settings, including whether your task should be completed exactly at the scheduled time; whether it can be run at a later time; whether the process should be terminated automatically after a certain runtime (by default, an absurd 3 days is used here!); and more. For our initial tests, you can leave all the options in their default settings.
+
+
+With a little luck, the script should run right away. You can check whether the script has run by looking at the date.log file in the set directory (Start in). From now on, another line with the current time should be added to this file every hour.
+11.3.1    Troubleshooting
+From experience, automated script execution does not always work right away. For troubleshooting purposes, your first step should be to enable the Enable All Tasks History command in Microsoft Windows Task Scheduler. Behind this somewhat cryptic description is a logging function. Microsoft Windows Task Scheduler can log when actions are started and why, when they end, and more.
+You can also use the Run command to start a script manually at any time, regardless of the selected trigger time. In the action list, in the Next Run Time column, you can see what the next regular start time of your script is.
+On one of my test machines, Microsoft Windows Task Scheduler was completely unable to find pwsh, despite (presumably) correct PATH settings. In the event logging, only file not found was logged, without a clear indication as to which file was not found (pwsh, the script, another file?). Ultimately, I uninstalled PowerShell entirely, reinstalled it using winget, and rebooted the machine. After that, it worked.
+11.3.2    Setting Up Tasks via cmdlets
+Fortunately, Microsoft Windows Task Scheduler can also be controlled by cmdlets. Get-ScheduledTask returns a seemingly endless list of all actions stored in the system. If you've ever wondered why Windows often feels so sluggish, now you know the reason. On my test computer, the cmdlet returned 165 active tasks!
+The Windows Task Manager UI always shows only the actions for a specific path—by default, those for the \ path, that is, for the root directory of the task library. You can view all other actions when you select a subdirectory, for example, Microsoft\Windows\Bitlocker.
+> Get-ScheduledTask | Where-Object { $_.State -ne 'Disabled' }  TaskPath                TaskName                     State  --------                --------                     -----  \                       GoogleUpdateTaskMachine...   Ready  \                       log date                     Ready  \                       start syncthing              Running  \Microsoft\Windows\...  .NET Framework NGEN v4.0...  Ready  ... 
+
+For Windows Only!
+All cmdlets presented in this section are available only when you run PowerShell scripts on Windows. On Linux and macOS, no task scheduler exists, but other mechanisms (i.e., cron, systemd-timer, and launchd) can be used instead, but these capabilities cannot be controlled via cmdlets.
+
+Get-ScheduledTaskInfo allows you to determine when the task was last performed and when the next start is scheduled:
+> Get-ScheduledTaskInfo 'log date'  LastRunTime        : 02.28.2023 09:24:24  NextRunTime        : 02.28.2023 11:20:20  NumberOfMissedRuns : 1  ...> Get-ScheduledTask 'log date' | Get-ScheduledTaskInfo  (same result) 
+By combining a few cmdlets, you can even set up a new task. Here New-ScheduledTaskTrigger creates an object for the schedule and New-ScheduledTaskAction creates an object for the task. Register-ScheduledTask saves the new job.   
+> $trigger = New-ScheduledTaskTrigger -Once -At '6:00am' `              -RepetitionInterval (New-TimeSpan -Hours 1) `              -RepetitionDuration (New-TimeSpan -Days 1000)> $action = New-ScheduledTaskAction  -Execute 'pwsh' `              -Argument '-File C:\Users\kofler\log-date.ps1' `              -WorkingDirectory 'C:\Users\kofler'> Register-ScheduledTask -TaskName 'log-date' `              -Trigger $trigger -Action $action  TaskPath   TaskName   State  --------   --------   -----  \          log-date   Ready 
+
+
+
+
+
+
+
+
+
+11.4    Example: Saving Exchange Rates
+The European National Bank publishes official reference rates between the euro and other major currencies once a day at https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml. A sample of the daily XML file is shown in the following example:
+<?xml version="1.0" encoding="UTF-8"?><gesmes:Envelope  xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01"  xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">  <gesmes:subject>Reference rates</gesmes:subject>  <gesmes:Sender>    <gesmes:name>European Central Bank</gesmes:name>  </gesmes:Sender>  <Cube>    <Cube time="2023-03-01">      <Cube currency="USD" rate="1.0684"/>      <Cube currency="JPY" rate="144.82"/>      <Cube currency="CHF" rate="0.9997"/>      ... 
+The goal of the following example is to save the exchange rate between the Euro and the Swiss Franc (CHF) once a day in a comma-separated values (CSV) file, which should have the following format:
+date;chf_rate2023-03-01;0.9997 
+We don’t want the current date logged but instead the date embedded in the XML file using the <Cube time=...> tag. Analyzing the file is relatively easy despite the strange cube nesting (see

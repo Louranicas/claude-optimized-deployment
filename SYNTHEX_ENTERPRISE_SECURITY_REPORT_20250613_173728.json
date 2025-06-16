@@ -1,0 +1,4466 @@
+{
+  "framework_version": "2.0.0",
+  "assessment_id": "SYNTHEX-SEC-20250613-173738",
+  "timestamp": "2025-06-13T17:37:38.948932",
+  "analysis_duration_seconds": 10.932676076889038,
+  "executive_summary": {
+    "total_findings": 149,
+    "critical": 1,
+    "high": 25,
+    "medium": 18,
+    "low": 105,
+    "info": 0,
+    "risk_score": 1245,
+    "security_posture": "CRITICAL",
+    "recommendation": "Immediate action required. Do not deploy to production."
+  },
+  "agents_deployed": 10,
+  "findings": [
+    {
+      "id": "SAST-RS-0001",
+      "agent": "SAST-Agent",
+      "domain": "APPLICATION",
+      "threat_level": "MEDIUM",
+      "cvss_score": 5.5,
+      "title": "Unsafe Rust Code",
+      "description": "Found 3 unsafe blocks",
+      "affected_components": [
+        "rust_core/src/synthex/mcp_v2.rs"
+      ],
+      "evidence": {
+        "unsafe_count": 3
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-787"
+      ],
+      "remediation": {},
+      "references": [
+        "https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html"
+      ],
+      "timestamp": "2025-06-13T17:37:28.030109"
+    },
+    {
+      "id": "DAST-RL-001",
+      "agent": "DAST-Agent",
+      "domain": "APPLICATION",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.5,
+      "title": "Insufficient Rate Limiting",
+      "description": "Rate limiting not effectively blocking rapid requests",
+      "affected_components": [
+        "API Gateway"
+      ],
+      "evidence": {
+        "requests_sent": 1000,
+        "requests_blocked": 899,
+        "elapsed_seconds": 2.8371810913085938e-05
+      },
+      "mitre_attack_ids": [
+        "T1499"
+      ],
+      "cwe_ids": [
+        "CWE-770"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:28.031089"
+    },
+    {
+      "id": "INFRA-DOC-0001",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Container Running as Root",
+      "description": "Docker container runs with root privileges",
+      "affected_components": [
+        "Dockerfile.tracing"
+      ],
+      "evidence": {
+        "file": "Dockerfile.tracing"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-250"
+      ],
+      "remediation": {},
+      "references": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html"
+      ],
+      "timestamp": "2025-06-13T17:37:29.114581"
+    },
+    {
+      "id": "INFRA-DOC-0002",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Container Running as Root",
+      "description": "Docker container runs with root privileges",
+      "affected_components": [
+        "Dockerfile.rust-build"
+      ],
+      "evidence": {
+        "file": "Dockerfile.rust-build"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-250"
+      ],
+      "remediation": {},
+      "references": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html"
+      ],
+      "timestamp": "2025-06-13T17:37:29.114667"
+    },
+    {
+      "id": "INFRA-DOC-0003",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Container Running as Root",
+      "description": "Docker container runs with root privileges",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/Dockerfile.simple"
+      ],
+      "evidence": {
+        "file": "code-base-crawler/code-base-crawler/Dockerfile.simple"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-250"
+      ],
+      "remediation": {},
+      "references": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html"
+      ],
+      "timestamp": "2025-06-13T17:37:29.114735"
+    },
+    {
+      "id": "INFRA-TAG-0004",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "LOW",
+      "cvss_score": 3.5,
+      "title": "Non-Specific Image Tags",
+      "description": "Using 'latest' tag leads to unpredictable builds",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/Dockerfile.simple"
+      ],
+      "evidence": {
+        "file": "code-base-crawler/code-base-crawler/Dockerfile.simple"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1357"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:29.114738"
+    },
+    {
+      "id": "INFRA-DOC-0005",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Container Running as Root",
+      "description": "Docker container runs with root privileges",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/tests/Dockerfile.test"
+      ],
+      "evidence": {
+        "file": "code-base-crawler/code-base-crawler/tests/Dockerfile.test"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-250"
+      ],
+      "remediation": {},
+      "references": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html"
+      ],
+      "timestamp": "2025-06-13T17:37:29.114750"
+    },
+    {
+      "id": "INFRA-DOC-0006",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Container Running as Root",
+      "description": "Docker container runs with root privileges",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/test_results/integration_20250608_100235/Dockerfile"
+      ],
+      "evidence": {
+        "file": "code-base-crawler/code-base-crawler/test_results/integration_20250608_100235/Dockerfile"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-250"
+      ],
+      "remediation": {},
+      "references": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html"
+      ],
+      "timestamp": "2025-06-13T17:37:29.114776"
+    },
+    {
+      "id": "INFRA-K8S-0007",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 5.5,
+      "title": "Missing Security Context",
+      "description": "Kubernetes workload lacks security context",
+      "affected_components": [
+        "k8s/hardened/deployment-hardened.yaml"
+      ],
+      "evidence": {
+        "file": "k8s/hardened/deployment-hardened.yaml"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-732"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:29.142846"
+    },
+    {
+      "id": "INFRA-PERM-0008",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "HIGH",
+      "cvss_score": 7.0,
+      "title": "Insecure File Permissions",
+      "description": "Sensitive file .env has overly permissive permissions",
+      "affected_components": [
+        ".env"
+      ],
+      "evidence": {
+        "permissions": "0o664"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-732"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:30.198554"
+    },
+    {
+      "id": "INFRA-PERM-0009",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "HIGH",
+      "cvss_score": 7.0,
+      "title": "Insecure File Permissions",
+      "description": "Sensitive file k8s/secrets.yaml has overly permissive permissions",
+      "affected_components": [
+        "k8s/secrets.yaml"
+      ],
+      "evidence": {
+        "permissions": "0o664"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-732"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:31.249655"
+    },
+    {
+      "id": "INFRA-PERM-0010",
+      "agent": "Infrastructure-Agent",
+      "domain": "INFRASTRUCTURE",
+      "threat_level": "HIGH",
+      "cvss_score": 7.0,
+      "title": "Insecure File Permissions",
+      "description": "Sensitive file k8s/production/secrets.yaml has overly permissive permissions",
+      "affected_components": [
+        "k8s/production/secrets.yaml"
+      ],
+      "evidence": {
+        "permissions": "0o664"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-732"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:31.249662"
+    },
+    {
+      "id": "NET-AUTH-0001",
+      "agent": "Network-Agent",
+      "domain": "NETWORK",
+      "threat_level": "HIGH",
+      "cvss_score": 8.0,
+      "title": "Unauthenticated API Endpoint",
+      "description": "API endpoint lacks authentication",
+      "affected_components": [
+        "src/monitoring/observability_api.py"
+      ],
+      "evidence": {
+        "file": "src/monitoring/observability_api.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-306"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.451263"
+    },
+    {
+      "id": "NET-AUTH-0002",
+      "agent": "Network-Agent",
+      "domain": "NETWORK",
+      "threat_level": "HIGH",
+      "cvss_score": 8.0,
+      "title": "Unauthenticated API Endpoint",
+      "description": "API endpoint lacks authentication",
+      "affected_components": [
+        "src/monitoring/api.py"
+      ],
+      "evidence": {
+        "file": "src/monitoring/api.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-306"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.451297"
+    },
+    {
+      "id": "NET-AUTH-0003",
+      "agent": "Network-Agent",
+      "domain": "NETWORK",
+      "threat_level": "HIGH",
+      "cvss_score": 8.0,
+      "title": "Unauthenticated API Endpoint",
+      "description": "API endpoint lacks authentication",
+      "affected_components": [
+        "src/api/rate_limiting_api.py"
+      ],
+      "evidence": {
+        "file": "src/api/rate_limiting_api.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-306"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.451330"
+    },
+    {
+      "id": "NET-AUTH-0004",
+      "agent": "Network-Agent",
+      "domain": "NETWORK",
+      "threat_level": "HIGH",
+      "cvss_score": 8.0,
+      "title": "Unauthenticated API Endpoint",
+      "description": "API endpoint lacks authentication",
+      "affected_components": [
+        "src/api/circuit_breaker_api.py"
+      ],
+      "evidence": {
+        "file": "src/api/circuit_breaker_api.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-306"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.451356"
+    },
+    {
+      "id": "NET-AUTH-0005",
+      "agent": "Network-Agent",
+      "domain": "NETWORK",
+      "threat_level": "HIGH",
+      "cvss_score": 8.0,
+      "title": "Unauthenticated API Endpoint",
+      "description": "API endpoint lacks authentication",
+      "affected_components": [
+        "src/auth/api.py"
+      ],
+      "evidence": {
+        "file": "src/auth/api.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-306"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.451419"
+    },
+    {
+      "id": "DATA-ENC-0001",
+      "agent": "Data-Agent",
+      "domain": "DATA",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Unencrypted Data Storage",
+      "description": "Database connection lacks encryption",
+      "affected_components": [
+        "src/utils/database.py"
+      ],
+      "evidence": {
+        "file": "src/utils/database.py"
+      },
+      "mitre_attack_ids": [
+        "T1005"
+      ],
+      "cwe_ids": [
+        "CWE-311"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.452675"
+    },
+    {
+      "id": "DATA-CLASS-0002",
+      "agent": "Data-Agent",
+      "domain": "DATA",
+      "threat_level": "MEDIUM",
+      "cvss_score": 5.0,
+      "title": "Missing Data Classification",
+      "description": "Sensitive data fields lack classification tags",
+      "affected_components": [
+        "src/auth/models.py"
+      ],
+      "evidence": {
+        "file": "src/auth/models.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1266"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.453838"
+    },
+    {
+      "id": "DATA-PII-0003",
+      "agent": "Data-Agent",
+      "domain": "DATA",
+      "threat_level": "HIGH",
+      "cvss_score": 7.0,
+      "title": "Exposed Email",
+      "description": "Potential Email found in source code",
+      "affected_components": [
+        "src/__init__.py"
+      ],
+      "evidence": {
+        "type": "Email"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-359"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.455892"
+    },
+    {
+      "id": "DATA-PII-0004",
+      "agent": "Data-Agent",
+      "domain": "DATA",
+      "threat_level": "HIGH",
+      "cvss_score": 7.0,
+      "title": "Exposed Email",
+      "description": "Potential Email found in source code",
+      "affected_components": [
+        "src/utils/git.py"
+      ],
+      "evidence": {
+        "type": "Email"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-359"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.457411"
+    },
+    {
+      "id": "IAM-MFA-0001",
+      "agent": "IAM-Agent",
+      "domain": "IDENTITY",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.5,
+      "title": "Missing Multi-Factor Authentication",
+      "description": "No MFA implementation found",
+      "affected_components": [
+        "src/mcp/security/auth_middleware.py"
+      ],
+      "evidence": {
+        "file": "src/mcp/security/auth_middleware.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-308"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.465935"
+    },
+    {
+      "id": "IAM-MFA-0002",
+      "agent": "IAM-Agent",
+      "domain": "IDENTITY",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.5,
+      "title": "Missing Multi-Factor Authentication",
+      "description": "No MFA implementation found",
+      "affected_components": [
+        "src/mcp/security/auth_integration.py"
+      ],
+      "evidence": {
+        "file": "src/mcp/security/auth_integration.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-308"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.466000"
+    },
+    {
+      "id": "IAM-SESS-0003",
+      "agent": "IAM-Agent",
+      "domain": "IDENTITY",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Insecure Session Configuration",
+      "description": "Session cookies lack security flags",
+      "affected_components": [
+        "src/auth/session_manager.py"
+      ],
+      "evidence": {
+        "file": "src/auth/session_manager.py"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-614",
+        "CWE-1004"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:35.469319"
+    },
+    {
+      "id": "CLOUD-CRED-0001",
+      "agent": "Cloud-Agent",
+      "domain": "CLOUD",
+      "threat_level": "CRITICAL",
+      "cvss_score": 9.5,
+      "title": "Hardcoded Cloud Credentials",
+      "description": "Cloud credentials found in infrastructure code",
+      "affected_components": [
+        "infrastructure/terraform/database.tf"
+      ],
+      "evidence": {
+        "file": "infrastructure/terraform/database.tf"
+      },
+      "mitre_attack_ids": [
+        "T1552.001"
+      ],
+      "cwe_ids": [
+        "CWE-798"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:36.514671"
+    },
+    {
+      "id": "CLOUD-SEC-001",
+      "agent": "Cloud-Agent",
+      "domain": "CLOUD",
+      "threat_level": "HIGH",
+      "cvss_score": 7.0,
+      "title": "No Centralized Secrets Management",
+      "description": "Missing centralized secrets management solution",
+      "affected_components": [
+        "Secrets Management"
+      ],
+      "evidence": {
+        "secret_files": 5
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-522"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:36.515948"
+    },
+    {
+      "id": "SUPPLY-DEP-0001",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: pyyaml",
+      "description": "pyyaml version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-fixed.txt"
+      ],
+      "evidence": {
+        "package": "pyyaml",
+        "version": "6.0.2"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/pyyaml/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.551961"
+    },
+    {
+      "id": "SUPPLY-DEP-0002",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: cryptography",
+      "description": "cryptography version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-fixed.txt"
+      ],
+      "evidence": {
+        "package": "cryptography",
+        "version": "44.0.0"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/cryptography/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.551971"
+    },
+    {
+      "id": "SUPPLY-DEP-0003",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: cryptography",
+      "description": "cryptography version may have known vulnerabilities",
+      "affected_components": [
+        "requirements.txt"
+      ],
+      "evidence": {
+        "package": "cryptography",
+        "version": "45.0.3"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/cryptography/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552234"
+    },
+    {
+      "id": "SUPPLY-DEP-0004",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: numpy",
+      "description": "numpy version may have known vulnerabilities",
+      "affected_components": [
+        "requirements.txt"
+      ],
+      "evidence": {
+        "package": "numpy",
+        "version": "2.3.0"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/numpy/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552252"
+    },
+    {
+      "id": "SUPPLY-DEP-0005",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: pyyaml",
+      "description": "pyyaml version may have known vulnerabilities",
+      "affected_components": [
+        "requirements.txt"
+      ],
+      "evidence": {
+        "package": "pyyaml",
+        "version": "6.0.2"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/pyyaml/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552271"
+    },
+    {
+      "id": "SUPPLY-DEP-0006",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: requests",
+      "description": "requests version may have known vulnerabilities",
+      "affected_components": [
+        "requirements.txt"
+      ],
+      "evidence": {
+        "package": "requests",
+        "version": "2.32.4"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/requests/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552274"
+    },
+    {
+      "id": "SUPPLY-DEP-0007",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: cryptography",
+      "description": "cryptography version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-dev.txt"
+      ],
+      "evidence": {
+        "package": "cryptography",
+        "version": "45.0.3"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/cryptography/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552367"
+    },
+    {
+      "id": "SUPPLY-DEP-0008",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: numpy",
+      "description": "numpy version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-dev.txt"
+      ],
+      "evidence": {
+        "package": "numpy",
+        "version": "2.3.0"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/numpy/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552453"
+    },
+    {
+      "id": "SUPPLY-DEP-0009",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: requests",
+      "description": "requests version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-dev.txt"
+      ],
+      "evidence": {
+        "package": "requests",
+        "version": "0.46b0"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/requests/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552462"
+    },
+    {
+      "id": "SUPPLY-DEP-0010",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: pyyaml",
+      "description": "pyyaml version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-dev.txt"
+      ],
+      "evidence": {
+        "package": "pyyaml",
+        "version": "6.0.2"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/pyyaml/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552518"
+    },
+    {
+      "id": "SUPPLY-DEP-0011",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: pyyaml",
+      "description": "pyyaml version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-dev.txt"
+      ],
+      "evidence": {
+        "package": "pyyaml",
+        "version": "1.1"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/pyyaml/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552522"
+    },
+    {
+      "id": "SUPPLY-DEP-0012",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: requests",
+      "description": "requests version may have known vulnerabilities",
+      "affected_components": [
+        "requirements-dev.txt"
+      ],
+      "evidence": {
+        "package": "requests",
+        "version": "2.32.3"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/requests/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552528"
+    },
+    {
+      "id": "SUPPLY-DEP-0013",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "HIGH",
+      "cvss_score": 7.5,
+      "title": "Vulnerable Dependency: cryptography",
+      "description": "cryptography version may have known vulnerabilities",
+      "affected_components": [
+        "containers/production/requirements-prod.txt"
+      ],
+      "evidence": {
+        "package": "cryptography",
+        "version": "3.3.0"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1395"
+      ],
+      "remediation": {},
+      "references": [
+        "https://pypi.org/project/cryptography/"
+      ],
+      "timestamp": "2025-06-13T17:37:37.552901"
+    },
+    {
+      "id": "SUPPLY-LIC-0014",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/anam_py/test_env/lib/python3.12/site-packages/numpy-2.3.0.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.597961"
+    },
+    {
+      "id": "SUPPLY-LIC-0015",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/anam_py/venv/lib/python3.12/site-packages/torch-2.7.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.598400"
+    },
+    {
+      "id": "SUPPLY-LIC-0016",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/anam_py/venv/lib/python3.12/site-packages/numpy-2.3.0.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.599123"
+    },
+    {
+      "id": "SUPPLY-LIC-0017",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/anam_py/venv/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.599517"
+    },
+    {
+      "id": "SUPPLY-LIC-0018",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/anam_py/venv/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.599893"
+    },
+    {
+      "id": "SUPPLY-LIC-0019",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "code-base-crawler/code-base-crawler/anam_py/venv/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.599947"
+    },
+    {
+      "id": "SUPPLY-LIC-0020",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "security_env/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.608224"
+    },
+    {
+      "id": "SUPPLY-LIC-0021",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "security_env/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.611430"
+    },
+    {
+      "id": "SUPPLY-LIC-0022",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "security_env/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.611993"
+    },
+    {
+      "id": "SUPPLY-LIC-0023",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/cssutils-2.11.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.615839"
+    },
+    {
+      "id": "SUPPLY-LIC-0024",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.616137"
+    },
+    {
+      "id": "SUPPLY-LIC-0025",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/chardet-5.2.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.616544"
+    },
+    {
+      "id": "SUPPLY-LIC-0026",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/zope.interface-7.2.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.617528"
+    },
+    {
+      "id": "SUPPLY-LIC-0027",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/lxml-5.4.0.dist-info/licenses/LICENSES.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.620479"
+    },
+    {
+      "id": "SUPPLY-LIC-0028",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.622501"
+    },
+    {
+      "id": "SUPPLY-LIC-0029",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.626051"
+    },
+    {
+      "id": "SUPPLY-LIC-0030",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "test_env/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.626588"
+    },
+    {
+      "id": "SUPPLY-LIC-0031",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/vine-5.1.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.629598"
+    },
+    {
+      "id": "SUPPLY-LIC-0032",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/torch-2.7.1+cpu.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.633057"
+    },
+    {
+      "id": "SUPPLY-LIC-0033",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/scipy-1.15.3.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.633505"
+    },
+    {
+      "id": "SUPPLY-LIC-0034",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.635091"
+    },
+    {
+      "id": "SUPPLY-LIC-0035",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/psycopg2_binary-2.9.10.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.638079"
+    },
+    {
+      "id": "SUPPLY-LIC-0036",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/pandas-2.3.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.638587"
+    },
+    {
+      "id": "SUPPLY-LIC-0037",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/blib2to3/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.640386"
+    },
+    {
+      "id": "SUPPLY-LIC-0038",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/amqp-5.3.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.643526"
+    },
+    {
+      "id": "SUPPLY-LIC-0039",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/numpy-2.1.3.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.645445"
+    },
+    {
+      "id": "SUPPLY-LIC-0040",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/libclang-18.1.1.dist-info/LICENSE.TXT"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.646965"
+    },
+    {
+      "id": "SUPPLY-LIC-0041",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/mypy-1.16.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.654123"
+    },
+    {
+      "id": "SUPPLY-LIC-0042",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/celery-5.5.3.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.654995"
+    },
+    {
+      "id": "SUPPLY-LIC-0043",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.656320"
+    },
+    {
+      "id": "SUPPLY-LIC-0044",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/pillow-11.2.1.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.656968"
+    },
+    {
+      "id": "SUPPLY-LIC-0045",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.660673"
+    },
+    {
+      "id": "SUPPLY-LIC-0046",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.661195"
+    },
+    {
+      "id": "SUPPLY-LIC-0047",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/ruff-0.11.13.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.666086"
+    },
+    {
+      "id": "SUPPLY-LIC-0048",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/tensorflow/include/external/tf_runtime/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.668309"
+    },
+    {
+      "id": "SUPPLY-LIC-0049",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_bulletproof/lib/python3.12/site-packages/tensorflow/include/external/llvm-project/mlir/LICENSE.TXT"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.669702"
+    },
+    {
+      "id": "SUPPLY-LIC-0050",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/torch-2.7.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.673273"
+    },
+    {
+      "id": "SUPPLY-LIC-0051",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/scipy-1.15.3.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.674072"
+    },
+    {
+      "id": "SUPPLY-LIC-0052",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.674613"
+    },
+    {
+      "id": "SUPPLY-LIC-0053",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/opencv_python_headless-4.11.0.86.dist-info/LICENSE-3RD-PARTY.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.675545"
+    },
+    {
+      "id": "SUPPLY-LIC-0054",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/pandas-2.3.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.678024"
+    },
+    {
+      "id": "SUPPLY-LIC-0055",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/cv2/LICENSE-3RD-PARTY.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.680199"
+    },
+    {
+      "id": "SUPPLY-LIC-0056",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/pexpect-4.9.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.680593"
+    },
+    {
+      "id": "SUPPLY-LIC-0057",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/pyarrow-20.0.0.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.681885"
+    },
+    {
+      "id": "SUPPLY-LIC-0058",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/numpy-2.3.0.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.683798"
+    },
+    {
+      "id": "SUPPLY-LIC-0059",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.690114"
+    },
+    {
+      "id": "SUPPLY-LIC-0060",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/pillow-11.2.1.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.690469"
+    },
+    {
+      "id": "SUPPLY-LIC-0061",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.693063"
+    },
+    {
+      "id": "SUPPLY-LIC-0062",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_ai/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.693566"
+    },
+    {
+      "id": "SUPPLY-LIC-0063",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_deployment/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.700377"
+    },
+    {
+      "id": "SUPPLY-LIC-0064",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_deployment/lib/python3.12/site-packages/zope.interface-7.2.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.701700"
+    },
+    {
+      "id": "SUPPLY-LIC-0065",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_deployment/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.709815"
+    },
+    {
+      "id": "SUPPLY-LIC-0066",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_deployment/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.713705"
+    },
+    {
+      "id": "SUPPLY-LIC-0067",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_deployment/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.714227"
+    },
+    {
+      "id": "SUPPLY-LIC-0068",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp_main/lib/python3.12/site-packages/scipy-1.15.3.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.717041"
+    },
+    {
+      "id": "SUPPLY-LIC-0069",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp_main/lib/python3.12/site-packages/pandas-2.3.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.718255"
+    },
+    {
+      "id": "SUPPLY-LIC-0070",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp_main/lib/python3.12/site-packages/numpy-2.3.0.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.719496"
+    },
+    {
+      "id": "SUPPLY-LIC-0071",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp_main/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.721779"
+    },
+    {
+      "id": "SUPPLY-LIC-0072",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp_main/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.724454"
+    },
+    {
+      "id": "SUPPLY-LIC-0073",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp_main/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.724947"
+    },
+    {
+      "id": "SUPPLY-LIC-0074",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/security_venv/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.735050"
+    },
+    {
+      "id": "SUPPLY-LIC-0075",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/security_venv/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.738009"
+    },
+    {
+      "id": "SUPPLY-LIC-0076",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/security_venv/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.738522"
+    },
+    {
+      "id": "SUPPLY-LIC-0077",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/ml_test_env/lib/python3.12/site-packages/scipy-1.15.3.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.740994"
+    },
+    {
+      "id": "SUPPLY-LIC-0078",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/ml_test_env/lib/python3.12/site-packages/numpy-2.2.6.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.741373"
+    },
+    {
+      "id": "SUPPLY-LIC-0079",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/ml_test_env/lib/python3.12/site-packages/pandas-2.3.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.741778"
+    },
+    {
+      "id": "SUPPLY-LIC-0080",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/ml_test_env/lib/python3.12/site-packages/pillow-11.2.1.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.743072"
+    },
+    {
+      "id": "SUPPLY-LIC-0081",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/rust_core/security_venv/lib/python3.12/site-packages/chardet-5.2.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.748009"
+    },
+    {
+      "id": "SUPPLY-LIC-0082",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/rust_core/security_venv/lib/python3.12/site-packages/lxml-5.4.0.dist-info/licenses/LICENSES.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.753369"
+    },
+    {
+      "id": "SUPPLY-LIC-0083",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/rust_core/security_venv/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.755977"
+    },
+    {
+      "id": "SUPPLY-LIC-0084",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/rust_core/security_venv/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.759569"
+    },
+    {
+      "id": "SUPPLY-LIC-0085",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_learning_system/rust_core/security_venv/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.760091"
+    },
+    {
+      "id": "SUPPLY-LIC-0086",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/scipy-1.15.3.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.764153"
+    },
+    {
+      "id": "SUPPLY-LIC-0087",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.764957"
+    },
+    {
+      "id": "SUPPLY-LIC-0088",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/pandas-2.3.0.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.766494"
+    },
+    {
+      "id": "SUPPLY-LIC-0089",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/blib2to3/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.767019"
+    },
+    {
+      "id": "SUPPLY-LIC-0090",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/paramiko-3.5.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.767349"
+    },
+    {
+      "id": "SUPPLY-LIC-0091",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/numpy-2.3.0.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.769163"
+    },
+    {
+      "id": "SUPPLY-LIC-0092",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/mypy-1.16.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.773348"
+    },
+    {
+      "id": "SUPPLY-LIC-0093",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.774045"
+    },
+    {
+      "id": "SUPPLY-LIC-0094",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.778210"
+    },
+    {
+      "id": "SUPPLY-LIC-0095",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.778758"
+    },
+    {
+      "id": "SUPPLY-LIC-0096",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_mcp/lib/python3.12/site-packages/ruff-0.11.13.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.782211"
+    },
+    {
+      "id": "SUPPLY-LIC-0097",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_servers/test_venv/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.782761"
+    },
+    {
+      "id": "SUPPLY-LIC-0098",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "mcp_servers/node_modules/argparse/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.814237"
+    },
+    {
+      "id": "SUPPLY-LIC-0099",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_production_mcp/lib/python3.12/site-packages/torch-2.7.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.891258"
+    },
+    {
+      "id": "SUPPLY-LIC-0100",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_production_mcp/lib/python3.12/site-packages/scipy-1.15.3.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.891618"
+    },
+    {
+      "id": "SUPPLY-LIC-0101",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_production_mcp/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.892726"
+    },
+    {
+      "id": "SUPPLY-LIC-0102",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_production_mcp/lib/python3.12/site-packages/numpy-2.3.0.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.897343"
+    },
+    {
+      "id": "SUPPLY-LIC-0103",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_production_mcp/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.901727"
+    },
+    {
+      "id": "SUPPLY-LIC-0104",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_production_mcp/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.905373"
+    },
+    {
+      "id": "SUPPLY-LIC-0105",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_production_mcp/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.906091"
+    },
+    {
+      "id": "SUPPLY-LIC-0106",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/distlib-0.3.9.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.911046"
+    },
+    {
+      "id": "SUPPLY-LIC-0107",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/zope.interface-7.2.dist-info/LICENSE.txt"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.912570"
+    },
+    {
+      "id": "SUPPLY-LIC-0108",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/blib2to3/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.913123"
+    },
+    {
+      "id": "SUPPLY-LIC-0109",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/mypy-1.16.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.917716"
+    },
+    {
+      "id": "SUPPLY-LIC-0110",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.918592"
+    },
+    {
+      "id": "SUPPLY-LIC-0111",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.922399"
+    },
+    {
+      "id": "SUPPLY-LIC-0112",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.922906"
+    },
+    {
+      "id": "SUPPLY-LIC-0113",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv/lib/python3.12/site-packages/ruff-0.11.13.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.924864"
+    },
+    {
+      "id": "SUPPLY-LIC-0114",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_test/lib/python3.12/site-packages/aiohappyeyeballs-2.6.1.dist-info/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.926148"
+    },
+    {
+      "id": "SUPPLY-LIC-0115",
+      "agent": "SupplyChain-Agent",
+      "domain": "SUPPLY_CHAIN",
+      "threat_level": "LOW",
+      "cvss_score": 2.0,
+      "title": "License Compliance Risk: GPL",
+      "description": "Found GPL license which may conflict with commercial use",
+      "affected_components": [
+        "venv_test/lib/python3.12/site-packages/typing_extensions-4.14.0.dist-info/licenses/LICENSE"
+      ],
+      "evidence": {
+        "license": "GPL"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.931263"
+    },
+    {
+      "id": "COMP-GDPR-0001",
+      "agent": "Compliance-Agent",
+      "domain": "COMPLIANCE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 5.0,
+      "title": "Missing GDPR Feature: data_deletion",
+      "description": "GDPR compliance requires data deletion",
+      "affected_components": [
+        "Privacy Compliance"
+      ],
+      "evidence": {
+        "missing_feature": "data_deletion"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [
+        "https://gdpr.eu/"
+      ],
+      "timestamp": "2025-06-13T17:37:38.937351"
+    },
+    {
+      "id": "COMP-GDPR-0002",
+      "agent": "Compliance-Agent",
+      "domain": "COMPLIANCE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 5.0,
+      "title": "Missing GDPR Feature: data_export",
+      "description": "GDPR compliance requires data export",
+      "affected_components": [
+        "Privacy Compliance"
+      ],
+      "evidence": {
+        "missing_feature": "data_export"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [
+        "https://gdpr.eu/"
+      ],
+      "timestamp": "2025-06-13T17:37:38.937354"
+    },
+    {
+      "id": "COMP-GDPR-0003",
+      "agent": "Compliance-Agent",
+      "domain": "COMPLIANCE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 5.0,
+      "title": "Missing GDPR Feature: consent_management",
+      "description": "GDPR compliance requires consent management",
+      "affected_components": [
+        "Privacy Compliance"
+      ],
+      "evidence": {
+        "missing_feature": "consent_management"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [
+        "https://gdpr.eu/"
+      ],
+      "timestamp": "2025-06-13T17:37:38.937356"
+    },
+    {
+      "id": "COMP-GDPR-0004",
+      "agent": "Compliance-Agent",
+      "domain": "COMPLIANCE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 5.0,
+      "title": "Missing GDPR Feature: privacy_policy",
+      "description": "GDPR compliance requires privacy policy",
+      "affected_components": [
+        "Privacy Compliance"
+      ],
+      "evidence": {
+        "missing_feature": "privacy_policy"
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [
+        "https://gdpr.eu/"
+      ],
+      "timestamp": "2025-06-13T17:37:38.937357"
+    },
+    {
+      "id": "COMP-SOC2-001",
+      "agent": "Compliance-Agent",
+      "domain": "COMPLIANCE",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Missing SOC2 Controls",
+      "description": "Missing controls: encryption",
+      "affected_components": [
+        "Security Controls"
+      ],
+      "evidence": {
+        "missing": [
+          "encryption"
+        ]
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.945246"
+    },
+    {
+      "id": "COMP-POL-001",
+      "agent": "Compliance-Agent",
+      "domain": "COMPLIANCE",
+      "threat_level": "LOW",
+      "cvss_score": 3.0,
+      "title": "Missing Security Policies",
+      "description": "Required security policy documents not found",
+      "affected_components": [
+        "Documentation"
+      ],
+      "evidence": {
+        "missing": [
+          "SECURITY.md",
+          "security-policy.md",
+          "incident-response.md",
+          "data-classification.md"
+        ]
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1390"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.945313"
+    },
+    {
+      "id": "OPS-LOG-001",
+      "agent": "SecOps-Agent",
+      "domain": "OPERATIONS",
+      "threat_level": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Insufficient Security Event Logging",
+      "description": "Missing logs for: authorization_failure, authentication_failure, rate_limit_exceeded, security_exception, invalid_input",
+      "affected_components": [
+        "Logging System"
+      ],
+      "evidence": {
+        "missing_events": [
+          "authorization_failure",
+          "authentication_failure",
+          "rate_limit_exceeded",
+          "security_exception",
+          "invalid_input"
+        ]
+      },
+      "mitre_attack_ids": [
+        "T1070"
+      ],
+      "cwe_ids": [
+        "CWE-778"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.946478"
+    },
+    {
+      "id": "OPS-MET-001",
+      "agent": "SecOps-Agent",
+      "domain": "OPERATIONS",
+      "threat_level": "LOW",
+      "cvss_score": 4.0,
+      "title": "Limited Security Metrics",
+      "description": "Insufficient security metrics collection",
+      "affected_components": [
+        "Metrics System"
+      ],
+      "evidence": {
+        "collected": []
+      },
+      "mitre_attack_ids": [],
+      "cwe_ids": [
+        "CWE-1053"
+      ],
+      "remediation": {},
+      "references": [],
+      "timestamp": "2025-06-13T17:37:38.948730"
+    }
+  ],
+  "mitigation_matrix": {
+    "critical": [
+      {
+        "finding_id": "CLOUD-CRED-0001",
+        "title": "Hardcoded Cloud Credentials",
+        "cvss": 9.5,
+        "domain": "CLOUD",
+        "mitigation_available": false
+      }
+    ],
+    "high": [
+      {
+        "finding_id": "INFRA-PERM-0008",
+        "title": "Insecure File Permissions",
+        "cvss": 7.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-PERM-0009",
+        "title": "Insecure File Permissions",
+        "cvss": 7.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-PERM-0010",
+        "title": "Insecure File Permissions",
+        "cvss": 7.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "NET-AUTH-0001",
+        "title": "Unauthenticated API Endpoint",
+        "cvss": 8.0,
+        "domain": "NETWORK",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "NET-AUTH-0002",
+        "title": "Unauthenticated API Endpoint",
+        "cvss": 8.0,
+        "domain": "NETWORK",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "NET-AUTH-0003",
+        "title": "Unauthenticated API Endpoint",
+        "cvss": 8.0,
+        "domain": "NETWORK",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "NET-AUTH-0004",
+        "title": "Unauthenticated API Endpoint",
+        "cvss": 8.0,
+        "domain": "NETWORK",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "NET-AUTH-0005",
+        "title": "Unauthenticated API Endpoint",
+        "cvss": 8.0,
+        "domain": "NETWORK",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "DATA-ENC-0001",
+        "title": "Unencrypted Data Storage",
+        "cvss": 7.5,
+        "domain": "DATA",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "DATA-PII-0003",
+        "title": "Exposed Email",
+        "cvss": 7.0,
+        "domain": "DATA",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "DATA-PII-0004",
+        "title": "Exposed Email",
+        "cvss": 7.0,
+        "domain": "DATA",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "CLOUD-SEC-001",
+        "title": "No Centralized Secrets Management",
+        "cvss": 7.0,
+        "domain": "CLOUD",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0001",
+        "title": "Vulnerable Dependency: pyyaml",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0002",
+        "title": "Vulnerable Dependency: cryptography",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0003",
+        "title": "Vulnerable Dependency: cryptography",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0004",
+        "title": "Vulnerable Dependency: numpy",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0005",
+        "title": "Vulnerable Dependency: pyyaml",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0006",
+        "title": "Vulnerable Dependency: requests",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0007",
+        "title": "Vulnerable Dependency: cryptography",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0008",
+        "title": "Vulnerable Dependency: numpy",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0009",
+        "title": "Vulnerable Dependency: requests",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0010",
+        "title": "Vulnerable Dependency: pyyaml",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0011",
+        "title": "Vulnerable Dependency: pyyaml",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0012",
+        "title": "Vulnerable Dependency: requests",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-DEP-0013",
+        "title": "Vulnerable Dependency: cryptography",
+        "cvss": 7.5,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      }
+    ],
+    "medium": [
+      {
+        "finding_id": "SAST-RS-0001",
+        "title": "Unsafe Rust Code",
+        "cvss": 5.5,
+        "domain": "APPLICATION",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "DAST-RL-001",
+        "title": "Insufficient Rate Limiting",
+        "cvss": 6.5,
+        "domain": "APPLICATION",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-DOC-0001",
+        "title": "Container Running as Root",
+        "cvss": 6.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-DOC-0002",
+        "title": "Container Running as Root",
+        "cvss": 6.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-DOC-0003",
+        "title": "Container Running as Root",
+        "cvss": 6.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-DOC-0005",
+        "title": "Container Running as Root",
+        "cvss": 6.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-DOC-0006",
+        "title": "Container Running as Root",
+        "cvss": 6.0,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "INFRA-K8S-0007",
+        "title": "Missing Security Context",
+        "cvss": 5.5,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "DATA-CLASS-0002",
+        "title": "Missing Data Classification",
+        "cvss": 5.0,
+        "domain": "DATA",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "IAM-MFA-0001",
+        "title": "Missing Multi-Factor Authentication",
+        "cvss": 6.5,
+        "domain": "IDENTITY",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "IAM-MFA-0002",
+        "title": "Missing Multi-Factor Authentication",
+        "cvss": 6.5,
+        "domain": "IDENTITY",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "IAM-SESS-0003",
+        "title": "Insecure Session Configuration",
+        "cvss": 6.0,
+        "domain": "IDENTITY",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "COMP-GDPR-0001",
+        "title": "Missing GDPR Feature: data_deletion",
+        "cvss": 5.0,
+        "domain": "COMPLIANCE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "COMP-GDPR-0002",
+        "title": "Missing GDPR Feature: data_export",
+        "cvss": 5.0,
+        "domain": "COMPLIANCE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "COMP-GDPR-0003",
+        "title": "Missing GDPR Feature: consent_management",
+        "cvss": 5.0,
+        "domain": "COMPLIANCE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "COMP-GDPR-0004",
+        "title": "Missing GDPR Feature: privacy_policy",
+        "cvss": 5.0,
+        "domain": "COMPLIANCE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "COMP-SOC2-001",
+        "title": "Missing SOC2 Controls",
+        "cvss": 6.0,
+        "domain": "COMPLIANCE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "OPS-LOG-001",
+        "title": "Insufficient Security Event Logging",
+        "cvss": 6.0,
+        "domain": "OPERATIONS",
+        "mitigation_available": false
+      }
+    ],
+    "low": [
+      {
+        "finding_id": "INFRA-TAG-0004",
+        "title": "Non-Specific Image Tags",
+        "cvss": 3.5,
+        "domain": "INFRASTRUCTURE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0014",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0015",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0016",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0017",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0018",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0019",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0020",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0021",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0022",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0023",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0024",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0025",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0026",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0027",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0028",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0029",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0030",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0031",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0032",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0033",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0034",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0035",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0036",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0037",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0038",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0039",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0040",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0041",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0042",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0043",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0044",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0045",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0046",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0047",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0048",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0049",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0050",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0051",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0052",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0053",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0054",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0055",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0056",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0057",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0058",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0059",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0060",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0061",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0062",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0063",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0064",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0065",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0066",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0067",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0068",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0069",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0070",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0071",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0072",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0073",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0074",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0075",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0076",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0077",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0078",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0079",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0080",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0081",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0082",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0083",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0084",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0085",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0086",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0087",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0088",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0089",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0090",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0091",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0092",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0093",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0094",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0095",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0096",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0097",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0098",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0099",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0100",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0101",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0102",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0103",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0104",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0105",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0106",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0107",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0108",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0109",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0110",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0111",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0112",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0113",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0114",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "SUPPLY-LIC-0115",
+        "title": "License Compliance Risk: GPL",
+        "cvss": 2.0,
+        "domain": "SUPPLY_CHAIN",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "COMP-POL-001",
+        "title": "Missing Security Policies",
+        "cvss": 3.0,
+        "domain": "COMPLIANCE",
+        "mitigation_available": false
+      },
+      {
+        "finding_id": "OPS-MET-001",
+        "title": "Limited Security Metrics",
+        "cvss": 4.0,
+        "domain": "OPERATIONS",
+        "mitigation_available": false
+      }
+    ],
+    "info": []
+  },
+  "mitigations": {
+    "total": 0,
+    "implemented": {
+      "total": 0,
+      "success": 0,
+      "failed": 0,
+      "implementations": []
+    },
+    "details": []
+  },
+  "validation": {
+    "tests_run": 0,
+    "tests_passed": 0,
+    "tests_failed": 0,
+    "results": []
+  },
+  "compliance_status": {
+    "gdpr": "PARTIAL",
+    "soc2": "PARTIAL",
+    "pci_dss": "NOT_ASSESSED",
+    "iso27001": "NOT_ASSESSED"
+  },
+  "next_steps": [
+    "1. IMMEDIATE: Address 1 critical vulnerabilities",
+    "2. HIGH PRIORITY: Remediate 25 high-severity findings",
+    "3. Implement continuous security monitoring",
+    "4. Schedule penetration testing",
+    "5. Establish security metrics and KPIs",
+    "6. Develop incident response procedures",
+    "7. Conduct security awareness training"
+  ]
+}

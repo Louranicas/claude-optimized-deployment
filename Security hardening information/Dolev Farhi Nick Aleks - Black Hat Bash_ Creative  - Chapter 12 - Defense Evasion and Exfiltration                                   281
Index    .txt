@@ -1,0 +1,408 @@
+# Security Chapter Extract
+Book: Dolev Farhi, Nick Aleks - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, No Starch Press) - libgen.li
+Chapter: 12 - Defense Evasion and Exfiltration   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 281
+Index   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 307
+Security Relevance Score: 26
+Word Count: 14311
+Extracted: 2025-06-13 23:40:24
+
+---
+
+Defense Evasion and Exfiltration   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 281
+Index   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 307
+
+CONTENTS IN DETAIL
+ACKNOWLEDGMENTS xvii
+INTRODUCTION xix
+What Is in This Book  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . xx
+The Scripting Exercises  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . xxi
+How to Use This Book  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . xxii
+1 
+BASH BASICS 1
+Environmental Setup  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+Accessing the Bash Shell   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+Installing a Text Editor   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2
+Exploring the Shell  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+Checking Environment Variables  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+Running Linux Commands   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+Elements of a Bash Script   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+The Shebang Line   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+Comments   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+Commands  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+Execution  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+Debugging  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+Basic Syntax   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+Variables   .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 10
+Arithmetic Operators  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+Arrays  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+Streams   .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 15
+Control Operators  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+Redirection Operators   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+Positional Arguments  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+Input Prompting  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+Exit Codes   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+Exercise 1: Recording Your Name and the Date  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  25
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+2 
+FLOW CONTROL AND TEXT PROCESSING 27
+Test Operators  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+if Conditions   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+Linking Conditions  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+Testing Command Success   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+Checking Subsequent Conditions   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+Functions  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+Returning Values  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+Accepting Arguments  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+x   Contents in DetailLoops and Loop Controls  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+while  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+until . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+for .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+break and continue  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 40
+case Statements  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+Text Processing and Parsing  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+Filtering with grep  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+Filtering with awk   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+Editing Streams with sed   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+Job Control   .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 45
+Managing the Background and Foreground  . . . . . . . . . . . . . . . . . . . . . . . . . 46
+Keeping Jobs Running After Logout   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+Bash Customizations for Penetration Testers  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+Placing Scripts in Searchable Paths  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 47
+Shortening Commands with Aliases  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+Customizing the ~/ .bashrc Profile  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+Importing Custom Scripts   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+Capturing Terminal Session Activity  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+Exercise 2: Pinging a Domain  ............................................  50
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 50
+3 
+SETTING UP A HACKING LAB 51
+Security Lab Precautions   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 52
+Installing Kali  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 52
+The Target Environment  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 54
+Installing Docker and Docker Compose   . . . . . . . . . . . . . . . . . . . . . . . . . . . . 54
+Cloning the Book’s Repository  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 55
+Deploying Docker Containers  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 56
+Testing and Verifying the Containers   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 57
+The Network Architecture   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 57
+The Public Network  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 58
+The Corporate Network  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 58
+Kali Network Interfaces   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 58
+The Machines  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 59
+Managing the Lab   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 60
+Shutting Down   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 60
+Removing  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 60
+Rebuilding   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 60
+Accessing Individual Lab Machines   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 61
+Installing Additional Hacking Tools  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 61
+WhatWeb   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 61
+RustScan   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 62
+Nuclei  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 62
+dirsearch   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63
+Linux Exploit Suggester 2  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63
+Gitjacker   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 64
+pwncat   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 64
+LinEnum  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 65
+unix-privesc-check  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 66
+Contents in Detail    xiAssigning Aliases to Hacking Tools  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 66
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 67
+4 
+RECONNAISSANCE 69
+Creating Reusable Target Lists   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 70
+Consecutive IP Addresses  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 70
+Possible Subdomains  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+Host Discovery  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 73
+ping   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 73
+Nmap   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 75
+arp-scan  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 75
+Exercise 3: Receiving Alerts About New Hosts  ................................  76
+Port Scanning   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 78
+Nmap   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 78
+RustScan   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 80
+Netcat  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 81
+Exercise 4: Organizing Scan Results  .......................................  81
+Detecting New Open Ports   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 83
+Banner Grabbing  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 85
+Using Active Banner Grabbing  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 86
+Detecting HTTP Responses   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 87
+Using Nmap Scripts   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 89
+Detecting Operating Systems   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 90
+Analyzing Websites and JSON  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 92
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 94
+5 
+VULNERABILITY SCANNING AND FUZZING 95
+Scanning Websites with Nikto  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 95
+Building a Directory Indexing Scanner  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 97
+Identifying Suspicious robots .txt Entries   . . . . . . . . . . . . . . . . . . . . . . . . . . . . 98
+Exercise 5: Exploring Non-indexed Endpoints  ...............................  100
+Brute-Forcing Directories with dirsearch  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 100
+Exploring Git Repositories  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 102
+Cloning the Repository  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 102
+Viewing Commits with git log  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 102
+Filtering git log Information  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 103
+Inspecting Repository Files   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 104
+Vulnerability Scanning with Nuclei  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 105
+Understanding Templates  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 105
+Writing a Custom Template   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 106
+Applying the Template  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 107
+Running a Full Scan  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 107
+Exercise 6: Parsing Nuclei’s Findings ......................................  111
+Fuzzing for Hidden Files  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 112
+Creating a Wordlist of Possible Filenames   . . . . . . . . . . . . . . . . . . . . . . . . . 112
+Fuzzing with ffuf  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 113
+Fuzzing with Wfuzz   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 113
+xii   Contents in DetailAssessing SSH Servers with Nmap’s Scripting Engine  . . . . . . . . . . . . . . . . . . . . . . . . 114
+Exercise 7: Combining Tools to Find FTP Issues ...............................  115
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 116
+6 
+GAINING A WEB SHELL 117
+Arbitrary File Upload Vulnerabilities  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 118
+Fuzzing for Arbitrary File Uploads  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 119
+Bypassing File Upload Controls   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 121
+Uploading Files with Burp Suite  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 125
+Staging Web Shells   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 128
+Finding Directory Traversal Vulnerabilities   . . . . . . . . . . . . . . . . . . . . . . . . . 129
+Uploading Malicious Payloads  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 130
+Executing Web Shell Commands   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 132
+Exercise 8: Building a Web Shell Interface ..................................  133
+Limitations of Web Shells  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 134
+Lack of Persistence   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 134
+Lack of Real-Time Responses  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 134
+Limited Functionality   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 134
+OS Command Injection  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 135
+Exercise 9: Building a Command Injection Interface  ...........................  138
+Bypassing Command Injection Restrictions   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 139
+Obfuscation and Encoding  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 139
+Globbing  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 140
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 141
+7 
+REVERSE SHELLS 143
+How Reverse Shells Work   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 144
+Ingress vs . Egress Controls  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 144
+Shell Payloads and Listeners  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 144
+The Communication Sequence   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 145
+Executing a Connection   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 146
+Setting Up a Netcat Listener  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 146
+Crafting a Payload   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 146
+Delivering and Initializing the Payload  . . . . . . . . . . . . . . . . . . . . . . . . . . . . 147
+Executing Commands   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 148
+Listening with pwncat   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 149
+Bypassing Security Controls  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 150
+Encrypting and Encapsulating Traffic  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 151
+Alternating Between Destination Ports   . . . . . . . . . . . . . . . . . . . . . . . . . . . . 152
+Spawning TTY Shells with Pseudo-terminal Devices  . . . . . . . . . . . . . . . . . . . . . . . . . . 154
+Python’s pty Module   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 154
+socat  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 155
+Post-exploitation Binary Staging  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 155
+Serving Netcat   .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 156
+Uploading Files with pwncat  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 157
+Downloading Binaries from Trusted Sites   . . . . . . . . . . . . . . . . . . . . . . . . . . 157
+Exercise 10: Maintaining a Continuous Reverse Shell Connection  .................  158
+Contents in Detail    xiiiInitial Access with Brute Force   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 159
+Exercise 11: Brute-Forcing an SSH Server  ..................................  160
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 162
+8 
+LOCAL INFORMATION GATHERING 163
+The Filesystem Hierarchy Standard  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 164
+The Shell Environment  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 165
+Environment Variables  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 165
+Sensitive Information in Bash Profiles  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 165
+Users and Groups   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 166
+Local Accounts   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 166
+Local Groups   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 167
+Home Folder Access   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 168
+Valid Shells   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 169
+Processes   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 170
+Viewing Process Files  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 170
+Running ps  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 172
+Examining Root Processes   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 173
+The Operating System   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 173
+Exercise 12: Writing a Linux Operating System Detection Script  ..................  174
+Login Sessions and User Activity   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 174
+Collecting User Sessions   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 174
+Investigating Executed Commands   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 175
+Networking  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 175
+Network Interfaces and Routes   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 176
+Connections and Neighbors  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 179
+Firewall Rules  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 180
+Network Interface Configuration Files   . . . . . . . . . . . . . . . . . . . . . . . . . . . . 181
+Domain Resolvers   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 181
+Software Installations   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 182
+Storage  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 183
+Block Devices  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 184
+The Filesystem Tab File  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 186
+Logs  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 186
+System Logs   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 187
+Application Logs  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 187
+Exercise 13: Recursively Searching for Readable Logfiles  .......................  188
+Kernels and Bootloaders  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 188
+Configuration Files  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 189
+Scheduled Tasks  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 191
+Cron  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 191
+At  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 193
+Exercise 14: Writing a Cron Job Script to Find Credentials  ......................  194
+Hardware  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 194
+Virtualization  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 196
+Using Dedicated Tools  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 196
+Living Off the Land   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 197
+Automating Information Gathering with LinEnum   . . . . . . . . . . . . . . . . . . . . . . . . . . . 197
+Exercise 15: Adding Custom Functionality to LinEnum ..........................  198
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 199
+xiv   Contents in Detail9 
+PRIVILEGE ESCALATION 201
+What Is Privilege Escalation?  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 201
+Linux File and Directory Permissions  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 202
+Viewing Permissions   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 202
+Setting Permissions   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 203
+Creating File Access Control Lists   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 204
+Viewing SetUID and SetGID  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 205
+Setting the Sticky Bit   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 206
+Finding Files Based on Permissions  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 207
+Exploiting a SetUID Misconfiguration   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 208
+Scavenging for Credentials  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 210
+Passwords and Secrets  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 210
+Private Keys   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 212
+Exercise 16: Brute-Forcing GnuPG Key Passphrases ...........................  215
+Examining the sudo Configuration   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 216
+Abusing Text Editor Tricks  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 218
+Downloading Malicious sudoers Files   . . . . . . . . . . . . . . . . . . . . . . . . . . . . 219
+Hijacking Executables via PATH Misconfigurations  . . . . . . . . . . . . . . . . . . . . . . . . . . 220
+Exercise 17: Maliciously Modifying a Cron Job  ..............................  222
+Finding Kernel Exploits  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 224
+SearchSploit  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 225
+Linux Exploit Suggester 2  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 225
+Attacking Adjacent Accounts  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 226
+Privilege Escalation with GTFOBins   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 228
+Exercise 18: Mapping GTFOBins Exploits to Local Binaries  ......................  229
+Automating Privilege Escalation  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 229
+LinEnum  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 229
+unix-privesc-check  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 230
+MimiPenguin   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 230
+Linuxprivchecker  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 231
+Bashark  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 231
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 231
+10 
+PERSISTENCE 233
+The Enemies of Persistent Access   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 234
+Modifying Service Configurations   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 234
+System V   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 235
+systemd   .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 237
+Hooking into Pluggable Authentication Modules   . . . . . . . . . . . . . . . . . . . . . . . . . . . 238
+Exercise 19: Coding a Malicious pam_exec Bash Script  ........................  238
+Generating Rogue SSH Keys  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 239
+Repurposing Default System Accounts  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 240
+Poisoning Bash Environment Files  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 241
+Exercise 20: Intercepting Data via Profile Tampering  ..........................  243
+Credential Theft  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 245
+Hooking a Text Editor   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 245
+Streaming Executed Commands   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 247
+Forging a Not-So-Innocent sudo   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 249
+Exercise 21: Hijacking Password Utilities ...................................  251
+Contents in Detail    xvDistributing Malicious Packages  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 251
+Understanding DEB Packages  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 252
+Packaging Innocent Software   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 253
+Converting Package Formats with alien  . . . . . . . . . . . . . . . . . . . . . . . . . . . 254
+Exercise 22: Writing a Malicious Package Installer ............................  254
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 256
+11 
+NETWORK PROBING AND LATERAL MOVEMENT 257
+Probing the Corporate Network  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 258
+Service Mapping   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 258
+Port Frequencies   .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  . 260
+Exercise 23: Scanning Ports Based on Frequencies ............................  261
+Exploiting Cron Scripts on Shared Volumes  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 263
+Verifying Exploitability  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 264
+Checking the User Context  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 265
+Exercise 24: Gaining a Reverse Shell on the Backup Server  .....................  265
+Exploiting a Database Server   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 266
+Port Forwarding   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 266
+Brute-Forcing with Medusa  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 267
+Backdooring WordPress  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 268
+Running SQL Commands with Bash  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 270
+Exercise 25: Executing Shell Commands via WordPress  ........................  271
+Compromising a Redis Server   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 271
+Raw CLI Commands   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 272
+Metasploit   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 273
+Exposed Database Files   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 275
+Dumping Sensitive Information   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 277
+Uploading a Web Shell with SQL   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 278
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 279
+12 
+DEFENSE EVASION AND EXFILTRATION 281
+Defensive Controls  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 281
+Endpoint Security   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 282
+Application and API Security   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 283
+Network Security   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 284
+Honeypots   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 284
+Log Collection and Aggregation  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 285
+Exercise 26: Auditing Hosts for Landmines ..................................  285
+Concealing Malicious Processes   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 286
+Library Preloading  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 286
+Process Hiding   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 288
+Process Masquerading  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 289
+Exercise 27: Rotating Process Names ......................................  290
+Dropping Files in Shared Memory   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 292
+Disabling Runtime Security Controls   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 292
+Manipulating History   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 294
+Tampering with Session Metadata   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 295
+Concealing Data   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 296
+xvi   Contents in DetailEncoding  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 297
+Encryption   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 298
+Exercise 28: Writing Substitution Cipher Functions  ............................  299
+Exfiltration  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 300
+Raw TCP   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 300
+DNS  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 301
+Text Storage Sites   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 302
+Slack Webhooks  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 303
+Sharding Files   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 304
+Number of Lines   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 304
+Size   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 304
+Chunks   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 305
+Exercise 29: Sharding and Scheduling Exfiltration  ............................  305
+Summary   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 306
+INDEX 307
+ACKNOWLEDGMENTS
+Many people contributed to the success of this book. Without their 
+patience, support, sacrifices, and guidance, releasing it would have been 
+impossible.
+Thank you to Limor-Petersil Farhi, Dolev’s wife and partner, who sup -
+ported him throughout this and the previous book-writing journey by pro -
+viding unconditional encouragement and an environment conducive to 
+pursuing his literary ambitions.
+Thank you to Nick’s best friend and loving wife, Natalia Aleks, for sup -
+porting yet another literary adventure, especially as they welcome Sofia into 
+their lives. Natalia is his rock.
+Thank you to Kc for delivering an astounding, meticulous technical 
+review of this book. His experience finding security flaws translated nicely 
+to catching errors.
+To the entire No Starch Press team, thank you for giving us the oppor -
+tunity to translate our experience into a book. Thanks to Frances Saux, our 
+amazing editor, who was an excellent resource during the roller-coaster ride 
+that is book writing, and to Bill Pollock, for the opportunity to team up with 
+No Starch Press once again to make our dream a reality.
+
+What if the world’s most potent cyber -
+weapon wasn’t a zero-day exploit but the 
+oldest trick in the book? In this fast-evolving 
+cybersecurity landscape, bash scripting has 
+remained a foundational skill, providing much more 
+than just a convenient way to interact with an operat -
+ing system.
+Written by Brian Fox in 1989, the bash shell is used on most versions of 
+the Linux operating system, which runs an impressive share of the world’s 
+infrastructure. You’ll find Linux across the vast network of servers that 
+form the backbone of the internet, as well as orchestrating space missions, 
+enabling secure financial transactions, and driving innovation in artifi -
+cial intelligence.
+Linux’s ubiquity has made bash scripting an essential skill for hack -
+ers hoping to master the art of living off the land , or using a system’s native 
+tools and processes to execute attacks, which can enable them to blend in 
+with legitimate activities and avoid detection. If penetration testers rely too INTRODUCTION
+xx   Introductionheavily on an ever-growing arsenal of third-party tools, they’ll struggle to 
+operate in restricted environments with limited tool access.
+Bash scripting also enables hackers to automate the execution of com -
+mand line tools. For example, it lets them chain multiple tools together, run them against many targets, or strategically schedule their execution. By writing scripts, hackers can develop powerful, efficient penetration-testing routines that fit their custom needs.
+Whether you’re a penetration tester, a bug bounty hunter, a student 
+taking your first steps into the field of cybersecurity, or a defender hoping to understand attacker techniques, this book will teach you to harness bash scripting at all stages of an offensive security engagement. You’ll learn how to write reusable offensive scripts, use the bash shell to maneuver through networks, and dive deep inside the Linux operating system.
+What Is in This Book
+This book begins by teaching you the foundations of bash syntax and script -
+ing. It then applies those skills to each stage of a penetration test against a Linux-based target network, from initial access to data exfiltration. Along the way, you’ll explore the Linux operating system and enhance your bash hacking skills.

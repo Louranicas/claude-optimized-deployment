@@ -1,0 +1,183 @@
+# Python Learning Layer Configuration
+
+# Shared memory settings
+shared_memory_path: /dev/shm/mcp_learning_shared.mem
+
+# Online learner configuration
+online_learner:
+  feature_dim: 128
+  learning_rate: 0.001
+  batch_size: 32
+  memory_size: 10000
+  model_architecture:
+    layers:
+      - type: linear
+        in_features: 128
+        out_features: 256
+      - type: activation
+        function: relu
+      - type: dropout
+        rate: 0.2
+      - type: linear
+        in_features: 256
+        out_features: 128
+      - type: activation
+        function: relu
+      - type: dropout
+        rate: 0.2
+      - type: linear
+        in_features: 128
+        out_features: 64
+      - type: activation
+        function: relu
+      - type: linear
+        in_features: 64
+        out_features: 128
+
+# Pattern recognizer configuration
+pattern_recognizer:
+  n_clusters: 10
+  anomaly_threshold: 0.1
+  window_size: 1000
+  min_pattern_frequency: 0.05
+  clustering:
+    algorithm: minibatch_kmeans
+    batch_size: 100
+    n_init: 3
+  anomaly_detection:
+    algorithm: isolation_forest
+    contamination: 0.1
+    random_state: 42
+
+# Adaptation engine configuration
+adaptation_engine:
+  adaptation_threshold: 0.7
+  risk_tolerance: 0.3
+  history_size: 1000
+  policy_defaults:
+    timeout: 30.0
+    retry_count: 3
+    batch_size: 100
+    cache_ttl: 3600
+    rate_limit: 1000
+    priority_weights:
+      high: 1.0
+      medium: 0.5
+      low: 0.1
+
+# Workflow manager configuration
+workflow_manager:
+  max_workers: 4
+  task_timeout: 300
+  max_retries: 3
+  retry_delay: 5
+
+# Celery configuration
+celery:
+  broker_url: redis://redis:6379/0
+  result_backend: redis://redis:6379/0
+  task_routes:
+    "mcp_learning.train_model": "learning"
+    "mcp_learning.analyze_patterns": "analysis"
+    "mcp_learning.generate_adaptations": "adaptation"
+  task_annotations:
+    "mcp_learning.train_model":
+      rate_limit: "10/m"
+      time_limit: 300
+    "mcp_learning.analyze_patterns":
+      rate_limit: "30/m"
+      time_limit: 60
+
+# API configuration
+api:
+  host: 0.0.0.0
+  port: 8000
+  workers: 4
+  max_request_size: 10485760  # 10MB
+  cors:
+    enabled: true
+    origins:
+      - http://localhost:3000
+      - https://localhost:8443
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+    headers:
+      - Content-Type
+      - Authorization
+
+# Monitoring configuration
+monitoring:
+  metrics_port: 8001
+  health_check_interval: 30
+  resource_check_interval: 60
+  alerts:
+    memory_threshold: 0.8
+    cpu_threshold: 0.9
+    error_rate_threshold: 0.05
+
+# Logging configuration
+logging:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    default:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    json:
+      class: pythonjsonlogger.jsonlogger.JsonFormatter
+      format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: json
+      stream: ext://sys.stdout
+    file:
+      class: logging.handlers.RotatingFileHandler
+      level: DEBUG
+      formatter: json
+      filename: /logs/mcp_learning.log
+      maxBytes: 104857600  # 100MB
+      backupCount: 10
+  loggers:
+    mcp_learning:
+      level: INFO
+      handlers:
+        - console
+        - file
+      propagate: false
+    celery:
+      level: INFO
+      handlers:
+        - console
+        - file
+      propagate: false
+  root:
+    level: INFO
+    handlers:
+      - console
+      - file
+
+# Database configuration
+database:
+  url: postgresql://mcp_user:password@postgres:5432/mcp_learning
+  pool_size: 20
+  max_overflow: 40
+  pool_timeout: 30
+  pool_recycle: 1800
+
+# Model storage
+model_storage:
+  backend: filesystem
+  path: /app/models
+  versioning:
+    enabled: true
+    max_versions: 10
+    cleanup_interval: 86400  # 24 hours
+  backup:
+    enabled: true
+    interval: 3600  # 1 hour
+    path: /backup/models
+    retention_days: 7

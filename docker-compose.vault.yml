@@ -1,0 +1,174 @@
+version: '3.8'
+
+services:
+  vault:
+    image: hashicorp/vault:1.15.4
+    container_name: code_vault
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "dev-only-token"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+      VAULT_ADDR: "http://0.0.0.0:8200"
+      VAULT_API_ADDR: "http://0.0.0.0:8200"
+      VAULT_LOG_LEVEL: "info"
+    ports:
+      - "8200:8200"
+      - "8201:8201"
+    volumes:
+      - vault_data:/vault/data
+      - vault_logs:/vault/logs
+      - vault_config:/vault/config
+      - ./vault/config:/vault/userconfig:ro
+    command: server -dev -dev-plugin-dir=/vault/plugins
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - code_network
+
+  vault-init:
+    image: hashicorp/vault:1.15.4
+    container_name: code_vault_init
+    depends_on:
+      vault:
+        condition: service_healthy
+    environment:
+      VAULT_ADDR: "http://vault:8200"
+      VAULT_TOKEN: "dev-only-token"
+    volumes:
+      - ./scripts:/scripts:ro
+      - vault_config:/vault/config
+    command: |
+      sh -c '
+        echo "Waiting for Vault to be ready..."
+        sleep 5
+        
+        echo "Enabling secret engines..."
+        vault secrets enable -version=2 -path=secret kv || true
+        vault secrets enable database || true
+        vault secrets enable pki || true
+        vault secrets enable transit || true
+        
+        echo "Enabling auth methods..."
+        vault auth enable approle || true
+        vault auth enable kubernetes || true
+        vault auth enable jwt || true
+        
+        echo "Creating policies..."
+        vault policy write admin - <<EOF
+        path "*" {
+          capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+        }
+        EOF
+        
+        vault policy write application - <<EOF
+        path "secret/data/app/*" {
+          capabilities = ["read", "list"]
+        }
+        path "secret/metadata/app/*" {
+          capabilities = ["read", "list"]
+        }
+        path "auth/token/renew-self" {
+          capabilities = ["update"]
+        }
+        path "auth/token/lookup-self" {
+          capabilities = ["read"]
+        }
+        EOF
+        
+        echo "Creating initial secrets..."
+        vault kv put secret/app/database \
+          host="postgres" \
+          port="5432" \
+          username="code_user" \
+          password="change-me-in-production" \
+          database="code_db"
+        
+        vault kv put secret/app/auth/jwt \
+          secret="dev-jwt-secret-change-in-production" \
+          algorithm="HS256"
+        
+        echo "Setting up AppRole..."
+        vault write auth/approle/role/code-app \
+          token_policies="application" \
+          token_ttl=1h \
+          token_max_ttl=4h
+        
+        echo "Vault initialization complete!"
+      '
+    networks:
+      - code_network
+
+  # Production Vault with Consul backend (commented out for dev)
+  # consul:
+  #   image: consul:1.17
+  #   container_name: code_consul
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8500:8500"
+  #     - "8600:8600/tcp"
+  #     - "8600:8600/udp"
+  #   volumes:
+  #     - consul_data:/consul/data
+  #   command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+  #   networks:
+  #     - code_network
+  
+  # vault-prod:
+  #   image: hashicorp/vault:1.15.4
+  #   container_name: code_vault_prod
+  #   restart: unless-stopped
+  #   cap_add:
+  #     - IPC_LOCK
+  #   environment:
+  #     VAULT_ADDR: "http://0.0.0.0:8200"
+  #     VAULT_API_ADDR: "http://0.0.0.0:8200"
+  #     VAULT_CLUSTER_ADDR: "http://0.0.0.0:8201"
+  #   ports:
+  #     - "8200:8200"
+  #     - "8201:8201"
+  #   volumes:
+  #     - vault_data:/vault/data
+  #     - vault_logs:/vault/logs
+  #     - ./vault/config/vault-prod.hcl:/vault/config/vault.hcl:ro
+  #     - ./vault/tls:/vault/tls:ro
+  #   command: server
+  #   depends_on:
+  #     - consul
+  #   networks:
+  #     - code_network
+
+  # Vault UI (separate container for production)
+  vault-ui:
+    image: djenriquez/vault-ui:2.4.0
+    container_name: code_vault_ui
+    restart: unless-stopped
+    environment:
+      VAULT_URL_DEFAULT: "http://vault:8200"
+      VAULT_AUTH_DEFAULT: "TOKEN"
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - vault
+    networks:
+      - code_network
+
+volumes:
+  vault_data:
+    driver: local
+  vault_logs:
+    driver: local
+  vault_config:
+    driver: local
+  consul_data:
+    driver: local
+
+networks:
+  code_network:
+    driver: bridge

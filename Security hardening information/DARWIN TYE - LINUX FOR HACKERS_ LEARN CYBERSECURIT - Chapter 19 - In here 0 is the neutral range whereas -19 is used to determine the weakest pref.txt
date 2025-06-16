@@ -1,0 +1,402 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 19 - In here, 0 is the neutral range whereas -19 is used to determine the weakest preferred process whereas +19 is used to determine the most preferred process.
+Security Relevance Score: 14
+Word Count: 5613
+Extracted: 2025-06-13 23:40:27
+
+---
+
+In here, 0 is the neutral range whereas -19 is used to determine the weakest preferred process whereas +19 is used to determine the most preferred process.
+
+Here are commands:
+
+root@server: nice -n 5 /bin/terminal
+// This is a process with priority 5
+root@server: nice -n -10 /bin/game
+
+// This is a process with priority -10
+
+So, when there is a descent in system resources first the process with -10 nice priority will end automatically. Lower priority processes should not be system processes at any case. System administrators usually spend a lot of time to prioritize the perfect processed for the system. If you are a hacker you should also learn to prioritize to effectively manage the resources while trying to steal information.
+At any time you can change the priority order of the process using the renice command.
+
+root@server: renice 13 7732
+
+
+// Here the priority order of the process id 7732 is changed to 13
+
+In the next section, we will talk about killing processes. Learning to kill processes is a much hyped skill for hackers as they often need to switch off the intrusion detection systems that the administrators use.
+How to kill a process?
+Some processes are often called as zombie processes because they consume a lot of resources even when they are freezes or stuck in the system. If you did find any processes that are not worthy of the resources they are using then it is a wise choice to kill them at any cost.
+Here is a command:
+
+root@server : kill -1 3638
+
+// This -1 says that the process should be restarted after killing it first
+root@server : kill -9 3638
+
+// This -9 says that the process needs to be terminated immediately
+
+In the last section of this chapter we will discuss about scheduling processes.
+How to schedule processes?
+In any operating system or computer operation management system scheduling is an important skill to master. Scheduling not only decreases workload but also helps you understand how to use resources smartly.
+For example, you can schedule to start an antivirus process only when you have downloaded a file from the web browser.
+In Linux, at utility is used to schedule a process.
+Here is a command:
+
+root@server : at 9:00pm
+
+// This will start the at command utility that can schedule the process
+root@server : at > /root/users/startscript
+
+// At the above mentioned time the script mentioned will start as a process
+
+By using scheduling functionality hackers can run remote programs even when they lose access. You can bind programs with metasploit vulnerable scripts to make them send information to your mobile or server within seconds.
+What Next?
+With this, we have completed a brief and complete introduction to process management. In the next chapter, we will talk about file management in Linux with tons of examples. Let us go!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Three
+
+
+
+File Management in Linux
+
+
+
+
+
+In the previous
+ chapter we have coherently discussed about the importance of process management for hackers. If you are serious into hacking with Linux you should also know a sufficient information about file management and directory permissions in Linux.
+A lot of new hackers even after having obtained the access will not be able to grab the information they need because of the lack of file and directory permissions. Kali Linux uses complex file structures and directory management philosophy to counter the loopholes that usual Linux distros may face. In this chapter we will discuss a lot of these scenarios with concrete examples. Follow along!
+What are users and groups in Linux?
+Every operating system uses the concept of users to determine who uses what. For example, windows uses something called administrator account to access the system files. If you are not an administrator then there is no chance that you can access the C program and system files that are important for hackers.
+In the same manner, Linux uses much more complex user management system for easier access and advanced security functions.
+
+Users - Users are individuals who can access a particular area of the system
+
+
+Groups - Groups are bundle of users who can access particular resources combinely.
+
+We will now discuss about different types of users in Linux in much more detail.
+1) First you need to know about the head of the Linux system. That is, the most powerful one of all. Usually it is called as a root user. Root user is the most powerful and can do anything in a system. He can add users , groups and delete them whenever he want to. Usually root access is given to the system administrators in an enterprise. As a hacker, your main motto should be to attain root access because with it you can do anything you want to.
+2) The next is simple. Normal users are the users who doesn’t have permissions to have root access. What they can access is completely decided by the root user. If there is a service company, developers will only get access to coding resources where as management employees will only get access to management files. Every enterprise uses their own ways to decide what the users should access.
+How to grant permissions?
+Linux administrators usually use permissions to control how users can interact with the system files and directories. There are commonly three type of permissions namely : read, write and execute.
+A) read
+This is permission to just to read the files. You cannot any way modify or delete them. These permissions are usually given to the entry level users of an enterprise. It is represented by “r” in Linux command terminology.
+B) write
+This is permission that can make the users to write the file. To write means to modify the content the file. However, even after writing the file it is not guaranteed that you can execute the newly written file. For example, git branches contributors are given written permissions to a file in the repository but are executed only after it is accepted by the administrator of the git branch. It is represented by “w” in Linux command terminology.
+C) Execute
+This is the high level permission that root users have. If a user gets execute permissions then he can not only read and write files but can also execute them to change the system files and directories. When a hacker tries to attack a system he often looks forward to gain executing permissions. However, remember that sometimes root administrators only provide execute permissions without giving read and write permissions. It is represented by “x” according to Linux command terminology.
+With this, we have completed a brief introduction to permissions. In the next section, we will talk about how to give permissions for an individual user or a group from the command line.
+How to grant permissions to an user?
+When you grant permission to an individual user he can interact with the file or directory without any errors.
+Chown command is used for granting permissions for an individual user in Linux.
+Here is the command :
+
+root@server : chown sample /home/pictures
+
+In the above command “chown” is the default command that tells the Linux kernel to provide permissions. “Sample” stands for the name of the user and the “/home/pictures” is the directory that is being given access to.
+How to grant permissions to a group?
+Just like how a root user allocates a permission to an individual user he can do it for a group.
+chgroup is the command that is used in Linux to allocate permission to a particular group. In enterprises, creating and managing groups is an absolute necessity. While doing projects that are short term allocating permissions solves a lot of problems.
+Here is a command:
+
+root@server : chgroup hackers /home
+
+In the above command chgroup is the default identifier that allows groups to allocate permissions. Hackers is the group name whereas /home is the directory that the permission is being given to.
+In the next section we will learn how to view the current permissions for a file or directory.
+How to check permissions in Linux?
+If you are unaware of what permissions you are currently holding then you can check using the following command in Linux
+
+root@server : ls -l /var/games
+
+This command will display an output information saying about your current user status and whether or not you have access to this directory. You will also information about the owner of the file. Another significant option is details about the time when it was modified. If you are a system administrator you should be constantly checking the file modification status to be safe from attackers who try to gain the system permissions at any cost to steal sensitive information.
+If you are a hacker trying to gain control over the system you should know a way to modify permissions in linux. This is where the “chmod” command comes into use.
+How to modify permissions?
+Permissions are generally changed in linux using the chmod command. All you have to do is add the permission that you are willing to change with chmod as a root user to change it.
+For example:
+
+root@server : chmod +x sum.img
+
+
+// This will give the current user the permission to execute the image file
+
+Advanced hackers use SUID to grant temporary permissions for the file they are going to execute. Learning about it is out of the scope of the book. If you are interested we suggest you to learn about SUID and Umask before jumping into it.
+With this, we have completed a brief introduction to file management system in Linux. In the next chapter we will talk about important stuff that a hacker needs mostly that is maintain anonymity. We will also talk about TOR, dark web and VPN to help you understand how to protect your privacy even when attacking systems. Let us go!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Four
+
+
+
+Being Secure in Linux
+
+
+
+
+
+In early 90’s
+ it is almost difficult to track hackers who are using techniques like phreaking to make free calls from the telephone services. However, after the rapid growth of Internet and its potential to earn money has made ISP’s restrict users and track them. Even governments now a days restricts their users from accessing websites that are illegal according to their rules. For example, a lot of countries like India, China restrict torrent websites. China even censors websites such as Google, Facebook because they feel that they are missing the user privacy.
+While banning websites is often a way to destroy economic growth of their rival countries now a days user privacy is also a huge issue that is being taken seriously. Much recently US government has decided to restrict its citizens from downloading Tiktok, a famous video sharing social networking platform because of the claims that they are misusing the user data. While some of these claims may be debatable hackers who are trying to attack systems of enterprises that have quality intrusion detection systems should be aware that they are not being tracked. This chapter will try to ignite some valuable information to you. Let us go!
+What can ISP’s track?
+It may seem scary but the fact is that your ISP will have every website you have ever visited in their system logs. Some unethical ISP’s even try to sell this data to multinational companies who need data to create machine learning algorithms that will further target your interests and can even change your political views.
+So, what should we do to stop being tracked by government and ISP’s? A lot of network enthusiasts and privacy concerned engineers battled with this question for years. After spending hundreds of hours for research a group of network specialists created something called as a TOR network.
+Before understanding about TOR in the first place we need to talk about how IP addresses are used to track us with an example.
+How do IP address track us?
+To be clear, an IP address is like an address box for your device such as a mobile/router or sometimes even a wireless connection.
+For example, let us assume that you did send a WhatsApp message to your friend. When you click the send button the message content will be sent in the form of packets to a nearest router. The packet has the information about the source address and will also have a destination address. The network packet travels just like a post that is being sent to a particular address. When the destination receives the packet the status of the message will be changed in the messaging platform.
+Usually a normal network packet hops between 20 packets before reaching the destination. At all happens within seconds so for normal users it doesn’t even matter. But for hackers and security enthusiasts these packets can provide a lot of unencrypted information. ISP’s and governments tracking can also get a lot of sensitive information with the help of these network packets.
+How to find where the packet is traveling?
+Linux provides a special command to help you understand where the packets are traveling. It is called as trace route command.
+
+root@server : traceroute yahoo.com
+
+This will display a trace route for the url address that you have provided. It will show the number of hops that will take to reach the destination and will also provide the size of the network packets.
+With this sufficient information you are now all set to understand the philosophy of Onion network. Let us find more about it.
+How does TOR network function?
+In usual network communication all the packets that are travelled through the routers are tracked and are controlled by specific ISP’s. Whenever a legal authority or a government requests for the access of these packets that travelled through these routers they provide them afraid of measures that may hurt their enterprise. It may work well for the company but for an individual when privacy matters this may feel like a huge leap.
+While normal network request travel through these routers all the network requests that are used in a TOR network are sent through a highly secured network of computers that are being volunteered by network specialists all around the world. All these routers are not only can’t be tracked but are also encrypted and cannot be accessed by anyone to reveal their sensitive information.
+TOR not only provides complete anonymity but also helps you to access the dark web that is a walking heaven for hackers. In the dark web we can find .onion websites that are filled with several illegal activities. We suggest you to only access the websites that may serve a purpose but not that provide hacking services.
+If you feel like experimenting with the TOR network you should then install the TOR browser that is developed using the Mozilla source code. It is fast and automatically connects you to a TOR relay.
+Is TOR completely safe?
+While it is absolutely true that TOR project is now the only trusted way to gain maximum privacy but it still has its loopholes. Years back there was a leak saying that the US government has a list of some computers that are being used as TOR servers. However, the network engineers that are maintaining the TOR project said it is not true.
+Another issue is that popular websites such as Google and Facebook discourage users using the TOR network by constantly irritating with security checks. If you are looking forward to use TOR as your way to interact with internet then as a hacker you should be aware of these drawbacks.
+In the next section, we will talk about proxy servers that are an another popular way to hide your identity to stop being tracked by government/ISP’s.
+What are Proxy servers?
+To say in layman terms proxies are middle men that acts like a mediator between the source and destination. They are intermediate and allows all the traffic coming from both source and destination to pass through them.
+If you are curious to know how a proxy server works then follow this simple explanation.
+Imagine that you want to visit a website using your web browser. In this scenario,Your IP address is known as host address and the IP address of the website you are visiting is known as destination address. Whenever you send a request to that website using your web browser then your ISP will log down both of these requests.
+However, now assume that whenever you send a request to the website instead of going directly to the website in a situation where proxy is there all the traffic will be first sent to the proxy server. When the traffic reaches the proxy then all the traffic that was going to the destination will change its IP address. In this scenario it is difficult to track from where the traffic is originally because of an intermediate that exists. In the same way the destination website also sends response data to the source (i.e proxy ) and now proxy will send all the data to the source address. So, the data will be displayed as-usual in your web browser.
+What are the drawbacks?
+Like every solution to be anonymous proxies too come with some drawbacks. The most important one is because there involves a middle man who receives and sends the data for you the speed will be reduced significantly.
+Also proxies are definitely not completely safe. While they may usually secure from accessing blocked websites or moderate stuff that involves hacking procedures you should not completely rely on them. Especially with the free proxies. Experienced hackers use proxies that are Sock5 and secured. If you do some petty stuff and if there is a search warrant to search for the proxy logs then the proxy providers may give away your details because of the pressure from the law enforcement. So, make sure that you are using proxies from highly secured sources.
+How to perfectly utilize Proxies in Linux?
+Linux users love proxies. Proxies not only help them stay anonymous but also significantly increase their performance with the internet. Kali Linux, a famous hacking distro comes with a proxy utility tool known as proxy chains that bundle two or more proxy addresses to send and receive data to the operating system. This not only makes you completely anonymous but is also secure and tracking you can be a nightmare.
+Here is the command :
+
+root@server : proxychains
+
+No matter what task you do , if you are willing to be anonymous then you can enter ‘proxy chains’ command in the beginning so that it will be routed through the proxies that are entered in it’s config file. In the config file of proxy chains you can enter a single proxy address or can enter multiple of them. Advanced hackers use random proxies and multiple proxies to improve their security.
+In the next section, we will talk about Virtual Private Networks (VPN’s) and encrypted mail in detail. Let us go!
+What are Virtual Private Networks in Linux?
+You might be often seeing advertisements in Internet about VPN providers such as Nord VPN, Express VPN etc,. If you still don’t know what the hell they are then don’t be confused because they are just like proxy servers but with more efficiency and completely encrypted data so that even the VPN providers cannot read or access what you are doing with your internet.
+Vpn works basically by using the same principle as proxies. While using a VPN all your data/traffic will be sent through a intermediate network device such as a router. All the received data to the router will be sent to the destination and vice-versa.
+The major fuss about VPN’s is they are easy to use and consists a lot of proxies according to your preferred location. So, they can be mainly used to evade restrictions that your governments or enterprises imply on you. Also, they are cheap now a days and can cloak your information so that you will not be a victim to spoofing or snooping attacks by the hackers.
+The famous VPN providers are Nord VPN , Express VPN and Hide My ass VPN. We suggest you to do a complete research about their plans and prices before making a purchase.
+What is an Encrypted Mail?
+We all know that E-mail is a professional way to communicate as a worker or a freelancer. Even personal communications can be done using an E-mail. However, are you sure that all your data that goes through an E-mail is safe?
+You don’t. Because, all the free email providers save all your encrypted data in their servers to use them for developing algorithms that are interlinked with machine learning and artificial intelligence. Yes, we are now living in a dystopian world where we don’t even give a damn about our personal data that can be used to change our thoughts and political views.
+To not be a prey to multi national madness we suggest you to use encrypted e-mail services such as Proton mail. They work as good as famous Email providers like Gmail. Also, you will be completely secured and will not become prey to any phishing or spam mails because of their advanced filtering features.
+What Next?
+With this, we have given a complete introduction to the security concerns that a beginner Linux user can have. As a hacker you need to constantly delete your logs and cookies to not being tracked by the Network providers or internet gaints. With this sufficient knowledge you are now all set to learn about Logging system in Linux. This is the final chapter of this module and can give us a good clarity about an important expertise that all hacker should master. Let us jump into into right now.
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Five
+
+
+
+Logging system in Linux
+
+
+
+
+
+In the previous
+ chapter we talked about ways to make you be secure and anonymous in the internet. As a hacker staying in the dark and stealing sensitive information is usually your main motto. As a fellow cyber security enthusiast I would suggest you to maintain a good grasp about different logging systems in Linux distros to help you understand what is actually going in the system that you are trying to gain access. Also, deleting sensitive log files that can reveal your identity is also an important task for hackers to master. To help you understand different logging systems and daemons that make up the log files we have introduced this chapter with tons of examples. Follow along!
+What are log files?
+Log files are information about all the important events that occur in an operating system. Traditional operating systems like Windows and macOS doesn’t give access to log files unless you have special administrative privileges. Linux however provides details about all the errors and warnings that exist in the system. Some log files are accessed even when there are no root privileges. However, all the log files that are created can be modified or deleted only if you have root privileges.
+How log files can help hackers?
+Imagine log files as a path to your destination ( I.e your IP address / other sensitive information). Each time a new user gains access to the system the Linux system automatically registers all of its information and will connect only after this procedure. This security feature can be a nightmare to hackers because forensic enthusiasts can extract all the information / proxy addresses and can investigate further.
+To make sure that you are not to be tracked whenever you gain access to a system you should head over to the logs location and should delete them permanently. Administrators can find that there are missing log files but can never know who did it. There will be suspicion but not conformation by deleting log files.
+How log files can help system administrators?
+System administrators and database specialists often need to troubleshoot different Linux systems in their professional life. Some administrators solve problems using remote ways. To make administrators understand what the problem is he needs a definite access to log files. Log files will help them understand what the problem is. Without log files, it would be a tremendous task to manually check where the problem exists.
+How logs are created?
+Log files in linux are generally created using a specific daemon known as syslogd.
+But, what is a daemon ?
+A daemon is a system service that automatically starts whenever a system is rebooted. They are the first processes that run no matter what software are installed in the system. They are also known as default system processes. syslogd is a specific system process that takes care about creating log files for every event that runs in the operating system.
+Also, it is important to remember that every Linux distribution uses its own way to create log files. For example, Debian systems use ‘syslog’ to create log files in the system. Other operating systems like Arch and Redhat uses different logging systems according to their use cases. The choice of logging system depends on the majority of users the distro is being used. Debian systems are the windows of Linux world and is therefore light-weight and can be used as a daily driver. This is the reason why Debian uses simple logging system such as ‘rsyslog’.
+Complex operating systems such as Red hat Linux that are used in server administration needs a lot of additional factors while creating log files as they are often need to be used for troubleshooting purposes.
+How to understand and analyze log files?
+In this section, we will give a simple procedure to analyze log files that are created using syslog daemon that is present in Debian systems. All you need to do as a prerequisite is to install your favorite text editor to read the log files.
+After installing a text editor, head over to the terminal and type the below command.
+
+root@server : locate rsyslog
+
+This default command searches all the files in the Linux system. Make sure that you have given root permissions using the ‘su’ command so that the command will search all the system files. After a couple of seconds the output information will show all the locations where the log files are present.
+For example :
+
+/etc/ home/example.rsyslog
+
+This is the format for the files that we will find with the above mentioned command. After selecting a log file to analyze head over to the location and open it using your favorite text editor.
+Now, you will see a bunch of default code that exists whenever a log file is created using the ‘rsyslog’ daemon. Don’t edit anything and head over to the end of the log file where you will find a section with the title ‘RULES’ as shown below.
+Here is the format :
+
+### RULES
+
+## Enter rules here
+
+## End of the log file
+
+Now, you need to enter your preferred rules here. But first, analyze already present rules to understand how logging system works in linux.
+You will see a list of rules in the following format :
+
+facility.priority action
+
+What does these individual identifiers mean?
+A) facility
+This is the identifier where we select the service that we are using to create log files. Also, it specifically says which part of the Linux system the logging system is interacting with.
+Here are some examples :
+Cron , daemon , kern and user. You ca also use any of them just by using the comma between them.
+b) priority
+This is an identifier that says which type of log files need to be created using the daemon that is running. There are different type of priority operations such as creating debug files or error files or alert files according to your preference.
+Note :
+If you use \* then all the priority options that are available will be logged into the log file. Remember that the lowest priority is debug whereas the highest priority is panic.
+C) action
+This is an identifier that provides the location where the log files need to be saved in the directory.
+Here is an example rule :
+
+Kern.error \etc\home\sample.syslog
+
+Here, kern stands for facility and error stands for priority. \etc\home\sample.syslog is the location where the log file will be created automatically.
+You can also use log files to automatically clean up files. There are a lot of use cases with the logging system and as a hacker you need to master them to execute your ideas perfectly while tracking or cracking a system.
+What Next?
+With this, we have completed our second module of this book where we have discussed a lot of basic information about the Linux operating system that can help us to improve skills as hackers. As a hacker to exploit systems you need to have a good information about programming languages such as Python. In the next module of this book we will discuss in detail about different component of Python along with tens of examples. Head over to the next module to further gain knowledge to be a better hacker. Let us go!
+
+
+
+
+
+
+
+
+
+
+
+Python Scripting and Bash Scripting For Hackers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Introduction
+
+
+
+
+
+In the previous
+ two modules of this book we have introduced Linux along with an installation procedure. In the second module of this book we introduced various Linux concepts such as process management and logging systems to help you understand the kernel level implementation of all the resources while trying to crack a system. This book, is a next step to your excellent understanding of the topics that makes you a good hacker.
+What does this module deal with?
+In this module, we will talk about scripting by introducing two scripting languages namely python and bash scripting. Learning this can help you understand much advanced shell programming techniques in the fourth module of this book.
+How to read this module?
+Unlike the first two modules this is a practical experiment module. That is, without doing these scripts on your own you can never completely understand the essence of this module. Without any thoughts, install a Linux distro and other python interpreters to start utilizing the content of this book.
+What are the prerequisites?
+Learn a bit about Python and its history before starting this module. Also, make sure that you have pycharm and python interpreter installed in your Linux system. If not, you will face errors while compiling the programs.
+Bash scripting needs just a text editor and Shell interpreter to complete its tasks.
+With this introduction now we are all set to start our adventure to Scripting world that can make us better and efficient hackers. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter One
+
+
+
+Introduction to Python
+
+
+
+
+
+Python follows simple syntax rules.
+ In fact, the reason for Python’s popularity among beginners is due to the fact that it is very easy to learn by someone who never heard of programming before. All it needs as some patience and a good guide to start writing small python projects. While it is easy to become a moderate programmer in Python increasing the expertise is as tough as other languages. Using modules and interlinking them in your newly written code is a tough task and can need a lot of debugging before it starts to work as you expected.
+Whatever your expertise maybe in Python having a good solid knowledge about Python basics such as variables and data types can not only help you to write efficient code but will also make you save a lot of time.
+First, let us start with data types in this chapter.
+What are Data types in Python?
+Data types are an easy way to say to the interpreter about the data you are dealing with. Unlike traditional programming languages such as C and Java python automatically detects what data type you are using.
+Confused? Let us take an example in C program.
+Example :
+
+Int a ;
+
+Int b;
+A = 23;
+
+B = 46;
+
+The above code is an example of C program. Here, we need to first declare variables with a datatype (int) before assigning them a value.
+However, in Python all we need to do is enter the below code:
+
+A = 23
+
+
+B = 46
+
+You can further simplify as below
+
+A,b = 23,46
+
+Writing in very few lines of code can improve overall performance of the program.
+In the next section, we will talk about variables with examples. Follow along!
+What are Variables?
+Computer has memory in it which all the values are temporarily stored. All the data that we see in our computers and smartphones use the same basic philosophy.
+Data changes constantly and we need to use a certain temporary entity that computer can understand to make things easier. Before the invention of variables in programming computer scientists used to waste a lot of data and that is the reason why computers used to occupy rooms in those days. Invention of variables certainly changed the way we looked at computers.
+Variables are data entities that can be used to store numbers, strings or characters that can be further manipulated or modified using Python.
+How to represent a variable?
+Variables are case sensitive and can cause problems if you do not follow these rules. Also, remember that you cannot start a variable name with a number. Python also consists of more than forty reserved keywords which cannot be used as any identifier. Some of the examples of reserved keywords are if, for, while etc,.
+Here is an example :
+
+first = 3
+
+
+// Here ‘first’ is the variable with a value

@@ -1,0 +1,139 @@
+{
+  "session_id": "BASHGOD-20250613-181533",
+  "duration_seconds": 300.003074,
+  "commands_executed": 20,
+  "techniques_practiced": [
+    "Git Archaeology",
+    "Advanced Searching",
+    "Performance Analysis",
+    "Process Substitution",
+    "Documentation Search",
+    "Codebase Analysis",
+    "Parallel Execution",
+    "Security Scanning",
+    "Pipe Chains",
+    "Stream Manipulation"
+  ],
+  "discoveries": [
+    {
+      "time": 6.4e-05,
+      "description": "Complex pipe chain: Find all TODO/FIXME comments with context",
+      "command": "find src -name '*.py' | xargs grep -l 'TODO\\|FIXME\\|XXX' | while read f; do echo \"=== $f ===\"; grep -n -C 2 'TODO\\|FIXME\\|XXX' \"$f\"; done | head -20",
+      "lines_output": 20
+    },
+    {
+      "time": 0.008081,
+      "description": "Pipe chain: Analyze largest Python files and sum their lines",
+      "command": "find src -name '*.py' -type f | xargs wc -l | sort -nr | head -20 | awk '{sum+=$1; print $0} END {print \"Total lines in top 20 files: \" sum}'",
+      "lines_output": 21
+    },
+    {
+      "time": 1.014674,
+      "description": "Process substitution: Compare files in auth vs mcp directories",
+      "command": "diff <(ls -la src/auth/ | awk '{print $9}' | sort) <(ls -la src/mcp/ | awk '{print $9}' | sort)",
+      "lines_output": 0
+    },
+    {
+      "time": 1.015602,
+      "description": "Process substitution: Find imports unique to auth module",
+      "command": "comm -23 <(grep -h '^import\\|^from' src/auth/*.py | sort -u) <(grep -h '^import\\|^from' src/mcp/*.py | sort -u) | head -10",
+      "lines_output": 0
+    },
+    {
+      "time": 2.016708,
+      "description": "Advanced search: Find files with most async operations",
+      "command": "grep -r -E '(async def|await|asyncio)' src --include='*.py' | grep -v test | cut -d: -f1 | uniq -c | sort -nr | head -10",
+      "lines_output": 10
+    },
+    {
+      "time": 2.025793,
+      "description": "Security search: Find potential sensitive data patterns",
+      "command": "find src -name '*.py' -exec grep -l 'password\\|secret\\|key\\|token' {} + | xargs -I {} sh -c 'echo \"=== {} ===\"; grep -n \"password\\|secret\\|key\\|token\" \"{}\" | grep -v \"^[[:space:]]*#\"' | head -30",
+      "lines_output": 30
+    },
+    {
+      "time": 3.038001,
+      "description": "Parallel execution: Count classes in multiple files simultaneously",
+      "command": "find src -name '*.py' -type f | head -10 | xargs -P 4 -I {} sh -c 'echo \"Analyzing {}\"; grep -c \"^class\" {} | xargs printf \"{}: %d classes\\n\"'",
+      "lines_output": 20
+    },
+    {
+      "time": 3.04632,
+      "description": "Parallel syntax validation of Python files",
+      "command": "find src -name '*.py' | head -5 | xargs -P 3 -I {} bash -c 'echo \"Checking {}\"; python -m py_compile {} 2>&1 || echo \"Syntax error in {}\"'",
+      "lines_output": 5
+    },
+    {
+      "time": 4.096575,
+      "description": "Stream manipulation: Process security framework with multiple filters",
+      "command": "tail -n 50 synthex_enterprise_security_framework.py | grep -E '(finding|threat|security)' | awk '{print NR \": \" $0}' | sed 's/finding/[FINDING]/g'",
+      "lines_output": 5
+    },
+    {
+      "time": 4.09844,
+      "description": "Multi-stream analysis of security module",
+      "command": "cat src/synthex/security.py | tee >(grep -c 'def' | xargs echo 'Functions:') >(grep -c 'class' | xargs echo 'Classes:') >(wc -l | xargs echo 'Total lines:') > /dev/null",
+      "lines_output": 0
+    },
+    {
+      "time": 5.100123,
+      "description": "Analyze directory sizes by file count",
+      "command": "find . -type d -name '__pycache__' -prune -o -type d -print | grep -E '^\\./[^/]+$' | while read dir; do printf '%-20s: %d files\\n' \"$dir\" $(find \"$dir\" -type f | wc -l); done | sort -k2 -nr",
+      "lines_output": 60
+    },
+    {
+      "time": 6.274387,
+      "description": "Generate code statistics table by file type",
+      "command": "{ echo 'Extension,Count,Lines'; find src -type f \\( -name '*.py' -o -name '*.rs' -o -name '*.js' -o -name '*.yaml' \\) | sed 's/.*\\.//' | sort | uniq -c | while read count ext; do lines=$(find src -name \"*.$ext\" -exec cat {} + | wc -l); echo \"$ext,$count,$lines\"; done; } | column -t -s,",
+      "lines_output": 3
+    },
+    {
+      "time": 7.287354,
+      "description": "Find large functions that might need refactoring",
+      "command": "for f in $(find src -name '*.py' | head -10); do echo \"=== $f ===\"; awk '/^def |^async def /{name=$0; count=0} {count++} /^def |^async def |^class |^$/{if(count>50 && name) print name \" - \" count \" lines\"; name=\"\"}' \"$f\"; done",
+      "lines_output": 10
+    },
+    {
+      "time": 7.296018,
+      "description": "Most common imports across the codebase",
+      "command": "find src -name '*.py' -exec head -20 {} \\; | grep -E '^import|^from' | sort | uniq -c | sort -nr | head -15",
+      "lines_output": 15
+    },
+    {
+      "time": 8.428519,
+      "description": "Scan for potential SQL injection vulnerabilities",
+      "command": "grep -r -n -E 'execute\\(.*%[s|d]|execute\\(.*\\+|execute\\(.*f[\"\\']' src --include='*.py' | grep -v test | head -10",
+      "lines_output": 0
+    },
+    {
+      "time": 8.429292,
+      "description": "Scan for hardcoded secrets",
+      "command": "grep -r -n -E '(api_key|password|secret)\\s*=\\s*[\"\\'][^\"\\']+[\"\\']' src --include='*.py' | grep -v -E '(os\\.getenv|os\\.environ|example|test)' | head -10",
+      "lines_output": 0
+    },
+    {
+      "time": 9.431244,
+      "description": "Survey all documentation files and their titles",
+      "command": "find . -name '*.md' -type f | grep -v node_modules | xargs -I {} sh -c 'echo \"=== {} ===\"; head -3 {}' | grep -B1 -E '^#' | head -20",
+      "lines_output": 20
+    },
+    {
+      "time": 9.799387,
+      "description": "Find all TODO items in documentation",
+      "command": "grep -r -n 'TODO\\|FIXME' . --include='*.md' | cut -d: -f1,3- | sort -u | head -15",
+      "lines_output": 15
+    },
+    {
+      "time": 11.369001,
+      "description": "Find most frequently modified files in recent commits",
+      "command": "git log --oneline -20 | awk '{print $1}' | xargs -I {} git diff-tree --no-commit-id --name-only -r {} | sort | uniq -c | sort -nr | head -15",
+      "lines_output": 15
+    },
+    {
+      "time": 11.387794,
+      "description": "Analyze commit contributions by author",
+      "command": "git log --format='%an' | sort | uniq -c | sort -nr | head -10",
+      "lines_output": 2
+    }
+  ]
+}

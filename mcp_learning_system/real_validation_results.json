@@ -1,0 +1,323 @@
+{
+  "timestamp": "2025-06-08T18:55:46.004908",
+  "total_duration": 4.0565440629725344,
+  "test_summary": {
+    "total_tests": 11,
+    "passed": 6,
+    "failed": 5,
+    "success_rate": 54.54545454545454
+  },
+  "category_results": {
+    "bash_god": {
+      "total": 2,
+      "passed": 1,
+      "details": [
+        {
+          "test_name": "bash_god_command_count",
+          "category": "command_validation",
+          "success": true,
+          "duration": 0.0007170680037233979,
+          "message": "BASH GOD server has 284 commands implemented",
+          "details": {
+            "actual_command_count": 284,
+            "unique_commands": 284,
+            "command_categories": {
+              "sys": 135,
+              "devops": 5,
+              "perf": 140,
+              "sec": 7
+            }
+          },
+          "timestamp": "2025-06-08 18:55:41.949097"
+        },
+        {
+          "test_name": "command_safety_validation",
+          "category": "security",
+          "success": false,
+          "duration": 0.0029136989905964583,
+          "message": "Safety validation failed: cannot import name 'BashGodCommandValidator' from 'bash_god_mcp_server' (/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/bash_god_mcp_server.py)",
+          "details": {
+            "error": "cannot import name 'BashGodCommandValidator' from 'bash_god_mcp_server' (/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/bash_god_mcp_server.py)"
+          },
+          "timestamp": "2025-06-08 18:55:41.952041"
+        }
+      ]
+    },
+    "mcp_servers": {
+      "total": 4,
+      "passed": 0,
+      "details": [
+        {
+          "test_name": "development_server_start",
+          "category": "mcp_servers",
+          "success": false,
+          "duration": 0.0,
+          "message": "Failed to start development server",
+          "details": {
+            "error": "Server failed to start"
+          },
+          "timestamp": "2025-06-08 18:55:43.955723"
+        },
+        {
+          "test_name": "devops_server_start",
+          "category": "mcp_servers",
+          "success": false,
+          "duration": 0.0,
+          "message": "Failed to start devops server",
+          "details": {
+            "error": "Server failed to start"
+          },
+          "timestamp": "2025-06-08 18:55:43.955837"
+        },
+        {
+          "test_name": "quality_server_start",
+          "category": "mcp_servers",
+          "success": false,
+          "duration": 0.0,
+          "message": "Failed to start quality server",
+          "details": {
+            "error": "Server failed to start"
+          },
+          "timestamp": "2025-06-08 18:55:43.955874"
+        },
+        {
+          "test_name": "bash_god_server_start",
+          "category": "mcp_servers",
+          "success": false,
+          "duration": 0.0,
+          "message": "Failed to start bash_god server",
+          "details": {
+            "error": "Server failed to start"
+          },
+          "timestamp": "2025-06-08 18:55:45.960248"
+        }
+      ]
+    },
+    "protocol": {
+      "total": 1,
+      "passed": 1,
+      "details": [
+        {
+          "test_name": "jsonrpc_compliance",
+          "category": "protocol",
+          "success": true,
+          "duration": 5.897000664845109e-05,
+          "message": "JSON-RPC 2.0 compliance validated",
+          "details": {
+            "valid_messages": 2,
+            "invalid_messages": 0,
+            "response_times": []
+          },
+          "timestamp": "2025-06-08 18:55:45.960431"
+        }
+      ]
+    },
+    "performance": {
+      "total": 2,
+      "passed": 2,
+      "details": [
+        {
+          "test_name": "command_execution_performance",
+          "category": "performance",
+          "success": true,
+          "duration": 0.04366866598138586,
+          "message": "Average execution time: 8.73ms",
+          "details": {
+            "average_time_ms": 8.73236819752492,
+            "max_time_ms": 20.431493991054595,
+            "min_time_ms": 0.9011120127979666,
+            "test_commands": 5
+          },
+          "timestamp": "2025-06-08 18:55:46.004160"
+        },
+        {
+          "test_name": "memory_usage_validation",
+          "category": "performance",
+          "success": true,
+          "duration": 0.0006384919979609549,
+          "message": "Memory increase: 0.38MB",
+          "details": {
+            "initial_memory_mb": 25.36328125,
+            "peak_memory_mb": 25.73828125,
+            "memory_increase_mb": 0.375
+          },
+          "timestamp": "2025-06-08 18:55:46.004808"
+        }
+      ]
+    },
+    "security": {
+      "total": 2,
+      "passed": 2,
+      "details": [
+        {
+          "test_name": "command_injection_prevention",
+          "category": "security",
+          "success": true,
+          "duration": 7.213006028905511e-06,
+          "message": "Blocked 6/6 injection attempts",
+          "details": {
+            "total_attempts": 6,
+            "blocked": 6,
+            "prevention_rate": 100.0
+          },
+          "timestamp": "2025-06-08 18:55:46.004884"
+        },
+        {
+          "test_name": "privilege_escalation_prevention",
+          "category": "security",
+          "success": true,
+          "duration": 4.2470055632293224e-06,
+          "message": "Blocked 5/5 escalation attempts",
+          "details": {
+            "total_attempts": 5,
+            "blocked": 5,
+            "prevention_rate": 100.0
+          },
+          "timestamp": "2025-06-08 18:55:46.004891"
+        }
+      ]
+    }
+  },
+  "all_results": [
+    {
+      "test_name": "bash_god_command_count",
+      "category": "command_validation",
+      "success": true,
+      "duration": 0.0007170680037233979,
+      "message": "BASH GOD server has 284 commands implemented",
+      "details": {
+        "actual_command_count": 284,
+        "unique_commands": 284,
+        "command_categories": {
+          "sys": 135,
+          "devops": 5,
+          "perf": 140,
+          "sec": 7
+        }
+      },
+      "timestamp": "2025-06-08 18:55:41.949097"
+    },
+    {
+      "test_name": "command_safety_validation",
+      "category": "security",
+      "success": false,
+      "duration": 0.0029136989905964583,
+      "message": "Safety validation failed: cannot import name 'BashGodCommandValidator' from 'bash_god_mcp_server' (/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/bash_god_mcp_server.py)",
+      "details": {
+        "error": "cannot import name 'BashGodCommandValidator' from 'bash_god_mcp_server' (/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/bash_god_mcp_server.py)"
+      },
+      "timestamp": "2025-06-08 18:55:41.952041"
+    },
+    {
+      "test_name": "development_server_start",
+      "category": "mcp_servers",
+      "success": false,
+      "duration": 0.0,
+      "message": "Failed to start development server",
+      "details": {
+        "error": "Server failed to start"
+      },
+      "timestamp": "2025-06-08 18:55:43.955723"
+    },
+    {
+      "test_name": "devops_server_start",
+      "category": "mcp_servers",
+      "success": false,
+      "duration": 0.0,
+      "message": "Failed to start devops server",
+      "details": {
+        "error": "Server failed to start"
+      },
+      "timestamp": "2025-06-08 18:55:43.955837"
+    },
+    {
+      "test_name": "quality_server_start",
+      "category": "mcp_servers",
+      "success": false,
+      "duration": 0.0,
+      "message": "Failed to start quality server",
+      "details": {
+        "error": "Server failed to start"
+      },
+      "timestamp": "2025-06-08 18:55:43.955874"
+    },
+    {
+      "test_name": "bash_god_server_start",
+      "category": "mcp_servers",
+      "success": false,
+      "duration": 0.0,
+      "message": "Failed to start bash_god server",
+      "details": {
+        "error": "Server failed to start"
+      },
+      "timestamp": "2025-06-08 18:55:45.960248"
+    },
+    {
+      "test_name": "jsonrpc_compliance",
+      "category": "protocol",
+      "success": true,
+      "duration": 5.897000664845109e-05,
+      "message": "JSON-RPC 2.0 compliance validated",
+      "details": {
+        "valid_messages": 2,
+        "invalid_messages": 0,
+        "response_times": []
+      },
+      "timestamp": "2025-06-08 18:55:45.960431"
+    },
+    {
+      "test_name": "command_execution_performance",
+      "category": "performance",
+      "success": true,
+      "duration": 0.04366866598138586,
+      "message": "Average execution time: 8.73ms",
+      "details": {
+        "average_time_ms": 8.73236819752492,
+        "max_time_ms": 20.431493991054595,
+        "min_time_ms": 0.9011120127979666,
+        "test_commands": 5
+      },
+      "timestamp": "2025-06-08 18:55:46.004160"
+    },
+    {
+      "test_name": "memory_usage_validation",
+      "category": "performance",
+      "success": true,
+      "duration": 0.0006384919979609549,
+      "message": "Memory increase: 0.38MB",
+      "details": {
+        "initial_memory_mb": 25.36328125,
+        "peak_memory_mb": 25.73828125,
+        "memory_increase_mb": 0.375
+      },
+      "timestamp": "2025-06-08 18:55:46.004808"
+    },
+    {
+      "test_name": "command_injection_prevention",
+      "category": "security",
+      "success": true,
+      "duration": 7.213006028905511e-06,
+      "message": "Blocked 6/6 injection attempts",
+      "details": {
+        "total_attempts": 6,
+        "blocked": 6,
+        "prevention_rate": 100.0
+      },
+      "timestamp": "2025-06-08 18:55:46.004884"
+    },
+    {
+      "test_name": "privilege_escalation_prevention",
+      "category": "security",
+      "success": true,
+      "duration": 4.2470055632293224e-06,
+      "message": "Blocked 5/5 escalation attempts",
+      "details": {
+        "total_attempts": 5,
+        "blocked": 5,
+        "prevention_rate": 100.0
+      },
+      "timestamp": "2025-06-08 18:55:46.004891"
+    }
+  ],
+  "production_ready": false
+}

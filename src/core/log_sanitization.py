@@ -5,7 +5,8 @@ This module provides comprehensive input sanitization to prevent log poisoning a
 including CRLF injection, log forging, and other log-based attacks.
 
 Security Features:
-- CRLF injection prevention (\\r\\n sequences)
+- CRLF injection prevention (\\r\
+ sequences)
 - Log forging prevention (fake log entries)
 - Control character filtering
 - Size limits for log entries
@@ -18,6 +19,17 @@ import unicodedata
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 import logging
+
+__all__ = [
+    "SanitizationLevel",
+    "LogSanitizerConfig",
+    "LogSanitizer",
+    "LogInjectionFilter",
+    "sanitize_for_logging",
+    "sanitize_dict_for_logging",
+    "create_safe_log_record"
+]
+
 
 
 class SanitizationLevel(Enum):
@@ -60,7 +72,8 @@ class LogSanitizer:
     Comprehensive log sanitizer to prevent injection attacks.
     
     Prevents:
-    - CRLF injection (\\r\\n sequences that can forge log entries)
+    - CRLF injection (\\r\
+ sequences that can forge log entries)
     - Control character injection
     - Log forging attempts
     - Oversized log entries

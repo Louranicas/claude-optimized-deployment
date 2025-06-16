@@ -1,0 +1,458 @@
+name: Security Validation Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily security scans at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  RUST_VERSION: 'stable'
+
+jobs:
+  security-static-analysis:
+    name: Static Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install security scanning tools
+      run: |
+        pip install bandit safety pip-audit semgrep
+        
+        # Install additional tools
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+        
+        # Install CodeQL
+        wget -q https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz
+        tar -xzf codeql-bundle-linux64.tar.gz
+        echo "$GITHUB_WORKSPACE/codeql" >> $GITHUB_PATH
+    
+    - name: Run Bandit Security Scan
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        bandit -r . -f txt -o bandit-report.txt || true
+      continue-on-error: true
+    
+    - name: Run Semgrep Security Scan
+      run: |
+        semgrep --config=auto --json --output=semgrep-report.json . || true
+      continue-on-error: true
+    
+    - name: Run Safety Dependency Scan
+      run: |
+        safety check --json --output safety-report.json || true
+      continue-on-error: true
+    
+    - name: Run pip-audit
+      run: |
+        pip-audit --format=json --output=pip-audit-report.json || true
+      continue-on-error: true
+    
+    - name: Upload Static Analysis Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: static-analysis-reports
+        path: |
+          bandit-report.*
+          semgrep-report.json
+          safety-report.json
+          pip-audit-report.json
+
+  dependency-vulnerability-scan:
+    name: Dependency Vulnerability Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        components: rustfmt, clippy
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        if [ -f package.json ]; then npm install; fi
+        if [ -f Cargo.toml ]; then cargo build; fi
+    
+    - name: Python Security Audit
+      run: |
+        pip-audit --format=json --output=python-vuln-report.json
+        safety check --json --output=python-safety-report.json
+      continue-on-error: true
+    
+    - name: Node.js Security Audit
+      if: hashFiles('package.json') != ''
+      run: |
+        npm audit --audit-level=moderate --json > nodejs-audit-report.json || true
+        npx audit-ci --config ./audit-ci.json || true
+      continue-on-error: true
+    
+    - name: Rust Security Audit
+      if: hashFiles('Cargo.toml') != ''
+      run: |
+        cargo install cargo-audit
+        cargo audit --json --output=rust-audit-report.json || true
+      continue-on-error: true
+    
+    - name: License Compliance Check
+      run: |
+        pip install pip-licenses
+        pip-licenses --format=json --output-file=license-report.json
+      continue-on-error: true
+    
+    - name: Upload Dependency Scan Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-scan-reports
+        path: |
+          *-vuln-report.json
+          *-safety-report.json
+          *-audit-report.json
+          license-report.json
+
+  container-security-scan:
+    name: Container Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Build Docker Images
+      run: |
+        if [ -f Dockerfile ]; then
+          docker build -t security-test:latest .
+        fi
+        if [ -f Dockerfile.secure ]; then
+          docker build -f Dockerfile.secure -t security-test:secure .
+        fi
+    
+    - name: Run Trivy Container Scan
+      run: |
+        # Scan filesystem
+        trivy fs --format json --output trivy-fs-report.json .
+        
+        # Scan Docker images if they exist
+        if docker images security-test:latest > /dev/null 2>&1; then
+          trivy image --format json --output trivy-image-report.json security-test:latest
+        fi
+        
+        if docker images security-test:secure > /dev/null 2>&1; then
+          trivy image --format json --output trivy-secure-image-report.json security-test:secure
+        fi
+      continue-on-error: true
+    
+    - name: Docker Security Benchmark
+      run: |
+        # Install docker-bench-security
+        git clone https://github.com/docker/docker-bench-security.git
+        cd docker-bench-security
+        sudo sh docker-bench-security.sh -l docker-bench-results.log
+        cp docker-bench-results.log ../
+      continue-on-error: true
+    
+    - name: Kubernetes Security Check
+      if: hashFiles('k8s/*.yaml') != ''
+      run: |
+        # Install kube-score
+        wget -O kube-score https://github.com/zegl/kube-score/releases/latest/download/kube-score_linux_amd64
+        chmod +x kube-score
+        
+        # Scan Kubernetes manifests
+        ./kube-score score k8s/*.yaml --output-format json > k8s-security-report.json || true
+      continue-on-error: true
+    
+    - name: Upload Container Security Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: container-security-reports
+        path: |
+          trivy-*-report.json
+          docker-bench-results.log
+          k8s-security-report.json
+
+  secrets-detection:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Run TruffleHog Secrets Scan
+      run: |
+        # Install TruffleHog
+        curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+        
+        # Scan for secrets
+        trufflehog git file://. --json --output=trufflehog-report.json || true
+      continue-on-error: true
+    
+    - name: Run GitLeaks Scan
+      uses: zricethezav/gitleaks-action@v2
+      with:
+        config-path: .gitleaks.toml
+        report-format: 'json'
+        report-path: 'gitleaks-report.json'
+        fail: false
+    
+    - name: Upload Secrets Detection Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: secrets-detection-reports
+        path: |
+          trufflehog-report.json
+          gitleaks-report.json
+
+  security-policy-enforcement:
+    name: Security Policy Enforcement
+    runs-on: ubuntu-latest
+    needs: [security-static-analysis, dependency-vulnerability-scan, container-security-scan, secrets-detection]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install policy enforcement tools
+      run: |
+        pip install pyyaml jq
+    
+    - name: Run Security Policy Enforcement
+      run: |
+        python3 << 'EOF'
+        import json
+        import yaml
+        import sys
+        import os
+        from pathlib import Path
+        
+        # Security policy configuration
+        SECURITY_POLICY = {
+            "max_critical_vulnerabilities": 0,
+            "max_high_vulnerabilities": 5,
+            "max_medium_vulnerabilities": 20,
+            "allowed_licenses": [
+                "MIT", "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause", 
+                "ISC", "Python Software Foundation", "MPL-2.0"
+            ],
+            "blocked_dependencies": [],
+            "secret_scan_must_pass": True
+        }
+        
+        def load_json_report(file_path):
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    return json.load(f)
+            return {}
+        
+        def check_vulnerability_limits(reports_dir):
+            violations = []
+            
+            # Check various vulnerability report formats
+            report_files = [
+                "static-analysis-reports/bandit-report.json",
+                "dependency-scan-reports/python-vuln-report.json",
+                "container-security-reports/trivy-fs-report.json"
+            ]
+            
+            total_critical = 0
+            total_high = 0
+            total_medium = 0
+            
+            for report_file in report_files:
+                report = load_json_report(report_file)
+                
+                # Parse different report formats
+                if "results" in report:  # Bandit format
+                    for result in report["results"]:
+                        severity = result.get("issue_severity", "").upper()
+                        if severity == "HIGH":
+                            total_high += 1
+                        elif severity == "MEDIUM":
+                            total_medium += 1
+                
+                # Add parsing for other report formats...
+            
+            # Check against policy
+            if total_critical > SECURITY_POLICY["max_critical_vulnerabilities"]:
+                violations.append(f"Critical vulnerabilities: {total_critical} > {SECURITY_POLICY['max_critical_vulnerabilities']}")
+            
+            if total_high > SECURITY_POLICY["max_high_vulnerabilities"]:
+                violations.append(f"High vulnerabilities: {total_high} > {SECURITY_POLICY['max_high_vulnerabilities']}")
+            
+            if total_medium > SECURITY_POLICY["max_medium_vulnerabilities"]:
+                violations.append(f"Medium vulnerabilities: {total_medium} > {SECURITY_POLICY['max_medium_vulnerabilities']}")
+            
+            return violations
+        
+        def check_secrets_detection():
+            violations = []
+            
+            # Check TruffleHog results
+            trufflehog_report = load_json_report("secrets-detection-reports/trufflehog-report.json")
+            if trufflehog_report and len(trufflehog_report) > 0:
+                violations.append(f"Secrets detected by TruffleHog: {len(trufflehog_report)} findings")
+            
+            # Check GitLeaks results
+            gitleaks_report = load_json_report("secrets-detection-reports/gitleaks-report.json")
+            if gitleaks_report and len(gitleaks_report) > 0:
+                violations.append(f"Secrets detected by GitLeaks: {len(gitleaks_report)} findings")
+            
+            return violations
+        
+        # Run policy checks
+        print("Running security policy enforcement...")
+        
+        all_violations = []
+        all_violations.extend(check_vulnerability_limits("."))
+        all_violations.extend(check_secrets_detection())
+        
+        # Generate policy report
+        policy_report = {
+            "policy_version": "1.0",
+            "enforcement_timestamp": "2025-01-08T12:00:00Z",
+            "violations": all_violations,
+            "policy_compliant": len(all_violations) == 0
+        }
+        
+        with open("security-policy-report.json", "w") as f:
+            json.dump(policy_report, f, indent=2)
+        
+        print(f"Policy enforcement complete. Violations: {len(all_violations)}")
+        
+        if all_violations:
+            print("SECURITY POLICY VIOLATIONS:")
+            for violation in all_violations:
+                print(f"  - {violation}")
+            sys.exit(1)
+        else:
+            print("All security policies passed!")
+        
+        EOF
+    
+    - name: Upload Policy Enforcement Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-policy-reports
+        path: security-policy-report.json
+
+  security-report-generation:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [security-policy-enforcement]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Generate Comprehensive Security Report
+      run: |
+        python3 tests/security/security_testing_framework.py
+      continue-on-error: true
+    
+    - name: Upload Final Security Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: comprehensive-security-report
+        path: |
+          security_reports/
+          security-policy-report.json
+    
+    - name: Comment on PR (if applicable)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let comment = '## 🔒 Security Validation Results\n\n';
+          
+          try {
+            const policyReport = JSON.parse(fs.readFileSync('security-policy-report.json', 'utf8'));
+            
+            if (policyReport.policy_compliant) {
+              comment += '✅ All security policies passed!\n\n';
+            } else {
+              comment += '❌ Security policy violations detected:\n\n';
+              policyReport.violations.forEach(violation => {
+                comment += `- ${violation}\n`;
+              });
+              comment += '\n';
+            }
+          } catch (error) {
+            comment += '⚠️ Unable to parse security policy report\n\n';
+          }
+          
+          comment += '📊 Detailed security reports are available in the workflow artifacts.\n';
+          comment += '🔍 Review all security findings before merging.\n';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  security-notification:
+    name: Security Notification
+    runs-on: ubuntu-latest
+    needs: [security-report-generation]
+    if: failure()
+    
+    steps:
+    - name: Notify Security Team
+      run: |
+        echo "Security validation failed. Implement notification mechanism here."
+        # This could integrate with Slack, email, or other notification systems
+        # Example: Send webhook to security team's Slack channel
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"Security validation failed for ${{ github.repository }}"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}

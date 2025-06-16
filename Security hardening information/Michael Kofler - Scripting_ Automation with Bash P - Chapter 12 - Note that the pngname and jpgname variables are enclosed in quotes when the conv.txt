@@ -1,0 +1,60 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 12 - Note that the pngname and jpgname variables are enclosed in quotes when the convert command is called. These quotation marks are the only way to make a script work for filenames with spaces.
+Security Relevance Score: 2
+Word Count: 634
+Extracted: 2025-06-13 23:41:06
+
+---
+
+Note that the pngname and jpgname variables are enclosed in quotes when the convert command is called. These quotation marks are the only way to make a script work for filenames with spaces.
+
+It’s So Much Easier to Process Strings in Python!
+Once you get used to the strange Bash mechanisms for editing strings, you can use it to solve a surprising number of problems. Nevertheless, for scripts where you need to manipulate many strings, you’re better off using Python. I don’t know of any language that provides such comprehensive yet easy-to-use functions for handling strings.
+
+3.10.7    Heredocs and Herestrings
+Here documents (heredocs, for short) are blocks of text embedded in the script that end with the character sequence specified by << (often EOF for end of file). The following example illustrates the syntax very clearly. (The mail command is based on the assumption that a mail server is running on the machine.)
+name="Michael"amount=1200to="spamvictim@spamforever.com"mail -s "Invest safely" $to << EOFHello $name, enclosed is a great investment offerwithout any risk. If you transfer $amount US$ to this accountyou’ll get ...EOF 
+You can easily execute multiline text output via cat, as in the following example:
+cat << EOFThis isa longhelp textEOF 
+Internally, heredocs are a special type of input redirection. mail or cat expects the mail text from standard input. Instead, the following text lines are used, with the usual variable substitution ($name, $amount) taking place in the text.
+Several syntax variants for heredocs exist:
+
+
+Leading tab characters are eliminated from the heredoc text in the form <<- EOF, which makes it possible to indent the text. Unfortunately, this text conversion does not work for spaces.
+
+
+<< "EOF" prevents variable substitution.
+
+
+<<< $myvar passes the contents of the variable as standard input. This process is known as herestring.
+
+
+3.10.8    The Backslash
+It feels like almost every special character in Bash has a special meaning. If you want to use the character as such in a string, you must put the string in simple quotes or precede it with a backslash as a quoting character:
+echo \$myvar  $myvar 
+You can also address files with spaces in their names with a backslash. Even easier, however, is the use of quotation marks, as in the following example:
+touch filename\ with\ blanks.txtls "filename with blanks.txt"rm 'filename with blanks.txt' 
+Unlike numerous other programming languages, Bash does not create a line break from \n. Instead, the characters \ and n are output or stored separately. Only echo -e analyzes this character sequence as expected.
+echo -e "Line 1\nLine 2" 
+Finally, you can use the backslash to spread long commands across multiple lines:
+command --with --many --options and even \  more parameters 
+
+
+
+
+
+
+
+
+
+3.11    Branches
+As in almost any programming language, you can formulate branches using if in Bash. The syntax is as follows:
+if condition1; then    command1a    command1b[ elif condition2; then    commands2 ][ else    commands3 ]fi 
+Consider the following concrete example:
+if [ $# -ne 2 ]; then    echo "Two parameters must be passed to the command!"    exit 2  # error code for wrong parameterselse    echo "Parameter 1: $1, Parameter 2: $2"fi 
+I’ll discuss the strange syntax for the actual condition in a moment. The indentations in the listing are optional but improve readability.
+What’s confusing about this syntax (and often forgotten) are the semicolons after the conditions. You can save the semicolons if you sacrifice a separate line for then. But that doesn’t make the code any nicer, as shown in the following example:
+if conditionthen    command1    command2fi 
+3.11.1    if Short Notation with && or ||
+By placing semicolons correctly, you can formulate if constructs on a single line. If only a single command is to be executed in the context of an if construct, the conditional execution of commands with && or || is more elegant and saves space (see also

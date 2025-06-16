@@ -1,0 +1,163 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 6 - Search (Endpoint Domain):
+Security Relevance Score: 23
+Word Count: 2665
+Extracted: 2025-06-13 23:40:44
+
+---
+
+Search (Endpoint Domain):
+
+Scenario: A specific security incident that was reported on an endpoint requires an investigation by JIT Inc.
+How It Helps: JIT Inc. can perform in-depth investigations into particular endpoint-related issues thanks to the comprehensive search capabilities provided by the Search dashboard within the endpoint domain. This is necessary for forensic examination and comprehending the extent of an occurrence.
+
+Implementation and Analysis
+
+Continuous Monitoring and Alerting: To facilitate prompt detection and notification of possible threats, JIT Inc. uses these dashboards for continuous monitoring of endpoint security and health.
+Forensics and incident investigation: Using these dashboards, JIT Inc. can conduct in-depth analysis in the case of a security incident, assisting with efficient forensic investigation and incident resolution.
+Endpoint Security Compliance and Management: By using these dashboards for routine monitoring and analysis, JIT Inc. can make sure that its endpoints are safe and in compliance with both internal and external regulations.
+
+The endpoint domain dashboards in Splunk ES are extremely helpful to JIT Inc. in ensuring strong endpoint security. Through the use of these technologies, JIT Inc. is able to protect its network from a variety of cyber threats by efficiently managing the health of their endpoints, keeping an eye out for threats, and responding quickly to endpoint-related security problems.
+Network Domain
+In this field, data regarding network traffic is gathered and analyzed from hardware like firewalls, routers, network-based intrusion detection systems, network vulnerability scanners, proxy servers, and hosts. The use of firewalls, intrusion detection and prevention systems (IDPS), secure network topologies, and encryption protocols are examples of network security methods. Organizations can find anomalies, spot potential risks, and look into security issues by monitoring network traffic.
+Protecting an organization’s network infrastructure and linked devices from attacks and vulnerabilities is the core goal of network domain security. Network security experts must act fast and adhere to the proper response processes when intrusion detection systems (IDS) discover suspicious activity.
+Key components of ES in the access domain include:
+
+Suspicious activity spotted by intrusion detection systems: Intrusion detection systems that pick up on questionable activities: If your IDS notices any suspicious or malicious activity, look into the matter right away. This can entail studying traffic patterns, looking at logs, or linking occurrences. Once you’ve established the threat’s nature, take the necessary precautions to reduce it, such as blocking the originating IP address, modifying firewall settings, or isolating the impacted systems.
+Vulnerabilities: Check your network frequently for vulnerabilities and make sure your systems and software are patched with the most recent updates. The process of identifying, evaluating, prioritizing, and remediating vulnerabilities ought to be ongoing. Implement a reliable patch management procedure to guarantee that vulnerabilities are fixed quickly, reducing the risk of exploitation.
+Unusual ports being opened: Keep an eye out for unauthorized or unexpected port openings on your network devices since they may indicate a compromised system or an intrusion attempt. Firewalls should be set up to block unused ports and limit incoming and outgoing traffic to the bare minimum required for your company’s activities. To maintain security, evaluate and update firewall rules frequently.
+Unusual DNS activity Keep an eye out for any odd behavior in the DNS traffic, such as a high volume of requests, unexpected domain lookups, or connections to known malicious sites. Put DNS security mechanisms in place, such as DNS filtering, DNSSEC, or DNS sinkholes, to stop attackers from abusing DNS. Perform an investigation into any odd DNS activity to see if it points to a more serious security problem, such as data exfiltration or command and control communication, or malware infection.
+Port scanning: Attackers employ port scanning to find open ports and possibly risky services on network devices. To identify and stop attempts at port scanning, implement network intrusion detection and prevention systems (IDS/IPS). Utilize network segmentation to further limit the reach of potential assaults and impose access restrictions on delicate systems.
+
+In conclusion, a proactive and comprehensive strategy that incorporates ongoing monitoring, threat detection, vulnerability management, and incident response is needed for network domain security. Organizations may efficiently detect and respond to suspicious activity by having strong security controls and procedures, reducing the likelihood of security incidents and breaches.
+Network Domain Areas
+This section will outline the use of dashboards like Network Traffic Tracking, Network Intrusion Tracking, Vulnerability Tracking, Web Traffic Tracking, Network Changes Tracking, and the Port and Protocol Tracking. These dashboards facilitate in-depth network monitoring, intrusion detection, vulnerability assessment, and tracking changes in network traffic and protocols to maintain robust network security.
+Network Traffic
+The Traffic Center dashboard offers information on the general patterns of network traffic, assisting in the detection of trends and potential security problems. It is possible to do more specific, ad hoc studies of network data using the Traffic Search dashboard. Both dashboards provide several options to help you narrow down the information shown and locate certain incidents or problems.
+
+
+
+Figure 8.11: Traffic Center Dashboard
+Traffic Center Dashboard:
+
+Key Indicators: Provides an overview of relevant metrics for the past 48 hours to quickly assess the network traffic situation.
+Traffic Over Time by Action: Shows network traffic based on firewall rule actions, with drilldowns leading to the Traffic Search dashboard for more detailed investigations.
+Traffic Over Time By Protocol: Displays the number of events per day for a specified protocol, with drilldowns leading to the Traffic Search dashboard for more detailed investigations.
+Top Sources: Highlights the top sources of total traffic volume, with a sparkline representing peak event matches. Drilldowns open the Traffic Search dashboard for further investigation.
+Scanning Activity (Many Systems): Displays network activity from port or vulnerability scanners, helping to identify unauthorized instances of these scanners. Drilldowns lead to the Traffic Search dashboard for further investigation.
+
+Traffic Search Dashboard:
+Drilldown searches from the Traffic Center dashboard panels typically end up on the Traffic Search dashboard, which is made for ad-hoc network data searching.
+Security teams may monitor network traffic patterns and immediately spot potential security vulnerabilities by using these dashboards and their corresponding filters, enabling a more effective response to attacks and incidents.
+Network Intrusion
+The dashboard for the intrusion center gives a thorough overview of network intrusion events gathered from intrusion detection and prevention systems (IPS) devices. The dashboard helps with IDS activity analysis and reporting, allowing you to see trends in the frequency and intensity of IDS occurrences.
+
+
+
+Figure 8.12: Intrusion Center Dashboard
+To refine the displayed events, you can use the following filters:
+
+IDS Type: Filter events based on a specific type of IDS.
+IDS Category: Filter events matching vendor-defined categories.
+Severity: Filter events based on their severity.
+Business Unit: Filter events based on a group or department classification for the identity.
+Category: Filter events based on the categories to which the host belongs.
+Time Range: Select a time range for the displayed events.
+
+The dashboard contains the following panels:
+
+Key Indicators: Displays summary information and metrics relevant to the dashboard sources over the past 48 hours.
+Attacks Over Time By Severity: Shows the top attacks over time, categorized by severity. Drilling down opens the Intrusion Search dashboard, searching on the selected severity and time range.
+Top Attacks: Displays the top attacks by count and signature. Drilling down opens the Intrusion Search dashboard, searching on the selected signature.
+Scanning Activity (Many Attacks): Shows source IPs with a pattern of attacks. Drilling down opens the Intrusion Search dashboard, searching on the selected source IP and time range.
+New Attacks - Last 30 Days: Displays attacks identified for the first time. New attack vectors may indicate a change in the network or the presence of a new threat, such as a malware infection. Drilling down opens the Intrusion Search dashboard, searching on the selected signature and time range.
+
+Based on the parameters specified by the search filters, the Intrusion Search dashboard assists in searching IDS-related events, such as assaults or reconnaissance-related activity. The major location for drilldown searches utilized in the Intrusion Center dashboard panels is this dashboard, which is used for ad-hoc network data searching. Unless the dashboard is opened in response to a drilldown action or you alter a filter, choose a time range, and click Submit, no results will be shown.
+Vulnerability
+The dashboard for the Vulnerability Center offers a thorough overview of vulnerability occurrences gathered from device data. It aids with the analysis and reporting of vulnerability data, enabling the detection and mitigation of potential security issues.
+
+
+
+Figure 8.13: Vulnerability Center Dashboard
+To refine the displayed events, you can use the following filters:
+
+Severity: Filter events based on their severity.
+Business Unit: Filter events based on a group or department classification for the identity.
+Category: Filter events based on the categories to which the host belongs.
+Time Range: Select a time range for the displayed events.
+
+The dashboard contains the following panels:
+
+Key Indicators: Displays summary information and metrics relevant to the dashboard sources over the past 60 days.
+Top Vulnerabilities: Shows the most common issues reported by vulnerability scanners, aggregated by host. Drilling down opens the Vulnerability Search dashboard, searching on the selected signature and time range.
+Most Vulnerable Hosts: Displays the hosts with the highest number of reported issues. Drilling down opens the Vulnerability Search dashboard, searching on the selected severity, host, and time range.
+Vulnerabilities by Severity: Shows issues by severity assigned by the vulnerability scanner. Drilling down opens the Vulnerability Search dashboard, searching on the selected severity and time range.
+New Vulnerabilities: Displays the most recent new vulnerabilities detected and the date they were first observed. Drilling down opens the Vulnerability Search dashboard, searching on the selected signature and time range.
+
+The status and activity of vulnerability detection products installed in your environment are tracked by the Vulnerability Operations dashboard. It enables you to keep track of the general health of your scanning systems, spot persistent problems, and locate systems that are no longer subject to vulnerability scanning.
+Based on the criteria specified by the search filters, the Vulnerability Search dashboard shows a list of all vulnerability-related occurrences. The drilldown searches used in the Vulnerability Center dashboard panels use it as the primary location for ad hoc searches of vulnerability data. Unless the dashboard is opened in response to a drilldown action or you alter a filter, choose a time range, and click Submit, no results will be shown.
+Web Traffic
+By reporting on online traffic acquired by Splunk via proxy servers, the online Center dashboard is made to profile web traffic occurrences in your deployment. Debugging potential problems like excessive bandwidth utilization or proxies that are no longer sending content to proxy clients, can be helpful. The Web Center also assists in profiling the kind of content that clients are requesting as well as each client’s bandwidth usage.
+
+
+
+Figure 8.14: Web Center Dashboard
+Filters available for the Web Center dashboard include:
+
+Business Unit: Filter events based on a group or department classification for the identity.
+Category: Filter events based on the categories to which the host belongs.
+Time Range: Select a time range for the displayed events.
+
+Dashboard panels in the Web Center dashboard are as follows:
+
+Key Indicators: Displays summary information and metrics relevant to the dashboard sources over the past 48 hours.
+Events Over Time by Method: Shows the total number of proxy events over time, aggregated by Method (POST, GET, CONNECT, and so on).
+Events Over Time by Status: Shows the total number of proxy events, aggregated by Status (HTTP status of the response).
+Top Sources: Identifies sources associated with the highest volume of network traffic, which is useful for detecting sources using excessive network traffic or frequently requested destinations generating significant network traffic.
+Top Destinations: Identifies destinations associated with the highest volume of network traffic, which is useful for detecting sources using excessive network traffic or frequently requested destinations generating significant network traffic.
+
+Based on the criteria specified by the search filters, the Web Search dashboard aids in the search for web events. In addition to being the main location for drilldown searches used in the online Search dashboard panels, it is utilized for ad-hoc online data searching. Unless the dashboard is opened in response to a drilldown action or you alter a filter, choose a time range, and click Submit, no results are shown.
+Network Changes
+You can keep track of configuration changes made to firewalls and other network devices in your environment using the Network Changes dashboard. Due to recent configuration changes, firewalls or other devices may go offline, making this dashboard helpful for debugging device issues.
+
+
+
+
+Figure 8.15: Network Changes Dashboard
+Filters available for the Network Changes dashboard include:
+
+Business Unit: Filter events based on a group or department classification for the identity.
+Category: Filter events based on the categories to which the host belongs.
+Time Range: Select a time range for the displayed events.
+
+Dashboard panels in the Network Changes dashboard are as follows:
+
+Network Changes by Action: This panel shows all changes to devices by the type of change, or whether a device was added, deleted, modified, or changed. The drilldown opens the “New Search” dashboard and searches on the selected action and time range.
+Network Changes by Device: This panel shows all devices that have been changed as well as the number of changes, sorted by the devices with the highest number of changes. The drilldown opens the “New Search” dashboard and searches on the selected device and time range.
+Recent Network Changes: This panel shows a table of the most recent changes to network devices in the last day.
+
+Using this dashboard, you can monitor and analyze changes in your network devices to help identify and troubleshoot issues caused by configuration changes.
+The Port and Protocol Tracking
+Based on the restrictions established in the Enterprise Security, the Port and Protocol Tracker dashboard monitors port and protocol activity. This dashboard is helpful for monitoring, recognizing devices that don’t adhere to business regulations, and spotting traffic that shouldn’t be there.
+
+
+
+Figure 8.16: Port and Protocol Tracker Dashboard
+Filters available for the Port and Protocol Tracker dashboard include:
+
+Business Unit: Filter events based on a group or department classification for the identity.
+Category: Filter events based on the categories to which the host belongs.
+
+Dashboard panels in the Port and Protocol Tracker dashboard are as follows:
+
+Port/Protocol Profiler: Displays the volume of network transport and port activity over time to evaluate if the port activity is trending upwards or downwards. Sudden increases in unapproved port activity may indicate a change in the networked devices, such as an infection. The drilldown opens the New Search dashboard and searches on the selected transport destination port and time range.
+New Port Activity - Last 7 Days: Displays a table of transport and port traffic communication over time. The drilldown opens the Traffic Search dashboard and searches on the selected transport and time range.
+Prohibited Or Insecure Traffic Over Time - Last 24 Hours: Displays the volume of prohibited network port activity over time and helps determine if the unapproved port activity is trending upwards or downwards. The drilldown opens the New Search dashboard and searches on the selected transport destination port and time range.
+Prohibited Traffic Details - Last 24 Hours: Displays a table of the number of prohibited network traffic events. The drilldown opens the New Search dashboard and searches on the selected source IP, destination IP, transport, port, and time range.
+
+Using this dashboard, you can monitor port and protocol activities, identify non-compliant devices, and detect prohibited traffic to maintain a secure network environment.
+Hands-On Network Domain Investigation with Splunk ES at JIT Inc.
+Overview
+Splunk Enterprise Security (ES) is used by JIT Inc., a forward-thinking business that specializes in technological solutions, to handle network security completely. Network invasions and vulnerabilities provide serious hazards in today’s digital environment. Network Traffic Tracking, Network Intrusion Tracking, Vulnerability Tracking, Web Traffic Tracking, Network Changes Tracking, and Port and Protocol Tracking are some of the Splunk ES network domain dashboards that JIT Inc. uses to address these issues. Every dashboard provides distinct perspectives on various facets of network security.
+Scenario Setup

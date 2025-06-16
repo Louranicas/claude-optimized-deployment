@@ -1,0 +1,157 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 08 - The script in Listing 8-5 will take the following steps: check whether the running user can read /etc/passwd, and if so, read its contents; extract the default home directory path of each user account; check whether the current user can read each home directory; and print the results.
+Security Relevance Score: 8
+Word Count: 1660
+Extracted: 2025-06-13 23:40:57
+
+---
+
+The script in Listing 8-5 will take the following steps: check whether the running user can read /etc/passwd, and if so, read its contents; extract the default home directory path of each user account; check whether the current user can read each home directory; and print the results.
+
+home_dir _access_check.sh
+#!/bin/bash
+
+if [[! -r "/etc/passwd"]]; then
+  echo "/etc/passwd must exist and be readable to be able to continue."
+  exit 1
+fi
+
+❶ while read -r line; do
+❷ account=$(echo "${line}" | awk -F':' '{print $1}')
+❸ home_dir=$(echo "${line}" | awk -F':' '{print $6}')
+
+  # Target only home directories under /home.
+❹ if echo "${home_dir}" | grep -q "^/home"; then
+  ❺ if [[-r "${home_dir}"]]; then
+      echo "Home directory ${home_dir} of ${account} is accessible!"
+    else
+      echo "Home directory ${home_dir} of ${account} is NOT accessible!"
+    fi
+  fi
+done < <(cat "/etc/passwd")
+
+Listing 8-5: Attempting to access users’ home directories
+In a while loop, we read the /etc/passwd file line by line ❶. At ❷ and ❸, we assign the account and home_dir variables to the first and sixth fields of each line, respectively. We then check whether the home directory starts with the string /home by using the caret (^) character ❹ and the grep -q (quiet) option so that the output of the command won’t be printed to the standard output stream. At ❺, if our previous check succeeded, we check whether the home directory is readable with -r and print the result to the screen.
+
+
+Valid Shells
+We mentioned that the seventh field of /etc/passwd is the user’s default shell. However, the system administrator can assign users an invalid shell as a security hardening measure. For hackers, accounts with real shells (such as /bin/bash) should thus indicate one of two possibilities: that the account belongs to a real user or service with a possible need to log in, or that the account has a possible misconfiguration.
+When system administrators add an account to a Linux machine by using the command useradd or adduser, the default shell is determined by the SHELL setting in the file /etc/default/useradd or by DSHELL in /etc/adduser.conf, as you can see here:
+$ grep -e "#DSHELL" /etc/adduser.conf
+#DSHELL=/bin/bash
+
+$ grep -e "SHELL=" /etc/default/useradd
+SHELL=/bin/sh
+
+With some advanced bash and awk, we can filter for lines containing valid shells such as /bin/bash or /bin/sh, then focus our future efforts on those accounts only (Listing 8-6).
+$ awk -F':' '{if ($7=="/bin/sh" || $7=="/bin/bash") {print $1,$7}}' /etc/passwd
+
+root /bin/bash
+ubuntu /bin/bash
+jmartinez /bin/bash
+dbrown /bin/bash
+ogarcia /bin/bash
+arodriguez /bin/bash
+
+Listing 8-6: Using advanced awk syntax to find accounts with active shells
+We’ve intentionally made this command slightly more complicated than necessary so you can see how powerful awk can be for parsing purposes. In Listing 8-6, awk uses its built-in if condition and an OR operator (||) to check whether the seventh field of the file equals /bin/sh or /bin/bash. It then prints the first and seventh fields if the expression is true.
+Just as with anything in bash, you can achieve the same objective with an even simpler command (Listing 8-7).
+$ grep -e "/bin/bash" -e "/bin/sh" /etc/passwd
+Listing 8-7: Using grep to find accounts with active shells
+This simpler grep command is more prone to errors, however, because it will print any field that contains either of the two strings (not specifically the seventh field, where the default shell is defined).
+
+
+
+Processes
+Enumerating running processes is an extremely important step of successful reconnaissance. Processes help us identify all code that a system is running, allowing us to focus our efforts on specific applications. Processes are also important because they help us understand a host’s defense systems.
+
+Viewing Process Files
+Each process on a Linux host has a dedicated directory under /proc that is named after its process identifier (PID), which is a numerical value. Let’s run a simple ls command (using the -1 option to list one file per line) and grep with a special regular expression to list all files in this directory that have numbers as their name (Listing 8-8).
+$ ls -1 /proc/ | grep -E '^[0-9]+$'
+
+1
+33
+34
+7
+
+Listing 8-8: Filtering for PIDs in the /proc directory
+Because new processes frequently spawn and then die, you’ll likely see different PID numbers from those in this output (with the exception of 1, also called the init process, which should always be present). Let’s explore the information available to us in the folder for the init process:
+$ ls -1 /proc/1/
+
+arch_status
+attr
+autogroup
+auxv
+cgroup
+clear_refs
+cmdline
+comm
+coredump_filter
+cpu_resctrl_groups
+cpuset
+cwd
+environ
+exe
+fd
+--snip--
+
+The folder contains many files, some of which are more interesting than others to penetration testers. For example, the following files contain useful information:
+/proc/<pid>/cmdline Contains the full command used to start the process.
+/proc/<pid>/cwd Points to the working directory of the process.
+/proc/<pid>/environ Contains the environment variables at the process’s start time.
+/proc/<pid>/exe Points to the binary that started the process.
+/proc/<pid>/task Contains subdirectories for each thread started by the process.
+/proc/<pid>/status Contains information about the process, such as its state, virtual memory size, number of threads, thread ID, and process umask (a four-digit value used to determine the permissions of freshly created files).
+/proc/<pid>/fd Contains the file descriptors in use. File descriptors are nonnegative (unsigned) integers used by processes to describe open files.
+Let’s explore some of these files to see what they can tell us about PID 1 on the system. On p-web-01 (172.16.10.10), run the following command:
+$ cat /proc/1/cmdline
+
+python3-mflaskrun--host=0.0.0.0--port=8081
+
+As you can see, a python3 command starts this process. The output is a little hard to read because its elements are separated by null bytes. We can make it more readable by using the following command to replace null bytes with spaces:
+$ cat /proc/1/cmdline | tr '\000' ' '
+
+python3 -m flask run --host=0.0.0.0 --port=8081
+
+Next, look at the symbolic link /proc/1/cwd to determine the working directory of process 1 by running the following ls command:
+$ ls -ld /proc/1/cwd
+
+lrwxrwxrwx 1 root 0 May  4 01:26 /proc/1/cwd -> /app
+
+The first character in the output is l, which stands for a symbolic link. You can also see we have an arrow (->) from /proc/1/cwd to /app, indicating that the cwd symbolic link points to the /app directory.
+We encourage you to discover any other files that live under the /proc directory and their purposes. You can find a well-explained list of these files in the proc manual page (by running man proc).
+
+
+Running ps
+Utilities such as ps can enable us to explore processes without having to manually navigate the /proc directory. Run the following command to see the list of processes:
+$ ps aux
+
+USER  PID %CPU %MEM    VSZ   RSS TTY    STAT START   TIME COMMAND
+root    1  0.0  0.7  36884 30204 ?      Ss   01:12   0:00 python3 -m flask run --host=0.0.0...
+root    7  0.0  0.0   4508  3900 pts/0  Ss   01:12   0:00 /bin/bash
+root   92  0.0  0.0   8204  3888 pts/0  R+   02:05   0:00 ps aux
+
+The output is lightweight because the lab runs on containers, and containers are designed to use the smallest number of resources possible. On production systems running non-container-based servers, you’ll likely see many more processes. You can run the same command on your Kali host to see the differences in the output.
+The ps command uses the /proc virtual filesystem to display process information in a more digestible way. Let’s use some of its built-in filtering capabilities to extract key information from the output, such as the running user, the PID, and the executed command:
+$ ps x -o user -o pid -o cmd
+
+USER         PID CMD
+root           1 python3 -m flask run --host=0.0.0.0 --port=8081
+root           7 /bin/bash
+root         137 ps x -o user -o pid -o cmd
+
+Run the same command against all boxes we’ve compromised so far and note your results.
+
+
+Examining Root Processes
+The ownership of processes is also an important element to consider. Processes running as root can lead to privilege escalation vulnerabilities if they are written insecurely. For example, when we compromised the p-web-01 web server (172.16.10.10), we landed in the shell as the root user because the root user initialized and started the application.
+Running applications as a superuser is generally considered bad practice, but it makes our lives as penetration testers much easier. If the application were started with a custom application user, we would have had to seek privilege escalation opportunities. As you may recall, when we compromised the p-web-02 (172.16.10.12) machine, we landed as the www-data user, not root.
+As another example of why using the root user for an application runtime is bad practice, imagine that a bash script executes a file called /tmp/update.sh every 10 minutes as a background job run by root, and say the file also happens to be writable by other system users. In this example, someone could write an instruction inside the file to grant themselves additional permissions, and since the process runs as root, the execution of the update.sh file would also run in the root user context.
+
+
+
+The Operating System
+The Linux operating system has so many variations that special websites such as https://distrowatch.com are dedicated to tracking them. How do you know exactly which operating system is running on the box you just took over?
+Operating systems may place information about themselves in different places, but for the most part, you’ll find it under the /etc directory. Check the following locations: /etc/os-release, /etc/issue, /usr/lib/os-release, /proc/version, /etc/*-release, and /etc/*-version. For example, on the Ubuntu-based p-web-01 machine (172.16.10.10), you should be able to find information about the operating system in /etc/os-release.
+In addition to files, some utilities could also help you identify the operating system. Try running uname -o or uname -a, lsb_release, hostnamectl, and hostname. Although commands such as hostname and hostnamectl aren’t designed to show operating system information, they could reveal it if the system administrator set the machine’s hostname to include the operating type, such as ubuntu-prod-

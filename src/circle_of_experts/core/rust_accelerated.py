@@ -14,6 +14,20 @@ import gc
 from collections import deque
 import weakref
 
+__all__ = [
+    "ConsensusAnalyzer",
+    "ResponseAggregator",
+    "PatternMatcher",
+    "AsyncConsensusAnalyzer",
+    "AsyncResponseAggregator",
+    "AsyncPatternMatcher",
+    "create_consensus_analyzer",
+    "create_response_aggregator",
+    "create_pattern_matcher",
+    "get_performance_metrics"
+]
+
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -27,8 +41,8 @@ try:
         create_pattern_matcher,
     )
     RUST_AVAILABLE = True
-except ImportError:
-    logger.warning("Rust extensions not available. Falling back to Python implementation.")
+except ImportError as e:
+    logger.warning(f"Rust extensions not available: {e}. Falling back to Python implementation.")
     RUST_AVAILABLE = False
     
     # Fallback implementations
@@ -313,7 +327,9 @@ class ResponseAggregator:
         
         # Simple aggregation
         contents = [r.get("content", "") for r in responses]
-        aggregated_content = "\n\n".join(contents)
+        aggregated_content = "
+
+".join(contents)
         
         all_recommendations = []
         for r in responses:
@@ -391,7 +407,9 @@ class ResponseAggregator:
             gc.collect()
         
         # Limit final aggregated content size
-        final_content = "\n\n".join(aggregated_content[:100])  # Max 100 content pieces
+        final_content = "
+
+".join(aggregated_content[:100])  # Max 100 content pieces
         
         return {
             "aggregated_content": final_content,

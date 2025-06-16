@@ -1,0 +1,63 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 7 - $ cd ~
+$ chmod u+x helloworld.sh
+$ ./helloworld.sh
+Security Relevance Score: 2
+Word Count: 705
+Extracted: 2025-06-13 23:40:57
+
+---
+
+$ cd ~
+$ chmod u+x helloworld.sh
+$ ./helloworld.sh
+
+Hello World!
+
+Listing 1-7: Running a script from the home directory
+We use the cd command to change directories. The tilde (~) represents the home directory of the current running user. Next, we use chmod to set the executable (u+x) permissions for the user who owns the file (in this case, us). We run the script by using dot-slash notation (./) followed by the script’s name. The dot (.) represents the current directory, so we’re essentially telling bash to run helloworld.sh from the current working directory.
+You can also run a bash script with the following syntax:
+$ bash helloworld.sh
+Because we specified the bash command, the script will run using the bash interpreter and won’t require a shebang line. Also, if you use the bash command, the script doesn’t have to be set with an executable permission (+x). In later chapters, you’ll learn about the permission model in more depth and explore its importance in the context of finding misconfigurations in penetration tests.
+
+
+Debugging
+Errors will inevitably occur when you’re developing bash scripts. Luckily, debugging scripts is quite intuitive. An easy way to check for errors early is by using the -n parameter when running a script:
+$ bash -n script.sh
+This parameter will read the commands in the script but won’t execute them, so any syntax errors that exist will be shown onscreen. You can think of -n as a dry-run method to test the validity of your syntax.
+You can also use the -x parameter to turn on verbose mode, which lets you see commands being executed and will help you debug issues as the script executes in real time:
+$ bash -x script.sh
+If you want to start debugging at a given point in the script, include the set command in the script itself (Listing 1-8).
+#!/bin/bash
+set -x
+
+--snip--
+
+set +x
+
+Listing 1-8: Using set to debug a script
+You can think of set as a valve that turns a certain option on and off. In this example, the first command sets the debugging mode (set -x), while the last command (set +x) disables it. By using set, you can avoid generating a massive amount of noise in your terminal when your script is large and contains a specific problem area.
+
+
+
+Basic Syntax
+At this point, you’ve written a two-line script that prints the message Hello World! to the screen. You’ve also learned how to run and debug a script. Now you’ll learn some bash syntax so you can write more useful scripts.
+The most basic bash scripts are just lists of Linux commands collected in a single file. For example, you could write a script that creates resources on a system and then prints information about these resources to the screen (Listing 1-9).
+#!/bin/bash
+
+# All this script does is create a directory, create a file
+# within the directory, and then list the contents of the directory.
+
+mkdir mydirectory
+touch mydirectory/myfile
+ls -l mydirectory
+
+Listing 1-9: A bash script that lists directory contents
+In this example, we use mkdir to create a directory named mydirectory. Next, we use the touch command to create a file named myfile within the directory. Finally, we run the ls -l command to list the contents of mydirectory.
+The output of the script looks as follows:
+--snip--
+-rw-r--r-- 1 user user 0 Feb 16 13:37 myfile
+
+However, this line-by-line strategy could be improved in several ways. First, when a command runs, bash waits until it finishes before advancing to the next line. If you include a long-running command (such as a file download or large file copy), the remaining commands won’t be executed until that command has completed. We also have yet to implement any checks to validate that all commands have executed correctly. You’ll need to write more-intelligent programs to reduce errors during runtime.
+Writing sophisticated programs often requires using features like variables, conditions, loops, and tests. For example, what if we want to change this script so that it checks for enough space on the disk before attempting to create new files and directories? Or what if we could check whether the directory and file creation actions actually succeeded? This section and

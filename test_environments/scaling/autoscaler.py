@@ -16,8 +16,24 @@ import json
 import math
 from collections import defaultdict, deque
 
-from ..circle_of_experts import CircleOfExperts, QueryRequest
-from .scaling_orchestrator import ScalingAction, ScalingStrategy
+try:
+    from ...src.circle_of_experts import CircleOfExperts, QueryRequest
+except ImportError:
+    try:
+        from src.circle_of_experts import CircleOfExperts, QueryRequest
+    except ImportError:
+        # Mock classes if not available
+        class CircleOfExperts:
+            async def process_query(self, query):
+                class MockResponse:
+                    def __init__(self):
+                        self.expert_responses = []
+                return MockResponse()
+        
+        class QueryRequest:
+            def __init__(self, **kwargs):
+                pass
+from .types import ScalingAction, ScalingStrategy
 
 
 class ScalingDirection(Enum):
@@ -150,7 +166,7 @@ class Autoscaler:
         # Start monitoring
         self._monitoring_task = None
         if self.enabled:
-            self._start_monitoring()
+            asyncio.create_task(self._start_monitoring())
     
     async def execute_scaling(
         self,

@@ -30,6 +30,18 @@ from src.core.ssrf_protection import SSRFProtectedSession, get_ssrf_protector, M
 from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
 from src.mcp.servers import MCPServer
 
+__all__ = [
+    "RateLimiter",
+    "CircuitBreaker",
+    "PrometheusMonitoringMCP",
+    "TestPrometheusValidation",
+    "TestRateLimiter",
+    "TestCircuitBreaker",
+    "validate_promql",
+    "validate_timestamp"
+]
+
+
 # Try to import enhanced logging, fallback to standard logging
 try:
     from src.circle_of_experts.utils.logging import get_logger, LogContext
@@ -140,8 +152,9 @@ def validate_timestamp(ts: str) -> str:
 class PrometheusMonitoringMCP(MCPServer):
     """Production-ready Prometheus monitoring with enhanced security and reliability."""
     
-    def __init__(self, prometheus_url: Optional[str] = None, api_key: Optional[str] = None):
+    def __init__(self, prometheus_url: Optional[str] = None, api_key: Optional[str] = None, permission_checker: Optional[Any] = None):
         """Initialize with security and monitoring features."""
+        super().__init__("prometheus-monitoring", "1.0.0", permission_checker)
         self.prometheus_url = prometheus_url or os.getenv("PROMETHEUS_URL", "http://localhost:9090")
         self.api_key = api_key or os.getenv("PROMETHEUS_API_KEY")
         self.rate_limiter = RateLimiter()
@@ -661,6 +674,18 @@ PrometheusMonitoringMCPServer = PrometheusMonitoringMCP
 
 # Minimal unit tests (within line budget)
 import pytest
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError,
+    ValidationError,
+    ConfigurationError,
+    CircuitBreakerError,
+    RateLimitError
+)
 
 
 class TestPrometheusValidation:

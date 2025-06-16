@@ -1,0 +1,184 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 24 - Since each octet in an IPv4 IP address can have a range between 0 and 255, the “0/24” indicates that the final octet can have any value between 0 and 255. As the /# decreases, the total number of possible IP addresses increases exponentially. While you can subnet all the way down to a /31 network, which is only 1 IP address, by far, the most commonly seen are /24, /16, and /8.
+Security Relevance Score: 3
+Word Count: 398
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Since each octet in an IPv4 IP address can have a range between 0 and 255, the “0/24” indicates that the final octet can have any value between 0 and 255. As the /# decreases, the total number of possible IP addresses increases exponentially. While you can subnet all the way down to a /31 network, which is only 1 IP address, by far, the most commonly seen are /24, /16, and /8.
+
+
+
+
+
+
+
+
+Subnet
+
+
+IP Range
+
+
+Total Number of Possible IPs
+
+
+
+
+10.10.10.0/24
+
+
+10.10.10.0 - 255
+
+
+256
+
+
+
+
+10.10.0.0/16
+
+
+10.10.0.0 - 10.10.255.255
+
+
+65,536
+
+
+
+
+10.0.0.0/8
+
+
+10.0.0.0 - 10.255.255.255
+
+
+16,777,216
+
+
+
+Table 5.1: Subnet breakdown by IP address
+You can immediately see that the difference between these subnet sizes is enormous. The good news is that just because a client provides you with a /16 subnet in the scope of your pentest does not mean they have 65 thousand devices. The vast majority of the possible /24 subnets within that /16 will likely be empty. The challenge becomes, how do you figure out where the actual endpoints are in that large range? Certainly, you cannot perform a stealthy port scan of the top 1,000 ports on 65 thousand individual IP addresses; if you tried, the whole engagement would likely be over before the scan finishes! Remember, penetration testers are time-bound in ways that real hackers are not. This inherent limitation necessitates us to be very strategic in how we map the environment.
+Different clients will provide different levels of information when defining the scope. In some instances, you will get a very well-defined and labeled spreadsheet of subnets (and/or VLANs) that are organized. In other cases, you may be provided with just a single (or small number of) larger subnet. For example, a client could provide you with the following neat and organized table, or just “10.10.0.0/16”:
+
+
+
+
+
+
+
+
+Office
+
+
+Network
+
+
+Purpose
+
+
+
+
+New York
+
+
+10.10.11.0/24
+
+
+Workstations
+
+
+
+
+New York
+
+
+10.10.12.0/24
+
+
+VOIP
+
+
+
+
+New York
+
+
+10.10.13.0/24
+
+
+Servers
+
+
+
+
+Austin
+
+
+10.10.21.0/24
+
+
+Workstations
+
+
+
+
+Austin
+
+
+10.10.22.0/24
+
+
+VOIP
+
+
+
+
+Austin
+
+
+10.10.23.0/24
+
+
+Servers
+
+
+
+
+San Francisco
+
+
+10.10.31.0/24
+
+
+Workstations
+
+
+
+
+San Francisco
+
+
+10.10.32.0/24
+
+
+VOIP
+
+
+
+
+San Francisco
+
+
+10.10.33.0/24
+
+
+Servers
+
+
+
+Table 5.2: Ideal scope chart
+In this simplistic example, a /16 would be valid as those /24 subnets are certainly subdivided from the 10.10.0.0/16 subnet; but in reality, only 2295 IP address spaces are being utilized compared to the 65,536 technically possible.
+It is much faster and easier when the client simply provides the breakdown, as shown in Table 5.

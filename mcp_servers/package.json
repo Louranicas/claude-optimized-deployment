@@ -1,0 +1,124 @@
+{
+  "name": "@claude-optimized/mcp-servers",
+  "version": "1.0.0",
+  "description": "High-performance MCP servers optimized for AMD Ryzen 7 7800X3D with 32GB RAM",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:performance": "tsx benchmarks/run-performance-tests.ts",
+    "test:load": "tsx benchmarks/load-test.ts",
+    "test:stress": "tsx benchmarks/stress-test.ts",
+    "benchmark": "npm run build && npm run test:performance",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "clean": "rimraf dist",
+    "watch": "tsc --watch",
+    "serve:dashboard": "node dist/monitoring/dashboard-server.js",
+    "serve:metrics": "node dist/monitoring/prometheus-server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "performance",
+    "optimization",
+    "ryzen",
+    "high-performance",
+    "async",
+    "caching",
+    "connection-pooling",
+    "load-balancing",
+    "monitoring"
+  ],
+  "author": "Claude Optimized Deployment Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@types/dotenv": "^6.1.1",
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "express": "^4.18.2",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.3.2",
+    "lru-cache": "^10.0.1",
+    "mysql2": "^3.6.3",
+    "pg": "^8.11.3",
+    "pino": "^8.16.1",
+    "pino-pretty": "^10.2.3",
+    "prom-client": "^15.0.0",
+    "systeminformation": "^5.22.11",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.20",
+    "@types/node": "^20.8.7",
+    "@types/pg": "^8.10.7",
+    "@types/ws": "^8.5.8",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.52.0",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.5",
+    "tsx": "^3.14.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  },
+  "peerDependencies": {
+    "redis": "^4.0.0"
+  },
+  "optionalDependencies": {
+    "canvas": "^2.11.2",
+    "sharp": "^0.32.6"
+  },
+  "files": [
+    "dist/**/*",
+    "docs/**/*",
+    "examples/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./core": {
+      "import": "./dist/core/index.js",
+      "require": "./dist/core/index.js",
+      "types": "./dist/core/index.d.ts"
+    },
+    "./servers": {
+      "import": "./dist/servers/index.js",
+      "require": "./dist/servers/index.js",
+      "types": "./dist/servers/index.d.ts"
+    },
+    "./monitoring": {
+      "import": "./dist/monitoring/index.js",
+      "require": "./dist/monitoring/index.js",
+      "types": "./dist/monitoring/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/claude-optimized/mcp-servers.git"
+  },
+  "bugs": {
+    "url": "https://github.com/claude-optimized/mcp-servers/issues"
+  },
+  "homepage": "https://github.com/claude-optimized/mcp-servers#readme",
+  "config": {
+    "performance": {
+      "cpuCores": 16,
+      "memoryGB": 32,
+      "architecture": "AMD Ryzen 7 7800X3D"
+    }
+  }
+}

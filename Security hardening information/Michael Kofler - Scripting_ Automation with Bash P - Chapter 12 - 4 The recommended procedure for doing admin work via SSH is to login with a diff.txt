@@ -1,0 +1,97 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 12 - 4). The recommended procedure for doing admin work via SSH is to login with a different account and then use sudo in the session. As an alternative, you can explicitly allow root login by making an adjustment in the /etc/ssh/sshd_config file on the computer that runs the SSH server. Changes to this file won’t take effect until you ask the SSH server to reload the file (systemctl reload sshd on Linux).
+SSH logins to local virtual machines may fail due to network connectivity. Oracle VM VirtualBox in particular causes problems in this regard. With VirtualBox, virtual machines are connected to the local network via Network Address Translation (NAT), while SSH is blocked. The solution is port forwarding. You find a good tutorial on this topic at https://www.simplified.guide/virtualbox/port-forwarding.
+The SSH client remembers the hostname or IP address of the server and the key used by the server each time it logs in. If the key changes (e.g., in the course of a new installation of the server), the ssh command displays a drastic error message and blocks the login:
+WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!Someone could be eavesdropping on you right now(man-in-the-middle attack)! 
+If you know that the affected server has been newly set up, the warning does not apply. However, you must find and delete the line for the relevant hostname or IP address in the local .ssh/known_hosts file. The next time you log in, you’ll be asked whether you trust the server.
+12.2.3    Running Linux and macOS Commands
+Instead of using ssh interactively, you can run a command directly on the remote computer. The command and its parameters are passed as parameters to ssh. grep is not executed on the local machine here, but on a remote Linux or macOS host.
+> ssh user@linuxhost 'grep VERSION /etc/os-release'  user@linuxhost's password: **********  VERSION="20.04.5 LTS (Focal Fossa)"  VERSION_ID="20.04"  VERSION_CODENAME=focal 
+Far-reaching possibilities arise from this seemingly trivial function: For example, you can now run tar on the remote machine or forward the archive of the data directory to standard output (specify a hyphen - after the -f option, such as -f -). You can forward the standard output using | as input for a second tar command that runs locally. This capability allows you to transfer an entire directory tree securely from one machine to another via SSH.
+$ ssh user@hostname 'tar -czf - data' | tar -xzC ~/copy/ -f - 
+To execute multiple commands via ssh in a Bash script, the best approach is to use the heredoc syntax (see Chapter 3, Section 3.9). The -T option prevents ssh from opening a pseudo-terminal, which is not desirable in this case because the execution of commands should not be interactive.
+ssh -T root@host <<ENDSSHrm -f /etc/file1cp /root/file2 /userxy/file3...ENDSSH 
+The first time you establish an SSH connection to a new host, ssh asks if you trust the host. Normally, this query is useful. However, if you want to use ssh to perform automated work on multiple hosts or virtual machines, this query is interference. The solution in such cases is the -oStrictHostKeyChecking=no option.
+12.2.4    Running Windows Commands
+Command execution also works for Windows hosts, although the syntactic varieties are much smaller for Windows. Provided that you have set PowerShell as the default shell (Section 12.1), you can run a command via SSH.
+$ ssh user@winhost 'Get-ChildItem C:\\'  user@winhost's password: **********  Directory: C:\  Mode           LastWriteTime    Name  ----    --------------------    ----  d-r--    02.17.2023    08:20    Program Files  d-r--    02.17.2023    08:20    Program Files (x86)  d-r--    07.13.2022    04:02    Users  d----    02.20.2023    04:13    Windows 
+12.2.5    SSH Remoting in PowerShell
+You can use the Enter-PSSession or New-PSSession commands to run commands on external Windows computers via Windows Remote Management. Since PowerShell 6, this feature is also available for SSH connections and is accordingly referred to as SSH remoting. Previously, however, some preparatory work was required on the server side.
+To use SSH remoting on an external Windows machine, a new Subsystem line must be added to the respective sshd_config file. The Subsystem statement is spread over two lines in our case with \ only for space reasons. (It must be specified in one line and without the \ character!) According to the documentation, the -nologo option will no longer be required as of PowerShell version 7.4.
+# Windows host: File $env:ProgramData\ssh\sshd_config...Subsystem powershell c:/progra~1/powershell/7/pwsh.exe \  -sshs -nologo 
+The easiest way to open the file is to start the editor from the terminal (e.g., using code $env:ProgramData\ssh\sshd_config). This approach will automatically replace $env:ProgramData with the appropriate path on your machine (usually C:\ProgramData).  
+The strange Subsystem setting c:/progra~1/powershell/7/pwsh.exe is the usual path to the PowerShell installation in DOS notation (i.e., with a maximum of 8 plus 3 characters per filename or directory name). This ancient notation is necessary because OpenSSH cannot handle Windows filenames with spaces.
+Possibly the correct path is also c:/progra~2! The following commands show how you can find out the short notation. First, you want to use Get-Command to determine the installation location of PowerShell. Then, you must run cmd.exe to get the short notation of the program directory:
+> (Get-Command pwsh).Path  C:\Program Files (x86)\PowerShell\7\pwsh.exe> cmd /c 'for %X in ("C:\Program Files (x86)") do @echo %~sX'  C:\PROGRA~2 
+Finally, you need to restart the SSH server: 
+> Restart-Service sshd 
+The preparatory work for using a Linux machine for SSH remoting looks quite similar. On Linux, you must also add a Subsystem line to sshd_config. However, instead of /usr/bin/pwsh, you must use the path to PowerShell that is valid in your distribution. You can determine the path via which pwsh.
+# Linux host: File /etc/ssh/sshd_config...Subsystem powershell /usr/bin/pwsh -sshs -nologo 
+The following command restarts the SSH server:
+$ sudo systemctl restart sshd 
+Once you have completed this preparatory work, you can use New-PSSession  to establish an SSH connection and use it as a parameter for Invoke-Command. For the following example, I worked locally on a Windows machine, connecting to the Linux machine on the network and running Get-ChildItem there. You can use Remove-PSSession to terminate the SSH connection.
+> $session = New-PSSession linuxhostname -Username kofler> Invoke-Command -Session $session { Get-ChildItem /etc/*.conf }  Directory: /etc  Mode         LastWriteTime    Length Name  ----         -------------    ------ ----  --r--  02/10/2023    22:08       833 appstream.conf  --r--  01/27/2023    19:44         0 arptables.conf  --r--  12/06/2021    13:27      1438 dhcpcd.conf> Remove-PSSession $session 
+Further configuration tips and application examples can be found at the following links:
+Security Relevance Score: 4
+Word Count: 1201
+Extracted: 2025-06-13 23:41:06
+
+---
+
+4). The recommended procedure for doing admin work via SSH is to login with a different account and then use sudo in the session. As an alternative, you can explicitly allow root login by making an adjustment in the /etc/ssh/sshd_config file on the computer that runs the SSH server. Changes to this file won’t take effect until you ask the SSH server to reload the file (systemctl reload sshd on Linux).
+SSH logins to local virtual machines may fail due to network connectivity. Oracle VM VirtualBox in particular causes problems in this regard. With VirtualBox, virtual machines are connected to the local network via Network Address Translation (NAT), while SSH is blocked. The solution is port forwarding. You find a good tutorial on this topic at https://www.simplified.guide/virtualbox/port-forwarding.
+The SSH client remembers the hostname or IP address of the server and the key used by the server each time it logs in. If the key changes (e.g., in the course of a new installation of the server), the ssh command displays a drastic error message and blocks the login:
+WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!Someone could be eavesdropping on you right now(man-in-the-middle attack)! 
+If you know that the affected server has been newly set up, the warning does not apply. However, you must find and delete the line for the relevant hostname or IP address in the local .ssh/known_hosts file. The next time you log in, you’ll be asked whether you trust the server.
+12.2.3    Running Linux and macOS Commands
+Instead of using ssh interactively, you can run a command directly on the remote computer. The command and its parameters are passed as parameters to ssh. grep is not executed on the local machine here, but on a remote Linux or macOS host.
+> ssh user@linuxhost 'grep VERSION /etc/os-release'  user@linuxhost's password: **********  VERSION="20.04.5 LTS (Focal Fossa)"  VERSION_ID="20.04"  VERSION_CODENAME=focal 
+Far-reaching possibilities arise from this seemingly trivial function: For example, you can now run tar on the remote machine or forward the archive of the data directory to standard output (specify a hyphen - after the -f option, such as -f -). You can forward the standard output using | as input for a second tar command that runs locally. This capability allows you to transfer an entire directory tree securely from one machine to another via SSH.
+$ ssh user@hostname 'tar -czf - data' | tar -xzC ~/copy/ -f - 
+To execute multiple commands via ssh in a Bash script, the best approach is to use the heredoc syntax (see Chapter 3, Section 3.9). The -T option prevents ssh from opening a pseudo-terminal, which is not desirable in this case because the execution of commands should not be interactive.
+ssh -T root@host <<ENDSSHrm -f /etc/file1cp /root/file2 /userxy/file3...ENDSSH 
+The first time you establish an SSH connection to a new host, ssh asks if you trust the host. Normally, this query is useful. However, if you want to use ssh to perform automated work on multiple hosts or virtual machines, this query is interference. The solution in such cases is the -oStrictHostKeyChecking=no option.
+12.2.4    Running Windows Commands
+Command execution also works for Windows hosts, although the syntactic varieties are much smaller for Windows. Provided that you have set PowerShell as the default shell (Section 12.1), you can run a command via SSH.
+$ ssh user@winhost 'Get-ChildItem C:\\'  user@winhost's password: **********  Directory: C:\  Mode           LastWriteTime    Name  ----    --------------------    ----  d-r--    02.17.2023    08:20    Program Files  d-r--    02.17.2023    08:20    Program Files (x86)  d-r--    07.13.2022    04:02    Users  d----    02.20.2023    04:13    Windows 
+12.2.5    SSH Remoting in PowerShell
+You can use the Enter-PSSession or New-PSSession commands to run commands on external Windows computers via Windows Remote Management. Since PowerShell 6, this feature is also available for SSH connections and is accordingly referred to as SSH remoting. Previously, however, some preparatory work was required on the server side.
+To use SSH remoting on an external Windows machine, a new Subsystem line must be added to the respective sshd_config file. The Subsystem statement is spread over two lines in our case with \ only for space reasons. (It must be specified in one line and without the \ character!) According to the documentation, the -nologo option will no longer be required as of PowerShell version 7.4.
+# Windows host: File $env:ProgramData\ssh\sshd_config...Subsystem powershell c:/progra~1/powershell/7/pwsh.exe \  -sshs -nologo 
+The easiest way to open the file is to start the editor from the terminal (e.g., using code $env:ProgramData\ssh\sshd_config). This approach will automatically replace $env:ProgramData with the appropriate path on your machine (usually C:\ProgramData).  
+The strange Subsystem setting c:/progra~1/powershell/7/pwsh.exe is the usual path to the PowerShell installation in DOS notation (i.e., with a maximum of 8 plus 3 characters per filename or directory name). This ancient notation is necessary because OpenSSH cannot handle Windows filenames with spaces.
+Possibly the correct path is also c:/progra~2! The following commands show how you can find out the short notation. First, you want to use Get-Command to determine the installation location of PowerShell. Then, you must run cmd.exe to get the short notation of the program directory:
+> (Get-Command pwsh).Path  C:\Program Files (x86)\PowerShell\7\pwsh.exe> cmd /c 'for %X in ("C:\Program Files (x86)") do @echo %~sX'  C:\PROGRA~2 
+Finally, you need to restart the SSH server: 
+> Restart-Service sshd 
+The preparatory work for using a Linux machine for SSH remoting looks quite similar. On Linux, you must also add a Subsystem line to sshd_config. However, instead of /usr/bin/pwsh, you must use the path to PowerShell that is valid in your distribution. You can determine the path via which pwsh.
+# Linux host: File /etc/ssh/sshd_config...Subsystem powershell /usr/bin/pwsh -sshs -nologo 
+The following command restarts the SSH server:
+$ sudo systemctl restart sshd 
+Once you have completed this preparatory work, you can use New-PSSession  to establish an SSH connection and use it as a parameter for Invoke-Command. For the following example, I worked locally on a Windows machine, connecting to the Linux machine on the network and running Get-ChildItem there. You can use Remove-PSSession to terminate the SSH connection.
+> $session = New-PSSession linuxhostname -Username kofler> Invoke-Command -Session $session { Get-ChildItem /etc/*.conf }  Directory: /etc  Mode         LastWriteTime    Length Name  ----         -------------    ------ ----  --r--  02/10/2023    22:08       833 appstream.conf  --r--  01/27/2023    19:44         0 arptables.conf  --r--  12/06/2021    13:27      1438 dhcpcd.conf> Remove-PSSession $session 
+Further configuration tips and application examples can be found at the following links:
+
+
+https://learn.microsoft.com/en-us/powershell/scripting/learn/remoting/ssh-remoting-in-powershell-core
+
+
+https://github.com/PowerShell/Win32-OpenSSH/issues/1498
+
+
+
+
+
+
+
+
+
+
+
+12.3    scp and rsync
+scp enables you to copy a file back and forth between a local computer and a remote computer. The following lines summarize the main syntax variants of scp. Unlike the ssh command, the hostname must always be followed by a colon! Remember: The dot (.) is the short notation for the current directory.
+# copy local file to an external host (upload)$ scp filename user@host:$ scp filename user@host:path/newfilename# copy the file of the external host into the local# file system (download)$ scp user@host:filename .$ scp user@host:path/filename .# copy entire directory trees recursively$ scp -r localdir/ user@host:$ scp -r user@host:remotedir . 
+
+Annoying Password Specification
+Even if not included in our listings for space reasons, each scp command must be acknowledged by entering a password, which is, of course, annoying. The solution in this case is to use an SSH key (

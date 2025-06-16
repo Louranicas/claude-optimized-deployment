@@ -1,0 +1,303 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 1 - And later all the test cases will be executed like web servers running status, login module, and after providing credentials, if application is able to navigate to the dashboard page or not, Session details from database can also be captured to check the same. If everything works out well, the same changes will be replicated to the production or live system (10.X.X.X) and later only liveness of web server will be tested to check if the nginx web server is up and running, and Business owner will be notified using notification module and the issue/case flagged by the CSRP will be submitted for closure using evidence, later CSRP can validate and close the issue from their end.
+Security Relevance Score: 8
+Word Count: 1075
+Extracted: 2025-06-13 23:40:31
+
+---
+
+And later all the test cases will be executed like web servers running status, login module, and after providing credentials, if application is able to navigate to the dashboard page or not, Session details from database can also be captured to check the same. If everything works out well, the same changes will be replicated to the production or live system (10.X.X.X) and later only liveness of web server will be tested to check if the nginx web server is up and running, and Business owner will be notified using notification module and the issue/case flagged by the CSRP will be submitted for closure using evidence, later CSRP can validate and close the issue from their end.
+
+
+Figure 5.9 Secure Nginx configuration file.
+
+
+If any of the test cases gets failed or liveness of the system is affected, all the operations will be rolled back business owner or Application development team will be notified with the issues, score impact, and some remediation to close the issue.
+
+
+5.4 Results
+
+5.4.1 First Notification Regarding Issues Flagged by Cybersecurity Rating Platform
+
+5.4.1.1 Whenever Any Issues Are Flagged to the Cybersecurity Rating Platform
+APIs are triggered automatically from the Cybersecurity ratings platform – to notify the system proposed, and internally the proposed system notify the business groups and other concerned team regarding the issue.
+Authors have developed their APIs to integrate their internal systems with third party Cybersecurity Rating Platforms.
+Figures 5.10 and 5.11 show the API request and API Response for notifications.
+These issues will be flagged on constant basis and will notify the concerned team.
+
+
+
+5.4.2 Checking False Positive and True Positive
+
+5.4.2.1 Validate and Close the Reported Findings – A Case of False Positive Reported Issue
+Figures 5.12 and 5.13 show the API request and API Response for validating issues flagged by Cybersecurity Rating Platform, and Figure 5.14 shows the background commands for validating the same.
+
+
+Figure 5.10 API Request for triggering notification for flagging issues.
+
+
+
+
+Figure 5.11 API Response for notification related to flagging issues.
+
+
+Once this request is submitted, cybersecurity rating platforms will automatically close the issue after validating the same from their end and security rating or grade will again increase.
+
+
+5.4.2.2 Mitigating Vulnerabilities in Realtime with the Proposed System
+Validating the vulnerabilities will be as is as mentioned above. Later applying patch/mitigation will be executed by DevOps module, by referring to the Configuration Bank. Figure 5.15 shows validation of the same, and Figures 5.16 and 5.17 show API request and API Response for applying the fix or mitigation.
+
+
+Figure 5.12 API Request for validating the issue.
+
+
+
+
+Figure 5.13 API Response for validating the issue.
+
+
+
+
+Figure 5.14 Sample of Background command for validating the issue.
+
+
+
+
+Figure 5.15 Shows that X‐frame‐Options Header is missing from the application.
+
+
+Check for test cases after applying the fix on containerized/sandbox environment, Figure 5.18 shows the same.
+Figure to show that X‐Frame‐Options Headers are added to the HTTP response.
+Nginx Configuration File before applying fix: Figure 5.19 shows the snap of config before applying a fix.
+
+
+Figure 5.16 API Request for applying the fix.
+
+
+
+
+Figure 5.17 API Response for applying the fix.
+
+
+
+
+Figure 5.18 Validating the issues after applying the fix in containerized environment.
+
+
+Nginx Config file after applying fix: Figure 5.20 shows the snap of config after applying fix.
+Check status for nginx: [DevOps module will execute # service nginx status on containerized env] and will show below status. Figure 5.21 shows the live status of nginx web server.
+Since status is up and running then commit the changes and mount the configuration file in the actual file and server.
+Before that, the system will take approval or consent from Business team/Application development team to take the consent. As of now, author has created an email‐based notification and consent‐taking system which will be sent to concerned Application Owner and its development or IT team. Figures 5.22–5.24 show the consent or approval flow for the same.
+
+
+Figure 5.19 Nginx configuration file before applying fix.
+
+
+
+
+Figure 5.20 Nginx configuration file after applying fix.
+
+
+Notification at Application Development teams end:
+Once the request or consent is approved by the team, then only the system will apply the patch or fix in the system.
+Closure for the mitigated vulnerabilities: Figure 5.25 shows API Request for closure of the issue against which Patch, or fix is applied and Figure 5.26 shows API Response of the same.
+
+
+Figure 5.21 Snap of nginx web server is up and running.
+
+
+
+
+Figure 5.22 Approval or consent workflow generated by the system.
+
+
+
+
+Figure 5.23 Approval or consent workflow pending at concerned team.
+
+
+
+
+Figure 5.24 Consent approved.
+
+
+
+
+Figure 5.25 API Request for closure.
+
+
+
+
+Figure 5.26 API Response for closure.
+
+
+Table of experimentation with outcome:
+Tables 5.3–5.5 show the success rate for all the issues flagged (in 30 iterations on various applications and servers), for Application Security, Network Security, and End Point Security, respectively.
+
+
+Table 5.4 Experimentation on application security issues.
+
+
+
+
+Parameter
+Issue ID
+Fixed
+Expected success rate on 30 iterations in %  
+
+
+Vulnerabilities in CMS
+AppSec‐V‐01
+Yes
+93.33 
+
+Site/IP does not support HTTPS
+AppSec‐V‐02
+Yes
+90.00 
+
+CSP Missing
+AppSec‐V‐03
+Yes
+80 
+
+ Strict Transport Security Misconfigured
+AppSec‐V‐04
+Yes
+100 
+
+Insecure HTTPS redirect chain
+AppSec‐V‐05
+Yes
+83.33 
+
+X‐Frame‐Options‐Missing
+AppSec‐V‐06
+Yes
+100 
+
+Redirect Chain contains HTTP
+AppSec‐V‐07
+Yes
+100 
+
+Session Cookie missing HTTP Only flag
+AppSec‐V‐08
+Yes
+100 
+
+Session Cookie missing secure Attribute
+AppSec‐V‐09
+Yes
+100 
+
+X‐Content‐Type‐Option‐Missing
+AppSec‐V‐010
+Yes
+100   
+
+
+
+Table 5.5 Experimentation on network security issues.
+
+
+
+
+Parameter
+Issue ID
+Fixed
+Expected success rate on 30 iterations in %  
+
+
+Certificate Is Revoked
+InfSec‐V‐01
+Yes
+80 
+
+Elasticsearch Service and MongoDB Service Observed
+InfSec‐V‐02
+Yes
+100 
+
+Neo4j Database and Oracle Database Server Accessible
+InfSec‐V‐03
+Yes
+100 
+
+SSH Software Supports Vulnerable Protocol
+InfSec‐V‐04
+Yes
+100 
+
+SSL/TLS Service Supports Weak Protocol
+InfSec‐V‐05
+Yes
+93.33 
+
+Apache Cassandra and CouchDB Service Observed
+InfSec‐V‐06
+Yes
+100 
+
+Certificate Is Expired
+InfSec‐V‐07
+Yes
+100 
+
+Certificate Signed with Weak Algorithm
+InfSec‐V‐08
+Yes
+100 
+
+Weak MAC, Microsoft SQL Server, PPTP, PostgreSQL, RDP, Redis, Remote Access, SMB Service, resync Service, VNC Service Observed
+InfSec‐V‐09
+Yes
+100 
+
+SSH Supports Weak Cipherand Weak MAC
+InfSec‐V‐10
+Yes
+100 
+
+FTP Service, Telnet Observed
+InfSec‐V‐11
+Yes
+100 
+
+IP Camera Accessible
+InfSec‐V‐12
+Yes
+NA   
+
+
+
+Table 5.6 Experimentation on endpoint security issues.
+
+
+
+
+Parameter
+Issue ID
+Fixed
+Expected success rate on 30 iterations in %  
+
+
+Outdated Operating System Observed
+EPSec‐V‐01
+Yes
+100 
+
+Outdated Web Browser Observed
+EPSec‐V‐02
+Yes
+100   
+
+
+
+Figure 5.27 GitHub crawling module for identifying sensitive information over GitHub.
+
+
+
+
+Figure 5.28 Analytical Representation of Application Security Section or Table 5.

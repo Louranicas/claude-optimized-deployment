@@ -19,6 +19,25 @@ from dataclasses import dataclass, field
 import yaml
 from pathlib import Path
 
+from src.core.error_handler import (
+    handle_errors, async_handle_errors, log_error,
+    ServiceUnavailableError, ExternalServiceError, ConfigurationError
+)
+
+__all__ = [
+    "AlertSeverity",
+    "AlertState",
+    "AlertRule",
+    "Alert",
+    "AlertManager",
+    "get_alert_manager",
+    "check_alert",
+    "resolve_alert",
+    "register_alert_handler",
+    "log_alert_handler"
+]
+
+
 
 class AlertSeverity(Enum):
     """Alert severity levels."""
@@ -490,11 +509,15 @@ async def slack_alert_handler(alert: Alert):
         
         emoji = severity_emoji.get(alert.rule.severity, "❗")
         
-        message = f"{emoji} *{alert.rule.name}*\n"
-        message += f"Severity: {alert.rule.severity.value.upper()}\n"
-        message += f"Summary: {alert.annotations.get('summary', 'No summary')}\n"
+        message = f"{emoji} *{alert.rule.name}*
+"
+        message += f"Severity: {alert.rule.severity.value.upper()}
+"
+        message += f"Summary: {alert.annotations.get('summary', 'No summary')}
+"
         if alert.value is not None:
-            message += f"Value: {alert.value}\n"
+            message += f"Value: {alert.value}
+"
         message += f"Started: {alert.started_at.strftime('%Y-%m-%d %H:%M:%S')}"
         
         await manager.call_tool(

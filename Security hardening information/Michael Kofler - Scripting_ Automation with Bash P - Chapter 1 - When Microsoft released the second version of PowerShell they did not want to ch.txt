@@ -1,0 +1,62 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 1 - When Microsoft released the second version of PowerShell, they did not want to change the then already established extension, and thus, it has absurdly remained *.ps1 to this very day.
+To run the script, you simply need to enter the filename including the prepended directory, for example:
+> Documents\Hello.ps1  Hello, World! 
+If the script is located in the current directory, you must prepend .\ to explicitly name the directory, for example:
+> .\Hello.ps1  Hello, World! 
+In this context, “.” is a short notation for the directory you’re currently in. For security reasons, scripts without a directory specification are only executed if the *.ps1 files are located in a directory named in the $PATH environment variable. I will describe these concepts in more detail momentarily.
+Security Relevance Score: 4
+Word Count: 807
+Extracted: 2025-06-13 23:41:06
+
+---
+
+When Microsoft released the second version of PowerShell, they did not want to change the then already established extension, and thus, it has absurdly remained *.ps1 to this very day.
+To run the script, you simply need to enter the filename including the prepended directory, for example:
+> Documents\Hello.ps1  Hello, World! 
+If the script is located in the current directory, you must prepend .\ to explicitly name the directory, for example:
+> .\Hello.ps1  Hello, World! 
+In this context, “.” is a short notation for the directory you’re currently in. For security reasons, scripts without a directory specification are only executed if the *.ps1 files are located in a directory named in the $PATH environment variable. I will describe these concepts in more detail momentarily.
+4.5.2    Trouble with the Execution Policy
+Depending on the Windows version, your first attempt to run a custom script will fail with the following error message:
+> .\Hello.ps1:  File C:\Users\kofler\Documents\Hello.ps1 cannot be  loaded because running scripts is disabled on this system.  For more information, see about_Execution_Policies at  https://go.microsoft.com/fwlink/?LinkID=135170 
+The cause of this error message is what’s called the execution policy. This policy specifies the circumstances under which scripts are allowed to run on Windows. There are four possible settings:
+
+
+Restricted: No scripts can be executed at all.
+
+
+AllSigned: Only signed scripts can be executed.
+
+
+RemoteSigned: All custom scripts can be executed, but installed or downloaded scripts can be executed only if they have been signed.
+
+
+Unrestricted: All scripts can be executed.
+
+
+Usually RemoteSigned applies on Windows Server, but Restricted applies for desktop versions:
+> Get-ExecutionPolicy  Restricted 
+For this reason, on many Windows installations, scripts cannot be run at all. For security reasons, this default setting makes sense, but it is of course unsuitable for learning scripting. The following command allows the execution of custom scripts as well as signed foreign scripts for the current user:
+> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned 
+You can also run the above command without the -Scope CurrentUser option—then, the setting will apply to all users of the computer. However, changing the execution policy at the system level is only allowed if you run PowerShell or Windows Terminal with admin privileges.
+
+Even More Setting Options
+The execution policy can be configured at different levels (machine, user, process). Details about the configuration options can be found at https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies.
+
+
+What Does Signed Mean?
+A signed script contains a comment block with a digital signature (i.e., a cryptographic code). This code indicates who wrote the script. The code applies only to the state of the script at the time of the signature. Any subsequent change will invalidate the signature. You can sign your own scripts using Set-AuthenticodeSignature. This command requires that you have a certificate—either (for testing purposes) a self-created one or a real certificate from a certification authority. You can find more information on this topic at https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_signing.
+
+4.5.3    Setting Up a Custom Script Directory
+For your first script, where you save it doesn’t matter. But before you write more and more scripts over the next few weeks, a good idea is to set up a directory for your scripts and add that directory to the PATH environment variable. In our examples, I assume that you name the directory myscripts and create it directly in your working directory. Set-Location makes the user directory the current directory if not already the case. NewItem creates the directory. (If you have used cmd.exe or Bash so far, cd myscripts or mkdir myscripts will also get you there with less typing and headaches. But I want to make an effort in this chapter to present you with the “right” PowerShell cmdlets.)
+> Set-Location> New-Item -ItemType Directory myscripts 
+
+Figure 4.3    
+            Adding a Custom Script Directory to the Path Variable
+Now, we still need to set up the Path variable. This variable contains a list of all directories where PowerShell searches for executable programs and scripts. If you add the myscripts directory to this list, you can run scripts stored there without specifying the path. No matter which directory is currently active, it is now sufficient to enter Hello to start the Hello World script. Thanks to the Path variable, you don’t need to specify the location or the .ps1 identifier.
+To configure this variable, search for Edit System Environment Variables in the Start menu and then click the Environment Variables button in the System Properties dialog. In the dialog box of the same name, select Path from your user variables and add your script directory via Edit • New • Browse.
+Note that changes to the Path variable take effect only after restarting the terminal or PowerShell.
+4.5.4    Running Scripts on Linux and macOS
+I generally assume in this chapter that you’re using Windows. But of course, you can also run PowerShell scripts on Linux or macOS. Although no execution policy exists in Linux or macOS (

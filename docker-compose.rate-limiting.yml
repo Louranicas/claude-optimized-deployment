@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  redis-rate-limiting:
+    image: redis:7-alpine
+    container_name: claude-redis-rate-limiting
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_rate_limiting_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - rate_limiting_network
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis-sentinel:
+    image: redis:7-alpine
+    container_name: claude-redis-sentinel
+    ports:
+      - "26379:26379"
+    volumes:
+      - ./config/sentinel.conf:/usr/local/etc/redis/sentinel.conf:ro
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis-rate-limiting
+    restart: unless-stopped
+    networks:
+      - rate_limiting_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  claude-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claude-optimized-deployment
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - REDIS_URL=redis://redis-rate-limiting:6379/0
+      - LOG_LEVEL=INFO
+      - WORKERS=4
+    depends_on:
+      redis-rate-limiting:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - rate_limiting_network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  rate-limit-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: claude-rate-limit-monitor
+    environment:
+      - REDIS_URL=redis://redis-rate-limiting:6379/0
+      - MONITOR_INTERVAL=60
+      - RETENTION_DAYS=7
+    depends_on:
+      redis-rate-limiting:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - rate_limiting_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  redis_rate_limiting_data:
+    driver: local
+
+networks:
+  rate_limiting_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

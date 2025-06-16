@@ -1,0 +1,240 @@
+# MCP Production Namespace Configuration
+# Isolated environment for all MCP servers with resource quotas and network policies
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mcp-production
+  labels:
+    name: mcp-production
+    tier: production
+    security: restricted
+    performance: optimized
+    component: mcp-servers
+  annotations:
+    description: "Production namespace for MCP servers with security and performance optimizations"
+    created-by: "claude-deployment-orchestration"
+    security-policy: "restricted"
+    network-policy: "enabled"
+
+---
+# Resource Quota for MCP Production Namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mcp-production-quota
+  namespace: mcp-production
+  labels:
+    component: resource-management
+spec:
+  hard:
+    # Pod limits optimized for AMD Ryzen 7 7800X3D (16 cores, 32GB RAM)
+    pods: "50"
+    persistentvolumeclaims: "20"
+    services: "20"
+    secrets: "30"
+    configmaps: "30"
+    
+    # CPU resources (total allocation across all pods)
+    requests.cpu: "8"      # 50% of available cores for requests
+    limits.cpu: "15"       # 93% of available cores for limits
+    
+    # Memory resources (total allocation across all pods)
+    requests.memory: "16Gi"  # 50% of available RAM for requests
+    limits.memory: "30Gi"    # 93% of available RAM for limits
+    
+    # Storage resources
+    requests.storage: "100Gi"
+    
+    # Extended resources for GPU if available
+    # requests.nvidia.com/gpu: "1"
+    # limits.nvidia.com/gpu: "1"
+
+---
+# Limit Range for individual pod constraints
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mcp-production-limits
+  namespace: mcp-production
+  labels:
+    component: resource-management
+spec:
+  limits:
+  # Pod limits
+  - type: Pod
+    max:
+      cpu: "4"        # Maximum CPU per pod
+      memory: "8Gi"   # Maximum memory per pod
+    min:
+      cpu: "100m"     # Minimum CPU per pod
+      memory: "128Mi" # Minimum memory per pod
+  
+  # Container limits
+  - type: Container
+    max:
+      cpu: "4"
+      memory: "8Gi"
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+    default:
+      cpu: "500m"     # Default CPU limit
+      memory: "1Gi"   # Default memory limit
+    defaultRequest:
+      cpu: "200m"     # Default CPU request
+      memory: "512Mi" # Default memory request
+  
+  # Storage limits
+  - type: PersistentVolumeClaim
+    max:
+      storage: "20Gi"
+    min:
+      storage: "1Gi"
+
+---
+# Network Policy for MCP Production Namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mcp-production-network-policy
+  namespace: mcp-production
+  labels:
+    component: security
+spec:
+  podSelector: {}  # Apply to all pods in namespace
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # Ingress rules - what can connect to MCP servers
+  ingress:
+  # Allow traffic from ingress controllers
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 8080
+  
+  # Allow monitoring traffic from prometheus
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  # Allow inter-pod communication within MCP namespace
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  
+  # Egress rules - what MCP servers can connect to
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Allow HTTPS for external API calls
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  
+  # Allow HTTP for health checks and internal services
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+  
+  # Allow database connections (PostgreSQL, Redis, etc.)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: database
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 3306  # MySQL
+  
+  # Allow inter-pod communication within namespace
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+
+---
+# Pod Security Standards for MCP Production
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-security-standards
+  namespace: mcp-production
+  labels:
+    component: security
+data:
+  security-policy.yaml: |
+    # Pod Security Standards Configuration
+    security:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      fsGroup: 1001
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    
+    # Resource constraints
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+    
+    # Health check configuration
+    healthCheck:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    
+    # Performance optimizations for AMD Ryzen 7 7800X3D
+    performance:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        node.kubernetes.io/instance-type: "high-performance"
+      tolerations:
+      - key: "performance"
+        operator: "Equal"
+        value: "high"
+        effect: "NoSchedule"

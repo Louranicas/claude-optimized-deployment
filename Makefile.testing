@@ -1,0 +1,92 @@
+# Testing Infrastructure Makefile
+# Comprehensive testing commands for Claude Optimized Deployment
+
+.PHONY: help test test-unit test-integration test-e2e test-security test-performance
+.PHONY: test-parallel test-coverage test-mutation test-property test-stress
+.PHONY: test-report test-badges test-clean test-setup test-deps test-all
+
+# Default target
+help:
+	@echo "Claude Optimized Deployment - Testing Infrastructure"
+	@echo ""
+	@echo "Available testing targets:"
+	@echo "  test-setup         - Install testing dependencies and setup environment"
+	@echo "  test               - Run basic test suite"
+	@echo "  test-unit          - Run unit tests only"
+	@echo "  test-integration   - Run integration tests"
+	@echo "  test-security      - Run security tests"
+	@echo "  test-performance   - Run performance tests"
+	@echo "  test-parallel      - Run tests in parallel"
+	@echo "  test-coverage      - Run tests with coverage reporting"
+	@echo "  test-mutation      - Run mutation testing"
+	@echo "  test-all           - Run comprehensive test suite"
+	@echo "  test-clean         - Clean test artifacts"
+
+# Variables
+PYTHON = python3
+PIP = pip3
+PYTEST = pytest
+COVERAGE = coverage
+MUTMUT = mutmut
+
+# Test directories
+TEST_DIR = tests
+REPORT_DIR = test-results
+COVERAGE_DIR = coverage
+
+# Setup and dependencies
+test-setup:
+	@echo "Setting up testing environment..."
+	$(PIP) install -r requirements-testing.txt
+	mkdir -p $(REPORT_DIR) $(COVERAGE_DIR)
+	@echo "Testing environment setup complete!"
+
+# Basic testing
+test:
+	@echo "Running basic test suite..."
+	$(PYTEST) $(TEST_DIR) -v --tb=short
+
+test-unit:
+	@echo "Running unit tests..."
+	$(PYTEST) tests/unit -m unit -v
+
+test-integration:
+	@echo "Running integration tests..."
+	$(PYTEST) tests/integration -m integration -v
+
+test-security:
+	@echo "Running security tests..."
+	$(PYTEST) tests/security -m security -v
+
+test-performance:
+	@echo "Running performance tests..."
+	$(PYTEST) tests/performance -m performance -v
+
+# Advanced testing
+test-parallel:
+	@echo "Running tests in parallel..."
+	$(PYTEST) $(TEST_DIR) -n auto --dist=loadscope -v
+
+test-coverage:
+	@echo "Running tests with coverage..."
+	$(COVERAGE) run -m pytest $(TEST_DIR)
+	$(COVERAGE) report
+	$(COVERAGE) html
+	$(COVERAGE) xml
+	$(COVERAGE) json
+
+test-mutation:
+	@echo "Running mutation testing..."
+	$(MUTMUT) run --paths-to-mutate src/
+	$(MUTMUT) html
+
+test-all: test-security test-unit test-integration test-performance test-coverage
+	@echo "All tests completed!"
+
+# Cleanup
+test-clean:
+	@echo "Cleaning test artifacts..."
+	rm -rf $(REPORT_DIR)/* $(COVERAGE_DIR)/*
+	rm -rf .pytest_cache .coverage .mutmut-cache
+	rm -rf .hypothesis htmlcov
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true

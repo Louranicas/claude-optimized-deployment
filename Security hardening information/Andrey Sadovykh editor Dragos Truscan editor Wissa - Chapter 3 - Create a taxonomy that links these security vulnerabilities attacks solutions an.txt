@@ -1,0 +1,71 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 3 - Create a taxonomy that links these security vulnerabilities, attacks, solutions, and preventive measures for industrial PLC software, providing a structured and systematic approach for identifying and mitigating potential security risks.
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 5
+Security Relevance Score: 11
+Word Count: 762
+Extracted: 2025-06-13 23:40:22
+
+---
+
+Create a taxonomy that links these security vulnerabilities, attacks, solutions, and preventive measures for industrial PLC software, providing a structured and systematic approach for identifying and mitigating potential security risks.
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 5
+1.2 Background: Industrial Control Systems 
+Industrial control systems (ICS) refer to a collection of control systems, networks, 
+controllers, and devices that facilitate the automation of industrial processes across 
+various domains, such as automotive, power plants, water and wastewater, natural 
+gas, and manufacturing [ 5]. The two most widely used control systems are 
+supervisory control and data acquisition (SCADA) systems and distributed control 
+systems (DCS). 
+As shown in Fig. 1.1 [6], the components of an ICS include the human machine 
+interface (HMI), remote diagnostics and maintenance utilities, and the control loop, 
+which consists of sensors, actuators, controllers (e.g., PLC), and the controlled 
+process. The sensors deliver variables to the controller, which generates variables for 
+the actuators. The output of the system is considered a process, which can be fully 
+automatic or partially intervened by a human [ 7]. The HMI enables the conﬁguration 
+of various parameters and provides necessary information in a display. The remote 
+diagnostics and maintenance utilities allow for remote modiﬁcation and diagnosis 
+of parameters. 
+Communication between different elements of an ICS relies on communication 
+protocols such as Proﬁbus, Modbus, DNP3, and CIP [ 8], among others. 
+Fig. 1.1 Industrial control system operation [ 6]
+6 E. P. Enoiu et al.
+1.3 Related Work 
+Pan et al. [ 9] provide an overview of industrial control systems (ICS) and specif-
+ically focus on various aspects of PLC security issues and vulnerabilities, such 
+as code, ﬁrmware, and network security, Modbus protocol security, and virus 
+vulnerability. The authors analyze these aspects based on previous research and 
+provide available security protection methods. 
+Sandaruwan et al. [ 2] emphasize the importance of investigating vulnerabilities 
+in ICSs, with a particular focus on PLCs, which are the most critical components of ICSs. Through various attack vectors, the authors attempt to reveal vulnerabilities that can affect the entire infrastructure. They also provide speciﬁc solutions to 
+mitigate the risks associated with these vulnerabilities. 
+Together, these studies underscore the signiﬁcance of PLC security in ICSs and 
+highlight the need for identifying and addressing potential vulnerabilities through 
+systematic analysis and effective mitigation strategies. 
+In their research, Wu et al. [ 10] highlight a shift in attackers’ focus from 
+individual users to industrial control systems (ICSs) and emphasize the signiﬁcant impact of PLCs’ safety on ICSs. They classify security research conducted for 
+PLCs based on function and structure and investigate various aspects such as 
+ﬁrmware security, operation, and program security. The authors analyze security 
+measures that focus on defense detention of the PLC program, veriﬁcation of the 
+PLC ﬁrmware’s integrity, security encryption of the PLC communication protocol, and formal veriﬁcation of the PLC code. 
+On the other hand, Valentine [ 3] discusses the importance of correct PLC 
+applications and identiﬁes security threats while introducing potential solutions. The research contributions include a taxonomy regarding attacks in ladder logic, ladder 
+logic vulnerabilities, and secure design patterns. However, this taxonomy has a more narrow scope than ours. 
+Among the studies mentioned, only Valentine’s research [ 3] provides a taxon-
+omy, while others focus on speciﬁc aspects of PLC security. Nevertheless, these studies collectively highlight the need for comprehensive security measures for PLCs and the importance of developing taxonomies to identify and address potential 
+vulnerabilities. 
+While our study systematically derives a taxonomy of security vulnerabilities in 
+industrial PLC software, there are other taxonomies of vulnerabilities, attacks, and 
+security solutions in related domains. For example, Pekaric et al. [ 11] developed 
+a taxonomy of attack mechanisms in the automotive domain using a similar 
+systematic approach. This highlights the importance of developing structured 
+taxonomies in various domains to enable a better understanding of potential threats 
+and vulnerabilities and to inform the development of effective mitigation strategies.
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 7
+1.4 Method 
+Our study aims to make a contribution by developing a taxonomy that models and 
+conceptualizes security vulnerabilities in industrial PLC software. A taxonomy is a classiﬁcation system that deﬁnes speciﬁc entities based on their characteristic 
+features [
+12]. By creating a taxonomy, we can systematically identify and classify 
+different types of security vulnerabilities in industrial PLC software, which can inform the development of effective mitigation strategies to address and prevent 
+such vulnerabilities. A mapping study is a crucial component of the taxonomy development process. In this section, we will discuss the design details of both the taxonomy and the mapping study.

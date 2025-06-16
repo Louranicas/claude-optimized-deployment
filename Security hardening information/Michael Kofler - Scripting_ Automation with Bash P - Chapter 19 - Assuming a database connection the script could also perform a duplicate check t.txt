@@ -1,0 +1,49 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 19 - Assuming a database connection, the script could also perform a duplicate check, that is, replace entries instead of adding them, if only the filename or the combination of filename and file size matches.
+Security Relevance Score: 2
+Word Count: 628
+Extracted: 2025-06-13 23:41:06
+
+---
+
+Assuming a database connection, the script could also perform a duplicate check, that is, replace entries instead of adding them, if only the filename or the combination of filename and file size matches.
+
+
+
+
+
+
+
+
+17    Web ScrapingWeb scraping refers to the targeted extraction of data from a webpage. The basic idea is to load the HTML code of a page and search for the desired data there. With web scraping, you can automatically determine the price of a product on shopping websites, the current temperature in Hawaii on a weather website, the latest headlines on a news website, or the latest security vulnerabilities for software you use on a security site. In this chapter, I’ll describe some techniques around web scraping:
+
+I am going to start with the wget command: This command allows you to download entire websites including all linked images, CSS files, and so on. Technically, this command has little to do with web scraping and goes more in the direction of web crawling. (I will explain the term shortly.) An advantage of using wget is that you can solve complex tasks with a single command without having to develop a script at all.
+
+
+Using regular expressions, you can analyze the HTML code of documents and in this way determine the desired data. However, this approach only works satisfactorily in simple cases.
+
+
+A better approach is to use a library that represents an HTML document as an object tree. The technical term for this library is Document Object Model (DOM). In this chapter, I will introduce the Python modules Beautiful Soup and Requests-HTML as well as the PowerShell module, called PowerHTML, will allow you to navigate through complex HTML documents with ease. The resulting code is clearer and more reliable than using regular expressions.
+
+
+Prerequisites for This Chapter
+Most of the scripts in this chapter use the Python programming language. Therefore, you should know how to use regular expressions. You also need basic HTML knowledge, but I can’t teach you that in this book.
+
+17.1    Limitations
+Web scraping is a popular scripting concept, but it comes with numerous limitations:
+
+
+The structure of a web page changes frequently. Web scraping script must thus be adjusted often.
+
+
+Modern websites use JavaScript on the client side, which can cause a simple readout of the HTML code to fail. (You’re lucky if JavaScript is only responsible for displaying the ubiquitous ads.)
+
+
+Basically, it’s not permitted to use data collected via web scraping for commercial purposes. Let me illustrate this rule with a simple example: You can’t collect weather data from a popular weather website, share it with your customers in some form, and possibly make money from advertising in the process.
+Of course, not everything is forbidden: After all, the basic idea of the internet is that information is shared publicly. A popular permitted application of web scraping is price comparison sites such as https://www.pricegrabber.com/. But even for such services, rules of the game apply, for example, regarding the use of product photos.
+Legally, we’re navigating rocky terrain. I will let this warning stand and focus on technical details in this chapter. However, an essential task is that you clarify the legal requirements before using web scraping beyond the purely private sphere!
+
+
+The solution to these limitations are application programming interfaces (APIs), which provide an ordered access to data. While webpages are optimized in terms of beautiful layout, APIs allow for an efficient data exchange without overhead, with some APIs even allowing data changes. In addition, API usage rules provide clarity as to which data may be used and how, or what costs are incurred in the process.
+To cut a long story short: If the website whose data you want to use provides an API, you should skip ahead to

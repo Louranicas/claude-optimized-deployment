@@ -1,0 +1,88 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 1 - , you learned how to use the ls command to obtain information about files in a given directory. You can view the number of lines, words, and characters in a set of files using the wc command. For example, if you execute the command wc * in a command shell you will see information for all the files in a directory, similar to the following output:
+3      6       25 apple-care.txt
+12     28     146 checkin-commands.txt
+27     55     478 iphonemeetup.txt
+ 2      1      12 kyrgyzstan.txt
+ 1      2      11 outfile.txt
+ 2      2      12 output.txt
+ 5     11     176 ssl-instructions.txt
+52    105     860 total
+As you can see from the last line in the previous output, there are a total of 52 lines, 105 words, and 860 characters in the text files in this directory. If you run the command “wc o*” you will see information about files that start with the letter o, as shown here:
+1      2      11 outfile.txt
+2      2      12 output.txt
+3      4      23 total
+You can count the number of files in a directory with ls -1 |wc as shown here:
+7      7      112
+The shell commands cat, more, less, head, and tail display different parts of a file. For short files, these commands can overlap in terms of their output. The next several sections provide more details about these commands, along with some examples.
+THE CAT COMMAND
+The cat command displays the entire contents of a file, which is convenient for small files. For longer files, you can use the more command that enables you to “page” through the contents of a file.
+If you type this command:
+cat iphonemeetup.txt
+you will see the following output:
+iPhone meetup
+=============
+* iPhone.WebDev.com
+* iui.googlecode.com
+* tinyurl.sqllite.com
+* touchcode.googlecode.com: open source supports JSON
+Security Relevance Score: 2
+Word Count: 508
+Extracted: 2025-06-13 23:40:50
+
+---
+
+, you learned how to use the ls command to obtain information about files in a given directory. You can view the number of lines, words, and characters in a set of files using the wc command. For example, if you execute the command wc * in a command shell you will see information for all the files in a directory, similar to the following output:
+3      6       25 apple-care.txt
+12     28     146 checkin-commands.txt
+27     55     478 iphonemeetup.txt
+ 2      1      12 kyrgyzstan.txt
+ 1      2      11 outfile.txt
+ 2      2      12 output.txt
+ 5     11     176 ssl-instructions.txt
+52    105     860 total
+As you can see from the last line in the previous output, there are a total of 52 lines, 105 words, and 860 characters in the text files in this directory. If you run the command “wc o*” you will see information about files that start with the letter o, as shown here:
+1      2      11 outfile.txt
+2      2      12 output.txt
+3      4      23 total
+You can count the number of files in a directory with ls -1 |wc as shown here:
+7      7      112
+The shell commands cat, more, less, head, and tail display different parts of a file. For short files, these commands can overlap in terms of their output. The next several sections provide more details about these commands, along with some examples.
+THE CAT COMMAND
+The cat command displays the entire contents of a file, which is convenient for small files. For longer files, you can use the more command that enables you to “page” through the contents of a file.
+If you type this command:
+cat iphonemeetup.txt
+you will see the following output:
+iPhone meetup
+=============
+* iPhone.WebDev.com
+* iui.googlecode.com
+* tinyurl.sqllite.com
+* touchcode.googlecode.com: open source supports JSON
+
+XCode: supports SVG-like functionality
+blog site: iphoneinaction.manning.com
+iPhone in Action: manning.com/callen
+iPhone dev camp: probably summer 2021
+
+openGL-ES how to:
+* create arcs/circles/ellipses
+* linear/radial gradients
+* Bezier curves
+* Urbanspoon vs Yelp
+You can see size-related attributes with the command wc iphonemeetup.txt:
+21     48     417 iphonemeetup.txt
+THE MORE COMMAND AND THE LESS COMMAND
+The more command enables you to view “pages” of content in a file. Press the space bar to advance to the next page, and press the return key to advance a single line. The less command is similar to the more command. An example of the more command is here:
+more abc.txt
+Alternatively, you can use this form, but remember that it’s less efficient because two processes are involved:
+cat abc.txt |more
+The more command contains some useful options. For instance, if you want the more command to start from the 15th line in a file instead of the first line, use this command:
+more +15 abc.txt
+If a file contains multiple consecutive blank lines, you can remove them from the output with this command:
+more -s abc.txt
+Search for the pattern abc in a text file via the following command:
+more +/abc.txt
+THE HEAD COMMAND
+The head command enables you to display an initial set of lines, and the default number is

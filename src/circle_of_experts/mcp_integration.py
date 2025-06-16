@@ -14,6 +14,11 @@ from src.circle_of_experts.models.query import ExpertQuery
 from src.circle_of_experts.models.response import ExpertResponse
 from src.circle_of_experts.core.expert_manager import EnhancedExpertManager
 
+__all__ = [
+    "MCPEnhancedExpertManager"
+]
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -221,7 +226,9 @@ class MCPEnhancedExpertManager(EnhancedExpertManager):
             Enhanced consultation results
         """
         # Extract title
-        title = content.split('\n')[0][:100] if '\n' in content else content[:100]
+        title = content.split('
+')[0][:100] if '
+' in content else content[:100]
         
         return await self.consult_experts_with_mcp(
             title=title,

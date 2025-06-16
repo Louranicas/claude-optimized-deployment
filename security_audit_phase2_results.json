@@ -1,0 +1,113 @@
+{
+  "audit_timestamp": "2025-06-07T07:09:09.801930",
+  "phase": "Phase 2: Dynamic Security Testing",
+  "vulnerabilities": [
+    {
+      "file": "src/mcp/devops_servers.py",
+      "type": "DANGEROUS_FUNCTION",
+      "severity": "HIGH",
+      "details": "Use of eval() or exec() found"
+    },
+    {
+      "file": "src/mcp/devops_servers.py",
+      "type": "COMMAND_INJECTION",
+      "severity": "CRITICAL",
+      "details": "subprocess with shell=True found"
+    },
+    {
+      "file": "src/mcp/infrastructure_servers.py",
+      "type": "DANGEROUS_FUNCTION",
+      "severity": "HIGH",
+      "details": "Use of eval() or exec() found"
+    },
+    {
+      "file": "src/mcp/infrastructure_servers.py",
+      "type": "COMMAND_INJECTION",
+      "severity": "CRITICAL",
+      "details": "subprocess with shell=True found"
+    },
+    {
+      "file": "src/mcp/security/sast_server.py",
+      "type": "DANGEROUS_FUNCTION",
+      "severity": "HIGH",
+      "details": "Use of eval() or exec() found"
+    },
+    {
+      "file": "src/mcp/security/supply_chain_server.py",
+      "type": "DANGEROUS_FUNCTION",
+      "severity": "HIGH",
+      "details": "Use of eval() or exec() found"
+    },
+    {
+      "file": "src/mcp/infrastructure/commander_server.py",
+      "type": "DANGEROUS_FUNCTION",
+      "severity": "HIGH",
+      "details": "Use of eval() or exec() found"
+    },
+    {
+      "file": "src/auth/permissions.py",
+      "type": "HARDCODED_SECRET",
+      "severity": "CRITICAL",
+      "details": "Potential API_KEY found",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "src/database/init.py:132",
+      "type": "SQL_INJECTION",
+      "severity": "CRITICAL",
+      "details": "Direct string interpolation in SQL query",
+      "evidence": "f\"SELECT 1 FROM {table} LIMIT 1\"",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "src/database/init.py:233",
+      "type": "SQL_INJECTION",
+      "severity": "CRITICAL",
+      "details": "Direct string interpolation in SQL query",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "src/database/utils.py:116",
+      "type": "SQL_INJECTION",
+      "severity": "CRITICAL",
+      "details": "Direct string interpolation in SQL query",
+      "cvss_score": 9.8
+    },
+    {
+      "file": "src/circle_of_experts/drive/manager.py:148",
+      "type": "INSECURE_TEMP_FILE",
+      "severity": "MEDIUM",
+      "details": "Insecure temporary file/directory usage",
+      "cvss_score": 5.3
+    },
+    {
+      "file": "src/circle_of_experts/drive/manager.py:252",
+      "type": "INSECURE_TEMP_FILE",
+      "severity": "MEDIUM",
+      "details": "Insecure temporary file/directory usage",
+      "cvss_score": 5.3
+    }
+  ],
+  "tests_performed": [
+    {
+      "test": "Dangerous Import Analysis",
+      "files_checked": 125,
+      "issues_found": 7
+    },
+    {
+      "test": "Hardcoded Secrets Scan",
+      "issues_found": 1
+    },
+    {
+      "test": "CORS Security Check",
+      "issues_found": 0
+    }
+  ],
+  "summary": {
+    "critical": 6,
+    "high": 5,
+    "medium": 2,
+    "low": 0
+  },
+  "total_vulnerabilities": 13
+}

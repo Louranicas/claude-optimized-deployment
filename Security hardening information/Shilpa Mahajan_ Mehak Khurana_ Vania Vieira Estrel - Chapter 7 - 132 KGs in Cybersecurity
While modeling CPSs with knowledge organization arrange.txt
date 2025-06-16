@@ -1,0 +1,58 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 7 - 13.2 KGs in Cybersecurity
+While modeling CPSs with knowledge organization arrangements or communication networks, there are four main KG scenarios:
+Security Relevance Score: 9
+Word Count: 964
+Extracted: 2025-06-13 23:40:31
+
+---
+
+13.2 KGs in Cybersecurity
+While modeling CPSs with knowledge organization arrangements or communication networks, there are four main KG scenarios:
+
+Type I characterizes a network infrastructure, hinging on the granularity where nodes may embody either:
+
+Simulated or real‐life network infrastructures, device entities with their properties; arcs indicating physical and logical relations concerning them,
+Autonomous systems and their properties, and the arcs illustrate their relations,
+Network data stream and arcs typify routing, or
+A CA graph comprehends arcs that epitomize outbreak paths.
+
+
+Type II characterizes CTI, enfolding system information/parameters, CT data, and user/malware behavioral data.
+Type III uses nodes to represent a prearranged vocabulary or an ontology as
+
+CS properties and concepts plus the arcs relating them;
+Network devices and their properties interconnect through arcs;
+Vulnerabilities where arcs define properties, viz. vulnerability scoring, types of faults, and platforms.
+
+
+Type IV encompasses multiple, uniquely identified connected graphs, each capturing data from a distinctive source for information fusion and dimensionality cutback.
+
+Utilizing concepts and properties for independently created knowledge domains like CS, CSA, and CTI, OWL32 ontologies can partially automate operations that would otherwise be done manually or with SW instruments under human supervision. For timeline development and event reconstruction, digital forensic investigations can be automated if knowledge and semantics are kept. In a fused CSKG, which collects every detail and organically integrates seemingly unrelated CKGs, owl:sameAs can match and define identical entities (such as specific malware) from several sources, such as after‐action attack reports. Structured, semantic KGs symbolize real‐world concepts and interactions [23–25]. Simple KG entities represent collections, categories, object kinds, and classes (production, vendor, vulnerability, and invader). Entity relationships build a graph; attributes contain traits and parameters.
+Formal, semantical knowledge representation is an AI branch that aids in (i) defining CS concepts, properties, and relationships formally, (ii) allowing software (SW) agents to catalog vulnerabilities, CTs, and CAs, (iii) resolving entities, (iv) detecting anomalies, and (v) matching CAs’ patterns. KGs might disclose data correlations even experts would ignore. CSKGs call for storage when dealing with CSKGs (habitually directed, labeled graphs). Numerous data security and network processes’ features exist that perceive CS semantics changes impressively depending on the graph model [20–22], one of the following:
+
+“Resource Description Framework” (RDF)[b0]: It engenders a graph QR, amounting to a group of RDF triples or statements (s, p, o) ∈ (I∪B) × I × (I∪L∪B). I, L, are pairwise disconnected infinite sets clarified below:
+
+ pertains to the “International Resource Identifiers” (IRIs) set, comprising sets of Unicode characters’ strings below
+scheme:[//[user:pwd@]host[:port][/]path[?query][#fragment]
+or a legitimate subset of them (viz URLs).
+L and LP represent, respectively, RDF and self‐denoting plain literals like"<string>"(@<lang>. The notation obeys the ensuing definitions:
+<string> is a string, and
+<lang> is an elective language tag (or typed literals) LT behaving as <string>""^^, <datatype> denotes a data type as per a schema (e.g., the XML), and
+<string> stands for a lexical space element consistent with the data type.
+B is a blank nodes’ set, i.e., unique albeit anonymous assets that disobey IRIs and RDF literals.
+
+
+Labeled Property Graph: It is a graph QLP = (V, E, α, β, γ), with a finite set of vertices (aka nodes) V. E is a graph edges’ finite set disjoint from V. The incidence function that maps each edge in E into a vertices’ pair in V, α: E → (N × N), is an β: (V∪E) → LS maps every single edge from E and its set of labels from , and γ: (N∪E) × P → VS is a function that assigns properties to a collection of values from V, with the second and third properties being partial functions.
+Hypergraph: It assumes the form QH = (V, E), where E is a set of hyper‐edges among the vertices so that or a given a set of vertices V, E{u, v,...} ∈ 2V.
+Multigraph: In this case, QM = (V, E). E denotes a bag of edges. A growing number of graph databases are assisting multiple graph data models [22].
+
+Different graph‐based implementations possess distinct advantages and disadvantages. In fact, not all support n‐ary relations, despite their usefulness in modeling networked communication. CS provenance deals with the chronology of the origin, advance, ownership, locality, and alterations to a system or sub‐system and associated data. It may also embrace employees and processes intermingling with or modifying the arrangement, element, or related data. CSA, CS decision support, anomaly detection, network forensics, etc. can benefit from data provenance [20], which some KGs enable, but hybrid solutions exist. The RDF data model does not catch provenance. However, the Semantic Web research community developed sophisticated formalisms. These numerous approaches have been introduced over time, highlighting the need to explain a graph data model.
+
+
+13.3 CSKG Construction Methodologies
+Knowledge depiction benefits a lot from logic and AI “Web ontology language” (OWL), and RDF is helping modern KGs gain tremendous popularity [23, 24] to boost the search engines and the users’ search quality. The CSKG creation process embraces these aspects: (i) there is a CSKG building framework with the security ontology design denoting the security domain knowledge, and (ii) named entity recognition (NER) tasks are reviewed. Finally, relation extraction and investigations regarding similar mechanisms in this domain are called.
+
+13.3.1 CSKG Building Flow
+Akin to broad‐spectrum KG construction procedures, the CSKG employs the same methodology and framework. Due to the relative maturity and completeness of the CS knowledge data, CSKGs can be crafted utilizing a top‐down approach [25]. Fragmented domain data could be joined under the direction of a particular framework or a pre‐designed CS ontology from domain experts. Then, expertise in IE and entity alignment can split entities and relationships starting from the earliest CS data. Knowledge reasoning tools can return new CS comprehension evidence from KGs in effect to aid in prediction and inference, as in Figure 13.

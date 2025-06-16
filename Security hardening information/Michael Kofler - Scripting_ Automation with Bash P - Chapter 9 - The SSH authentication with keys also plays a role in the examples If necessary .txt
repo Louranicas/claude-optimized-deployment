@@ -1,0 +1,15 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 9 - The SSH authentication with keys also plays a role in the examples. If necessary, you should take another look at Chapter 12.
+Security Relevance Score: 2
+Word Count: 137
+Extracted: 2025-06-13 23:41:06
+
+---
+
+The SSH authentication with keys also plays a role in the examples. If necessary, you should take another look at Chapter 12.
+
+21.1    Setting Up and Running Virtual Machines (KVMs)
+The starting point for the following scripts is an Ubuntu server. The KVM virtualization system, the virsh command from the libvirt-clients package, and the virt-clone command from the package of the same name are installed there. The goal is to run multiple similar virtual machines cloned from an existing virtual machine named vm-base. The vm-base output system has three network interfaces and four virtual disks.
+21.1.1    Cloning Virtual Machines
+The make-vms.sh script expects two numeric parameters. It then loops from the start value to the end value and creates the virtual machines, vm-<nn>. Thus, the make-vms.sh 10 29 command creates 20 virtual machines named vm-10 to vm-

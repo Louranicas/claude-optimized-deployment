@@ -1,0 +1,43 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 10 - 2.4    Daily Server Backups (Bash)
+Let’s say we have a web application running on a LAMP server (Linux, Apache, MySQL/MariaDB, PHP). In this scenario, the contents of the database and the directory containing the web application files should be backed up once a day. This process can be performed automatically via the following brief Bash script:
+# Sample file lamp-backup.shdbfile="/localbackup/sql.gz"mysqldump -u backupuser --single-transaction dbname | \  gzip -c > $dbfilehtmlfile="/localbackup/html.tar.gz"tar czf $htmlfile -C /var/www/html/applicationdir . 
+The mysqldump command requires the existence of a /root/.my.cnf configuration file in which the password for the backup user is stored. To run the script every night at 4:30 am with root privileges, you must add the following line to /etc/crontab (see also Chapter 11, Section 11.1):
+# in /etc/crontab30 4 * * * root /path/to/lamp-backup.sh 
+Basic principles and tips for designing backup scripts are described in Chapter 15. I will show you how to encrypt your backups and upload them to the cloud in Chapter 20, Section 20.2.
+Security Relevance Score: 4
+Word Count: 438
+Extracted: 2025-06-13 23:41:06
+
+---
+
+2.4    Daily Server Backups (Bash)
+Let’s say we have a web application running on a LAMP server (Linux, Apache, MySQL/MariaDB, PHP). In this scenario, the contents of the database and the directory containing the web application files should be backed up once a day. This process can be performed automatically via the following brief Bash script:
+# Sample file lamp-backup.shdbfile="/localbackup/sql.gz"mysqldump -u backupuser --single-transaction dbname | \  gzip -c > $dbfilehtmlfile="/localbackup/html.tar.gz"tar czf $htmlfile -C /var/www/html/applicationdir . 
+The mysqldump command requires the existence of a /root/.my.cnf configuration file in which the password for the backup user is stored. To run the script every night at 4:30 am with root privileges, you must add the following line to /etc/crontab (see also Chapter 11, Section 11.1):
+# in /etc/crontab30 4 * * * root /path/to/lamp-backup.sh 
+Basic principles and tips for designing backup scripts are described in Chapter 15. I will show you how to encrypt your backups and upload them to the cloud in Chapter 20, Section 20.2.
+
+
+
+
+
+
+
+
+
+2.5    Web Scraping (Python)
+Web scraping is the art of extracting information from a web page, such as the current price from a product page. In this script, we’ll extract the current version number from a webpage (in our case, the Git homepage at https://git-scm.com) and extract the link to the release notes as well.
+
+Figure 2.1    
+            Git Homepage Showing the Current Version Number in the Bottom-Right Corner
+A look into the HTML code of the web page reveals the following code snippet:
+...<div class="monitor">  <h4> Latest source Release </h4>  <span class="version">      2.40.0  </span>  <a href="https://raw.github.com/git/git/master/Documentation/\           RelNotes/2.40.0.txt">Release Notes</a>  ... 
+Our next Python script requires that you install two modules beforehand. Depending on your operating system, you’ll need to use pip or pip3 for this step:
+$ pip install requests$ pip install beautifulsoup4 
+The mini program downloads the HTML code and uses the Beautiful Soup  library to look for the span tag. Its text property returns the desired version number. To determine the link to the release notes, parent accesses the layer above it (in this case, the div tag with the monitor class), while find looks for the first a tag in it.
+import requestsfrom bs4 import BeautifulSoupresponse = requests.get("https://git-scm.com/downloads")dom = BeautifulSoup(response.content, 'html.parser')version = dom.find('span', class_='version')print("Git version:", version.text.strip())url = version.parent.find('a')print("What's new:", url.attrs['href']) 
+As I finished writing this chapter, I ran this script, which delivered the following output:
+Git version: 2.40.0What's new: https://raw.github.com/git/git/master/Documentation/\            RelNotes/2.40.0.txt 
+Note that this script only works as long as the structure of the Git project page does not change. I’ll discuss this basic problem of web scraping as well as various programming techniques in the Bash, PowerShell, and Python languages in

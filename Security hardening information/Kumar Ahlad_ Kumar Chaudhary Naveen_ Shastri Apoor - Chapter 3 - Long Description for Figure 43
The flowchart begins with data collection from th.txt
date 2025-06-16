@@ -1,0 +1,27 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 3 - Long Description for Figure 4.3
+The flowchart begins with data collection from the ISCXIDS dataset and flows into network traffic analysis. After data preprocessing, which includes handling missing values and feature selection, the data is split into "Dual-set Analysis" and "Imbalanced Dataset" paths. The dual-set analysis leads to a balanced dataset, followed by class balance adjustments. Both paths then proceed to model training using four models: Random Forest Classifier, Stacked Long-Short Term Memory, 1-Dimensional CNN, and a Hybrid Model. The models are evaluated, and the process concludes with experimental results.
+Security Relevance Score: 4
+Word Count: 474
+Extracted: 2025-06-13 23:40:52
+
+---
+
+Long Description for Figure 4.3
+The flowchart begins with data collection from the ISCXIDS dataset and flows into network traffic analysis. After data preprocessing, which includes handling missing values and feature selection, the data is split into "Dual-set Analysis" and "Imbalanced Dataset" paths. The dual-set analysis leads to a balanced dataset, followed by class balance adjustments. Both paths then proceed to model training using four models: Random Forest Classifier, Stacked Long-Short Term Memory, 1-Dimensional CNN, and a Hybrid Model. The models are evaluated, and the process concludes with experimental results.
+
+FIGURE 4.3 Diagram showing the proposed implemented methodology.
+
+The dataset contains 2,071,657 instances and each instance has 21 features. The pattern in a network is likely not able to follow a specific pattern and that is the knowledge we are training on. Training a model based on the provided instances that has a unique label for each instance will enable the model to understand the difference between a normal network traffic and an abnormal network traffic. The sequential procedure used in building the model is contained in the below bullet points.
+
+4.5.1.1 Preprocessing Techniques
+Preprocessing techniques are the basic building blocks to the training of a model. It involved various steps and various approaches used to process the model to ensure that the model learns and understands. It is a very core step.
+
+Handling Missing values
+First, we handled missing values and dropped columns where the percentage of missing values was more than 50%. Relatively, about six columns contained missing values of which four were more than 50%. The decisive action to drop these columns was made after careful consideration of the effect of the columns either being a part or not being a part of the data to be used to train the model. Particularly for the reason:
+The column “Payload” in encodings such as Base64 and UTF, both for the source and destination doesn’t typically contain the actual content of the communication, and therefore is not very significant for the defined problem objective, “Intrusion Detection,” where we are focusing on analyzing packet headers and other attributes more closely associated with intrusion behaviors.
+For the columns “sourceTCPFlagsDescription” and “destinationTCPFlagsDescription” with missing values of 20% and 23% respectively, we predicted the missing values for these categorical columns using the numerical columns of the dataset. The algorithm used for the prediction was the Random Forest Classifier because of its unique value of feature importance estimation and better handling of outliers.
+Balancing Classes
+For our target variable, given that our model’s primary objective is to classify network traffic on ground-truths either “Normal” or “Attack,” we had class imbalance where the number of instances for a normal network traffic was more than the abnormal network traffic. This was utilized for the balanced data training only.
+The value count for each category can be seen in Figure 4.

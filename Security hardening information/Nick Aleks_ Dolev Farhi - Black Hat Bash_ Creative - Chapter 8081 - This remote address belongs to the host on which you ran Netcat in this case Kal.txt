@@ -1,0 +1,45 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 8081 - This remote address belongs to the host on which you ran Netcat (in this case, Kali).
+Security Relevance Score: 2
+Word Count: 341
+Extracted: 2025-06-13 23:40:57
+
+---
+
+This remote address belongs to the host on which you ran Netcat (in this case, Kali).
+
+
+Firewall Rules
+Host firewall rules are also a source of network information. A firewall table may include rules that block certain networks or individual IP addresses from communicating with the host. This information can teach us about other nearby networks, servers, or clients.
+A common host firewall found on Linux servers is iptables. Let’s run the following iptables command to see the rules configured on p-web-01 (172.16.10.10):
+$ iptables -L --line-numbers  -v
+
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source      destination
+  1      0     0 DROP       all  --  any    any     10.1.0.0/24 anywhere    /* Block Network */
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source      destination
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+num   pkts bytes target     prot opt in     out     source      destination
+
+As you can see, a rule blocks the network 10.1.0.0/24 from connecting to the p-web-01 box; this is another indication that an adjacent network at 10.1.0.0/24 exists. Note that reading the rule table with the iptables command usually requires elevated permissions.
+
+
+Network Interface Configuration Files
+Network interfaces may have dedicated configuration files that, for example, configure a network IP address statically for a specific interface or ensure that a network card is enabled on boot by default. Linux distributions can place their network configurations in different places, but you’ll commonly find them in the following locations: /etc/network/interfaces, /etc/network/interfaces.d/, /etc/netplan/, /lib/netplan/, /run/netplan/, and /etc/sysconfig/network-scripts/.
+If configured statically, network interfaces can shed light on the DNS servers in use. Network interfaces can also provide information such as the IP scheme, gateway addresses, and more. Here is a static network configuration file available in later versions of Ubuntu-based Linux systems:
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+     dhcp4: no
+     addresses: [172.16.10.0/24]
+     gateway4: 172.16.10.1
+     nameservers:
+       addresses: [8.8.8.8,8.8.4.4]
+
+This file configures the eth0 network interface with a default gateway of 172.16.10.1, as well as Google DNS servers 8.8.8.8 and 8.8.4.

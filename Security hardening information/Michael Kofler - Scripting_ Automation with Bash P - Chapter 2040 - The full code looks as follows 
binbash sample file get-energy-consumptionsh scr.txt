@@ -1,0 +1,93 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 2040 - The full code looks as follows: 
+#!/bin/bash# sample file get-energy-consumption.sh# script expects two parametersif [ $# -ne 2 ]; then   echo "Usage:   get-energy-consumption <countrycode> <year>"  echo "Example: get-energy-consumption FRA 2021"    exit 2fi# download file if not yet locally savedif [ ! -f owid-energy-data.csv ]; then  wget https://nyc3.digitaloceanspaces.com/owid-public/data/energy/owid-energy-data.csvfi# remove not needed columns, filter lines, # use last line if result has more than one linedata=$(cut -d ',' -f 1,2,3,32 owid-energy-data.csv | \       grep $1 | grep $2 | tail -n 1)     # extract items from resultcountry=$(echo $data | cut -d ',' -f 1)year=$(echo $data | cut -d ',' -f 2)energy=$(echo $data | cut  -d ',' -f 4)# output resultif [ "$country" ] && [ "$energy" ]; then  echo "Primary energy consumption per person for $country in $year: "  echo "$energy kWh/a"else  echo "Sorry, no data found for $1 $2."fi
+Security Relevance Score: 4
+Word Count: 1521
+Extracted: 2025-06-13 23:41:06
+
+---
+
+The full code looks as follows: 
+#!/bin/bash# sample file get-energy-consumption.sh# script expects two parametersif [ $# -ne 2 ]; then   echo "Usage:   get-energy-consumption <countrycode> <year>"  echo "Example: get-energy-consumption FRA 2021"    exit 2fi# download file if not yet locally savedif [ ! -f owid-energy-data.csv ]; then  wget https://nyc3.digitaloceanspaces.com/owid-public/data/energy/owid-energy-data.csvfi# remove not needed columns, filter lines, # use last line if result has more than one linedata=$(cut -d ',' -f 1,2,3,32 owid-energy-data.csv | \       grep $1 | grep $2 | tail -n 1)     # extract items from resultcountry=$(echo $data | cut -d ',' -f 1)year=$(echo $data | cut -d ',' -f 2)energy=$(echo $data | cut  -d ',' -f 4)# output resultif [ "$country" ] && [ "$energy" ]; then  echo "Primary energy consumption per person for $country in $year: "  echo "$energy kWh/a"else  echo "Sorry, no data found for $1 $2."fi 
+
+
+
+
+
+
+
+
+
+8.3    Example: ping Analysis
+You can use the ping command to check the network connection to another computer. The -c option specifies how many Internet Control Message Protocol (ICMP) packets are to be sent in the process (i.e., after how many attempts ping will terminate). Without the option, ping runs on Linux and macOS until you terminate the command via (Ctrl) + (C). The following listing shows a typical ping result:
+$ ping -c 4 google.com  PING google.com(bud02s41-in-x0e.1e100.net     (2a00:1450:400d:802::200e)) 56 data bytes  64 bytes from bud02s41-...: icmp_seq=1 ttl=117 time=15.4 ms  64 bytes from bud02s41-...: icmp_seq=2 ttl=117 time=17.4 ms  64 bytes from bud02s41-...: icmp_seq=3 ttl=117 time=17.3 ms  64 bytes from bud02s41-...: icmp_seq=4 ttl=117 time=15.6 ms  --- google.com ping statistics ---  4 packets transmitted, 4 received, 0% packet loss, time 3006ms  rtt min/avg/max/mdev = 15.434/16.431/17.382/0.914 ms 
+Note that some servers are configured to send no response at all to ping requests (supposedly for security reasons). A prominent example is Microsoft (i.e., microsoft.com).
+Imagine you want to extract only the average response time from this result; in the previous listing, the value is 16,431 milliseconds. For this task, you first must filter the last line from the result using grep. Then, you can use cut to filter the fifth column from the result, using / as the separator:
+$ ping -c 4 google.com | grep avg | cut -d '/' -f 5  16.431 
+If you specify the additional -s option for cut, you can even omit grep. The -s option causes cut to consider only those result lines in which the column separator (in this case, /) occurs.
+$ ping -c 4 google.com | cut -s -d '/' -f 5 
+8.3.1    ping Call via Script
+Now, you can include the ping call in a script and pass the hostname of the computer. The script checks that exactly one parameter is passed and outputs the result properly formatted:
+# Sample file ping-avg.shif [ $# -ne 1 ]; then  echo "usage: ./ping-avg.sh <hostname>"  exit 2else  hostname=$1fiavg=$(ping -c 4 $hostname | cut -s -d '/' -f 5)echo "Average ping time for $hostname is $avg ms" 
+In my test call, the server of python.org responded slightly more quickly than Google’s server:
+$ ./ping-avg.sh python.org  Average ping time for python.org is 12.796 ms 
+A conceivable extension of the script would be the processing of multiple hostnames. The script then expects any number of parameters (at least one), as in the following example:
+#!/bin/bash# Sample file ping-avg.shif [ $# -lt 1 ]; then  echo "usage: ./ping-avg.sh <hostnames>"  exit 2fifor hostname in $*; do  avg=$(ping -c 4 $hostname | cut -s -d '/' -f 5)  echo "Average ping time for $hostname is $avg ms"done 
+A test call looks like the following:
+$ ./ping-avg.sh apple.com dell.com lenovo.com  Average ping time for apple.com is 22.675 ms  Average ping time for dell.com is 259.528 ms  Average ping time for lenovo.com is 12.251 ms 
+
+
+
+
+
+
+
+
+
+8.4    Example: Apache Log Analysis
+The starting point for this example is a log file from an Apache web server in what is called the combined logging format. The first lines of this file look as follows (wrapped here for reasons of space):
+65d3:f5b9:e9e5:4b1c:331b:29f3:97c1:c18f - - [05/Feb/2023:00:00:22    +0100]  "POST /consumer/technology HTTP/1.1" 200 5166  "https://example.com/land/raise/authority/him"  "WordPress/6.1.1; https://example.com"221.245.9.91 - - [05/Feb/2023:00:00:21 +0100] "GET /explain/out    HTTP/1.1"  200 31222 "https://example.com/add/maybe/person"  "FreshRSS/1.20.2 (Linux; https://freshrss.org)"37e3:498f:44d8:c471:3ba3:9902:17e7:2be8 - -  [05/Feb/2023:00:00:24 +0100]  "GET /by/financial/within/benefit HTTP/1.1" 200 97598  "https://example.com/defense/friend/race/protect"  "Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X)   AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3   Mobile/15E148 Safari/604.1" 
+The columns of this file indicate the IP address from which the request was made, the user (if known) who made the request, the type of request (GET, POST, etc.), the address of the web server requested, the HTTP code returned (e.g., 200 “OK”), the data volumes transferred, from which page the request was triggered (referrer address), and which client it is.
+To reproduce the following examples, you’ll need to use the access.log file from the sample files. wc shows that the file contains more than 170,000 lines.
+$ wc -l access.log  172607 access.log 
+
+Anonymized Data
+access.log.gz is a real logging file that has been anonymized for privacy reasons. All IP addresses, URLs and usernames were replaced with random data. This anonymization was of course also done by a script. If you’re interested in the code, look at anonymize-log.py, which makes extensive use of regular expressions. If you have access to “real” logging files from your own web server, you should use those.
+
+8.4.1    Extracting IP Addresses
+You can use cut to extract the IP addresses from the logging file:
+$ cut -d ' ' -f 1 access.log | less  65d3:f5b9:e9e5:4b1c:331b:29f3:97c1:c18f  221.245.9.91  37e3:498f:44d8:c471:3ba3:9902:17e7:2be8  135.84.251.52  ... 
+grep enables you to determine how many access events to the web server have been made via IPv4 or IPv6:
+$ cut -d ' ' -f 1 access.log | grep ':' | wc -l     # IPv6  65405$ cut -d ' ' -f 1 access.log | grep -v ':' | wc -l  # IPv4  107202 
+An ordered list of all IPv4 addresses is provided by sort and uniq:
+$ cut -d ' ' -f 1 access.log | grep -v ':' | sort  |  uniq  0.117.133.93  0.125.223.169  0.164.206.211  ... 
+While some IP addresses appear only once in the log, others appear quite frequently. sort sorts all IP addresses, uniq -c counts the addresses, sort -n -r sorts their frequency in decreasing order, and head -n 5 finally extracts the top 5 results:
+$ cut -d ' ' -f 1 access.log | sort | uniq -c | sort -n -r | \  head -n 5  6166 65d3:f5b9:e9e5:4b1c:331b:29f3:97c1:c18f  6048 3547:0b26:4c84:4411:0f66:945e:7741:d887  5136 186.107.89.128  4620 d741:a4ea:f6e1:6a17:78b1:1694:f518:c480  2362 168.81.233.22 
+8.4.2    Identifying Popular Pages
+In the combined format, the request data is enclosed in quotation marks. Using cut -d '"', you can separate the requests from the rest of the data:
+$ cut -d '"' -f 2 access.log | less  POST /consumer/technology HTTP/1.1  GET /explain/out HTTP/1.1  GET /by/financial/within/benefit HTTP/1.1  GET /action/but HTTP/1.1  ... 
+We are only interested in the GET requests and only in the address:
+$ cut -d '"' -f 2 access.log | grep GET | cut -d ' ' -f 2 | less  /explain/out  /by/financial/within/benefit  /action/but  /place/paper  ... 
+The proven combination of sort, uniq -c, and again sort determines the most popular URLs:
+$ cut -d '"' -f 2 access.log | grep GET | cut -d ' ' -f 2 | \  sort | uniq -c | sort -n -r | head  25423 /explain/out   5822 /international/hundred/can   4979 /goal/Congress/short/peace   4874 /rate/victim/detail    ... 
+If you apply this command to the original logging file (which I unfortunately can’t share), you’ll get the following result:
+$ cut -d '"' -f 2 access.log.orig | grep GET | \  cut -d ' ' -f 2 | sort | uniq -c | sort -n -r | head  25424 /feed/   5822 /   4979 /wp-content/plugins/wp-spamshield/js/jscripts-ftr2-min.js   4874 /favicon.ico   4347 /blog/feed/   3352 /wp-content/uploads/fonts/49ff7721659f0bc7d77a59e1de422e07/font.css?v=1664309579   3328 /wp-content/themes/twentyfourteen/genericons/genericons.css?ver=3.0.3    ... 
+Thus, the web server hosts a WordPress website. The most frequent access concerns the feed page, the home page (/), the spam protection plugin, the website icon, and another feed page.
+
+
+
+
+
+
+
+
+
+8.5    CSV Files
+CSV is a text format where the columns are separated by commas. Other country-specific separators are also used, for instance, the semicolon in German-speaking countries. This separator helps to clearly differentiate between columns and the decimal part of numbers. Basically, any separator is allowed, including the colon or tab character (\t).
+The analysis of CSV files becomes much more complicated if the separator character can also occur within the columns. The column contents are then enclosed in quotes, usually with ' or ".
+The starting point for the following examples is the 2023_population.csv file from https://www.kaggle.com/datasets/rsrishav/world-population. This file contains data on the population of various countries of the world and has the following structure:
+iso_code,country,2023_last_updated,2022_population,area_sq_km,  land_area_sq_km,density_/sq_km,growth_rate,world_%,rank,un_memberIND,India,"1,433,381,860","1,417,173,173",3.3M,3M,481,0.81%,17.85%,1,INDCHN,China,"1,425,542,952","1,425,887,337",9.7M,9.4M,151,-0.02%,17.81%,2,CHN... 
+The cut command for column extraction is overwhelmed with this data. If you want to use Bash, you can install the csvkit. This collection of commands helps with processing CSV files (see https://csvkit.readthedocs.io). In this section, however, I will instead briefly describe the CSV features of Python and PowerShell.
+8.5.1    Processing CSV Files Using Python
+In a Python script, you can read CSV data line by line from a text file (in the simplest cases) and then split the lines into its columns using split. The following script analyzes the access.log file from

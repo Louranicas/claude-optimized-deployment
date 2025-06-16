@@ -1,0 +1,17 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 8 - for task scheduling when we used the at command. Run the following command to see SetUID and SetGID:
+$ ls -l /usr/bin/at
+Security Relevance Score: 6
+Word Count: 126
+Extracted: 2025-06-13 23:40:57
+
+---
+
+for task scheduling when we used the at command. Run the following command to see SetUID and SetGID:
+$ ls -l /usr/bin/at
+
+-rwsr-sr-x 1 daemon daemon 59768 Oct 15 /usr/bin/at
+
+Here, you can see that SetUID is set, as indicated by the first s in the permissions, followed by SetGID, as indicated by the second s. Thus, when users run the at command, they run it with the permissions of the daemon user and group.
+Another example of a command that uses the SetUID set to its executable is passwd, which changes account passwords. Executables set with SetUID and SetGID can be a security risk and are a prime target for privilege escalation. We will demonstrate an exploitation example in “Exploiting a SetUID Misconfiguration” on page

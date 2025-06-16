@@ -1,0 +1,127 @@
+# Multi-stage Dockerfile for Python MCP Learning System
+# Optimized for ML workloads with security scanning
+
+# Stage 1: Builder
+FROM python:3.12-slim-bullseye AS builder
+
+# Install build dependencies and security updates
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    curl \
+    pkg-config \
+    libssl-dev \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /build
+
+# Copy requirements first for better caching
+COPY requirements.txt ./
+COPY python_learning/requirements.txt ./python_requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip wheel && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r python_requirements.txt
+
+# Copy source code
+COPY python_learning/ ./python_learning/
+COPY learning_core/ ./learning_core/
+COPY config/ ./config/
+
+# Install the package
+RUN cd python_learning && pip install -e .
+
+# Stage 2: Security Scanning
+FROM builder AS security-scan
+
+# Install security scanning tools
+RUN pip install --no-cache-dir bandit safety pip-audit
+
+# Run security scans
+RUN bandit -r python_learning/ learning_core/ -f json -o /tmp/bandit-report.json || true
+RUN safety check --json --output /tmp/safety-report.json || true
+RUN pip-audit --format=json --output=/tmp/pip-audit-report.json || true
+
+# Stage 3: Rust Build (for performance-critical components)
+FROM rust:1.75-slim-bullseye AS rust-builder
+
+WORKDIR /rust_build
+
+# Copy Rust source
+COPY rust_core/ ./
+
+# Build Rust components
+RUN cargo build --release --locked
+
+# Stage 4: Production Runtime
+FROM python:3.12-slim-bullseye AS runtime
+
+# Security: Install runtime dependencies and security updates
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl3 \
+    libgomp1 \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r mcp -g 1001 \
+    && useradd -r -u 1001 -g mcp -m -d /app mcp
+
+# Copy virtual environment from builder
+COPY --from=builder --chown=mcp:mcp /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy Rust binaries
+COPY --from=rust-builder --chown=mcp:mcp /rust_build/target/release/libmcp_rust_core.so /opt/venv/lib/python3.12/site-packages/
+
+# Copy application code
+WORKDIR /app
+COPY --from=builder --chown=mcp:mcp /build/python_learning ./python_learning
+COPY --from=builder --chown=mcp:mcp /build/learning_core ./learning_core
+COPY --from=builder --chown=mcp:mcp /build/config ./config
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/models /tmp/mcp && \
+    chown -R mcp:mcp /app /tmp/mcp
+
+# Security: Switch to non-root user
+USER mcp
+
+# Environment configuration for ML workloads
+ENV PYTHONPATH="/app:/app/python_learning:/app/learning_core" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONHASHSEED=random \
+    OMP_NUM_THREADS=4 \
+    MKL_NUM_THREADS=4 \
+    OPENBLAS_NUM_THREADS=4 \
+    VECLIB_MAXIMUM_THREADS=4 \
+    NUMEXPR_NUM_THREADS=4 \
+    MCP_ENV=production \
+    MCP_LOG_LEVEL=info \
+    MCP_ML_CACHE_SIZE=512 \
+    MCP_LEARNING_MODE=adaptive
+
+# Expose port
+EXPOSE 8001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8001/health', timeout=10)" || exit 1
+
+# Entry point
+ENTRYPOINT ["python", "-m"]
+CMD ["python_learning.server"]
+
+# Labels
+LABEL maintainer="claude-deployment-team" \
+      description="Production MCP Python Learning System" \
+      version="1.0.0" \
+      ml.framework="scikit-learn,pytorch" \
+      security.scan="true" \
+      org.opencontainers.image.source="https://github.com/your-org/claude-optimized-deployment"

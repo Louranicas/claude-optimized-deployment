@@ -1,0 +1,285 @@
+groups:
+  # Performance Recording Rules
+  - name: claude_deployment_engine_performance
+    interval: 30s
+    rules:
+      # API Performance Metrics
+      - record: api:request_rate_5m
+        expr: rate(http_requests_total[5m])
+      
+      - record: api:error_rate_5m
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])
+      
+      - record: api:latency_p50_5m
+        expr: histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))
+      
+      - record: api:latency_p95_5m
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+      
+      - record: api:latency_p99_5m
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+      
+      # System Resource Metrics
+      - record: system:cpu_usage_avg_5m
+        expr: avg(cpu_usage_percent)
+      
+      - record: system:memory_usage_avg_5m
+        expr: avg(memory_usage_bytes{type="percent"})
+      
+      - record: system:disk_usage_percent
+        expr: (disk_usage_bytes{path="/",type="used"} / disk_usage_bytes{path="/",type="total"}) * 100
+
+  # MCP Recording Rules
+  - name: claude_deployment_engine_mcp_performance
+    interval: 30s
+    rules:
+      # MCP Tool Performance
+      - record: mcp:tool_call_rate_5m
+        expr: rate(mcp_tool_calls_total[5m])
+      
+      - record: mcp:tool_error_rate_5m
+        expr: rate(mcp_tool_calls_total{status="error"}[5m]) / rate(mcp_tool_calls_total[5m])
+      
+      - record: mcp:tool_latency_p50_5m
+        expr: histogram_quantile(0.50, rate(mcp_tool_duration_seconds_bucket[5m]))
+      
+      - record: mcp:tool_latency_p95_5m
+        expr: histogram_quantile(0.95, rate(mcp_tool_duration_seconds_bucket[5m]))
+      
+      - record: mcp:tool_latency_p99_5m
+        expr: histogram_quantile(0.99, rate(mcp_tool_duration_seconds_bucket[5m]))
+      
+      # MCP Server Health
+      - record: mcp:server_availability_5m
+        expr: avg_over_time(up{job="mcp_servers"}[5m])
+      
+      - record: mcp:server_response_time_avg_5m
+        expr: avg(mcp_server_response_time_seconds)
+      
+      # MCP Connection Pool Metrics
+      - record: mcp:connection_pool_utilization
+        expr: mcp_connection_pool_active / mcp_connection_pool_max
+      
+      - record: mcp:connection_pool_wait_time_p95_5m
+        expr: histogram_quantile(0.95, rate(mcp_connection_wait_duration_seconds_bucket[5m]))
+
+  # AI/ML Recording Rules
+  - name: claude_deployment_engine_ai_performance
+    interval: 30s
+    rules:
+      # AI Request Performance
+      - record: ai:request_rate_5m
+        expr: rate(ai_requests_total[5m])
+      
+      - record: ai:error_rate_5m
+        expr: rate(ai_requests_total{status="error"}[5m]) / rate(ai_requests_total[5m])
+      
+      - record: ai:latency_p50_5m
+        expr: histogram_quantile(0.50, rate(ai_request_duration_seconds_bucket[5m]))
+      
+      - record: ai:latency_p95_5m
+        expr: histogram_quantile(0.95, rate(ai_request_duration_seconds_bucket[5m]))
+      
+      - record: ai:latency_p99_5m
+        expr: histogram_quantile(0.99, rate(ai_request_duration_seconds_bucket[5m]))
+      
+      # AI Cost Metrics
+      - record: ai:cost_per_hour
+        expr: rate(ai_cost_dollars[1h]) * 3600
+      
+      - record: ai:cost_per_request_5m
+        expr: rate(ai_cost_dollars[5m]) / rate(ai_requests_total{status="success"}[5m])
+      
+      # AI Provider Availability
+      - record: ai:provider_availability_5m
+        expr: avg_over_time(ai_provider_availability[5m])
+
+  # Business Metrics Recording Rules
+  - name: claude_deployment_engine_business_metrics
+    interval: 60s
+    rules:
+      # User Activity
+      - record: business:active_users_5m
+        expr: avg_over_time(active_users[5m])
+      
+      - record: business:user_requests_per_minute
+        expr: rate(http_requests_total{endpoint!~"/monitoring.*"}[1m]) * 60
+      
+      # Deployment Success Rates
+      - record: business:deployment_success_rate_1h
+        expr: rate(business_operations_total{operation="deployment",status="success"}[1h]) / rate(business_operations_total{operation="deployment"}[1h])
+      
+      - record: business:deployment_rate_1h
+        expr: rate(business_operations_total{operation="deployment"}[1h]) * 3600
+      
+      # Circle of Experts Metrics
+      - record: business:circle_of_experts_query_rate_5m
+        expr: rate(circle_of_experts_queries_total[5m])
+      
+      - record: business:circle_of_experts_success_rate_5m
+        expr: rate(circle_of_experts_queries_total{status="success"}[5m]) / rate(circle_of_experts_queries_total[5m])
+      
+      - record: business:circle_of_experts_latency_p95_5m
+        expr: histogram_quantile(0.95, rate(circle_of_experts_duration_seconds_bucket[5m]))
+
+  # SLA Recording Rules
+  - name: claude_deployment_engine_sla_metrics
+    interval: 60s
+    rules:
+      # Availability SLA
+      - record: sla:availability_1h
+        expr: avg_over_time(up{job="claude-deployment-engine"}[1h]) * 100
+      
+      - record: sla:availability_24h
+        expr: avg_over_time(up{job="claude-deployment-engine"}[24h]) * 100
+      
+      # Latency SLA
+      - record: sla:latency_p95_1h
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[1h]))
+      
+      - record: sla:latency_p99_1h
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[1h]))
+      
+      # Error Rate SLA
+      - record: sla:error_rate_1h
+        expr: rate(http_requests_total{status=~"5.."}[1h]) / rate(http_requests_total[1h]) * 100
+      
+      - record: sla:error_rate_24h
+        expr: rate(http_requests_total{status=~"5.."}[24h]) / rate(http_requests_total[24h]) * 100
+      
+      # Overall SLA Score
+      - record: sla:overall_score_1h
+        expr: |
+          (
+            (sla:availability_1h > 99.9) * 0.4 +
+            (sla:latency_p95_1h < 2) * 0.3 +
+            (sla:error_rate_1h < 1) * 0.3
+          ) * 100
+
+  # Security Recording Rules
+  - name: claude_deployment_engine_security_metrics
+    interval: 30s
+    rules:
+      # Authentication Metrics
+      - record: security:auth_failure_rate_5m
+        expr: rate(auth_failures_total[5m])
+      
+      - record: security:auth_success_rate_5m
+        expr: rate(auth_attempts_total{status="success"}[5m]) / rate(auth_attempts_total[5m])
+      
+      # Security Events
+      - record: security:security_events_rate_5m
+        expr: rate(security_events_total[5m])
+      
+      - record: security:vulnerability_count
+        expr: security_vulnerabilities_total
+      
+      # Access Control
+      - record: security:unauthorized_access_rate_5m
+        expr: rate(http_requests_total{status="401"}[5m])
+      
+      - record: security:forbidden_access_rate_5m
+        expr: rate(http_requests_total{status="403"}[5m])
+
+  # Database Recording Rules
+  - name: claude_deployment_engine_database_metrics
+    interval: 30s
+    rules:
+      # Database Query Performance
+      - record: db:query_rate_5m
+        expr: rate(database_queries_total[5m])
+      
+      - record: db:query_error_rate_5m
+        expr: rate(database_queries_total{status="error"}[5m]) / rate(database_queries_total[5m])
+      
+      - record: db:query_latency_p50_5m
+        expr: histogram_quantile(0.50, rate(database_query_duration_seconds_bucket[5m]))
+      
+      - record: db:query_latency_p95_5m
+        expr: histogram_quantile(0.95, rate(database_query_duration_seconds_bucket[5m]))
+      
+      - record: db:query_latency_p99_5m
+        expr: histogram_quantile(0.99, rate(database_query_duration_seconds_bucket[5m]))
+      
+      # Connection Pool Metrics
+      - record: db:connection_pool_utilization
+        expr: database_connection_pool_active / database_connection_pool_max
+      
+      - record: db:connection_wait_time_p95_5m
+        expr: histogram_quantile(0.95, rate(database_connection_wait_duration_seconds_bucket[5m]))
+
+  # Circuit Breaker Recording Rules
+  - name: claude_deployment_engine_circuit_breaker_metrics
+    interval: 30s
+    rules:
+      # Circuit Breaker States
+      - record: circuit_breaker:open_count
+        expr: sum(circuit_breaker_state == 2)
+      
+      - record: circuit_breaker:half_open_count
+        expr: sum(circuit_breaker_state == 1)
+      
+      - record: circuit_breaker:closed_count
+        expr: sum(circuit_breaker_state == 0)
+      
+      # Circuit Breaker Trips
+      - record: circuit_breaker:trip_rate_5m
+        expr: rate(circuit_breaker_trips_total[5m])
+      
+      # Success Rate in Half-Open State
+      - record: circuit_breaker:half_open_success_rate_5m
+        expr: rate(circuit_breaker_requests_total{state="half_open",status="success"}[5m]) / rate(circuit_breaker_requests_total{state="half_open"}[5m])
+
+  # Cache Recording Rules  
+  - name: claude_deployment_engine_cache_metrics
+    interval: 30s
+    rules:
+      # Cache Hit Rates
+      - record: cache:hit_rate_5m
+        expr: rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))
+      
+      - record: cache:miss_rate_5m
+        expr: rate(cache_misses_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))
+      
+      # Cache Performance
+      - record: cache:access_latency_p95_5m
+        expr: histogram_quantile(0.95, rate(cache_access_duration_seconds_bucket[5m]))
+      
+      # Cache Utilization
+      - record: cache:memory_utilization
+        expr: cache_memory_used_bytes / cache_memory_max_bytes
+      
+      - record: cache:eviction_rate_5m
+        expr: rate(cache_evictions_total[5m])
+
+  # Message Queue Recording Rules
+  - name: claude_deployment_engine_queue_metrics
+    interval: 30s
+    rules:
+      # Queue Sizes
+      - record: queue:size_avg_5m
+        expr: avg_over_time(queue_size[5m])
+      
+      - record: queue:size_max_5m
+        expr: max_over_time(queue_size[5m])
+      
+      # Processing Rates
+      - record: queue:enqueue_rate_5m
+        expr: rate(queue_messages_enqueued_total[5m])
+      
+      - record: queue:dequeue_rate_5m
+        expr: rate(queue_messages_dequeued_total[5m])
+      
+      - record: queue:processing_rate_5m
+        expr: rate(queue_messages_processed_total[5m])
+      
+      # Processing Times
+      - record: queue:processing_time_p95_5m
+        expr: histogram_quantile(0.95, rate(queue_processing_duration_seconds_bucket[5m]))
+      
+      # Queue Health
+      - record: queue:backlog_growth_rate_5m
+        expr: rate(queue_size[5m])
+      
+      - record: queue:error_rate_5m
+        expr: rate(queue_messages_processed_total{status="error"}[5m]) / rate(queue_messages_processed_total[5m])

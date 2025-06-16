@@ -1,0 +1,60 @@
+# Security Chapter Extract
+Book: Darren Kitchen - Bash Bunny_ A Guide to the HotPlug Attack Platform (2022, Hak5 LLC) - libgen.li
+Chapter: 5 - POWERSHELL TCP EXTRACTOR
+Powershell TCP Extractor on Hak5 PayloadHub
+This payload copies data to temp directory, compresses the data as a zip file, and uses powershell tcp 
+socket to extract to a listener on remote machine.
+The netcat listener IP address and port is configurable. This can be adapted to use an off-site machine as 
+the receiver, or even the Bash Bunny itself. 
+More Exfiltration Payloads for the Bash Bunny
+These only illustrate a very few of the many techniques to an perform exfiltration attack with the Bash Bunny. 
+See all the featured exfiltration payloads at payloads.hak5.org
+Getting Root on a Bash Bunny from the Serial Console
+Throughout the history of personal computers, serial has been a mainstay for file transfer and console 
+access. To this day it’s widely used, from headless servers to embedded microcontrollers. With the Bash 
+Bunny, we’ve made it convenient as ever – without the need for a serial-to-USB converter.
+With dedicated shell access from the arming mode, dropping to the Bash Bunny Linux terminal is simple 
+over serial from any OS. When combined with advanced payloads, using the serial attack mode, there’s 
+limitless potential for creativity with this often overlooked interface.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+Security Relevance Score: 2
+Word Count: 327
+Extracted: 2025-06-13 23:40:20
+
+---
+
+POWERSHELL TCP EXTRACTOR
+Powershell TCP Extractor on Hak5 PayloadHub
+This payload copies data to temp directory, compresses the data as a zip file, and uses powershell tcp 
+socket to extract to a listener on remote machine.
+The netcat listener IP address and port is configurable. This can be adapted to use an off-site machine as 
+the receiver, or even the Bash Bunny itself. 
+More Exfiltration Payloads for the Bash Bunny
+These only illustrate a very few of the many techniques to an perform exfiltration attack with the Bash Bunny. 
+See all the featured exfiltration payloads at payloads.hak5.org
+Getting Root on a Bash Bunny from the Serial Console
+Throughout the history of personal computers, serial has been a mainstay for file transfer and console 
+access. To this day it’s widely used, from headless servers to embedded microcontrollers. With the Bash 
+Bunny, we’ve made it convenient as ever – without the need for a serial-to-USB converter.
+With dedicated shell access from the arming mode, dropping to the Bash Bunny Linux terminal is simple 
+over serial from any OS. When combined with advanced payloads, using the serial attack mode, there’s 
+limitless potential for creativity with this often overlooked interface.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+Bash Bunny Primer - Hak5 Bash Bunny Primer - Hak5 22252225
+CONNECTING TO THE SERIAL CONSOLE FROM WINDOWS
+Find the COM# from Device Manager > Ports (COM & LPT) and look for USB Serial Device (COM#). 
+Example: COM3
+Alternatively, run the following powershell command to list ports:
+[System.IO.Ports.SerialPort]::getportnames() 1
+Enter COM# for serial line and 115200 for Speed. Click Open.
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+PuTTY is a free and open-source terminal emulator, serial console and network file 
+transfer application.
+Download PuTTY
+CONNECTING TO THE SERIAL CONSOLE FROM LINUX/MAC
+1.Find the Bash Bunny device from the terminal
+ls /dev/tty*" or "dmesg | grep tty 1
+Usually on a Linux host, the Bash Bunny will register as either /dev/ttyUSB0 or 
+/dev/ttyACM

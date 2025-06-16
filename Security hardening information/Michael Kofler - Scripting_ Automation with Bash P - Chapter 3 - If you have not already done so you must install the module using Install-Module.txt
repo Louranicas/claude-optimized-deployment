@@ -1,0 +1,32 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 3 - If you have not already done so, you must install the module using Install-Module SQLServer.
+The code starts with the initialization of some variables. Get-Content reads the JSON file. ConvertFrom-JSON turns it into an array with PSCustomObjects. The outer foreach loop runs through all array elements. The inner loop runs through all columns and creates the VALUES part of the INSERT command. The resulting commands will look like the following example:  
+INSERT INTO employees (FirstName, LastName, DateOfBirth, ...)VALUES('Sebastian', 'James', '1953-05-14', ...); 
+The script relies on the fact that data is available for all columns for each data record. If not the case, you must include appropriate tests and, if necessary, include NULL in the SQL command.
+Finally, all collected commands are passed to SQL Server using Invoke-Sqlcmd.
+# Sample file json-to-sql-server.ps1Import-Module SQLServer# connection to SQL Server$connectionString = "Server=.\sqlexpress01;Database=mydb;" +                    "Trusted_Connection=true;Encrypt=false"# name of the table and columns$tableName = "employees"$columns = "FirstName", "LastName", "DateOfBirth", "Street",           "City", "State", "Gender", "Email", "Job", "Salary"$sql = "INSERT INTO $tablename (" +  ($columns -Join ", ") + ") "$sqlcmds = ""# read JSON file and convert it to PowerShell objects$jsonFilePath = "employees.json"$json = Get-Content $jsonFilePath | ConvertFrom-Json# loop through all array elements (data records)foreach ($record in $json) {    $values = ""    # loop through all columns    foreach ($column in $columns) {        if ($values) {            $values += ", "        }        $values += "'" + $record.$column + "'"    }    $sqlcmds += $sql + "`nVALUES(" + $values + ");`n"}# run SQL commandsInvoke-Sqlcmd -ConnectionString $connectionString -Query $sqlcmds
+Security Relevance Score: 2
+Word Count: 472
+Extracted: 2025-06-13 23:41:06
+
+---
+
+If you have not already done so, you must install the module using Install-Module SQLServer.
+The code starts with the initialization of some variables. Get-Content reads the JSON file. ConvertFrom-JSON turns it into an array with PSCustomObjects. The outer foreach loop runs through all array elements. The inner loop runs through all columns and creates the VALUES part of the INSERT command. The resulting commands will look like the following example:  
+INSERT INTO employees (FirstName, LastName, DateOfBirth, ...)VALUES('Sebastian', 'James', '1953-05-14', ...); 
+The script relies on the fact that data is available for all columns for each data record. If not the case, you must include appropriate tests and, if necessary, include NULL in the SQL command.
+Finally, all collected commands are passed to SQL Server using Invoke-Sqlcmd.
+# Sample file json-to-sql-server.ps1Import-Module SQLServer# connection to SQL Server$connectionString = "Server=.\sqlexpress01;Database=mydb;" +                    "Trusted_Connection=true;Encrypt=false"# name of the table and columns$tableName = "employees"$columns = "FirstName", "LastName", "DateOfBirth", "Street",           "City", "State", "Gender", "Email", "Job", "Salary"$sql = "INSERT INTO $tablename (" +  ($columns -Join ", ") + ") "$sqlcmds = ""# read JSON file and convert it to PowerShell objects$jsonFilePath = "employees.json"$json = Get-Content $jsonFilePath | ConvertFrom-Json# loop through all array elements (data records)foreach ($record in $json) {    $values = ""    # loop through all columns    foreach ($column in $columns) {        if ($values) {            $values += ", "        }        $values += "'" + $record.$column + "'"    }    $sqlcmds += $sql + "`nVALUES(" + $values + ");`n"}# run SQL commandsInvoke-Sqlcmd -ConnectionString $connectionString -Query $sqlcmds 
+
+
+
+
+
+
+
+
+20    Scripting in the CloudThe cloud is large and diverse—in this respect, the title of this chapter is presumptuous. One could write an entire book on the subject, covering different cloud models, providers, and programming variants.At this point, I will focus on the Simple Storage Service (S3) of Amazon Web Services (AWS). This service has established itself as a cost-effective way to store files. Two major options for usage exist: You can store files there that are publicly accessible (for example, to relieve the load on your own web server), or you can use S3 as a place for backups or rarely needed files. At the same time, you’ll need to keep an eye on the costs: Depending on the offer, the transfer or the actual storage can be the decisive factor.Two great libraries for controlling AWS S3 functions are available: the AWS command-line interface (CLI) for Bash scripts and the AWS module for PowerShell scripts. This chapter describes both variants.
+Prerequisites for This Chapter
+To benefit from this chapter, you’ll need good knowledge of Bash or PowerShell. You’ll also need some basic knowledge of AWS S3: In particular, you need to know what is meant by the term “buckets” and how user management, specifically identity and access management (IAM), works.
+The two examples presented in this chapter are based on techniques that are described in

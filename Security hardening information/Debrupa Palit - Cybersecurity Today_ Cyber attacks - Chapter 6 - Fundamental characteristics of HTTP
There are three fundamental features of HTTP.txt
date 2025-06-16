@@ -1,0 +1,120 @@
+# Security Chapter Extract
+Book: Debrupa Palit - Cybersecurity Today_ Cyber attacks, network security, and threat prevention (2024) - libgen.li
+Chapter: 6 - Fundamental characteristics of HTTP
+There are three fundamental features of HTTP protocol:
+Security Relevance Score: 9
+Word Count: 629
+Extracted: 2025-06-13 23:40:49
+
+---
+
+Fundamental characteristics of HTTP
+There are three fundamental features of HTTP protocol:
+
+Connectionless: An HTTP client, such as a browser, triggers a request to the server, initiating communication. Upon receiving the request, the server processes it and sends back a response to the client. Once the response is delivered, the client terminates the connection, and subsequent interactions require establishing new connections, effectively resetting the client-server relationship for each request-response cycle.
+Non-reliant on media: HTTP can transmit any type of data. To ensure proper handling, both sides must specify the content type.
+Stateless: is connectionless and stateless, meaning the server and client are only aware of each other during a current request. After the transmission is over, the server and client forget each other.
+
+The following are the advantages of HTTP:
+
+HTTP increases the speed of data transmission in a browser database.
+HTTP simplifies the mapping of Internet protocol addresses to domain names.
+
+The following are the disadvantages of HTTP:
+
+It is comparatively slow as compared to native protocols.
+It is a potential threat to individual privacy due to the lack of encryption for data.
+
+Figure 1.6 shows a simple web application architecture with HTTP:
+
+Figure 1.6: Basic architecture of HTTP
+Hypertext Transfer Protocol Secure
+Hypertext Transfer Protocol Secure (HTTPS), the secure counterpart of HTTP, serves as the primary protocol for exchanging data between a web browser and a website. It employs encryption to enhance the security of data transmission, especially when users are sharing sensitive information, such as logging into banking accounts, email services, or health insurance providers.
+Fundamental characteristics of HTTPS
+There are two fundamental features of the HTTPS protocol:
+
+HTTPS guarantees that data exchanged between the visitor and the website remains unaltered and secure against tampering by hackers.
+It also verifies that users are accessing the authentic website and not a fraud.
+
+The primary distinction between HTTP and HTTPS connections lies in the degree of security they offer for transmitting data over the Internet, as described in Table 1.1:
+
+
+
+
+
+
+
+
+HTTP
+
+
+HTTPS
+
+
+
+
+HTTP stands for Hyper Text Transfer Protocol.
+
+
+HTTP stands for Hyper Text Transfer Protocol Secure.
+
+
+
+
+Uniform Resource Locator (URL) starts with http://
+
+
+URL starts with https://
+
+
+
+
+Port 80 is used for sending data.
+
+
+Port 443 is used for sending data.
+
+
+
+
+HTTP is suitable for exchanging non-sensitive information.
+
+
+HTTPS is suitable for exchanging encrypted information.
+
+
+
+
+Secure Socket Layer (SSL) certificates are not used for communication in HTTP.
+
+
+SSL certificates are used for communication in HTTPS.
+
+
+
+
+HTTP operates in the application layer.
+
+
+HTTPS operates in the transport layer.
+
+
+
+
+Domain validation is not needed in HTTP.
+
+
+Minimal domain validation is necessary, while for certain certificates, validation of legal documents may be required.
+
+
+
+
+Table 1.1: Transmission medium
+Following are the advantages of HTTPS over HTTP:
+
+Data encryption: HTTPS encrypts data during transmission, making it significantly more secure compared to HTTP. Encryption ensures that even if intercepted, the data cannot be easily understood by unauthorized parties.
+Authentication and integrity: HTTPS uses digital certificates to verify the authenticity of the website and ensure the integrity of the transmitted data. This helps users trust that they are interacting with the legitimate website they intended to visit, guarding against phishing attacks and spoofed websites. HTTP lacks this level of authentication and integrity, leaving users susceptible to various forms of cyber threats.
+Search engine optimization (SEO): HTTPS is now considered a ranking factor by search engines like Google. Websites using HTTPS receive a slight boost in search engine rankings compared to those using HTTP.
+
+Domain Name System
+The DNS translates hostnames into IP addresses. Every device on the Internet has an IP address, but remembering these numbers can be challenging for people. Additionally, since IP addresses are dynamic, domain name mapping is needed for converting them to correct IP addresses, as described in Figure 1.

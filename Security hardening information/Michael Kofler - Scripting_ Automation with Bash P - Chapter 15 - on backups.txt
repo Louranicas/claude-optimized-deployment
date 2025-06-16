@@ -1,0 +1,28 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 15 - on backups.
+Security Relevance Score: 6
+Word Count: 416
+Extracted: 2025-06-13 23:41:06
+
+---
+
+on backups.
+
+
+
+
+
+
+
+
+
+
+12.4    SSH Authentication with Keys
+The SSH server knows numerous different authentication methods: The most common one is the password login used so far in this chapter. Alternatives include two-factor authentication (2FA) and SSH authentication with keys, which I will discuss in this section. This type of authentication requires some preparatory work that can be done quickly. As a result, ssh or scp can be used without a password, which is ideal for implementing automation in scripts.
+A pair of files serves as the “key.” The public component of the key is stored on the SSH server while the private component remains on the machine where you want to use the ssh, scp, or rsync commands. When establishing an SSH connection, the SSH server can use the public key to check whether the locally stored private key matches it. If such a suitable key pair is found, this key pair will be considered sufficient authentication, and the password query will be omitted.
+12.4.1    Generating a Key Pair
+To generate a key pair on the client machine, you must run ssh-keygen once. This command is available on Windows, Linux, and macOS if an SSH client is installed. If the command displays a warning that a key already exists, you must abort the process or specify a new name if you need a second key pair.
+$ ssh-keygen  Generating public/private rsa key pair.  Enter file in which to save the key     (/home/kofler/.ssh/id_rsa): <Return>  Enter passphrase (empty for no passphrase): <Return>  Enter same passphrase again: <Return>  Your identification has been saved in /home/kofler/.ssh/id_rsa  Your public key has been saved in /home/kofler/.ssh/id_rsa.pub 
+ssh-keygen asks if it should secure the key with a passphrase (with a password). For security reasons, doing so is recommended. If your private key falls into the wrong hands, the thief cannot do anything with the key without a password. At this point, however, we are talking about the use of keys in scripting, and in this context, I recommend that you do not specify a passphrase, but just press (Enter). This approach is the only way to automate the execution of your scripts with ssh or scp commands without any user intervention.
+By default, the key pair is stored in the .ssh directory and consists of two files that have different names depending on the encryption algorithm. Many SSH installations still use the algorithm of Rivest-Shamir-Adleman (RSA). Newer versions use methods such as the Elliptic Curve Digital Signature Algorithm (ECDSA) and the variant Curve

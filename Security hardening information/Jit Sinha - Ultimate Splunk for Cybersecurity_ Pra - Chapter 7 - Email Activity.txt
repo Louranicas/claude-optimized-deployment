@@ -1,0 +1,37 @@
+# Security Chapter Extract
+Book: Jit Sinha - Ultimate Splunk for Cybersecurity_ Practical Strategies for SIEM Using Splunk’s Enterprise Security (ES) for Threat Detection, (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 7 - Email Activity:
+Security Relevance Score: 5
+Word Count: 624
+Extracted: 2025-06-13 23:40:44
+
+---
+
+Email Activity: Displays the top 100 users who send emails in large volumes to non-corporate domains, which could be a sign of data exfiltration. Launching the Identity Investigator dashboard, Drilldown searches for the selected person.
+Watchlisted Site Activity: This feature shows users’ web access, and activity on particular categories of websites may be a sign of insider threat activities. Launching the Identity Investigator dashboard, Drilldown searches for the selected person.
+Remote Access: Displays user-authenticated remote access, including questionable web or email behavior potentially pointing to data espionage or compromised credentials. Launching Identity Investigator dashboard, Drilldown searches users for the selected user.
+Ticket Activity: Shows user ticketing activity, with dangerous online or email activity together with ticket submission, perhaps indicating data exfiltration or credential abuse. Launching Identity Investigator dashboard, Drilldown searches users for the selected user.
+
+Access Anomalies dashboard
+The Access Anomalies dashboard is intended to reveal questionable authentication patterns, such as simultaneous authentication attempts from various IP addresses and unlikely travel anomalies. Action, app, user, business unit, and time range are all dashboard filters.
+Panels on the dashboard for access anomalies are:
+
+Geographically unusual Accesses: Shows users who have made several attempts for authentication, spaced apart by unusual intervals of time and distance, possibly revealing compromised credentials. The drilldown launches the Access Search dashboard and performs a user search.
+Concurrent Application Accesses: This feature shows users who have made numerous authentication attempts in a short period from various IP addresses, which may be an indication of shared or stolen credentials. Drilldown searches for the selected user on the Access Search panel.
+
+User behavior analytics
+This process is used to learn about the daily network events that users create. Information can be used to identify the use of compromised credentials, lateral movement, and other malicious behavior once it has been gathered and evaluated.
+The UBA Anomalies dashboard in Splunk Enterprise Security helps you analyze and understand anomalous activity in your environment by displaying various metrics related to user behavior anomalies. To access the dashboard, navigate to Security Intelligence > User Intelligence > UBA Anomalies.
+Key features of the UBA Anomalies dashboard include:
+
+Key Indicators: Monitor changes in your environment’s count of several metrics over the last 24 hours, including UBA notables, UBA anomaly actors, UBA anomaly signatures, UBA anomalies per threat, and the overall count of UBA anomalies.
+The Anomalies Over Time panel: This allows you to look into anomalous activity peaks and contrast the number of actors over time with the number of anomalies in order to spot patterns or trends.
+Most Active Signatures panel: This feature helps you focus on high-impact areas by identifying the most prevalent sorts of abnormal activity in your environment.
+Most Active Actors panel: Determine which people, devices, apps, and other actors are causing the most abnormal behavior using the Most Active Actors panel to help you focus your investigation efforts.
+Recent UBA Anomalies panel: See the latest anomalous activity in your environment, so you can quickly respond to emerging threats or issues.
+
+To view an anomaly in Splunk UBA, click a value on the dashboard to drill down to the search. You can use the event actions on a specific anomaly event to “View Contributing Anomalies” and open Splunk UBA to view the Anomaly Details view.
+Hands-On User Intelligence with Splunk ES at JIT Inc.
+Overview
+The fast-growing startup JIT Inc. uses Splunk Enterprise Security (ES) to enhance its user intelligence capabilities. The increasing threat of insider attacks and the need for extensive user behavior monitoring have led JIT Inc. to utilize Splunk ES’s User Intelligence features, which include the Asset Investigator, Identity Investigator, User Activity, Access Anomalies, and User Behavior Analytics dashboards. Each dashboard provides a unique viewpoint on user behavior and potential security threats.
+Scenario Setup

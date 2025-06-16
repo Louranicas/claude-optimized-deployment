@@ -1,0 +1,278 @@
+# Security Chapter Extract
+Book: DARWIN, TYE - LINUX FOR HACKERS_ LEARN CYBERSECURITY PRINCIPLES WITH SHELL,PYTHON,BASH PROGRAMMING USING KALI LINUX TOOLS. A COMPLETE GUIDE FO (2020, GVS PUBLICATIONS) - libgen.li
+Chapter: 48220 - The third line only repeatedly outputs the connection indicated by the information in the second line from the client's point of view, because we are running the server program (websrv) and the client program (telnet) on the same machine.In the process of server program development, we must ensure that every connection is in the state we expect at any moment.Therefore, we should get used to using netstat command.
+We can display a lot of information about different network servers, their traffic packets and other important information using the netstat command. In the next section, we will talk about other fundamental networking tool which is called as vmstat. Follow along!
+vmstat
+Vmstat is the abbreviation of virtual memory statistics, which can output the usage of various resources of the system in real time, such as process information, memory usage, CPU usage and I/O usage.
+By default, the output of vmstat is quite rich.
+Look at the following example:
+Security Relevance Score: 24
+Word Count: 4031
+Extracted: 2025-06-13 23:40:27
+
+---
+
+The third line only repeatedly outputs the connection indicated by the information in the second line from the client's point of view, because we are running the server program (websrv) and the client program (telnet) on the same machine.In the process of server program development, we must ensure that every connection is in the state we expect at any moment.Therefore, we should get used to using netstat command.
+We can display a lot of information about different network servers, their traffic packets and other important information using the netstat command. In the next section, we will talk about other fundamental networking tool which is called as vmstat. Follow along!
+vmstat
+Vmstat is the abbreviation of virtual memory statistics, which can output the usage of various resources of the system in real time, such as process information, memory usage, CPU usage and I/O usage.
+By default, the output of vmstat is quite rich.
+Look at the following example:
+
+root@server : $vmstat 5 3
+
+
+# outputs the results every 5 seconds.
+
+Note that the output in the first line is the average result since the system was started, while the output in the next line is the average result in the sampling interval.
+If these two values change frequently, there is not enough memory.io, the usage information of block devices, and the unit is block/s. bi indicates the rate at which blocks are read from the block device;"bo" indicates the rate at which blocks are written to the block device."in" indicates the number of interrupts per second and “cs" indicates the number of context switches (process switch) per second.
+However, we can use iostat command to get more information about disk usage, and we can also use mpstat to get more information about CPU usage.The vmstat command is mainly used to check the usage of system memory.
+A lot of hackers use this to understand about memory resources and temporarily stop those programs that are consuming high memory. While performing tasks like brute force attacks we need to understand the importance of these tools that can decrease the work load of the system. In the next section, we will talk about ifstat networking tool in detail. Follow along!
+ifstat
+Ifstat is the abbreviation of interface statistics, which is a simple network traffic monitoring tool.
+For example, we execute the following command on the test machine:
+
+root@server : $ifstat-a 2 5
+
+
+# outputs the result every 2 seconds.
+
+output of ifstat shows the rate of receiving and sending data on each NIC interface in KB/s.Therefore, using ifstat command can roughly estimate the total input and output traffic of the server in each period.
+In the following section of this chapter, we will talk about mpstat which is a popular networking tool for hackers to analyze different processor statistics. Follow along!
+mpstat
+Mpstat is the abbreviation of multi-processor statistics, which can monitor the usage of each CPU on multi-processor system in real time.The mpstat command and iostat command are usually integrated in the package sysstat, which can be obtained by installing sysstat.
+The typical usage of the mpstat command is (there are not many options of the mpstat command, which are not specificALLy introduced here)
+
+mpstat [-p {| all}] [interval [count]]
+
+option p specifies the CPU number to be monitored (0 ~ CPU number -1), and its value "all" means to monitor all CPUs.
+The interval parameter is the sampling interval (in s), that is, the statistical information is output once every interval.Count parameter is the number of sampling times, that is, a total of count times of statistical information are output, but mpstat will finally output the average value of these count times of sampling results.
+Like the vmstat command, the first output result of the mpstat command is the average result since the system was started, while the next (count-1) output result is the average result within the sampling interval.
+For example, we execute the following command on the test machine:
+
+root@server : $mpstat-P ALL 5 2
+
+
+# outputs the result every 5 seconds.
+
+The output of each sampling contains three pieces of information, and each piece of information contains the following fields: CPU, which indicates which CPU the piece of information is."0" indicates the data of the first CPU, "1" indicates the data of the second CPU, and "all" indicates the average value of the data of the two CPUs.
+% usr, except for the process with negative nice value, the proportion of the time that other processes on the system run in user space to the total CPU running time.
+% nice, the proportion of the time that a process with a negative nice value runs in user space to the total CPU running time.
+% sys, the ratio of the time that all processes on the system run in kernel space to the total CPU running time, but excluding the CPU time consumed by hardware and software interrupts.
+% iowait, the proportion of CPU waiting for disk operation to total CPU running time.% IRQ, the proportion of CPU time spent processing hardware interrupts to the total CPU running time.
+% soft, the proportion of CPU time spent processing software interrupts to the total CPU running time.
+% steal, a physical CPU can contain a pair of virtual CPUs, which are managed by the hypervisor.When a hypervisor is processing a virtual CPU, another virtual CPU must wait for its processing to finish before running.This waiting time is called steal time.The field indicates the proportion of steal time to the total CPU running time.
+%guest, the time spent running virtual CPU accounts for the total CPU running time.
+% idle, the ratio of system idle time to total CPU running time.Among all these output fields, we are most concerned about %user, %sys and %idle.
+They basically reflect the proportion of business logic code and system call in our code, and how much load the system can bear.Obviously, in the above output, executing system calls takes more CPU time than executing user business logic.This is because we have run the stress testing tool introduced on this machine, which constantly executes recv/send system calls to send and receive data.
+What Next?
+With this, we have provided a perfect introduction to a couple of network monitoring tools that can help you understand the essence of hacking. To become a hacker you need to personally try out all these commands you have learnt in this chapter on your own networks. If not, anything that you do cannot be understood. Linux is not about using the written commands but it is about using commands in a definite way that can change the way system interacts with the hardware resources and software kernel.
+In the next chapter of this module we will discuss about different Kali Linux tools in detail. Follow along!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Four
+
+
+
+Kali Linux Toolset
+
+
+
+
+
+Kali Linux consists
+ of more than 350 hacking tools pre installed. All these tools provide different use cases and can help hackers spoof network data and can even monitor and document them for future proof cases.
+In this chapter we will discuss about some of the most important tools that are available in Kali Linux along with what they do. Grab your seat and have fun exploring different branches of hacking.
+Stage 1 - Reconnaissance tools
+As said before to start cracking and hacking systems you need to first have a lot of information about the target. For example, knowing what server architecture the target is using can help you find vulnerabilities for that particular server architecture.
+But, how do you actually know about the target?
+To explain this we need to explain how hackers work first. Hackers are not only smart geeks but are also good conversationalists that try to acquire information from normal conversations from the users that are using the target.
+If a hacker is looking to target a bank server then he persuades few of the bank employees and tries to gather information about the server. While it may seem fishy but just installing a monitoring software can help them get all the resources and information they need.
+For this reason we are dividing this branch of hacking into two categories. One is social engineering attacks and the other is digging the valuable information.
+A) Social engineering attacks
+These are the attacks that hackers use to the target users, employees and system administrators. One of the famous attacks is to create a phishing page for expecting the target to enter their username and password. After obtaining the credentials they use this privilege to reach to the root level.
+There are tons of tools for these type of attacks. There are different command line utilities to create fake phishing pages of social networking websites.
+B) Digging the valuable information
+A lot of information about the target is usually available in the open world. A couple of intelligent google searching can give you tons of information about the target. Reaching out to the system administrators using e-mail can also be a good way to get some sensitive information.
+However, the most important tool hackers use for this hacking step is nmap. nmap is an open-source tools that scans the open ports that are available and outputs tons of information that is related to the target.
+If done correctly you can find the server architecture and the operating system the target using with different automated commands. However, remember that the internet security researchers have learned a lot in these years and have developed different intrusive detection systems to counter the requests that are coming form newbies who are trying to scan the open ports.
+If you are an experienced hacker the only thing you will do is to not draw attention from the system administrators to ban your IP address or MAC address permanently.
+Here are some commands:
+
+root@sample : nmap
+
+// This displays the menu
+root@ sample : nmap www.google.com
+// This scans the open ports of this particular address
+root@sample : nmap -V 192.32.222.12
+
+// This sends requests for open port detection for this input address
+
+Nmap is also very efficient to know about other advanced stuff such as pinging time and the presence of firewalls. If there are firewalls present you can find open vulnerabilities to exploit them.
+After scanning and finding potential loopholes you can proceed to the next stage of hacking. That is exploitation.
+2) Exploitation tools
+What is fun in hacking systems if you don’t know a way to hack them and exploit them?
+After finding vulnerabilities hackers usually insert trojans or spider worms to complete the dirty work for them. A lot of hackers now are also implementing bitcoin mining in different systems to make some quick bucks. But how do they do it?
+Experienced hackers write their own software for exploits whereas moderate hackers use kali linux tools such as Metasploit.
+What is Metasploit?
+Metasploit is the most popular exploitation tool and can be used for tracking the users or for binding trojans in an image or pdf files. And when the target clicks the metas-loot modified file we can track them and exploit them.
+Here are some command:
+
+root@server : metasploit
+
+// This is will start the msf console
+root@server : msf bind image.jpg
+
+// This binds the image file with metasploit trojan code
+
+You can also use metasploit to hack servers and mobile devices. However, remember that you can’t hack an apple device without hardware access whereas you can hack android files even remotely.
+Stage 3 - Monitoring tools
+In the previous stages we used Kali Linux tools to scan and exploit the systems. In this section we will learn about Monitoring tools such as Wireshark to understand the hacker attacks that may happen anytime.
+What is Monitoring?
+Network data travel in the form of packets. Packets if not encrypted can be spoofed and can be used to steal information by hackers. Tools like Wireshark can help ethical hackers to monitor the packets to analyze any suspicious traffic that is coming.
+Wireshark is one of the most downloaded packet analysis software. It provides a pane where every packet, its headers and the host information will be displayed. You can analysis these records from the logs that wireshark leave.
+Here are some tips to use Wireshark:
+1) Always make sure that you are aware of the target host address you are trying to monitor.
+2) Use utility tools such as net stat and ping to analyze the network traffic and use this information to capture the packets effectively.
+3) Understand the difference between encrypted and non-encrypted network packets. If you are forced to decrypt the encrypted packets then make sure that you understand other complex stuff such as HTTP protocols and cookie information.
+Wireshark provides premium features for network administrators for a nominal price. In the professional version you can automatically make reports using the captured information where as in community version you need to manually make them.
+Dictionary Attack tools
+While there is a ton of complex stuff for hackers to deal with what they are mostly interested in is to steal sensitive information such as passwords and email addresses. The only way to steal a lot of passwords and accounts at once is by using dictionary attacks. Also known as brute force attacking in technical terms.
+Kali linux provides tools such as Hydra and Jack the Ripper to crack websites and databases. Some crackers also exploit SQL injection to crack databases to obtain sensitive information.
+A) Hydra
+Hydra is a dictionary attack tool that is available in kali linux. Using hydra all you need to do is provide the url page and a text file that consists of username and passwords separated by a colon.
+All the successful logins will be printed in a log file and can be used to login to the website.
+Here are some commands:
+
+root@server : hydra www.google.com/login user.txt
+
+
+// This will attack the login page with the information provided in text file
+
+B) Jack the Ripper
+Jack the Ripper is same type of tool which can be used to crack login pages. While hydra can brute force only static login pages this tool can help you crack login pages dynamically.
+That is, you can customize how a brute force attack can be performed according to the ongoing results. For example, if the login page is giving a “ Server not found “ errors then Jack the Ripper will automatically change the proxy servers to mitigate a proxy ban that is performed by intrusive detection systems.
+Here is a command:
+
+root@server : jtr -w pass.txt www.samepleurl.com -p proxy.txt
+
+Here w stands for the wordlist that carries the username and password where as proxy.txt has information about different proxy servers that can be randomly used if they are live by the brute force engine.
+Wireless Network tools
+The last set of tools we are going to discuss is about wireless tools. We all know that the world is rapidly changing and network ethernets are now not the only way to transmit information in a network. Wireless networks include wifi hotspots , mobile phones, laptops and even smart watches.
+There is a lot of privacy at stake and even a small vulnerability in the network protocol can be used to steal a lot of sensitive information. This is the reason why you need to update your system regularly.
+Here are some of the important tools :
+A) aircrack-ng
+This is a famous wireless network tool that can be used to brute force all the available Wpa/wp2 networks. It also can automatically find vulnerabilities in the WPS network. All you need to do is to find the network address of the Wireless network using net stat command and insert in the tool to crack them automatically.
+Here are commands:
+
+root@server : aircrack-ng 192.23.11.234 text.txt
+
+B) Airdump
+Airdump is a network monitoring tool that does the same work as the above mentioned tool but with more options and customizations. Airodump even provided fake phishing pages to obtain information from the target users using social engineering attacks.
+With this, we have completed a brief introuction to Kali Linux tool set. In the next chapter of this module we will talk about different network monitoring tools that can help to analyze the networks and hack them. Let us go!
+
+
+
+
+
+
+
+
+
+
+
+
+Chapter Five
+
+
+
+Burpsuite for penetration testing
+
+
+
+
+
+In the previous
+ chapters we have talked about network monitoring tools that can help us to understand different network modules that are present in the target system. While Network hacking is a popular hacking procedures until few years back now due to the increase of internet and web applications we are now on a verge to getting stolen just by browsers.
+What are web applications?
+Web applications are software that run in a browser and can be accessed with just an URL. For example www.gmail.com is a web application that can be used to send messages in an Email across the world to whoever has an Email address.
+It is very easy to find bugs in a web application for experienced programmers. For finding these bugs they use certain software like Burp suite. Burp suite is at this point the most popular web application vulnerability finder software. It comes in both community and professional versions. Community version is free and will not provide automatic scanning whereas professional version is available for a nominal price and provides automatic spidering and scanning of targets with documentation availability for enterprises. Burp-suite also has a plugin store that consists of tons of free and premium add-ons to make web application penetration tester life much easier.
+How to use Burpsuite?
+To install Burp-suite head on to the official website and install it after giving permission using the chmod command.
+If you are using Kali Linux then you are lucky because burp suite community edition is pre installed in this hacking distro. Open Burp-suite from the “ Web application’ Menu bar in the start menu.
+After opening Burp-suite follow these instructions:
+1) Use the proxy options and enter ’127.0.0.1” in both Firefox and burp suite as host address. By doing this procedure all the HTTP requests that are coming from the browser will be first sent to burp suite.
+2) You can also be able to run HTTPS protocol requests using the certificate that is present from the port swigger security website.
+3) After receiving requests you need to enter “ Accept’ or “ Reject” to send it to the Burp spidering. You can also enter the website url to make burp spiders scan the whole website. However be realistic when the websites are scanned because you will not get fascinating results with the scanners. To find vulnerabilities you need to a much harder digging and a lot of testing.
+4) Burp-suite also has other interfaces such as Burp suite intruder, Burp suite comparer to automate brute force attacks and analyzing cookie information.
+5) Burp-suite also provides a documentation panel where you can write POC for the bugs that you have found.
+In the next section, we will provide a detail instruction to hack online web page passwords using the Burp intruder option available in Burp-suite. We want you to carefully follow the exercise to understand how to crack accounts of any website you like. It is tricky sometimes but if done correctly you can have some fruitful results.
+Using Burp Intruder to Crack passwords
+Burp intruder is an important component in the Burp suite software. Using intruder you can individually send a request to brute force it with available dictionaries and options. Intruder can send both GET and POST requests and can easily be used to analyze the responses it get.
+Using intruder security analysts often understand how well the intrusion detection systems are. A lot of other web penetration bugs such as XSS and CSRF attacks can also be detected using the Burp intruder component.
+How to use it?
+Step 1:
+Find a webpage that you want to crack. It can be either HTTP or HTTPS protocol supported website. If you are not sure about the attacking restrictions the website is imposing then we suggest you to try with sample test websites that are developed specifically for the practice of web application penetration testers.
+Step 2 :
+Enter the webpage with burp intercept proxy in On. Within seconds you will get a request in the Burp interface. Just take a look at it and accept all the requests that appear. If you deny any requests sometimes the web page may not open properly. So, make sure that the webpage has appeared in the Burp site menu.
+Step 3:
+Now carefully observe all the requests the burp inspector has analysed. In those requests find out the requests that have a “POST” identifier. Normally, all the requests will have “GET” identifier because they are asking certain information from the server. Whereas login pages and other sensitive and vulnerable indexes such as comment boxes, New post boxes and login forms use “POST” identifier as they are sending information to the server.
+Step 4:
+After finding the login form that you are wishing to brute force left click on it so that a menu will appear. In that burp menu click on the option “ Send to burp intruder”. Now you can go to intruder interface to see that the selected page is all ready to perform a brute force ( dictionary ) attack using the options available.
+Step 5:
+Now, select the parameters using the HTML code that appears in the bottom box. This is where you select the “ login” and “password” boxes for easy attacking. After selecting enter the options menu and select the type of dictionary that you are willing to use.
+From numbers to common passwords there are tens of options for you to consider. You can also upload your custom wordlist in professional version of Burp-suite. Also don’t forget to select the type of brute force attack you are willing to perform. I normally use “pitchfork” as it is simple and easy.
+If you are not sure about the different type of brute force attacks that are available in Burp-suite we suggest you to visit port swigger online labs for more understanding. They are awesome.
+Step 6:
+Now click start and within seconds the requests will start flooding your results screen. After the brute force ends carefully observe the results. All the results with “404” errors are bad results. If you get any successful messages then they are potentially good results. Cross check the good results and make a documentation about the attack scenario.
+With this, we have provided a clear cut instruction to Burp suite along with various important information.
+What Next?
+Congratulations! You have now successfully completed the last module of this book. In these five modules you have learned a lot of new information that can help you to become an efficient hacker.
+To make use of the knowledge you have acquired please write your own shell and python scripts that can automated brute forcing. Also, read tons of open-source code from Github so that you can challenge yourself with complexities that may arise while dealing with catastrophic situations as an ethical hacker.
+Finally, a friendly suggestion. We are not here to talk about ethics. Do whatever it makes you happy. But it genuinely feels better to stop destroying things instead of destroying thing. Cheers and All the Best!
+
+
+
+
+
+
+
+
+
+
+
+Acknowledgments
+
+
+
+
+This book is possible because of the tremendous effort by my editor DAN GUIND. He is an awesome gentleman who helped me edit and format the book.
+Also, a large thanks to my cover designer David. He is just awesome.
+And to all my family who made my life a lot better this book is for all of you.
+
+
+
+
+
+
+
+
+
+
+
+About the Author
+
+
+
+
+TYE DARWIN is a cyber security specialist and has written tens of books about hacking. He is very accurate about all the tools that he learned and explains them with concise words. His first book “ Hacking for beginners” has become a successful book with more than thousand copies sold. He is a programmer by day and a penetration tester by night.

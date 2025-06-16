@@ -8,13 +8,26 @@ Provides seamless integration with:
 """
 
 import asyncio
+import logging
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 from .metrics import get_metrics_collector, MetricsCollector
 from .health import get_health_checker, HealthCheckResult, HealthStatus
 from .alerts import get_alert_manager, Alert, AlertSeverity
 from ..mcp.manager import get_mcp_manager
+
+from src.core.error_handler import (
+    handle_errors, async_handle_errors, log_error,
+    ServiceUnavailableError, ExternalServiceError, ConfigurationError
+)
+
+__all__ = [
+    "MCPMonitoringIntegration"
+]
+
 
 
 class MCPMonitoringIntegration:
@@ -59,7 +72,9 @@ class MCPMonitoringIntegration:
                         available_servers.append(server_name)
                     else:
                         unavailable_servers.append(server_name)
-                except:
+                except Exception as e:
+                    # Log the error but continue checking other servers
+                    logger.warning(f"Failed to check MCP server {server_name}: {e}")
                     unavailable_servers.append(server_name)
             
             total = len(available_servers) + len(unavailable_servers)
@@ -144,247 +159,12 @@ class MCPMonitoringIntegration:
                 
                 emoji = severity_emoji.get(alert.rule.severity, "❗")
                 
-                message = f"{emoji} *Alert: {alert.rule.name}*\n"
-                message += f"Severity: {alert.rule.severity.value.upper()}\n"
-                message += f"{alert.annotations.get('summary', 'No summary')}\n"
+                message = f"{emoji} *Alert: {alert.rule.name}*
+"
+                message += f"Severity: {alert.rule.severity.value.upper()}
+"
+                message += f"{alert.annotations.get('summary', 'No summary')}
+"
                 
                 if alert.annotations.get('description'):
-                    message += f"\n{alert.annotations['description']}\n"
-                
-                if alert.value is not None:
-                    message += f"\nCurrent value: {alert.value}\n"
-                
-                message += f"\nStarted: {alert.started_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
-                
-                await self.mcp_manager.call_tool(
-                    "slack-notifications.send_notification",
-                    {
-                        "message": message,
-                        "notification_type": "alert"
-                    }
-                )
-            except Exception:
-                pass  # Silently fail
-        
-        self.alert_manager.register_handler(slack_alert_handler, is_async=True)
-    
-    async def query_prometheus_metrics(
-        self,
-        query: str,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None,
-        step: str = "60s"
-    ) -> Optional[Dict[str, Any]]:
-        """Query metrics from Prometheus via MCP."""
-        if not self.mcp_manager:
-            return None
-        
-        try:
-            if start and end:
-                # Range query
-                result = await self.mcp_manager.call_tool(
-                    "prometheus-monitoring.prometheus_query_range",
-                    {
-                        "query": query,
-                        "start": int(start.timestamp()),
-                        "end": int(end.timestamp()),
-                        "step": step
-                    }
-                )
-            else:
-                # Instant query
-                result = await self.mcp_manager.call_tool(
-                    "prometheus-monitoring.prometheus_query",
-                    {"query": query}
-                )
-            
-            return result
-        except Exception:
-            return None
-    
-    async def run_security_scan(self, scan_type: str = "all") -> Dict[str, Any]:
-        """Run security scans via MCP and record metrics."""
-        if not self.mcp_manager:
-            return {"error": "MCP manager not initialized"}
-        
-        results = {}
-        scan_start = datetime.now()
-        
-        try:
-            # Run different security scans based on type
-            if scan_type in ["all", "npm"]:
-                npm_result = await self.mcp_manager.call_tool(
-                    "security-scanner.npm_audit",
-                    {"package_json_path": "package.json"}
-                )
-                results["npm"] = npm_result
-                
-                # Record metrics
-                vulnerabilities = len(npm_result.get("vulnerabilities", []))
-                self.metrics_collector.business_operations_total.labels(
-                    operation="security_scan_npm",
-                    status="success" if vulnerabilities == 0 else "vulnerabilities_found"
-                ).inc()
-            
-            if scan_type in ["all", "python"]:
-                python_result = await self.mcp_manager.call_tool(
-                    "security-scanner.python_safety_check",
-                    {"requirements_file": "requirements.txt"}
-                )
-                results["python"] = python_result
-                
-                # Record metrics
-                vulnerabilities = len(python_result.get("vulnerabilities", []))
-                self.metrics_collector.business_operations_total.labels(
-                    operation="security_scan_python",
-                    status="success" if vulnerabilities == 0 else "vulnerabilities_found"
-                ).inc()
-            
-            if scan_type in ["all", "docker"]:
-                docker_result = await self.mcp_manager.call_tool(
-                    "security-scanner.docker_security_scan",
-                    {"image_name": "claude-deployment-engine:latest"}
-                )
-                results["docker"] = docker_result
-                
-                # Record metrics
-                vulnerabilities = docker_result.get("total_vulnerabilities", 0)
-                self.metrics_collector.business_operations_total.labels(
-                    operation="security_scan_docker",
-                    status="success" if vulnerabilities == 0 else "vulnerabilities_found"
-                ).inc()
-            
-            # Calculate total scan duration
-            scan_duration = (datetime.now() - scan_start).total_seconds()
-            self.metrics_collector.business_operation_duration_seconds.labels(
-                operation="security_scan_total"
-            ).observe(scan_duration)
-            
-            # Check if we need to trigger security alerts
-            total_vulnerabilities = sum(
-                len(r.get("vulnerabilities", [])) if isinstance(r.get("vulnerabilities"), list) 
-                else r.get("total_vulnerabilities", 0)
-                for r in results.values()
-            )
-            
-            if total_vulnerabilities > 0:
-                # Create custom alert
-                self.alert_manager.check_alert(
-                    self.alert_manager.rules.get("SecurityVulnerabilities", 
-                        self.alert_manager.rules["HighErrorRate"]),  # Fallback
-                    value=total_vulnerabilities,
-                    labels={"scan_type": scan_type}
-                )
-            
-            return results
-            
-        except Exception as e:
-            self.metrics_collector.record_error("security_scan_error", "mcp_integration")
-            return {"error": str(e)}
-    
-    async def export_metrics_to_s3(self, bucket: str, key_prefix: str = "metrics/") -> bool:
-        """Export current metrics to S3 for long-term storage."""
-        if not self.mcp_manager:
-            return False
-        
-        try:
-            # Get current metrics
-            metrics_data = self.metrics_collector.get_metrics()
-            
-            # Generate filename with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{key_prefix}metrics_{timestamp}.txt"
-            
-            # Upload to S3
-            result = await self.mcp_manager.call_tool(
-                "s3-storage.s3_upload_file",
-                {
-                    "file_content": metrics_data.decode('utf-8'),
-                    "bucket": bucket,
-                    "key": filename,
-                    "content_type": "text/plain"
-                }
-            )
-            
-            if result and result.get("success"):
-                self.metrics_collector.business_operations_total.labels(
-                    operation="metrics_export",
-                    status="success"
-                ).inc()
-                return True
-            else:
-                self.metrics_collector.record_error("metrics_export_failed", "mcp_integration")
-                return False
-                
-        except Exception as e:
-            self.metrics_collector.record_error("metrics_export_error", "mcp_integration")
-            return False
-    
-    async def monitor_deployment(self, deployment_name: str, namespace: str = "default") -> Dict[str, Any]:
-        """Monitor a Kubernetes deployment via MCP."""
-        if not self.mcp_manager:
-            return {"error": "MCP manager not initialized"}
-        
-        try:
-            # Get deployment status
-            deployment_result = await self.mcp_manager.call_tool(
-                "kubernetes.kubectl_get",
-                {
-                    "resource_type": "deployment",
-                    "name": deployment_name,
-                    "namespace": namespace,
-                    "output": "json"
-                }
-            )
-            
-            if deployment_result and "items" in deployment_result:
-                deployment = deployment_result["items"][0] if deployment_result["items"] else {}
-                
-                # Extract metrics
-                replicas = deployment.get("spec", {}).get("replicas", 0)
-                ready_replicas = deployment.get("status", {}).get("readyReplicas", 0)
-                
-                # Update Prometheus-style metrics
-                self.metrics_collector.business_operations_total.labels(
-                    operation="deployment_check",
-                    status="healthy" if ready_replicas == replicas else "degraded"
-                ).inc()
-                
-                # Check if we need to alert
-                if ready_replicas < replicas:
-                    availability = (ready_replicas / replicas * 100) if replicas > 0 else 0
-                    self.alert_manager.check_alert(
-                        self.alert_manager.rules["AvailabilityLow"],
-                        value=availability,
-                        labels={
-                            "deployment": deployment_name,
-                            "namespace": namespace
-                        }
-                    )
-                
-                return {
-                    "deployment": deployment_name,
-                    "namespace": namespace,
-                    "replicas": replicas,
-                    "ready_replicas": ready_replicas,
-                    "status": "healthy" if ready_replicas == replicas else "degraded"
-                }
-            else:
-                return {"error": "Deployment not found"}
-                
-        except Exception as e:
-            self.metrics_collector.record_error("deployment_monitoring_error", "mcp_integration")
-            return {"error": str(e)}
-
-
-# Global instance
-_mcp_monitoring: Optional[MCPMonitoringIntegration] = None
-
-
-async def get_mcp_monitoring() -> MCPMonitoringIntegration:
-    """Get the global MCP monitoring integration instance."""
-    global _mcp_monitoring
-    if _mcp_monitoring is None:
-        _mcp_monitoring = MCPMonitoringIntegration()
-        await _mcp_monitoring.initialize()
-    return _mcp_monitoring
+                    message += f"\n{alert.annotations['description']}\n"\n\n                if alert.value is not None:\n                    message += f"\nCurrent value: {alert.value}\n"\n\n                message += f"\nStarted: {alert.started_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"\n\n                await self.mcp_manager.call_tool(\n                    "slack-notifications.send_notification",\n                    {\n                        "message": message,\n                        "notification_type": "alert"\n                    }\n                )\n            except Exception:\n                pass  # Silently fail\n\n        self.alert_manager.register_handler(slack_alert_handler, is_async=True)\n\n    async def query_prometheus_metrics(\n        self,\n        query: str,\n        start: Optional[datetime] = None,\n        end: Optional[datetime] = None,\n        step: str = "60s"\n    ) -> Optional[Dict[str, Any]]:\n        """Query metrics from Prometheus via MCP."""\n        if not self.mcp_manager:\n            return None\n\n        try:\n            if start and end:\n                # Range query\n                result = await self.mcp_manager.call_tool(\n                    "prometheus-monitoring.prometheus_query_range",\n                    {\n                        "query": query,\n                        "start": int(start.timestamp()),\n                        "end": int(end.timestamp()),\n                        "step": step\n                    }\n                )\n            else:\n                # Instant query\n                result = await self.mcp_manager.call_tool(\n                    "prometheus-monitoring.prometheus_query",\n                    {"query": query}\n                )\n\n            return result\n        except Exception:\n            return None\n\n    async def run_security_scan(self, scan_type: str = "all") -> Dict[str, Any]:\n        """Run security scans via MCP and record metrics."""\n        if not self.mcp_manager:\n            return {"error": "MCP manager not initialized"}\n\n        results = {}\n        scan_start = datetime.now()\n\n        try:\n            # Run different security scans based on type\n            if scan_type in ["all", "npm"]:\n                npm_result = await self.mcp_manager.call_tool(\n                    "security-scanner.npm_audit",\n                    {"package_json_path": "package.json"}\n                )\n                results["npm"] = npm_result\n\n                # Record metrics\n                vulnerabilities = len(npm_result.get("vulnerabilities", []))\n                self.metrics_collector.business_operations_total.labels(\n                    operation="security_scan_npm",\n                    status="success" if vulnerabilities == 0 else "vulnerabilities_found"\n                ).inc()\n\n            if scan_type in ["all", "python"]:\n                python_result = await self.mcp_manager.call_tool(\n                    "security-scanner.python_safety_check",\n                    {"requirements_file": "requirements.txt"}\n                )\n                results["python"] = python_result\n\n                # Record metrics\n                vulnerabilities = len(python_result.get("vulnerabilities", []))\n                self.metrics_collector.business_operations_total.labels(\n                    operation="security_scan_python",\n                    status="success" if vulnerabilities == 0 else "vulnerabilities_found"\n                ).inc()\n\n            if scan_type in ["all", "docker"]:\n                docker_result = await self.mcp_manager.call_tool(\n                    "security-scanner.docker_security_scan",\n                    {"image_name": "claude-deployment-engine:latest"}\n                )\n                results["docker"] = docker_result\n\n                # Record metrics\n                vulnerabilities = docker_result.get("total_vulnerabilities", 0)\n                self.metrics_collector.business_operations_total.labels(\n                    operation="security_scan_docker",\n                    status="success" if vulnerabilities == 0 else "vulnerabilities_found"\n                ).inc()\n\n            # Calculate total scan duration\n            scan_duration = (datetime.now() - scan_start).total_seconds()\n            self.metrics_collector.business_operation_duration_seconds.labels(\n                operation="security_scan_total"\n            ).observe(scan_duration)\n\n            # Check if we need to trigger security alerts\n            total_vulnerabilities = sum(\n                len(r.get("vulnerabilities", [])) if isinstance(r.get("vulnerabilities"), list)\n                else r.get("total_vulnerabilities", 0)\n                for r in results.values()\n            )\n\n            if total_vulnerabilities > 0:\n                # Create custom alert\n                self.alert_manager.check_alert(\n                    self.alert_manager.rules.get("SecurityVulnerabilities",\n                        self.alert_manager.rules["HighErrorRate"]),  # Fallback\n                    value=total_vulnerabilities,\n                    labels={"scan_type": scan_type}\n                )\n\n            return results\n\n        except Exception as e:\n            self.metrics_collector.record_error("security_scan_error", "mcp_integration")\n            return {"error": str(e)}\n\n    async def export_metrics_to_s3(self, bucket: str, key_prefix: str = "metrics/") -> bool:\n        """Export current metrics to S3 for long-term storage."""\n        if not self.mcp_manager:\n            return False\n\n        try:\n            # Get current metrics\n            metrics_data = self.metrics_collector.get_metrics()\n\n            # Generate filename with timestamp\n            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")\n            filename = f"{key_prefix}metrics_{timestamp}.txt"\n\n            # Upload to S3\n            result = await self.mcp_manager.call_tool(\n                "s3-storage.s3_upload_file",\n                {\n                    "file_content": metrics_data.decode('utf-8'),\n                    "bucket": bucket,\n                    "key": filename,\n                    "content_type": "text/plain"\n                }\n            )\n\n            if result and result.get("success"):\n                self.metrics_collector.business_operations_total.labels(\n                    operation="metrics_export",\n                    status="success"\n                ).inc()\n                return True\n            else:\n                self.metrics_collector.record_error("metrics_export_failed", "mcp_integration")\n                return False\n\n        except Exception as e:\n            self.metrics_collector.record_error("metrics_export_error", "mcp_integration")\n            return False\n\n    async def monitor_deployment(self, deployment_name: str, namespace: str = "default") -> Dict[str, Any]:\n        """Monitor a Kubernetes deployment via MCP."""\n        if not self.mcp_manager:\n            return {"error": "MCP manager not initialized"}\n\n        try:\n            # Get deployment status\n            deployment_result = await self.mcp_manager.call_tool(\n                "kubernetes.kubectl_get",\n                {\n                    "resource_type": "deployment",\n                    "name": deployment_name,\n                    "namespace": namespace,\n                    "output": "json"\n                }\n            )\n\n            if deployment_result and "items" in deployment_result:\n                deployment = deployment_result["items"][0] if deployment_result["items"] else {}\n\n                # Extract metrics\n                replicas = deployment.get("spec", {}).get("replicas", 0)\n                ready_replicas = deployment.get("status", {}).get("readyReplicas", 0)\n\n                # Update Prometheus-style metrics\n                self.metrics_collector.business_operations_total.labels(\n                    operation="deployment_check",\n                    status="healthy" if ready_replicas == replicas else "degraded"\n                ).inc()\n\n                # Check if we need to alert\n                if ready_replicas < replicas:\n                    availability = (ready_replicas / replicas * 100) if replicas > 0 else 0\n                    self.alert_manager.check_alert(\n                        self.alert_manager.rules["AvailabilityLow"],\n                        value=availability,\n                        labels={\n                            "deployment": deployment_name,\n                            "namespace": namespace\n                        }\n                    )\n\n                return {\n                    "deployment": deployment_name,\n                    "namespace": namespace,\n                    "replicas": replicas,\n                    "ready_replicas": ready_replicas,\n                    "status": "healthy" if ready_replicas == replicas else "degraded"\n                }\n            else:\n                return {"error": "Deployment not found"}\n\n        except Exception as e:\n            self.metrics_collector.record_error("deployment_monitoring_error", "mcp_integration")\n            return {"error": str(e)}\n\n\n# Global instance\n_mcp_monitoring: Optional[MCPMonitoringIntegration] = None\n\n\nasync def get_mcp_monitoring() -> MCPMonitoringIntegration:\n    """Get the global MCP monitoring integration instance."""\n    global _mcp_monitoring\n    if _mcp_monitoring is None:\n        _mcp_monitoring = MCPMonitoringIntegration()\n        await _mcp_monitoring.initialize()\n    return _mcp_monitoring

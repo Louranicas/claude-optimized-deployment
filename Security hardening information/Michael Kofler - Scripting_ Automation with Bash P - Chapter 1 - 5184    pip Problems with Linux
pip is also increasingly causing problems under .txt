@@ -1,0 +1,49 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 1 - 5.18.4    pip Problems with Linux
+pip is also increasingly causing problems under Linux because many distributors offer a huge collection of packages with Python extensions. The parallel installation of a module, once with apt or dnf and a second time with pip, can then lead to conflicts, especially if not exactly the same versions are used. Python developers have therefore stipulated in Python Enhancement Proposal (PEP) 668 that packages from Linux repositories are preferable in such cases. PEP 668 has been valid since Python 3.11. Attempting to install a module with pip leads to the following error message with current versions of Debian, Ubuntu, Raspberry Pi OS, and Arch Linux:
+$ pip install matplotliberror: externally-managed-environmentThis environment is externally managed    To install Python packages system-wide, try apt install    python3-xyz, where xyz is the package you’re trying to    install.    If you wish to install a non-Debian-packaged Python package,    create a virtual environment using python3 -m venv path/to/venv.    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make    sure you have python3-full installed.    If you wish to install a non-Debian packaged Python application,    it may be easiest to use pipx install xyz, which will manage a    virtual environment for you. Make sure you have pipx installed.    See /usr/share/doc/python3.11/README.venv for more information.note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages. Hint: See PEP 668 for the detailed specification. 
+The error message points directly to the best solution, namely, the installation of the corresponding Linux package with apt python3-xxx (where xxx is the package name). For matplotlib, run the following command under Debian, Ubuntu, and Raspberry Pi OS:
+sudo apt install python3-matplotlib
+This recommendation has two restrictions: It requires that you have root or sudo privileges, and it assumes that the desired module is actually available in the repository of your Linux distribution. The latter is often the case, but not always. Almost 500,000 projects are available at https://pypi.org, whereas Debian standard repositories “only” contain about 4,000 projects (apt list | grep python3- | wc -l).
+An alternative is to use a virtual environment. In the context of Python, a virtual environment is simply a project directory in which the modules required for the project are installed locally and project-specifically. This approach has several advantages:
+Security Relevance Score: 3
+Word Count: 780
+Extracted: 2025-06-13 23:41:06
+
+---
+
+5.18.4    pip Problems with Linux
+pip is also increasingly causing problems under Linux because many distributors offer a huge collection of packages with Python extensions. The parallel installation of a module, once with apt or dnf and a second time with pip, can then lead to conflicts, especially if not exactly the same versions are used. Python developers have therefore stipulated in Python Enhancement Proposal (PEP) 668 that packages from Linux repositories are preferable in such cases. PEP 668 has been valid since Python 3.11. Attempting to install a module with pip leads to the following error message with current versions of Debian, Ubuntu, Raspberry Pi OS, and Arch Linux:
+$ pip install matplotliberror: externally-managed-environmentThis environment is externally managed    To install Python packages system-wide, try apt install    python3-xyz, where xyz is the package you’re trying to    install.    If you wish to install a non-Debian-packaged Python package,    create a virtual environment using python3 -m venv path/to/venv.    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make    sure you have python3-full installed.    If you wish to install a non-Debian packaged Python application,    it may be easiest to use pipx install xyz, which will manage a    virtual environment for you. Make sure you have pipx installed.    See /usr/share/doc/python3.11/README.venv for more information.note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages. Hint: See PEP 668 for the detailed specification. 
+The error message points directly to the best solution, namely, the installation of the corresponding Linux package with apt python3-xxx (where xxx is the package name). For matplotlib, run the following command under Debian, Ubuntu, and Raspberry Pi OS:
+sudo apt install python3-matplotlib
+This recommendation has two restrictions: It requires that you have root or sudo privileges, and it assumes that the desired module is actually available in the repository of your Linux distribution. The latter is often the case, but not always. Almost 500,000 projects are available at https://pypi.org, whereas Debian standard repositories “only” contain about 4,000 projects (apt list | grep python3- | wc -l).
+An alternative is to use a virtual environment. In the context of Python, a virtual environment is simply a project directory in which the modules required for the project are installed locally and project-specifically. This approach has several advantages:
+
+
+You can clearly see which modules a particular project requires. The project can thus be transferred more easily to another computer later.
+
+
+No conflicts arise between different projects that require different modules.
+
+
+You aren’t restricted to the Python modules offered by your Linux distribution and do not need administrator rights to install Linux packages.
+
+
+Virtual environments are supported by Python through the venv module. This module must be installed in advance, either with apt install python3-venv or with apt install python3-full. Then, set up your project with the following command:
+$ python3 -m venv my-project 
+Python creates the directory my-project, if it does not already exist, and sets up a minimal Python environment there. (“Minimal” means approximately 1,500 files, with a space requirement of approximately 25 MB.) Now, execute the shell script activate in your terminal window with source to activate the environment:
+$ cd my-project$ source bin/activate(my-project)$  
+In this environment, pip works as usual. You can then execute your script, which uses the locally installed modules:
+(my-project)$ pip install requests beautifulsoup4(my-project)$ ./my-webscraping-script.py 
+5.18.5    requirements.txt
+To document the modules required by your script, you can create the requirements.txt file in the project directory. This file records which module is used in which version. The following lines illustrate the simple syntax of this file:
+beautifulsoup4==4.12.0requests==2.28.2requests_html==0.10.0 
+Instead of maintaining the file manually, you can also use the pipreqs command. This command evaluates the import statements of all Python files in a directory, determines which versions of the modules are currently installed, and then creates the appropriate file. pipreqs is itself a module that must be installed via pip install pipreqs before its first use. 
+$ pipreqs code/directory 
+Once requirements.txt exists, you can easily install all the modules listed within it with the following command:
+$ pip install -r requirements.txt 
+5.18.6    pipenv
+If you develop various Python projects on your computer, which need different add-on modules, pip can lead you directly into chaos, if you’re unlucky. Quickly, which modules are required for which scripts becomes unclear. You’ll notice this problem easily whenever you try to run your scripts on another computer. In rare cases, installing modules in parallel or performing module updates for multiple projects can lead to conflict: A script that was working fine before may suddenly report strange errors.
+You can avoid such trouble by using a virtual environment (

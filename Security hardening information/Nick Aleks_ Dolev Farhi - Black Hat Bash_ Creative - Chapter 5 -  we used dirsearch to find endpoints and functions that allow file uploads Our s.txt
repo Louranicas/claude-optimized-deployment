@@ -1,0 +1,20 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 5 - , we used dirsearch to find endpoints and functions that allow file uploads. Our scan revealed that the p-web-01 machine (172.16.10.10) has a file upload page at http://172.16.10.10:8081/upload. Figure 6-1 shows what your Kali Firefox browser should return when you navigate to this URL.
+Security Relevance Score: 3
+Word Count: 169
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we used dirsearch to find endpoints and functions that allow file uploads. Our scan revealed that the p-web-01 machine (172.16.10.10) has a file upload page at http://172.16.10.10:8081/upload. Figure 6-1 shows what your Kali Firefox browser should return when you navigate to this URL.
+
+Figure 6-1: A file uploader on the p-web-01 machine
+
+As you can see, the web page tells us it accepts only files with the .jpg, .jpeg, .gif, and .png extensions. Using manual testing, we can verify whether the application actually enforces this requirement.
+To upload the correct web shell payload to the target, however, we must perform reconnaissance. There is no such thing as a silver-bullet payload that works for every language, web application, framework, and platform.
+In previous chapters, scans against p-web-01 told us that the web application uses Python and is running Flask, a web framework written in Python. Let’s try uploading a web shell that targets Python. First, download the python-webshell-check.py test file.
+
+NOTE
+
+You can find this chapter’s files at https://github.com/dolevf/Black-Hat-Bash/blob/master/ch

@@ -1,0 +1,511 @@
+# Security Chapter Extract
+Book: Rong Su - Cybersecurity of Discrete Event Systems_ From Smart Attacks to Resilient Defence (2024, CRC Press) - libgen.li
+Chapter: 2025 - It is critically important to develop suitable knowledge and
+technology to ensure cybersecurity.
+This indisputably important subject has been drawing lots of
+attention from both industry and academia. Researchers in the
+discrete-event system (DES) community are not immune to this
+curiosity. A DES can be defined as a group of agents that influence
+their own or any other agent’s state transitions by conducting relevant
+actions (or events). For each specific instance of a DES, each agent’s
+state space could be either discrete or continuous, and each action
+(or event) could be either asynchronous or concurrent and could take
+either no time or some time before finishing. DES theories can be used
+for system modeling, analysis, control and performance optimization,
+and have found applications in many areas such as manufacturing,
+logistics, communication and transportation. However, research on
+cybersecurity analysis and resilient control has only recently become
+popular in the community, due to its growing importance. This book
+aims to present a suite of latest frameworks that describe several
+types of smart cyberattacks and corresponding defending strategies
+via resilient supervisory control. Some key questions to be answered in
+xiii
+xiv■Preface
+thisb
+ook include, e.g., what are smart sensor and/or actuator attacks,
+how to identify the existence of a smart attack in a given closed-loop
+system, does there exist a resilient supervisor against ALL possible
+smart attacks of a certain type, and in case an answer to the previous
+question is positive, how to synthesize one such resilient supervisor.
+The idea of smart attacks introduced in this book was first
+conceived in February 2016, when I visited Stephane Lafortune
+at University of Michigan. My original plan was to discuss with
+Stephane and Feng Lin, who was also there for a short visit, about
+networked DES control. Due to some reason, the discussion was forked
+into cyberattacks, as Stephane was collaborating with some brilliant
+researchers such as Lilian Kawakami Carvalho and Raymond Kwong
+on supervisory control against actuator enablement attack, which later
+appeared in WODES2016. Compared with the existing works, the key
+novelty of this new concept of smart attack is to associate an attack
+with certain characteristics of intelligence in order to distinguish it
+from indigenous uncontrollable events like faults that cause system
+functional changes. Some commonly used characteristics of intelligence
+include covertness (orstealthiness) and feasibility of damage infliction
+- the former describes the capability of an attacker to hide an attack
+from being detected before (irreversible) damage can be inflicted, and
+the latter captures the desirable attack consequence, either guaranteed
+damage or a chance play.
+After imposing such characteristics of intelligence, this line of
+research becomes much more intrigue than fault diagnosis or opacity
+analysis, which have been actively studied in the DES community.
+A system designer basically needs to play two antagonistic roles
+simultaneously. On one hand, the designer needs to put himself in an
+attacker’s shoes about what can be done to identify most vulnerable
+system assets and maximize damage to a target system with minimum
+costs; on the other hand, the designer needs to think from a defender’s
+viewpoint about how to ward off such smart attacks. Ultimately, the
+goal is to enhance system resilience against cyberattacks. But only after
+we fully understand an opponent’s best moves, we can come up with
+the best defense measures.
+Since the idea of smart attack was conceived in 2016, there have
+been many follow-up works. Some fundamental questions such as
+decidability of existence of smart sensor attacks, existence of resilient
+supervisors against smart sensor attacks, and existence of smart
+actuator attacks have been satisfactorily answered, which however rely
+Preface ■xv
+onan
+assumption of having perfect prior knowledge about a target
+system. Recently, new results have started to appear that rely on
+learning system behaviors to gain required knowledge about a target
+system, upon which attack or defense schemes could be synthesized.
+Are we able to see more fruitful results on computationally feasible
+cybersecurity solutions adopted by industry in the next few years? I
+feel positive about this.
+This book is based on inspiring ideas from several past publications
+jointly written with my current and former PhD students Ruochen
+Tai, Liyong Lin, and Yuting Zhu. I had so many wonderful moments
+when discussing with them. Some early idea on smart actuator attacks
+was conceived when Sander Thuijsman from Eindhoven University of
+Technology (TUE) visited me at Nanyang Technological University for
+an 11-week training program in early 2018. Our collaboration led to a
+conference publication at ACC’19, together with his supervisor Michel
+Renier. My deep gratitude goes to Joao Carlos Basilio, Christoforos
+Hadjicostis, Stephane Lafortune, and Feng Lin for their constructive
+comments and suggestions in the past few years when we worked
+together on different occasions such as a book project with Basilio and
+Christoforos, and a tutorial session at IEEE CDC’22 with Christoforos,
+Stephane and Feng. I would also like to express my deep gratitude
+to Walter Murray Wonham, who, as my MASc and PhD thesis
+supervisor, brought me into the DES community and equipped me
+with all necessary knowledge and tools, without which this book would
+never be possible. I will also use this opportunity to thank Andrew
+Stow from CRC Press who provided me with this book project and,
+with many other staff at CRC Press like Kasturi Ghosh, has been
+patiently working with me to make the whole preparation journey an
+unforgettable memory for me.
+Finally, I would like to express my deepest gratitude to my wife
+Lijuan and three children, Gabriel, Michael, and Raphael, for their
+continuous support and encouragement, without which this project
+would never even start.
+Rong Su
+Nanyang Technological University, Singapore
+October 2023
+Co
+ntributors
+Liyong
+Lin
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Ruochen Tai
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Yuting Zhu
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+xvi
+Sy
+mbols
+SYMBOL DESCRIPTION
+Σ
+finite alphabet
+Σ∗monoid with
+concatenation
+ϵ empty string
+Σϵalphabet Σ ∪ {ϵ}
+Σo observable alphabet
+Σϵ
+o Σo∪ {ϵ}
+Σuo unobservable alphabet
+Σc controllable alphabet
+Σuc uncontrollable
+alphabet
+Σo,a attackable observable
+alphabet
+Σc,a attackable
+controllable alphabet
+Γ control pattern set
+σ∈Σ event σfrom Σ
+∥s∥ length of string s
+s↑last event of string s
+s≤t prefix substring soft
+st concatenation of s
+andt
+L⊆Σ∗language Lfrom Σ
+EnL(s) enabled events after s
+inL
+L prefix closure
+ofL
+G plant automaton
+EnG(x) enabled events at xin
+GEnG(s) enabled events after s
+inG
+L(G) closed behavior of G.
+Lm(G) marked behavior of
+G.
+URG,Σ(x) unobservable state
+reach in Gfrom x
+with events in Σ
+V supervisory control
+function
+V/G controlled plant
+automaton
+S supervisory control
+function
+S/G controlled plant
+automaton
+S supervisor automaton
+As sensor attack function
+As sensor attack
+automaton
+Ac actuator attack
+function
+Ac actuator attack
+automaton
+BT bipartite supervisor
+automaton
+BTAcbipartite supervisor
+automaton under
+attack
+xvii
+xviii ■Symb
+ols
+CE command execution
+automaton
+CEAccommand execution
+automaton under
+attack
+BPS behavior preserving
+structure
+BPNS nondeterministic BPS
+BPNSAcattacked BPNS
+M dynamic mask
+automaton
+E edit automaton
+I intruder automatonPΣ,Σ′ natural projection
+Po natural projection to
+Σ∗
+o
+Po,a natural projection to
+Σ∗
+o,a
+|A| Cardinality of set A
+N natural number set
+G×S parallel composition
+L1||L2 synchronous product
+f1◦f2 composition of
+functions
+∧ logic AND
+∨ logic OR
+DOI: 10.1201/9781003333883-1 1CH
+A P T E R1
+In
+troduction to
+Cybersecurity in
+Discrete Event Systems
+Security Relevance Score: 14
+Word Count: 1874
+Extracted: 2025-06-13 23:40:25
+
+---
+
+It is critically important to develop suitable knowledge and
+technology to ensure cybersecurity.
+This indisputably important subject has been drawing lots of
+attention from both industry and academia. Researchers in the
+discrete-event system (DES) community are not immune to this
+curiosity. A DES can be defined as a group of agents that influence
+their own or any other agent’s state transitions by conducting relevant
+actions (or events). For each specific instance of a DES, each agent’s
+state space could be either discrete or continuous, and each action
+(or event) could be either asynchronous or concurrent and could take
+either no time or some time before finishing. DES theories can be used
+for system modeling, analysis, control and performance optimization,
+and have found applications in many areas such as manufacturing,
+logistics, communication and transportation. However, research on
+cybersecurity analysis and resilient control has only recently become
+popular in the community, due to its growing importance. This book
+aims to present a suite of latest frameworks that describe several
+types of smart cyberattacks and corresponding defending strategies
+via resilient supervisory control. Some key questions to be answered in
+xiii
+xiv■Preface
+thisb
+ook include, e.g., what are smart sensor and/or actuator attacks,
+how to identify the existence of a smart attack in a given closed-loop
+system, does there exist a resilient supervisor against ALL possible
+smart attacks of a certain type, and in case an answer to the previous
+question is positive, how to synthesize one such resilient supervisor.
+The idea of smart attacks introduced in this book was first
+conceived in February 2016, when I visited Stephane Lafortune
+at University of Michigan. My original plan was to discuss with
+Stephane and Feng Lin, who was also there for a short visit, about
+networked DES control. Due to some reason, the discussion was forked
+into cyberattacks, as Stephane was collaborating with some brilliant
+researchers such as Lilian Kawakami Carvalho and Raymond Kwong
+on supervisory control against actuator enablement attack, which later
+appeared in WODES2016. Compared with the existing works, the key
+novelty of this new concept of smart attack is to associate an attack
+with certain characteristics of intelligence in order to distinguish it
+from indigenous uncontrollable events like faults that cause system
+functional changes. Some commonly used characteristics of intelligence
+include covertness (orstealthiness) and feasibility of damage infliction
+- the former describes the capability of an attacker to hide an attack
+from being detected before (irreversible) damage can be inflicted, and
+the latter captures the desirable attack consequence, either guaranteed
+damage or a chance play.
+After imposing such characteristics of intelligence, this line of
+research becomes much more intrigue than fault diagnosis or opacity
+analysis, which have been actively studied in the DES community.
+A system designer basically needs to play two antagonistic roles
+simultaneously. On one hand, the designer needs to put himself in an
+attacker’s shoes about what can be done to identify most vulnerable
+system assets and maximize damage to a target system with minimum
+costs; on the other hand, the designer needs to think from a defender’s
+viewpoint about how to ward off such smart attacks. Ultimately, the
+goal is to enhance system resilience against cyberattacks. But only after
+we fully understand an opponent’s best moves, we can come up with
+the best defense measures.
+Since the idea of smart attack was conceived in 2016, there have
+been many follow-up works. Some fundamental questions such as
+decidability of existence of smart sensor attacks, existence of resilient
+supervisors against smart sensor attacks, and existence of smart
+actuator attacks have been satisfactorily answered, which however rely
+Preface ■xv
+onan
+assumption of having perfect prior knowledge about a target
+system. Recently, new results have started to appear that rely on
+learning system behaviors to gain required knowledge about a target
+system, upon which attack or defense schemes could be synthesized.
+Are we able to see more fruitful results on computationally feasible
+cybersecurity solutions adopted by industry in the next few years? I
+feel positive about this.
+This book is based on inspiring ideas from several past publications
+jointly written with my current and former PhD students Ruochen
+Tai, Liyong Lin, and Yuting Zhu. I had so many wonderful moments
+when discussing with them. Some early idea on smart actuator attacks
+was conceived when Sander Thuijsman from Eindhoven University of
+Technology (TUE) visited me at Nanyang Technological University for
+an 11-week training program in early 2018. Our collaboration led to a
+conference publication at ACC’19, together with his supervisor Michel
+Renier. My deep gratitude goes to Joao Carlos Basilio, Christoforos
+Hadjicostis, Stephane Lafortune, and Feng Lin for their constructive
+comments and suggestions in the past few years when we worked
+together on different occasions such as a book project with Basilio and
+Christoforos, and a tutorial session at IEEE CDC’22 with Christoforos,
+Stephane and Feng. I would also like to express my deep gratitude
+to Walter Murray Wonham, who, as my MASc and PhD thesis
+supervisor, brought me into the DES community and equipped me
+with all necessary knowledge and tools, without which this book would
+never be possible. I will also use this opportunity to thank Andrew
+Stow from CRC Press who provided me with this book project and,
+with many other staff at CRC Press like Kasturi Ghosh, has been
+patiently working with me to make the whole preparation journey an
+unforgettable memory for me.
+Finally, I would like to express my deepest gratitude to my wife
+Lijuan and three children, Gabriel, Michael, and Raphael, for their
+continuous support and encouragement, without which this project
+would never even start.
+Rong Su
+Nanyang Technological University, Singapore
+October 2023
+Co
+ntributors
+Liyong
+Lin
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Ruochen Tai
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+Yuting Zhu
+School of Electrical and Electronic Engineering
+Nanyang Technological University
+Singapore, Singapore
+xvi
+Sy
+mbols
+SYMBOL DESCRIPTION
+Σ
+finite alphabet
+Σ∗monoid with
+concatenation
+ϵ empty string
+Σϵalphabet Σ ∪ {ϵ}
+Σo observable alphabet
+Σϵ
+o Σo∪ {ϵ}
+Σuo unobservable alphabet
+Σc controllable alphabet
+Σuc uncontrollable
+alphabet
+Σo,a attackable observable
+alphabet
+Σc,a attackable
+controllable alphabet
+Γ control pattern set
+σ∈Σ event σfrom Σ
+∥s∥ length of string s
+s↑last event of string s
+s≤t prefix substring soft
+st concatenation of s
+andt
+L⊆Σ∗language Lfrom Σ
+EnL(s) enabled events after s
+inL
+L prefix closure
+ofL
+G plant automaton
+EnG(x) enabled events at xin
+GEnG(s) enabled events after s
+inG
+L(G) closed behavior of G.
+Lm(G) marked behavior of
+G.
+URG,Σ(x) unobservable state
+reach in Gfrom x
+with events in Σ
+V supervisory control
+function
+V/G controlled plant
+automaton
+S supervisory control
+function
+S/G controlled plant
+automaton
+S supervisor automaton
+As sensor attack function
+As sensor attack
+automaton
+Ac actuator attack
+function
+Ac actuator attack
+automaton
+BT bipartite supervisor
+automaton
+BTAcbipartite supervisor
+automaton under
+attack
+xvii
+xviii ■Symb
+ols
+CE command execution
+automaton
+CEAccommand execution
+automaton under
+attack
+BPS behavior preserving
+structure
+BPNS nondeterministic BPS
+BPNSAcattacked BPNS
+M dynamic mask
+automaton
+E edit automaton
+I intruder automatonPΣ,Σ′ natural projection
+Po natural projection to
+Σ∗
+o
+Po,a natural projection to
+Σ∗
+o,a
+|A| Cardinality of set A
+N natural number set
+G×S parallel composition
+L1||L2 synchronous product
+f1◦f2 composition of
+functions
+∧ logic AND
+∨ logic OR
+DOI: 10.1201/9781003333883-1 1CH
+A P T E R1
+In
+troduction to
+Cybersecurity in
+Discrete Event Systems
+1.1 INTRODUCTION
+According to
+Merriam-Webster [8], “a system is a regularly interacting
+or interdependent group of items forming a unified whole ”. If we adopt
+this generic concept of system, then a discrete-event system (DES) can
+be defined as a group of agents that influence their own or any other
+agent’s state transitions by conducting relevant actions (or events).
+For each specific instance of a DES, each agent’s state space could be
+either discrete or continuous, and each action (or event) could be either
+asynchronous or concurrent and could take either no time or some
+time before finishing. Regarding forms of inter-agent interactions, they
+could be either behavior oriented , where detailed steps of an interaction
+are specified, or function oriented, where the consequence, rather than
+procedure, of an interaction is modeled. One example of a behavior-
+oriented agent interaction can be found in parallel composition of
+formal process models such as calculus of communicating systems
+(CCS) by Robin Milner [9], where each interaction includes a sending
+action and a receiving action. One example of a function-oriented
+agent interaction can be found in parallel composition of finite-state
+automata [3,10], where a single event execution triggers all agents
+2■Cybersecurit
+y of Discrete Event Systems
+(modeled by automata) that permit this event to make state transitions
+simultaneously. Occasionally, we also use discrete-event dynamical
+system (DEDS) in the monograph to refer to a DES whose transitional
+behavior (partially) depends on time, which could be considered either
+as one special event or part of some prerequisite conditions that
+trigger a state transition. According to Ref. [2], almost all man-made
+systems contain some components that can be described by DES, such
+as software systems, manufacturing systems, communication systems,
+logistic systems, and transportation systems.
+In a general sense, cybersecurity is the practice of protecting
+systems, networks, and programs from digital attacks, which aim
+at accessing, changing, or destroying sensitive information; extorting
+financial benefits from users; or interrupting normal operational
+processes. There are many different types of cybersecurity based
+on concerned assets such as network security, cloud security, end-
+point security, mobile security, IoT security, application security,
+and zero trust. The corresponding cybersecurity threats have also
+evolved for several generations, triggering continuous advancement
+of cybersecurity measures. For example, in the late 1980s, virus
+attacks against standalone computers inspired the creation of the
+first antivirus solutions. As cyberattacks began to come over the
+Internet, the firewall was developed to identify and block them.
+Later, exploitation of vulnerabilities within applications caused the
+mass adoption of intrusion prevention systems. As malware became
+more targeted and able to evade signature-based defenses, anti-bot
+and sandboxing solutions were necessary to detect novel threats.
+The latest generation of cybersecurity threats uses large-scale, multi-
+vector attacks, making advanced threat prevention solutions a priority.
+The systems and control community mainly focus on application-
+based cybersecurity threats, aiming to identify vulnerability of existing
+application functions and design suitable defense measures [49,131,132,
+137–140,167–173].
+In this monograph, we focus on one specific type of application-
+based cyberattack cast in a DES framework, where an attacker aims to
+inflict damage on a target system by disrupting its control loop. This
+could be achieved either by intercepting and changing the controller’s
+input signals (such as sensor measurements or operational references or
+requirements) or by intercepting and changing the controller’s output
+Intro
+duction to Cybersecurity in Discrete Event Systems ■3
+Figure 1.1The
+Ramadge-Wonham supervisory control architecture.
+signals (such as control commands or state feedback information for
+system monitoring), or by completely blocking the data transmission
+between the controller and the plant (in terms of, e.g., denial-
+of-service attacks). An attack can be either brute force, e.g., via
+hardware destruction or signal jamming, or covert (or stealthy), i.e.,
+the attacking process is hidden from the controller or any other
+monitoring mechanism. We adopt the control system setup introduced
+in the Ramadge-Wonham supervisory control paradigm [3,12], which is
+depicted in Figure 1.

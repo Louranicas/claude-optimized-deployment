@@ -1,0 +1,161 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'rust_core/**'
+      - '.github/workflows/coverage.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'rust_core/**'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  coverage:
+    name: Generate Coverage Report
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: llvm-tools-preview
+        
+    - name: Cache cargo registry
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Cache cargo index
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Cache cargo build
+      uses: actions/cache@v3
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Install cargo-tarpaulin
+      run: |
+        cargo install cargo-tarpaulin
+        
+    - name: Generate coverage
+      working-directory: ./rust_core
+      run: |
+        cargo tarpaulin --out Xml --out Html --out Lcov \
+          --workspace --all-features \
+          --timeout 300 --exclude-files "*/tests/*" \
+          --exclude-files "*/benches/*" --exclude-files "*/examples/*"
+          
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./rust_core/cobertura.xml
+        flags: rust
+        name: mcp-manager-rust
+        fail_ci_if_error: false
+        
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: |
+          ./rust_core/tarpaulin-report.html
+          ./rust_core/lcov.info
+          ./rust_core/cobertura.xml
+          
+    - name: Generate coverage summary
+      working-directory: ./rust_core
+      run: |
+        # Extract coverage percentage
+        COVERAGE=$(grep -oP 'line-rate="\K[0-9.]+' cobertura.xml | head -1)
+        COVERAGE_PCT=$(echo "scale=2; $COVERAGE * 100" | bc)
+        
+        echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Total Coverage:** ${COVERAGE_PCT}%" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Check coverage threshold
+        if (( $(echo "$COVERAGE_PCT >= 80" | bc -l) )); then
+          echo "✅ Coverage meets threshold (80%)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Coverage below threshold (80%)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const coverage = fs.readFileSync('./rust_core/cobertura.xml', 'utf8');
+          const match = coverage.match(/line-rate="([0-9.]+)"/);
+          const coveragePct = match ? (parseFloat(match[1]) * 100).toFixed(2) : 'Unknown';
+          
+          const comment = `## 📊 Test Coverage Report
+          
+          **Total Coverage:** ${coveragePct}%
+          
+          ${coveragePct >= 80 ? '✅' : '❌'} Coverage ${coveragePct >= 80 ? 'meets' : 'below'} threshold (80%)
+          
+          View the full report in the [artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+          
+  coverage-trend:
+    name: Track Coverage Trend
+    runs-on: ubuntu-latest
+    needs: coverage
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download coverage artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: coverage-report
+        
+    - name: Update coverage badge
+      run: |
+        # Extract coverage and generate badge
+        COVERAGE=$(grep -oP 'line-rate="\K[0-9.]+' cobertura.xml | head -1)
+        COVERAGE_PCT=$(echo "scale=0; $COVERAGE * 100" | bc)
+        
+        # Determine color
+        if [ $COVERAGE_PCT -ge 80 ]; then
+          COLOR="brightgreen"
+        elif [ $COVERAGE_PCT -ge 60 ]; then
+          COLOR="yellow"
+        else
+          COLOR="red"
+        fi
+        
+        # Update README badge
+        sed -i "s/coverage-[0-9]*%25-[a-z]*/coverage-${COVERAGE_PCT}%25-${COLOR}/g" README.md || true
+        
+    - name: Commit badge update
+      uses: EndBug/add-and-commit@v9
+      with:
+        add: 'README.md'
+        message: 'chore: Update coverage badge'
+        default_author: github_actions

@@ -1,0 +1,25 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 4 - 12.2    Working with SSH
+Unless you have some practical experience, you should first familiarize yourself with the ssh command (the SSH client). For this task, open a terminal and execute the following command:
+> ssh user@hostname  The authenticity of host 'hostname (123.124.125.126)'  can't be established. ECDSA key fingerprint is  SHA256:E3IH3027Bc+5DvsvtenJkma1v5nI3owg08ZZqUR2BYk.  Are you sure you want to continue connecting? yes  Warning: Permanently added 'hostname,123.124.125.126' (ECDSA)  to the list of known hosts.  user@hostname's password: **********user@hostname$ grep VERSION /etc/os-release  VERSION="20.04.5 LTS (Focal Fossa)"  VERSION_ID="20.04"  VERSION_CODENAME=focaluser@hostname$ exit 
+Replace user with the account name on the relevant computer and hostname with the network name of the computer or its IP address. If the account names on the local machine and the remote host match, you can omit this step and just run ssh hostname. For authentication, you must enter the password of the account on the remote computer (not your local password!).
+To get familiar with SSH, simply specify localhost instead of the hostname (i.e., ssh localhost). This step establishes an SSH connection to the local machine, testing both the SSH client and the local SSH server.
+After successful login, you can run commands on the external computer. In the previous listing, I used grep to get the version of the installed Linux distribution. Entering exit or pressing (Ctrl) + (D) will terminate the SSH session.
+Security Relevance Score: 3
+Word Count: 365
+Extracted: 2025-06-13 23:41:06
+
+---
+
+12.2    Working with SSH
+Unless you have some practical experience, you should first familiarize yourself with the ssh command (the SSH client). For this task, open a terminal and execute the following command:
+> ssh user@hostname  The authenticity of host 'hostname (123.124.125.126)'  can't be established. ECDSA key fingerprint is  SHA256:E3IH3027Bc+5DvsvtenJkma1v5nI3owg08ZZqUR2BYk.  Are you sure you want to continue connecting? yes  Warning: Permanently added 'hostname,123.124.125.126' (ECDSA)  to the list of known hosts.  user@hostname's password: **********user@hostname$ grep VERSION /etc/os-release  VERSION="20.04.5 LTS (Focal Fossa)"  VERSION_ID="20.04"  VERSION_CODENAME=focaluser@hostname$ exit 
+Replace user with the account name on the relevant computer and hostname with the network name of the computer or its IP address. If the account names on the local machine and the remote host match, you can omit this step and just run ssh hostname. For authentication, you must enter the password of the account on the remote computer (not your local password!).
+To get familiar with SSH, simply specify localhost instead of the hostname (i.e., ssh localhost). This step establishes an SSH connection to the local machine, testing both the SSH client and the local SSH server.
+After successful login, you can run commands on the external computer. In the previous listing, I used grep to get the version of the installed Linux distribution. Entering exit or pressing (Ctrl) + (D) will terminate the SSH session.
+12.2.1    Host Verification
+The first time you connect to a host, the SSH client asks if you trust that host (see the previous listing). To be honest, you don’t have many options there because only if you agree can you continue with the login process. If you have set up the external computer yourself or know the administrator, you could check if the “fingerprint” (i.e., the short form) of the server’s SSH key matches. To get the fingerprint of a server, you must run the following command there, again replacing hostname with the actual computer name:
+$ ssh-keyscan hostname | ssh-keygen -lf -   256 SHA256:Sma6TJ79bONK8PMISjxPIYUi...MK3HQ hostname (ED25519)  2048 SHA256:i9FlmpRieIFIEHNfHSzFgjp4...Y3Zm0 hostname (RSA)   256 SHA256:E3IH3027Bc+5DvsvtenJkma1...R2BYk hostname (ECDSA) 
+12.2.2    Potential Issues and Their Cause
+On many Linux distributions, SSH login for root is blocked for security reasons or only allowed if authentication is done with keys (

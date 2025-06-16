@@ -1,0 +1,158 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 6 - Table 1.6 Solutions and studies 
+Solutions Studies 
+Detection mechanisms S3, S6, S7, S13, S15, S17, S26, S29, S30 
+Encryption S16, S17, S24, S30, S31 
+Monitoring S20, S32 
+Demilitarized zones S30, S32 
+Challenge-response mechanism S8 
+Prediction model S10 
+User authentication S13 
+Deep packet inspection S13 
+Open PLC S18 
+SEABASS S22 
+Firewall S32 
+VPN S32 
+Firmware veriﬁcation tool S38
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 21
+Various techniques have been utilized in research to provide solutions for 
+security vulnerabilities in PLC software, including the implementation of detection mechanisms and encryption.
+Security Relevance Score: 14
+Word Count: 1754
+Extracted: 2025-06-13 23:40:22
+
+---
+
+Table 1.6 Solutions and studies 
+Solutions Studies 
+Detection mechanisms S3, S6, S7, S13, S15, S17, S26, S29, S30 
+Encryption S16, S17, S24, S30, S31 
+Monitoring S20, S32 
+Demilitarized zones S30, S32 
+Challenge-response mechanism S8 
+Prediction model S10 
+User authentication S13 
+Deep packet inspection S13 
+Open PLC S18 
+SEABASS S22 
+Firewall S32 
+VPN S32 
+Firmware veriﬁcation tool S38
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 21
+Various techniques have been utilized in research to provide solutions for 
+security vulnerabilities in PLC software, including the implementation of detection mechanisms and encryption. 
+1.6.4 A T axonomy for PLC-Based Vulnerabilities, Attacks, 
+and Security Solutions 
+The data collected in the study was utilized to develop a taxonomy for organizing the vulnerabilities, attacks, and solutions in PLCs. Figure 
+1.7 displays a faceted 
+taxonomy that encompasses all of these elements. The root of the taxonomy 
+is the PLC, while the taxonomy’s dimensions consist of vulnerabilities, attacks, 
+and solutions. Each dimension includes multiple categories, with ten categories identiﬁed for vulnerabilities, 20 for attacks, and 13 for solutions. 
+Since we are connecting the vulnerabilities, attacks, and solutions for industrial 
+PLC software into a single taxonomy, in Fig. 1.8 we describe the relationship 
+between these three dimensions. As mentioned throughout this study, vulnerabilities 
+are weaknesses of the PLC system. They pose a risk to the PLC system as they lead 
+to a different attack that exploits these vulnerabilities. These attacks are resolved by different solution mechanisms that mitigate the corresponding vulnerabilities. 
+Table 1.7 presents a mapping of the security vulnerabilities found in the previous 
+study to their corresponding attacks and solutions. It can be observed that each vulnerability can result in multiple attacks and each attack can have multiple 
+solutions. The majority of the reported attacks were related to PLC network security, indicating that more research is needed in this area to develop effective PLC security mechanisms. This tabular taxonomy provides a comprehensive framework that 
+includes the dimensions of vulnerabilities, attacks, and solutions. The vulnerabilities dimension is divided into 10 categories, the attacks dimension into 20 categories, and the solutions dimension into 13 categories. 
+Figure 1.9 illustrates the relationship between vulnerabilities, attacks, and solu-
+tions, focusing only on attacks that exploit a vulnerability and have a possible solution. Attacks serve as the connecting point between vulnerabilities and solu-
+tions. For instance, with respect to FDIA, authentication is the most commonly identiﬁed vulnerability, whereas detection mechanisms and encryption are the most frequently employed solutions. Regarding the MITM attack, the lack of 
+encryption is the predominant vulnerability, while encryption mechanisms are the most common solutions. Similarly, for the replay attack, the primary vulnerabilities are the lack of authentication, encryption, and network issues, while encryption 
+mechanisms are the main solutions. 
+The taxonomy developed in this study provides several contributions. Firstly, the 
+process used to create this taxonomy can serve as a model for other researchers
+22 E. P. Enoiu et al.
+Fig. 1.7 Security taxonomy for PLCs
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 23
+Fig. 1.8 Generic vulnerabilities, attacks, and solutions cycle 
+to create taxonomies in similar contexts. Additionally, the taxonomy can aid in 
+examining the security of PLSs from multiple perspectives. Secondly, academics 
+can beneﬁt from this taxonomy by identifying security trends and patterns in PLCs 
+and using them to organize their research outcomes. Industry professionals can also 
+use the taxonomy to target frequent PLC vulnerabilities, analyze existing solutions, 
+and improve security measures. The taxonomy can also serve as a checklist to 
+ensure a system is free of vulnerabilities mentioned in the taxonomy, indicating 
+improved security. While this taxonomy already classiﬁes vulnerabilities, attacks, 
+and solutions in industrial PLC software, its signiﬁcance will increase as researchers 
+expand it to include other unknown categories. 
+In our taxonomy, the relation most frequently mentioned is the one between 
+authentication vulnerabilities and the exploitation of these vulnerabilities by denial 
+of service (DoS) attacks. A correct authentication mechanism is necessary for 
+identifying legitimate users in the system. Without it, attackers can intrude into the 
+PLC system and launch a DoS attack, where more trafﬁc is sent to the system than 
+it can handle. 
+The DoS attack also uses encryption vulnerabilities and a lack of anomaly 
+detection. Encryption vulnerabilities are exploited because sensitive information, 
+such as passwords, is sent in clear text instead of encrypted format, enabling 
+the attacker to enter the PLC system. The lack of a detection mechanism allows 
+attackers to use a DoS attack, and the system is unaware of it because it does not 
+implement detection mechanisms to identify abnormal trafﬁc and restrict it.
+24 E. P. Enoiu et al.
+Table 1.7 PLC security vulnerabilities, attacks, and solution mapping
+
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 25
+
+26 E. P. Enoiu et al. 
+Fig. 1.9 Relational display of vulnerabilities, attacks, and solutions 
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 27 
+The man-in-the-middle and replay attacks also exploit encryption vulnerabilities. 
+The attacks are executed by intercepting the communication between two devices 
+and either listening or modifying the information being sent. Without encryption, attackers can easily read the data, although they cannot necessarily compromise the 
+system. However, if the communication is encrypted, the data in the packet would require decryption by the user, making it much more difﬁcult for attackers to access the PLC system. 
+The absence of an authentication mechanism makes it possible for false data 
+injection attacks to exploit the authentication vulnerability. This is because it is 
+difﬁcult to determine if the exchanged messages are authentic or false without such 
+a mechanism in place. Implementing cryptographic signatures can help authen-
+ticate messages, ensuring the data is valid. In addition to exploiting encryption vulnerabilities, the man-in-the-middle and replay attacks also exploit authentica-
+tion vulnerabilities. Although challenge-response authentication mechanisms can mitigate encryption vulnerabilities, they are currently lacking. Attackers exploit this vulnerability to launch successful attacks. Another type of attack that exploits 
+authentication vulnerabilities is the brute force attack. Since single-factor authen-tication is typically used, a brute-force attack can be successful by simply ﬁnding the password. The lack of a two-factor authentication mechanism can make such 
+attacks successful. 
+The prevalent vulnerabilities identiﬁed in the context of FDIA are authentication 
+and lack of anomaly detection. Correspondingly, detection mechanisms and encryp-
+tion are the commonly suggested solutions. In contrast, the primary vulnerability in the case of MITM attack is the absence of encryption, and most solutions revolve around encryption mechanisms. The replay attack is vulnerable to several issues, 
+including lack of authentication, lack of encryption, and network problems. The most popular countermeasures focus on encryption mechanisms. 
+1.7 Validity Threats 
+In this section, we discuss the potential validity threats that may arise in our study and the measures we have taken to mitigate them. According to Wohlin’s 
+categorization [
+27], validity threats are broadly classiﬁed into four types: construct 
+validity, internal validity, external validity, and conclusion validity. We discuss each 
+of these threats and the steps we have taken to minimize their impact on our study. 
+Construct validity Construct validity refers to the relationship between the data 
+collected and the research questions. In our study, we mitigated this threat by 
+deﬁning a search string using the PICO criteria to ensure that the extracted data would answer our research questions. Additionally, we included all relevant 
+keywords related to our study in the search string. The two libraries we selected are reputable sources in the ﬁeld of PLC engineering, further increasing the construct validity of our study. 
+28 E. P. Enoiu et al. 
+Internal validity To address internal validity, we established protocols for both 
+the mapping study and the taxonomy, following established guidelines as a 
+blueprint for conducting the study. This helps to control for external variables that may affect the outcomes of the study. 
+External validity To ensure external validity, we aimed to collect a comprehen-
+sive set of papers relevant to our study by using both automatic search and snowballing methods. This approach allowed us to include a wide range of 
+publications that covered different aspects of PLC security, thus increasing the generalizability of our ﬁndings to other studies. 
+Conclusion validity To address the threat of conclusion validity, we took several 
+measures. Firstly, we documented our study’s process systematically and trans-parently, allowing others to repeat it and obtain the same results. Additionally, we aimed to minimize the potential impact of any new information that might 
+be added during the time gap between our searches. Moreover, we deﬁned a comprehensive data extraction form and classiﬁcation framework to ensure that the study’s results could be replicated. 
+1.8 Conclusions and Relation to DevOps 
+To get an overview of the existing research on security vulnerabilities, attacks, and security solutions in industrial PLC software, we performed a mapping study 
+and developed a taxonomy for PLC-based security vulnerabilities, attacks, and solutions. The main goal of this work was to bring to the forefront the main vulnerabilities that malicious actors could exploit to gain access and attack the PLC 
+system. This study can beneﬁt academics and researchers who work with PLCs and focus on security. The taxonomy can help with an initial categorization of the most common vulnerabilities, attacks, and solutions. 
+Our results can be used by engineers working with security in DevOps. Using 
+speciﬁc solutions and monitors identiﬁed using our taxonomy, one can use these prior to deployment in the design phase as predictors or oracles. For example, one 
+can use speciﬁc detection mechanisms to perform test assessment and veriﬁcation during development and to ensure security during the operational phase. This happens in DevOps when missing and vague security requirements identiﬁed by 
+the monitors are added to the security requirements. The main advantage of the DevOps approach using our taxonomy is that it can be used further for tighter integration between design veriﬁcation activities on executable PLC systems and 
+runtime monitoring of such industrial systems. 
+1 A Taxonomy of Vulnerabilities, Attacks, and Security Solutions 29 
+1.9 Annex: Primary Studies 
+[S1] Jeong, E., Park, J., Oh, I., Kim, M., and Yim, K. (2020, July). Analysis on 
+Account Hijacking and Remote Dos Vulnerability in the CODESYS-Based 
+PLC Runtime. In International Conference on Innovative Mobile and Internet 
+Services in Ubiquitous Computing (pp. 457–467). Springer, Cham. 
+[S2] Sarkar, E., Benkraouda, H., and Maniatakos, M. (2020, October). I came, 
+I saw, I hacked: Automated Generation of Process-independent Attacks 
+for Industrial Control Systems. In Proceedings of the 15th ACM Asia Conference on Computer and Communications Security (pp. 744–758). 
+[S3] Gönen, S., Sayan, H. H., Yılmaz, E. N., Üstünsoy, F., and Karacayılmaz, G. 
+(2020). False data injection attacks and the insider threat in smart systems. 
+Computers and Security, 97,

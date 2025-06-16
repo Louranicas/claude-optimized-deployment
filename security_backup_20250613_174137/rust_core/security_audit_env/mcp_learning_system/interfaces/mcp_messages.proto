@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package mcp_learning;
+
+// MCP Protocol Messages
+
+enum MessageType {
+  MESSAGE_TYPE_UNSPECIFIED = 0;
+  MESSAGE_TYPE_REQUEST = 1;
+  MESSAGE_TYPE_RESPONSE = 2;
+  MESSAGE_TYPE_NOTIFICATION = 3;
+  MESSAGE_TYPE_ERROR = 4;
+  MESSAGE_TYPE_HEARTBEAT = 5;
+  MESSAGE_TYPE_LEARNING_DATA = 6;
+}
+
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  PRIORITY_LOW = 1;
+  PRIORITY_NORMAL = 2;
+  PRIORITY_HIGH = 3;
+  PRIORITY_CRITICAL = 4;
+}
+
+// Base MCP Message
+message MCPMessage {
+  string id = 1;
+  MessageType message_type = 2;
+  uint64 timestamp_us = 3;
+  bytes payload = 4;
+  map<string, bytes> metadata = 5;
+  Priority priority = 6;
+}
+
+// Learning-specific messages
+
+message Feature {
+  string name = 1;
+  oneof value {
+    double double_value = 2;
+    int64 int_value = 3;
+    string string_value = 4;
+    bytes bytes_value = 5;
+  }
+}
+
+message Label {
+  string name = 1;
+  double value = 2;
+  float confidence = 3;
+}
+
+message TrainingData {
+  string data_id = 1;
+  uint64 timestamp = 2;
+  repeated Feature features = 3;
+  repeated Label labels = 4;
+  map<string, bytes> metadata = 5;
+}
+
+message LearningUpdate {
+  string model_id = 1;
+  uint64 version = 2;
+  double accuracy = 3;
+  double loss = 4;
+  uint64 sample_count = 5;
+  double training_time_seconds = 6;
+  map<string, double> metrics = 7;
+}
+
+message Pattern {
+  string pattern_id = 1;
+  string pattern_type = 2;
+  double frequency = 3;
+  double confidence = 4;
+  repeated Feature features = 5;
+  map<string, bytes> metadata = 6;
+}
+
+message Adaptation {
+  string adaptation_id = 1;
+  string action_type = 2;
+  map<string, bytes> parameters = 3;
+  double expected_improvement = 4;
+  double confidence = 5;
+  double risk_score = 6;
+}
+
+message ModelSnapshot {
+  string model_id = 1;
+  uint64 version = 2;
+  uint64 created_at = 3;
+  bytes model_data = 4;
+  map<string, double> performance_metrics = 5;
+  repeated string parent_versions = 6;
+}
+
+// Control messages
+
+message StartLearning {
+  string session_id = 1;
+  map<string, bytes> config = 2;
+}
+
+message StopLearning {
+  string session_id = 1;
+  string reason = 2;
+}
+
+message GetStatus {
+  string component = 1;
+}
+
+message StatusResponse {
+  string component = 1;
+  string status = 2;
+  map<string, bytes> details = 3;
+}
+
+// Shared memory layout info
+message SharedMemoryInfo {
+  uint64 total_size = 1;
+  uint64 ring_buffer_offset = 2;
+  uint64 ring_buffer_size = 3;
+  uint64 state_cache_offset = 4;
+  uint64 state_cache_size = 5;
+  uint64 message_queue_offset = 6;
+  uint64 message_queue_size = 7;
+}

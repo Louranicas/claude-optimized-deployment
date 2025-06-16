@@ -1,0 +1,222 @@
+# Production Rust Build Makefile
+# Optimized for AMD Ryzen 7 7800X3D with 16 threads
+# Enables LTO, CPU-specific optimizations, and parallel builds
+
+.PHONY: all clean test bench install-deps check-deps build-all \
+        build-core build-bash-god build-devops build-development build-quality \
+        verify-ffi check-bindings optimize-build-cache setup-sccache \
+        release-all cross-compile docker-build ci-build
+
+# Configuration
+CARGO_FLAGS := --release
+JOBS := 16
+RUST_LOG := info
+RUSTFLAGS := -C target-cpu=znver4 -C target-feature=+avx2,+fma,+f16c,+sse4.2,+aes,+pclmul,+sha,+rdrnd,+adx
+
+# Project paths
+PROJECT_ROOT := $(shell pwd)
+RUST_CORE := $(PROJECT_ROOT)/rust_core
+BASH_GOD := $(PROJECT_ROOT)/mcp_learning_system/servers/bash_god/rust_src
+DEVOPS := $(PROJECT_ROOT)/mcp_learning_system/servers/devops/rust_src
+DEVELOPMENT := $(PROJECT_ROOT)/mcp_learning_system/servers/development/rust_src
+QUALITY := $(PROJECT_ROOT)/mcp_learning_system/servers/quality/rust_src
+
+# Output directories
+BUILD_OUTPUT := $(PROJECT_ROOT)/target/release
+DIST_DIR := $(PROJECT_ROOT)/dist
+
+# Colors for output
+BLUE := \033[34m
+GREEN := \033[32m
+RED := \033[31m
+YELLOW := \033[33m
+NC := \033[0m
+
+# Default target
+all: check-deps build-all verify-ffi
+
+# Check system dependencies
+check-deps:
+	@echo "$(BLUE)Checking system dependencies...$(NC)"
+	@command -v cargo >/dev/null 2>&1 || { echo "$(RED)Error: cargo not found$(NC)"; exit 1; }
+	@command -v rustc >/dev/null 2>&1 || { echo "$(RED)Error: rustc not found$(NC)"; exit 1; }
+	@echo "$(GREEN)✓ Rust toolchain found$(NC)"
+	@rustc --version
+	@cargo --version
+
+# Install additional tools for optimized builds
+install-deps:
+	@echo "$(BLUE)Installing build optimization tools...$(NC)"
+	@cargo install sccache cargo-chef
+	@echo "$(GREEN)✓ Build tools installed$(NC)"
+
+# Setup sccache for faster builds
+setup-sccache:
+	@echo "$(BLUE)Setting up sccache...$(NC)"
+	@export RUSTC_WRAPPER=sccache
+	@sccache --start-server || true
+	@echo "$(GREEN)✓ sccache configured$(NC)"
+
+# Clean all build artifacts
+clean:
+	@echo "$(BLUE)Cleaning build artifacts...$(NC)"
+	@cd $(RUST_CORE) && cargo clean
+	@cd $(BASH_GOD) && cargo clean
+	@cd $(DEVOPS) && cargo clean
+	@cd $(DEVELOPMENT) && cargo clean
+	@cd $(QUALITY) && cargo clean
+	@rm -rf $(DIST_DIR)
+	@echo "$(GREEN)✓ Clean complete$(NC)"
+
+# Build all Rust components
+build-all: setup-sccache build-core build-bash-god build-devops build-development build-quality
+	@echo "$(GREEN)✓ All Rust components built successfully$(NC)"
+
+# Build rust_core with production optimizations
+build-core:
+	@echo "$(BLUE)Building rust_core with production optimizations...$(NC)"
+	@cd $(RUST_CORE) && \
+		CARGO_BUILD_JOBS=$(JOBS) \
+		RUSTFLAGS="$(RUSTFLAGS)" \
+		cargo build $(CARGO_FLAGS) --features "simd,python"
+	@echo "$(GREEN)✓ rust_core build complete$(NC)"
+
+# Build bash_god MCP server
+build-bash-god:
+	@echo "$(BLUE)Building bash_god MCP server...$(NC)"
+	@cd $(BASH_GOD) && \
+		CARGO_BUILD_JOBS=$(JOBS) \
+		RUSTFLAGS="$(RUSTFLAGS)" \
+		cargo build $(CARGO_FLAGS)
+	@echo "$(GREEN)✓ bash_god build complete$(NC)"
+
+# Build devops MCP server
+build-devops:
+	@echo "$(BLUE)Building devops MCP server...$(NC)"
+	@cd $(DEVOPS) && \
+		CARGO_BUILD_JOBS=$(JOBS) \
+		RUSTFLAGS="$(RUSTFLAGS)" \
+		cargo build $(CARGO_FLAGS)
+	@echo "$(GREEN)✓ devops build complete$(NC)"
+
+# Build development MCP server
+build-development:
+	@echo "$(BLUE)Building development MCP server...$(NC)"
+	@cd $(DEVELOPMENT) && \
+		CARGO_BUILD_JOBS=$(JOBS) \
+		RUSTFLAGS="$(RUSTFLAGS)" \
+		cargo build $(CARGO_FLAGS)
+	@echo "$(GREEN)✓ development build complete$(NC)"
+
+# Build quality MCP server
+build-quality:
+	@echo "$(BLUE)Building quality MCP server...$(NC)"
+	@cd $(QUALITY) && \
+		CARGO_BUILD_JOBS=$(JOBS) \
+		RUSTFLAGS="$(RUSTFLAGS)" \
+		cargo build $(CARGO_FLAGS)
+	@echo "$(GREEN)✓ quality build complete$(NC)"
+
+# Verify FFI bindings
+verify-ffi:
+	@echo "$(BLUE)Verifying FFI bindings...$(NC)"
+	@python3 -c "import sys; sys.path.append('$(RUST_CORE)'); import claude_optimized_deployment_rust" 2>/dev/null && \
+		echo "$(GREEN)✓ rust_core Python bindings verified$(NC)" || \
+		echo "$(YELLOW)⚠ rust_core Python bindings need testing$(NC)"
+
+# Check shared library exports
+check-bindings:
+	@echo "$(BLUE)Checking shared library exports...$(NC)"
+	@find $(PROJECT_ROOT) -name "*.so" -type f | while read lib; do \
+		echo "Checking $$lib:"; \
+		nm -D "$$lib" | grep -E "(rust|python)" | head -10; \
+	done
+
+# Run tests with optimizations
+test:
+	@echo "$(BLUE)Running tests with release optimizations...$(NC)"
+	@cd $(RUST_CORE) && cargo test $(CARGO_FLAGS) --features "simd,testing"
+	@cd $(BASH_GOD) && cargo test $(CARGO_FLAGS)
+	@cd $(DEVOPS) && cargo test $(CARGO_FLAGS)
+	@cd $(DEVELOPMENT) && cargo test $(CARGO_FLAGS)
+	@cd $(QUALITY) && cargo test $(CARGO_FLAGS)
+	@echo "$(GREEN)✓ All tests passed$(NC)"
+
+# Run benchmarks
+bench:
+	@echo "$(BLUE)Running benchmarks...$(NC)"
+	@cd $(RUST_CORE) && cargo bench --features "simd"
+	@echo "$(GREEN)✓ Benchmarks complete$(NC)"
+
+# Create distribution package
+release-all: build-all
+	@echo "$(BLUE)Creating release distribution...$(NC)"
+	@mkdir -p $(DIST_DIR)/lib
+	@mkdir -p $(DIST_DIR)/bin
+	@find $(PROJECT_ROOT) -name "*.so" -type f -exec cp {} $(DIST_DIR)/lib/ \;
+	@find $(PROJECT_ROOT) -name "*.rlib" -type f -exec cp {} $(DIST_DIR)/lib/ \;
+	@echo "$(GREEN)✓ Release distribution created in $(DIST_DIR)$(NC)"
+
+# Cross-compilation setup (if needed)
+cross-compile:
+	@echo "$(BLUE)Setting up cross-compilation...$(NC)"
+	@rustup target add x86_64-unknown-linux-musl
+	@rustup target add aarch64-unknown-linux-gnu
+	@echo "$(GREEN)✓ Cross-compilation targets added$(NC)"
+
+# Docker-optimized build
+docker-build:
+	@echo "$(BLUE)Building with Docker optimization...$(NC)"
+	@docker build -f Dockerfile.rust-build -t rust-optimized-build .
+	@echo "$(GREEN)✓ Docker build complete$(NC)"
+
+# CI/CD optimized build
+ci-build:
+	@echo "$(BLUE)Running CI-optimized build...$(NC)"
+	@export CARGO_BUILD_JOBS=$(JOBS)
+	@export RUSTC_WRAPPER=sccache
+	@$(MAKE) build-all test
+	@echo "$(GREEN)✓ CI build complete$(NC)"
+
+# Build cache optimization
+optimize-build-cache:
+	@echo "$(BLUE)Optimizing build cache...$(NC)"
+	@sccache --show-stats
+	@cargo clean
+	@$(MAKE) build-all
+	@sccache --show-stats
+	@echo "$(GREEN)✓ Build cache optimized$(NC)"
+
+# Performance profiling
+profile:
+	@echo "$(BLUE)Building with profiling enabled...$(NC)"
+	@cd $(RUST_CORE) && cargo build --profile=bench --features "simd"
+	@echo "$(GREEN)✓ Profiling build complete$(NC)"
+
+# Memory usage analysis
+memory-check:
+	@echo "$(BLUE)Analyzing memory usage...$(NC)"
+	@valgrind --tool=memcheck --leak-check=full python3 -c "import claude_optimized_deployment_rust"
+	@echo "$(GREEN)✓ Memory analysis complete$(NC)"
+
+# Security audit
+security-audit:
+	@echo "$(BLUE)Running security audit...$(NC)"
+	@cargo audit
+	@echo "$(GREEN)✓ Security audit complete$(NC)"
+
+# Help target
+help:
+	@echo "$(BLUE)Available targets:$(NC)"
+	@echo "  all            - Build all components with optimizations"
+	@echo "  build-all      - Build all Rust components"
+	@echo "  build-core     - Build rust_core"
+	@echo "  build-bash-god - Build bash_god MCP server"
+	@echo "  build-devops   - Build devops MCP server"
+	@echo "  test           - Run all tests"
+	@echo "  bench          - Run benchmarks"
+	@echo "  clean          - Clean build artifacts"
+	@echo "  verify-ffi     - Verify Python FFI bindings"
+	@echo "  release-all    - Create release distribution"
+	@echo "  profile        - Build with profiling"
+	@echo "  security-audit - Run security audit"

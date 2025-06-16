@@ -1,0 +1,594 @@
+{
+  "database": {
+    "advisory-count": 785,
+    "last-commit": "a1f651cba8bf224f52c5d55d8182b3bb0ebce49e",
+    "last-updated": "2025-06-03T13:30:36+02:00"
+  },
+  "lockfile": {
+    "dependency-count": 479
+  },
+  "settings": {
+    "target_arch": [],
+    "target_os": [],
+    "severity": null,
+    "ignore": [],
+    "informational_warnings": [
+      "unmaintained",
+      "unsound",
+      "notice"
+    ]
+  },
+  "vulnerabilities": {
+    "found": true,
+    "count": 4,
+    "list": [
+      {
+        "advisory": {
+          "id": "RUSTSEC-2024-0437",
+          "package": "protobuf",
+          "title": "Crash due to uncontrolled recursion in protobuf crate",
+          "description": "Affected version of this crate did not properly parse unknown fields when parsing a user-supplied input.\n\nThis allows an attacker to cause a stack overflow when parsing the mssage on untrusted data.",
+          "date": "2024-12-12",
+          "aliases": [],
+          "related": [
+            "GHSA-735f-pc8j-v9w8"
+          ],
+          "collection": "crates",
+          "categories": [
+            "denial-of-service"
+          ],
+          "keywords": [
+            "panic"
+          ],
+          "cvss": null,
+          "informational": null,
+          "references": [],
+          "source": null,
+          "url": "https://github.com/stepancheg/rust-protobuf/issues/749",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "versions": {
+          "patched": [
+            ">=3.7.2"
+          ],
+          "unaffected": []
+        },
+        "affected": {
+          "arch": [],
+          "os": [],
+          "functions": {
+            "protobuf::coded_input_stream::CodedInputStream::skip_group": [
+              "<=3.4.0"
+            ]
+          }
+        },
+        "package": {
+          "name": "protobuf",
+          "version": "2.28.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "106dd99e98437432fed6519dedecfade6a06a73bb7b2a1e019fdd2bee5778d94",
+          "replace": null
+        }
+      },
+      {
+        "advisory": {
+          "id": "RUSTSEC-2025-0020",
+          "package": "pyo3",
+          "title": "Risk of buffer overflow in `PyString::from_object`",
+          "description": "`PyString::from_object` took `&str` arguments and forwarded them directly to the Python C API without checking for terminating nul bytes. This could lead the Python interpreter to read beyond the end of the `&str` data and potentially leak contents of the out-of-bounds read (by raising a Python exception containing a copy of the data including the overflow).\n\nIn PyO3 0.24.1 this function will now allocate a `CString` to guarantee a terminating nul bytes. PyO3 0.25 will likely offer an alternative API which takes `&CStr` arguments.",
+          "date": "2025-04-01",
+          "aliases": [],
+          "related": [],
+          "collection": "crates",
+          "categories": [
+            "memory-exposure"
+          ],
+          "keywords": [
+            "buffer-overflow"
+          ],
+          "cvss": null,
+          "informational": null,
+          "references": [],
+          "source": null,
+          "url": "https://github.com/PyO3/pyo3/issues/5005",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "versions": {
+          "patched": [
+            ">=0.24.1"
+          ],
+          "unaffected": []
+        },
+        "affected": {
+          "arch": [],
+          "os": [],
+          "functions": {
+            "pyo3::types::PyString::from_object": [
+              "<0.24.1"
+            ],
+            "pyo3::types::PyString::from_object_bound": [
+              "<0.24.1",
+              ">=0.21.0"
+            ]
+          }
+        },
+        "package": {
+          "name": "pyo3",
+          "version": "0.20.3",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "53bdbb96d49157e65d45cc287af5f32ffadd5f4761438b527b055fb0d4bb8233",
+          "dependencies": [
+            {
+              "name": "cfg-if",
+              "version": "1.0.0",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "indoc",
+              "version": "2.0.6",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "libc",
+              "version": "0.2.172",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "memoffset",
+              "version": "0.9.1",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "parking_lot",
+              "version": "0.12.4",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "portable-atomic",
+              "version": "1.11.1",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "pyo3-build-config",
+              "version": "0.20.3",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "pyo3-ffi",
+              "version": "0.20.3",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "pyo3-macros",
+              "version": "0.20.3",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "unindent",
+              "version": "0.2.4",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            }
+          ],
+          "replace": null
+        }
+      },
+      {
+        "advisory": {
+          "id": "RUSTSEC-2025-0009",
+          "package": "ring",
+          "title": "Some AES functions may panic when overflow checking is enabled.",
+          "description": "`ring::aead::quic::HeaderProtectionKey::new_mask()` may panic when overflow\nchecking is enabled. In the QUIC protocol, an attacker can induce this panic by\nsending a specially-crafted packet. Even unintentionally it is likely to occur\nin 1 out of every 2**32 packets sent and/or received.\n\nOn 64-bit targets operations using `ring::aead::{AES_128_GCM, AES_256_GCM}` may\npanic when overflow checking is enabled, when encrypting/decrypting approximately\n68,719,476,700 bytes (about 64 gigabytes) of data in a single chunk. Protocols\nlike TLS and SSH are not affected by this because those protocols break large\namounts of data into small chunks. Similarly, most applications will not\nattempt to encrypt/decrypt 64GB of data in one chunk.\n\nOverflow checking is not enabled in release mode by default, but\n`RUSTFLAGS=\"-C overflow-checks\"` or `overflow-checks = true` in the Cargo.toml\nprofile can override this. Overflow checking is usually enabled by default in\ndebug mode.",
+          "date": "2025-03-06",
+          "aliases": [],
+          "related": [],
+          "collection": "crates",
+          "categories": [
+            "denial-of-service"
+          ],
+          "keywords": [],
+          "cvss": null,
+          "informational": null,
+          "references": [],
+          "source": null,
+          "url": "https://github.com/briansmith/ring/blob/main/RELEASES.md#version-01712-2025-03-05",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "versions": {
+          "patched": [
+            ">=0.17.12"
+          ],
+          "unaffected": []
+        },
+        "affected": null,
+        "package": {
+          "name": "ring",
+          "version": "0.16.20",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc",
+          "dependencies": [
+            {
+              "name": "cc",
+              "version": "1.0.106",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "libc",
+              "version": "0.2.172",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "once_cell",
+              "version": "1.21.3",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "spin",
+              "version": "0.5.2",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "untrusted",
+              "version": "0.7.1",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "web-sys",
+              "version": "0.3.77",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "winapi",
+              "version": "0.3.9",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            }
+          ],
+          "replace": null
+        }
+      },
+      {
+        "advisory": {
+          "id": "RUSTSEC-2025-0009",
+          "package": "ring",
+          "title": "Some AES functions may panic when overflow checking is enabled.",
+          "description": "`ring::aead::quic::HeaderProtectionKey::new_mask()` may panic when overflow\nchecking is enabled. In the QUIC protocol, an attacker can induce this panic by\nsending a specially-crafted packet. Even unintentionally it is likely to occur\nin 1 out of every 2**32 packets sent and/or received.\n\nOn 64-bit targets operations using `ring::aead::{AES_128_GCM, AES_256_GCM}` may\npanic when overflow checking is enabled, when encrypting/decrypting approximately\n68,719,476,700 bytes (about 64 gigabytes) of data in a single chunk. Protocols\nlike TLS and SSH are not affected by this because those protocols break large\namounts of data into small chunks. Similarly, most applications will not\nattempt to encrypt/decrypt 64GB of data in one chunk.\n\nOverflow checking is not enabled in release mode by default, but\n`RUSTFLAGS=\"-C overflow-checks\"` or `overflow-checks = true` in the Cargo.toml\nprofile can override this. Overflow checking is usually enabled by default in\ndebug mode.",
+          "date": "2025-03-06",
+          "aliases": [],
+          "related": [],
+          "collection": "crates",
+          "categories": [
+            "denial-of-service"
+          ],
+          "keywords": [],
+          "cvss": null,
+          "informational": null,
+          "references": [],
+          "source": null,
+          "url": "https://github.com/briansmith/ring/blob/main/RELEASES.md#version-01712-2025-03-05",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "versions": {
+          "patched": [
+            ">=0.17.12"
+          ],
+          "unaffected": []
+        },
+        "affected": null,
+        "package": {
+          "name": "ring",
+          "version": "0.17.9",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e75ec5e92c4d8aede845126adc388046234541629e76029599ed35a003c7ed24",
+          "dependencies": [
+            {
+              "name": "cc",
+              "version": "1.0.106",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "cfg-if",
+              "version": "1.0.0",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "getrandom",
+              "version": "0.2.16",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "libc",
+              "version": "0.2.172",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "untrusted",
+              "version": "0.9.0",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "windows-sys",
+              "version": "0.52.0",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            }
+          ],
+          "replace": null
+        }
+      }
+    ]
+  },
+  "warnings": {
+    "unmaintained": [
+      {
+        "kind": "unmaintained",
+        "package": {
+          "name": "atty",
+          "version": "0.2.14",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8",
+          "dependencies": [
+            {
+              "name": "hermit-abi",
+              "version": "0.1.19",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "libc",
+              "version": "0.2.172",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "winapi",
+              "version": "0.3.9",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            }
+          ],
+          "replace": null
+        },
+        "advisory": {
+          "id": "RUSTSEC-2024-0375",
+          "package": "atty",
+          "title": "`atty` is unmaintained",
+          "description": "The maintainer of `atty` has [published](https://github.com/softprops/atty/commit/5bfdbe9e48c6ca6a4909e8d5b04f5e843a257e93) an official notice that the crate is no longer\nunder development, and that users should instead rely on the functionality in the standard library's [`IsTerminal`](https://doc.rust-lang.org/std/io/trait.IsTerminal.html) trait.\n\n## Alternative(s)\n\n- [std::io::IsTerminal](https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html) - Stable since Rust 1.70.0 and the recommended replacement per the `atty` maintainer.\n- [is-terminal](https://crates.io/crates/is-terminal) - Standalone crate supporting Rust older than 1.70.0",
+          "date": "2024-09-25",
+          "aliases": [],
+          "related": [],
+          "collection": "crates",
+          "categories": [],
+          "keywords": [],
+          "cvss": null,
+          "informational": "unmaintained",
+          "references": [],
+          "source": null,
+          "url": "https://github.com/softprops/atty/issues/57",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "affected": null,
+        "versions": {
+          "patched": [],
+          "unaffected": []
+        }
+      },
+      {
+        "kind": "unmaintained",
+        "package": {
+          "name": "instant",
+          "version": "0.1.13",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e0242819d153cba4b4b05a5a8f2a7e9bbf97b6055b2a002b395c96b5ff3c0222",
+          "dependencies": [
+            {
+              "name": "cfg-if",
+              "version": "1.0.0",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            }
+          ],
+          "replace": null
+        },
+        "advisory": {
+          "id": "RUSTSEC-2024-0384",
+          "package": "instant",
+          "title": "`instant` is unmaintained",
+          "description": "This crate is no longer maintained, and the author recommends using the maintained [`web-time`] crate instead.\n\n[`web-time`]: https://crates.io/crates/web-time",
+          "date": "2024-09-01",
+          "aliases": [],
+          "related": [],
+          "collection": "crates",
+          "categories": [],
+          "keywords": [],
+          "cvss": null,
+          "informational": "unmaintained",
+          "references": [
+            "https://crates.io/crates/instant/0.1.13",
+            "https://github.com/sebcrozet/instant/issues/52"
+          ],
+          "source": null,
+          "url": null,
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "affected": null,
+        "versions": {
+          "patched": [],
+          "unaffected": []
+        }
+      },
+      {
+        "kind": "unmaintained",
+        "package": {
+          "name": "paste",
+          "version": "1.0.15",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a",
+          "replace": null
+        },
+        "advisory": {
+          "id": "RUSTSEC-2024-0436",
+          "package": "paste",
+          "title": "paste - no longer maintained",
+          "description": "The creator of the crate `paste` has stated in the [`README.md`](https://github.com/dtolnay/paste/blob/master/README.md) \nthat this project is not longer maintained as well as archived the repository",
+          "date": "2024-10-07",
+          "aliases": [],
+          "related": [],
+          "collection": "crates",
+          "categories": [],
+          "keywords": [],
+          "cvss": null,
+          "informational": "unmaintained",
+          "references": [],
+          "source": null,
+          "url": "https://github.com/dtolnay/paste",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "affected": null,
+        "versions": {
+          "patched": [],
+          "unaffected": []
+        }
+      },
+      {
+        "kind": "unmaintained",
+        "package": {
+          "name": "ring",
+          "version": "0.16.20",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc",
+          "dependencies": [
+            {
+              "name": "cc",
+              "version": "1.0.106",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "libc",
+              "version": "0.2.172",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "once_cell",
+              "version": "1.21.3",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "spin",
+              "version": "0.5.2",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "untrusted",
+              "version": "0.7.1",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "web-sys",
+              "version": "0.3.77",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "winapi",
+              "version": "0.3.9",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            }
+          ],
+          "replace": null
+        },
+        "advisory": {
+          "id": "RUSTSEC-2025-0010",
+          "package": "ring",
+          "title": "Versions of *ring* prior to 0.17 are unmaintained.",
+          "description": "*ring* 0.16.20 was released over 4 years ago and isn't maintained, tested, etc.\n\nAdditionally, the project's general policy is to only patch the latest release,\nwhich is 0.17.12 now. It will be difficult for anybody to backport future fixes\nto versions earlier than 0.17.10 due to license changes.",
+          "date": "2025-03-05",
+          "aliases": [],
+          "related": [],
+          "collection": "crates",
+          "categories": [],
+          "keywords": [],
+          "cvss": null,
+          "informational": "unmaintained",
+          "references": [],
+          "source": null,
+          "url": "https://github.com/briansmith/ring/discussions/2450",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "affected": null,
+        "versions": {
+          "patched": [],
+          "unaffected": [
+            ">=0.17"
+          ]
+        }
+      }
+    ],
+    "unsound": [
+      {
+        "kind": "unsound",
+        "package": {
+          "name": "atty",
+          "version": "0.2.14",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8",
+          "dependencies": [
+            {
+              "name": "hermit-abi",
+              "version": "0.1.19",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "libc",
+              "version": "0.2.172",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            },
+            {
+              "name": "winapi",
+              "version": "0.3.9",
+              "source": "registry+https://github.com/rust-lang/crates.io-index"
+            }
+          ],
+          "replace": null
+        },
+        "advisory": {
+          "id": "RUSTSEC-2021-0145",
+          "package": "atty",
+          "title": "Potential unaligned read",
+          "description": "On windows, `atty` dereferences a potentially unaligned pointer.\n\nIn practice however, the pointer won't be unaligned unless a custom global allocator is used.\n\nIn particular, the `System` allocator on windows uses `HeapAlloc`, which guarantees a large enough alignment.\n\n# atty is Unmaintained\n\nA Pull Request with a fix has been provided over a year ago but the maintainer seems to be unreachable.\n\nLast release of `atty` was almost 3 years ago.\n\n## Possible Alternative(s)\n\nThe below list has not been vetted in any way and may or may not contain alternatives;\n\n - [std::io::IsTerminal](https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html) - Stable since Rust 1.70.0\n - [is-terminal](https://crates.io/crates/is-terminal) - Standalone crate supporting Rust older than 1.70.0",
+          "date": "2021-07-04",
+          "aliases": [
+            "GHSA-g98v-hv3f-hcfr"
+          ],
+          "related": [],
+          "collection": "crates",
+          "categories": [],
+          "keywords": [
+            "unaligned-read"
+          ],
+          "cvss": null,
+          "informational": "unsound",
+          "references": [
+            "https://github.com/softprops/atty/pull/51",
+            "https://github.com/softprops/atty/issues/57"
+          ],
+          "source": null,
+          "url": "https://github.com/softprops/atty/issues/50",
+          "withdrawn": null,
+          "license": "CC0-1.0"
+        },
+        "affected": {
+          "arch": [],
+          "os": [
+            "windows"
+          ],
+          "functions": {}
+        },
+        "versions": {
+          "patched": [],
+          "unaffected": []
+        }
+      }
+    ]
+  }
+}

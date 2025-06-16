@@ -1,0 +1,32 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 2 - These layers downsampled the extracted features, improving computational efficiency while retaining essential information from the data. After the convolutional and max-pooling layers, the data underwent a flattening operation. This step prepares the data for subsequent Dense layers that facilitate classification. The model incorporated a Dense layer with 128 units and a ReLU activation function after flattening. Additionally, a Dropout layer with a dropout rate of 0.5 was included to prevent overfitting by randomly dropping input units during training.
+For training, the model was compiled with the Adam optimizer, chosen for its adaptive learning rate capabilities. The categorical cross-entropy loss function was employed to minimize classification errors during training. During the training process, accuracy was monitored as the primary metric to evaluate the model’s performance across epochs. The effectiveness of the model in handling time-series data, particularly for tasks like IDSs, is detailed in Table 4.1, where various evaluation metrics are summarized.
+Security Relevance Score: 4
+Word Count: 449
+Extracted: 2025-06-13 23:40:52
+
+---
+
+These layers downsampled the extracted features, improving computational efficiency while retaining essential information from the data. After the convolutional and max-pooling layers, the data underwent a flattening operation. This step prepares the data for subsequent Dense layers that facilitate classification. The model incorporated a Dense layer with 128 units and a ReLU activation function after flattening. Additionally, a Dropout layer with a dropout rate of 0.5 was included to prevent overfitting by randomly dropping input units during training.
+For training, the model was compiled with the Adam optimizer, chosen for its adaptive learning rate capabilities. The categorical cross-entropy loss function was employed to minimize classification errors during training. During the training process, accuracy was monitored as the primary metric to evaluate the model’s performance across epochs. The effectiveness of the model in handling time-series data, particularly for tasks like IDSs, is detailed in Table 4.1, where various evaluation metrics are summarized.
+
+
+
+4.5.1.2.2 Training on Imbalanced Dataset
+With 2,071,657 instances, where each instance has ten features, we trained our model. With the same set of algorithms and the same set of parameters, but in the case of the Random Forest Classifier we applied GridSearchCV, which takes in more than one parameter combination to exhaustively search for the optimal hyperparameters. This technique helps to fine-tune the model’s performance by systematically exploring various combinations of hyperparameters, such as the number of trees, maximum depth of trees, and minimum samples required to split a node, among others. By leveraging the computational resources efficiently, GridSearchCV allows us to find the best combination of hyperparameters that maximizes the model’s performance on the given dataset, ultimately enhancing its predictive accuracy and robustness. This somewhat helps in class imbalance and optimization for better performance. In our Random Forest Classifier, the hyperparameters were tuned as follows: we tested [50, 100, 150] for the number of estimators, [3, 5, 7, none] for maximum tree depth, and [“entropy,” “gini”] for the splitting criterion. The best combination of hyperparameters identified through GridSearchCV was criterion = “entropy,” number of estimators = 100, and maximum depth = “None.”
+
+
+
+
+
+4.6 Experimental Results and Analysis
+The dataset used for this research is the ISCXIDS 2012 dataset which is provided by the Canadian Institute of Cybersecurity and can be found at [22]. The dataset contains 2,071,657 data points of 21 features. In this section, we are presenting the analyzed performance of the ML models developed in this study. We evaluated the models on both balanced and imbalanced datasets to assess their effectiveness in different scenarios. Tables 4.1 and 4.2 show the number of parameters recorded for each model on each dataset.
+
+
+TABLE 4.2 No. of Parameters Recorded for the Imbalanced Dataset
+
+
+SN
+Model
+No. of Parameters

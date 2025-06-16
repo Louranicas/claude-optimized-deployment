@@ -1,0 +1,62 @@
+[package]
+name = "mcp_rust_core"
+version = "0.1.0"
+edition = "2021"
+authors = ["MCP Learning System Team"]
+description = "High-performance Rust core for MCP Learning System"
+license = "MIT"
+
+[lib]
+name = "mcp_rust_core"
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
+# Empty workspace table to keep package standalone
+
+[dependencies]
+# Async runtime - compatible version
+tokio = { version = "1.32", features = ["full"] }
+
+# Concurrency
+dashmap = "5.5"
+crossbeam = "0.8"
+parking_lot = "0.12"
+
+# Serialization - minimal versions
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Memory mapping
+memmap2 = "0.7"
+
+# Performance
+ahash = "0.8"
+smallvec = "1.11"
+bytes = "1.5"
+
+# Logging
+tracing = "0.1"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Utilities
+uuid = { version = "1.6", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+proptest = "1.2"
+tempfile = "3.8"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.bench]
+inherits = "release"
+debug = true

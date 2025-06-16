@@ -1,0 +1,261 @@
+# Development Environment Docker Compose
+# Optimized for Ryzen 7 7800X3D with 30GB RAM
+version: '3.8'
+
+services:
+  # Rust development environment
+  rust-dev:
+    build:
+      context: ..
+      dockerfile: containers/development/Dockerfile.rust-dev
+    container_name: claude-rust-dev
+    user: "1000:1000"
+    environment:
+      - CARGO_BUILD_JOBS=16
+      - RUSTFLAGS=-C target-cpu=znver3 -C opt-level=3 -C lto=thin
+      - SCCACHE_DIR=/cache/sccache
+      - CARGO_HOME=/cache/cargo
+    volumes:
+      - ../:/workspace:cached
+      - rust_cache:/cache
+      - cargo_registry:/usr/local/cargo/registry
+    ports:
+      - "8000:8000"  # Main application
+      - "8080:8080"  # Development server
+      - "3000:3000"  # Additional services
+    working_dir: /workspace
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '8.0'
+        reservations:
+          memory: 2G
+          cpus: '2.0'
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # Python ML development environment
+  python-ml:
+    build:
+      context: ..
+      dockerfile: containers/development/Dockerfile.python-ml
+    container_name: claude-python-ml
+    user: "1000:1000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - CUDA_VISIBLE_DEVICES=0
+      - OMP_NUM_THREADS=16
+      - MKL_NUM_THREADS=16
+      - HF_DATASETS_CACHE=/cache/huggingface/datasets
+      - TRANSFORMERS_CACHE=/cache/huggingface/transformers
+      - TORCH_HOME=/cache/torch
+    volumes:
+      - ../:/workspace:cached
+      - ml_cache:/cache
+      - ml_data:/data
+      - ml_models:/models
+    ports:
+      - "8888:8888"  # Jupyter Lab
+      - "6006:6006"  # TensorBoard
+      - "8501:8501"  # Streamlit
+    working_dir: /workspace
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '12.0'
+        reservations:
+          memory: 4G
+          cpus: '4.0'
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    # GPU support (if NVIDIA GPU available)
+    # runtime: nvidia
+    # environment:
+    #   - NVIDIA_VISIBLE_DEVICES=all
+
+  # PostgreSQL development database
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: claude-postgres-dev
+    environment:
+      - POSTGRES_DB=claude_dev
+      - POSTGRES_USER=claude_dev
+      - POSTGRES_PASSWORD=dev_password_change_in_production
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ../scripts/sql:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claude_dev"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and sessions
+  redis-dev:
+    image: redis:7-alpine
+    container_name: claude-redis-dev
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MinIO for S3-compatible object storage
+  minio-dev:
+    image: minio/minio:latest
+    container_name: claude-minio-dev
+    environment:
+      - MINIO_ROOT_USER=minio_admin
+      - MINIO_ROOT_PASSWORD=minio_dev_password
+      - MINIO_CONSOLE_ADDRESS=:9001
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_dev_data:/data
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Development monitoring stack
+  prometheus-dev:
+    image: prom/prometheus:latest
+    container_name: claude-prometheus-dev
+    user: "1000:1000"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=7d'
+    volumes:
+      - ../monitoring/prometheus-dev.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_dev_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    restart: unless-stopped
+
+  grafana-dev:
+    image: grafana/grafana:latest
+    container_name: claude-grafana-dev
+    user: "1000:1000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=dev_password
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ../monitoring/grafana-dev-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - development
+    depends_on:
+      - prometheus-dev
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
+
+  # Container security scanning
+  trivy:
+    image: aquasec/trivy:latest
+    container_name: claude-trivy-dev
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - trivy_cache:/root/.cache/trivy
+    networks:
+      - development
+    command: --help
+    profiles:
+      - security
+
+networks:
+  development:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  rust_cache:
+  cargo_registry:
+  ml_cache:
+  ml_data:
+  ml_models:
+  postgres_dev_data:
+  redis_dev_data:
+  minio_dev_data:
+  prometheus_dev_data:
+  grafana_dev_data:
+  trivy_cache:

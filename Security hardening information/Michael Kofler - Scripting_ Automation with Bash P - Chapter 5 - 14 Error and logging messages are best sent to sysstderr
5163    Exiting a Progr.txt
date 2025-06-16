@@ -1,0 +1,81 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 5 - 14). Error and logging messages are best sent to sys.stderr.
+5.16.3    Exiting a Program
+Usually, a Python program ends with the execution of the last statement or when an unhandled error occurs. If you want to terminate a program prematurely, you must run sys.exit(). With sys.exit(n), you can also return an error code, the meaning of which is the same as in Bash scripts. Alternatively, you can pass a string to the exit method, which is then displayed as an error message. In this case, 1 is automatically applied as the error code.
+Security Relevance Score: 3
+Word Count: 570
+Extracted: 2025-06-13 23:41:06
+
+---
+
+14). Error and logging messages are best sent to sys.stderr.
+5.16.3    Exiting a Program
+Usually, a Python program ends with the execution of the last statement or when an unhandled error occurs. If you want to terminate a program prematurely, you must run sys.exit(). With sys.exit(n), you can also return an error code, the meaning of which is the same as in Bash scripts. Alternatively, you can pass a string to the exit method, which is then displayed as an error message. In this case, 1 is automatically applied as the error code.
+
+exit Produces an Exception!
+Note that, internally, the exit method throws a SystemExit exception. The end of the program can therefore be prevented by try/except.
+
+5.16.4    Calling Linux Commands
+By using subprocess.run, you can execute another program or command from within a Python script. In the simplest case, you can pass a list with the command name and its options to run. The following lines call the ls command with the -l option, which displays details about the files in the current directory. run returns an object of the CompletedProcess class as a result (see Table 5.11).
+import subprocessresult = subprocess.run(['ls', '-l']) 
+
+
+
+
+Property
+
+
+Meaning
+
+
+
+
+
+
+args
+
+
+The executed command as a string or list
+
+
+
+
+returncode
+
+
+The return code (0 = OK; otherwise, error)
+
+
+
+
+stdout
+
+
+Standard output of the command
+
+
+
+
+stderr
+
+
+Error messages of the command
+
+
+
+
+Table 5.11    
+            Properties of an Object of the CompletedProcess Type
+5.16.5    Processing Results
+When run is executed as in the previous listing, the output of the command occurs directly in the terminal where the Python script is executed. stdout and stderr of the result object remain empty.
+If you want to process the output yourself, you must pass the capture_output=True parameter to run. After running the command, the stdout and stderr properties return the output and error messages of the command as byte strings, respectively. You turn this string into an ordinary Unicode string using decode('utf-8'). If you want to process the string line by line, the easiest approach is to use splitlines:   
+import subprocessresult   = subprocess.run(["ls", "-l"], capture_output=True)output   = result.stdouterrormsg = result.stderrfor line in output.decode('utf-8').splitlines():    print('Result:', line) 
+5.16.6    Running Commands through the Shell
+Instead of running a command directly through Python, you can redirect it through the standard shell. For many Linux distributions, this standard shell is Bash. For this task, you must pass the additional shell=True parameter to run. There are two advantages to this approach: First, you can specify the command or commands to be executed in a simple string, where the pipe character (|) also works. Thus, for example:
+import subprocessresult = subprocess.run('dmesg | grep -i eth', capture_output=True, shell=True)print('Shell:\n', result.stdout.decode('utf-8')) 
+Second, the shell evaluates the * and ? wildcard characters, which allows you to easily process files that match a certain pattern:
+result = subprocess.run('ls -l *.py', capture_output=True, shell=True) 
+However, using the shell causes increased overhead. If you’re concerned with executing many commands as quickly as possible, you should avoid using shell=True if possible. For tips on how to succeed with common tasks without shell=True, see https://docs.python.org/3/library/subprocess.html.
+5.16.7    Error during a Command Call
+The way in which run responds to errors depends on whether you run the command directly or through the shell and what type of error occurs. For example, if you make a typo in the command name, then without shell=True, you’ll get an OSError exception. With shell=True, you’ll only get a return value not equal to

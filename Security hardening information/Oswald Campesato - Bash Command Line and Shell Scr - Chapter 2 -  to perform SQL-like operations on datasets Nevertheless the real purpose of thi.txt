@@ -1,0 +1,218 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 2 - ) to perform SQL-like operations on datasets. Nevertheless, the real purpose of this section is to illustrate some techniques with grep that might be useful in your own shell scripts.
+Listing 9.9, Listing 9.10, and Listing 9.11 display the contents of the text files MasterOrders.txt, Customers.txt, and PurchaseOrders. txt, respectively.
+Listing 9.9: MasterOrders.txt
+Security Relevance Score: 2
+Word Count: 1064
+Extracted: 2025-06-13 23:40:50
+
+---
+
+) to perform SQL-like operations on datasets. Nevertheless, the real purpose of this section is to illustrate some techniques with grep that might be useful in your own shell scripts.
+Listing 9.9, Listing 9.10, and Listing 9.11 display the contents of the text files MasterOrders.txt, Customers.txt, and PurchaseOrders. txt, respectively.
+Listing 9.9: MasterOrders.txt
+
+M10000 C1000 12/15/2012
+M11000 C2000 12/15/2012
+M12000 C3000 12/15/2012
+
+Listing 9.10: Customers.txt
+
+C1000 John Smith LosAltos California 94002
+C2000 Jane Davis MountainView California 94043
+C3000 Billy Jones HalfMoonBay California 94040
+
+Listing 9.11: PurchaseOrders.txt
+
+C1000,"Radio",54.99,2,"01/22/2013"
+C1000,"DVD",15.99,5,"01/25/2013"
+C2000,"Laptop",650.00,1,"01/24/2013"
+C3000,"CellPhone",150.00,2,"01/28/2013"
+
+Listing 9.12 displays the contents of the MasterOrders.shbash script that performs various operations that involve the three preceding text files.
+Listing 9.12: MasterOrders.sh
+
+# initialize variables for the three main files
+MasterOrders="MasterOrders.txt"
+CustomerDetails="Customers.txt"
+PurchaseOrders="PurchaseOrders.txt"
+
+# iterate through the "master table"
+for mastCustId in `cat $MasterOrders | cut -d" " -f2`
+do
+  # get the customer information
+  custDetails=`grep $mastCustId $CustomerDetails`
+
+  # get the id from the previous line
+  custDetailsId=`echo $custDetails | cut -d" " -f1`
+
+  # get the customer PO from the PO file
+  custPO=`grep $custDetailsId $PurchaseOrders`
+
+  # print the details of the customer
+  echo "Customer $mastCustId:"
+  echo "Customer Details: $custDetails"
+  echo "Purchase Orders: $custPO"
+  echo "----------------------"
+  echo
+done
+
+Listing 9.12 initializes some variables for orders, details, and purchase-related datasets. The next portion of Listing 9.12 contains a for loop that iterates through the id values in the MasterOrders.txt file and uses each id to find the corresponding row in the Customers.txt file as well as the corresponding row in the PurchaseOrders.txt file. Finally, the bottom of the loop displays the details of the information that was retrieved from the initial portion of the for loop. The output from Listing 9.12 is here:
+
+Customer C1000:
+Customer Details: C1000 John Smith LosAltos California
+94002
+Purchase Orders: C1000,"Radio",54.99,2,"01/22/2013"
+C1000,"DVD",15.99,5,"01/25/2013"
+----------------------
+
+Customer C2000:
+Customer Details: C2000 Jane Davis MountainView
+California 94043
+Purchase Orders: C2000,"Laptop",650.00,1,"01/24/2013"
+----------------------
+
+Customer C3000:
+Customer Details: C3000 Billy Jones HalfMoonBay
+California 94040
+Purchase Orders: C3000,"CellPho
+ne",150.00,2,"01/28/2013"
+----------------------
+
+CHECKING UPDATES IN A LOGFILE
+Listing 9.13 displays the contents of CheckLogUpdates.sh that illustrates how to periodically check the last line in a log file to determine the status of a system. This shell script simulates the status of a system by appending a new row that is based on the current timestamp. The shell script sleeps for a specified number of seconds, and on the third iteration, the script appends a row with an error status in order to simulate an error. In the case of a shell script that is monitoring a live system, the error code is obviously generated outside the shell script.
+Listing 9.13: CheckLogUpdates.sh
+
+DataFile="mylogfile.txt"
+OK="okay"
+ERROR="error"
+sleeptime="2"
+loopcount=0
+
+rm -f $DataFile 2>/dev/null; touch $DataFile
+newline="`date` SYSTEM IS OKAY"
+echo $newline >> $DataFile
+
+while (true)
+do
+  loopcount=`expr $loopcount + 1`
+
+  echo "sleeping $sleeptime seconds..."
+  sleep $sleeptime
+  echo "awake again..."
+
+  lastline=`tail -1 $DataFile`
+
+  if [ "$lastline" == "" ]
+  then
+    continue
+  fi
+
+  okstatus=`echo $lastline |grep -i $OK`
+  badstatus=`echo $lastline |grep -i $ERROR`
+  if [ "$okstatus" != "" ]
+  then
+    echo "system is normal"
+    if [ $loopcount –lt 5 ]
+    then
+      newline="`date` SYSTEM IS OKAY"
+    else
+      newline="`date` SYSTEM ERROR"
+    fi
+    echo $newline >> $DataFile
+  elif [ "$badstatus" != "" ]
+  then
+    echo "Error in logfile: $lastline"
+    break
+  fi
+done
+
+Listing 9.13 initializes some variables and then ensures that the log file mylogfile.txt is empty. After an initial line is added to this log file, a while loop sleeps periodically and then examines the contents of the final line of text in the log file. New text lines are appended to this log file, and when an error message is detected, the code exits the while loop. A sample invocation of Listing 9.13 is here:
+
+sleeping 2 seconds...
+awake again...
+system is normal
+sleeping 2 seconds...
+awake again...
+system is normal
+sleeping 2 seconds...
+awake again...
+system is normal
+sleeping 2 seconds...
+awake again...
+system is normal
+sleeping 2 seconds...
+awake again...
+system is normal
+sleeping 2 seconds...
+awake again...
+Error in logfile: Thu Nov 23 18:22:22 PST 2017 SYSTEM
+ERROR
+
+The contents of the log file are shown here:
+
+Thu Nov 23 18:22:12 PST 2017 SYSTEM IS OKAY
+Thu Nov 23 18:22:14 PST 2017 SYSTEM IS OKAY
+Thu Nov 23 18:22:16 PST 2017 SYSTEM IS OKAY
+Thu Nov 23 18:22:18 PST 2017 SYSTEM IS OKAY
+Thu Nov 23 18:22:20 PST 2017 SYSTEM IS OKAY
+Thu Nov 23 18:22:22 PST 2017 SYSTEM ERROR
+
+PROCESSING MULTILINE RECORDS
+Listing 9.14 displays the contents of the dataset multiline.txt and Listing 9.15 displays the contents of the shell script multiline.sh that combines multiple lines into a single record.
+Listing 9.14: multiline.txt
+
+  Mary Smith 999
+Appian Way
+Roman Town, SF 94234
+
+      Jane Adams
+123 Main Street
+Chicago, IL 67840
+
+John Jones
+321 Pine Road
+Anywhere, MN 94949
+
+Note that each record spans multiple lines that can contain whitespaces, and records are separated by a blank line.
+Listing 9.15: multiline.sh
+
+  # Records are separated by blank lines
+  awk '
+  BEGIN { RS = "" ; FS = "\n" }
+  {
+      gsub(/[ \t]+$/, "", $1)
+      gsub(/[ \t]+$/, "", $2)
+      gsub(/[ \t]+$/, "", $3)
+
+      gsub(/^[ \t]+/, "", $1)
+      gsub(/^[ \t]+/, "", $2)
+      gsub(/^[ \t]+/, "", $3)
+
+      print $1 ":" $2 ":" $3 ""
+     #printf("%s:%s:%s\n",$1,$2,$3)
+  }
+  ' multiline.txt
+
+Listing 9.15 contains a BEGIN block that sets RS (“record separator”) as an empty string and FS (“field separator”) as a linefeed. Doing so enables us to “slurp” multiple lines into the same record, using a blank line as a separator for different records. The gsub() function removes leading and trailing
+whitespaces and tabs for three fields in the datasets. The output from launching Listing 9.15 is here:
+
+Mary Smith:999 Appian Way:Roman Town, SF 94234
+Jane Adams:123 Main Street:Chicago, IL 67840
+John Jones:321 Pine Road:Anywhere, MN 94949
+
+ADDING THE CONTENTS OF RECORDS
+Listing 9.16 displays the contents of the dataset numbers.txt and Listing 9.17 displays the contents of the shell script sumrows.sh that computes the row-size sum of each line in numbers.txt.
+Listing 9.16: numbers.txt
+
+1 2 3 4 5
+6 7 8 9 10
+5 5 5 5 5
+
+Listing 9.17: sumrows.sh
+
+awk '{ for(i=1; i<=NF;i++) j+=$i; print j; j=0 }'
+numbers.txt
+
+Listing 9.17 contains a simple invocation of the awk command that contains a for loop that uses the variable j to hold the sum of the values of the fields in each record, after which the sum is printed and j is re-initialized to

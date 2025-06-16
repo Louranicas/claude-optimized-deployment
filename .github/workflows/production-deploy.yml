@@ -1,0 +1,508 @@
+# Production Deployment Pipeline with Blue-Green Strategy
+name: Production Deployment
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'blue-green'
+        type: choice
+        options:
+        - blue-green
+        - canary
+        - rolling
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  AWS_REGION: us-west-2
+  EKS_CLUSTER_NAME: claude-deployment-prod
+  HELM_VERSION: v3.12.0
+  TERRAFORM_VERSION: 1.5.0
+
+jobs:
+  # Security and Quality Gates
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run Bandit security linter
+      run: |
+        pip install bandit
+        bandit -r src/ -f json -o bandit-report.json
+      continue-on-error: true
+
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-scan-results
+        path: |
+          trivy-results.sarif
+          bandit-report.json
+
+  # Code Quality and Testing
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+        - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+        - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        npm install
+
+    - name: Run Python tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        JWT_SECRET: test-secret-key
+      run: |
+        python -m pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
+        python -m pytest tests/ --junitxml=pytest-results.xml
+
+    - name: Run Rust tests
+      run: |
+        cd rust_core
+        cargo test --verbose
+        cargo clippy -- -D warnings
+        cargo fmt -- --check
+
+    - name: Run Node.js tests
+      run: |
+        npm test
+        npm run lint
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          pytest-results.xml
+          coverage.xml
+          htmlcov/
+
+  # Build and Push Container Images
+  build:
+    needs: [security-scan, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
+
+    - name: Sign container image
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+
+  # Infrastructure Deployment
+  infrastructure:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+    - name: Terraform Init
+      working-directory: infrastructure/terraform
+      run: |
+        terraform init \
+          -backend-config="bucket=${{ secrets.TERRAFORM_STATE_BUCKET }}" \
+          -backend-config="key=production/terraform.tfstate" \
+          -backend-config="region=${{ env.AWS_REGION }}"
+
+    - name: Terraform Plan
+      working-directory: infrastructure/terraform
+      run: |
+        terraform plan \
+          -var="cluster_name=${{ env.EKS_CLUSTER_NAME }}" \
+          -var="environment=production" \
+          -out=tfplan
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      working-directory: infrastructure/terraform
+      run: terraform apply -auto-approve tfplan
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.EKS_CLUSTER_NAME }}
+
+    - name: Verify cluster access
+      run: |
+        kubectl cluster-info
+        kubectl get nodes
+
+  # Application Deployment
+  deploy:
+    needs: [build, infrastructure]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+      url: https://claude-deployment.example.com
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.EKS_CLUSTER_NAME }}
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: Create namespace if not exists
+      run: |
+        kubectl create namespace claude-deployment-prod --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Deploy secrets
+      env:
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        envsubst < k8s/production/secrets.yaml | kubectl apply -f -
+
+    - name: Apply Kubernetes manifests
+      run: |
+        kubectl apply -f k8s/production/namespace.yaml
+        kubectl apply -f k8s/production/configmaps.yaml
+        kubectl apply -f k8s/production/services.yaml
+
+    - name: Deploy application (Blue-Green)
+      if: ${{ github.event.inputs.deployment_strategy == 'blue-green' || github.event.inputs.deployment_strategy == '' }}
+      run: |
+        # Get current deployment
+        CURRENT_COLOR=$(kubectl get deployment claude-deployment-api -n claude-deployment-prod -o jsonpath='{.metadata.labels.color}' 2>/dev/null || echo "blue")
+        NEW_COLOR=$([ "$CURRENT_COLOR" = "blue" ] && echo "green" || echo "blue")
+        
+        echo "Current color: $CURRENT_COLOR, New color: $NEW_COLOR"
+        
+        # Update deployment with new image and color
+        sed "s|image: claude-deployment-api:latest|image: ${{ needs.build.outputs.image-tag }}|g" k8s/production/deployments.yaml > deployment-new.yaml
+        sed -i "s|name: claude-deployment-api|name: claude-deployment-api-$NEW_COLOR|g" deployment-new.yaml
+        sed -i "s|app: claude-deployment-api|app: claude-deployment-api-$NEW_COLOR|g" deployment-new.yaml
+        sed -i "/metadata:/a\\  labels:\\n    color: $NEW_COLOR" deployment-new.yaml
+        
+        # Deploy new version
+        kubectl apply -f deployment-new.yaml
+        
+        # Wait for rollout
+        kubectl rollout status deployment/claude-deployment-api-$NEW_COLOR -n claude-deployment-prod --timeout=600s
+        
+        # Health check
+        kubectl wait --for=condition=ready pod -l app=claude-deployment-api-$NEW_COLOR -n claude-deployment-prod --timeout=300s
+        
+        # Switch traffic
+        kubectl patch service claude-deployment-api -n claude-deployment-prod -p '{"spec":{"selector":{"app":"claude-deployment-api-'$NEW_COLOR'"}}}'
+        
+        # Clean up old deployment after successful switch
+        kubectl delete deployment claude-deployment-api-$CURRENT_COLOR -n claude-deployment-prod --ignore-not-found=true
+
+    - name: Deploy application (Canary)
+      if: ${{ github.event.inputs.deployment_strategy == 'canary' }}
+      run: |
+        # Deploy canary version with 10% traffic
+        helm upgrade --install claude-deployment-canary ./helm/claude-deployment \
+          --namespace claude-deployment-prod \
+          --set image.tag=${{ needs.build.outputs.image-tag }} \
+          --set deployment.strategy=canary \
+          --set deployment.canary.weight=10 \
+          --wait --timeout=10m
+        
+        # Run canary validation
+        sleep 60
+        ./scripts/canary-validation.sh
+        
+        # Promote canary to 100% traffic
+        helm upgrade claude-deployment-canary ./helm/claude-deployment \
+          --namespace claude-deployment-prod \
+          --set deployment.canary.weight=100 \
+          --wait --timeout=5m
+
+    - name: Deploy application (Rolling Update)
+      if: ${{ github.event.inputs.deployment_strategy == 'rolling' }}
+      run: |
+        sed "s|image: claude-deployment-api:latest|image: ${{ needs.build.outputs.image-tag }}|g" k8s/production/deployments.yaml | kubectl apply -f -
+        kubectl rollout status deployment/claude-deployment-api -n claude-deployment-prod --timeout=600s
+
+    - name: Deploy monitoring stack
+      run: |
+        kubectl apply -f monitoring/production/prometheus-stack.yaml
+        kubectl apply -f monitoring/production/grafana-stack.yaml
+        kubectl apply -f monitoring/production/alertmanager-stack.yaml
+
+    - name: Run smoke tests
+      run: |
+        ./scripts/smoke-tests.sh
+
+    - name: Update deployment status
+      run: |
+        kubectl annotate deployment claude-deployment-api -n claude-deployment-prod \
+          deployment.kubernetes.io/revision="$(date +%s)" \
+          deployment.kubernetes.io/image="${{ needs.build.outputs.image-tag }}" \
+          deployment.kubernetes.io/deployed-by="${{ github.actor }}" \
+          deployment.kubernetes.io/commit="${{ github.sha }}"
+
+  # Post-deployment validation
+  validate:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.EKS_CLUSTER_NAME }}
+
+    - name: Run integration tests
+      run: |
+        ./scripts/integration-tests.sh
+
+    - name: Performance tests
+      run: |
+        ./scripts/performance-tests.sh
+
+    - name: Security tests
+      run: |
+        ./scripts/security-tests.sh
+
+    - name: Chaos engineering tests
+      if: github.event.inputs.environment == 'staging'
+      run: |
+        ./scripts/chaos-tests.sh
+
+  # Rollback capability
+  rollback:
+    needs: [validate]
+    runs-on: ubuntu-latest
+    if: failure() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ env.AWS_REGION }} \
+          --name ${{ env.EKS_CLUSTER_NAME }}
+
+    - name: Rollback deployment
+      run: |
+        kubectl rollout undo deployment/claude-deployment-api -n claude-deployment-prod
+        kubectl rollout status deployment/claude-deployment-api -n claude-deployment-prod --timeout=300s
+
+    - name: Notify rollback
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: |
+          🚨 Production deployment failed and was rolled back
+          Commit: ${{ github.sha }}
+          Actor: ${{ github.actor }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Notification
+  notify:
+    needs: [validate]
+    runs-on: ubuntu-latest
+    if: always() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    steps:
+    - name: Notify success
+      if: needs.validate.result == 'success'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: |
+          ✅ Production deployment successful
+          Image: ${{ needs.build.outputs.image-tag }}
+          Commit: ${{ github.sha }}
+          Actor: ${{ github.actor }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+    - name: Notify failure
+      if: needs.validate.result == 'failure'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: |
+          ❌ Production deployment failed
+          Commit: ${{ github.sha }}
+          Actor: ${{ github.actor }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}

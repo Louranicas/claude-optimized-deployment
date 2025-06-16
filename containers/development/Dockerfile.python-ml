@@ -1,0 +1,175 @@
+# Python ML Development Container
+# Optimized for machine learning with CUDA support
+FROM nvidia/cuda:12.2-devel-ubuntu22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3.11-dev \
+    python3.11-venv \
+    python3-pip \
+    build-essential \
+    cmake \
+    git \
+    curl \
+    wget \
+    vim \
+    htop \
+    tree \
+    jq \
+    ca-certificates \
+    pkg-config \
+    libssl-dev \
+    libffi-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    libffi-dev \
+    liblzma-dev \
+    # Graphics and visualization
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    # Database clients
+    postgresql-client \
+    redis-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python 3.11 as default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
+# Upgrade pip and install essential tools
+RUN python -m pip install --upgrade pip setuptools wheel
+
+# Install PyTorch with CUDA support (optimized for RTX 4090)
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Install core ML libraries
+RUN pip install \
+    # Scientific computing
+    numpy==1.24.3 \
+    scipy==1.11.1 \
+    pandas==2.0.3 \
+    scikit-learn==1.3.0 \
+    # Deep learning frameworks
+    tensorflow==2.13.0 \
+    keras==2.13.1 \
+    transformers==4.30.0 \
+    datasets==2.14.0 \
+    accelerate==0.21.0 \
+    # Computer vision
+    opencv-python==4.8.0.74 \
+    Pillow==10.0.0 \
+    imageio==2.31.1 \
+    # Natural language processing
+    spacy==3.6.1 \
+    nltk==3.8.1 \
+    gensim==4.3.1 \
+    # Visualization
+    matplotlib==3.7.2 \
+    seaborn==0.12.2 \
+    plotly==5.15.0 \
+    bokeh==3.2.1 \
+    # Jupyter and development
+    jupyter==1.0.0 \
+    jupyterlab==4.0.3 \
+    ipywidgets==8.0.7 \
+    # Data processing
+    dask==2023.6.0 \
+    polars==0.18.8 \
+    pyarrow==12.0.1 \
+    # Database connectors
+    psycopg2-binary==2.9.7 \
+    redis==4.6.0 \
+    sqlalchemy==2.0.19 \
+    # API and web
+    fastapi==0.101.0 \
+    uvicorn==0.23.1 \
+    requests==2.31.0 \
+    aiohttp==3.8.5 \
+    # Monitoring and profiling
+    memory-profiler==0.61.0 \
+    py-spy==0.3.14 \
+    line-profiler==4.1.1
+
+# Install additional ML tools
+RUN pip install \
+    # MLOps
+    mlflow==2.5.0 \
+    wandb==0.15.8 \
+    tensorboard==2.13.0 \
+    # Model optimization
+    onnx==1.14.0 \
+    onnxruntime-gpu==1.15.1 \
+    # Hyperparameter tuning
+    optuna==3.2.0 \
+    ray[tune]==2.6.1 \
+    # Feature engineering
+    feature-engine==1.6.1 \
+    category-encoders==2.6.1
+
+# Install spaCy models
+RUN python -m spacy download en_core_web_sm
+
+# Download NLTK data
+RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
+
+# Create development user
+RUN groupadd -r mldev && useradd -r -g mldev -u 1000 mldev \
+    && mkdir -p /workspace /data /models /cache \
+    && chown -R mldev:mldev /workspace /data /models /cache
+
+# Configure environment variables for optimal performance
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    CUDA_VISIBLE_DEVICES=0 \
+    # Memory optimization
+    PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512 \
+    # Parallel processing
+    OMP_NUM_THREADS=16 \
+    MKL_NUM_THREADS=16 \
+    NUMBA_NUM_THREADS=16 \
+    # Cache directories
+    HF_DATASETS_CACHE=/cache/huggingface/datasets \
+    TRANSFORMERS_CACHE=/cache/huggingface/transformers \
+    TORCH_HOME=/cache/torch
+
+# Create cache directories
+RUN mkdir -p /cache/huggingface/datasets /cache/huggingface/transformers /cache/torch \
+    && chown -R mldev:mldev /cache
+
+USER mldev
+WORKDIR /workspace
+
+# Pre-download common models for faster startup
+RUN python -c "
+import torch
+import transformers
+from transformers import AutoTokenizer, AutoModel
+
+# Download a small model for testing
+try:
+    tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
+    model = AutoModel.from_pretrained('distilbert-base-uncased')
+    print('Base models downloaded successfully')
+except Exception as e:
+    print(f'Model download failed: {e}')
+"
+
+EXPOSE 8888 6006 8000
+
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

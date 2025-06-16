@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-06-08T22:17:05.036780",
+  "critical_findings": [
+    {
+      "type": "hardcoded_credentials",
+      "severity": "critical",
+      "count": 1,
+      "description": "Hardcoded credentials found in configuration files"
+    }
+  ],
+  "credentials_found": [
+    {
+      "file": "mcp_configs/mcp_master_config_20250607_125216.json",
+      "type": "api_key",
+      "value_length": 31,
+      "risk": "critical"
+    }
+  ],
+  "privacy_gaps": [],
+  "encryption_status": {
+    "aes_256": false,
+    "bcrypt": true,
+    "pbkdf2": true,
+    "fernet": true,
+    "tls_12_plus": false,
+    "jwt": true
+  },
+  "compliance_status": {
+    "gdpr_ready": true,
+    "ccpa_ready": true,
+    "encryption_strong": false,
+    "credentials_secure": false
+  },
+  "privacy_compliance": {
+    "gdpr": true,
+    "ccpa": true,
+    "privacy": true,
+    "consent": true,
+    "erasure": true,
+    "portability": true
+  },
+  "data_retention": {
+    "has_retention_policy": true,
+    "has_data_lifecycle": false,
+    "has_cleanup_procedures": false,
+    "has_backup_retention": true
+  }
+}

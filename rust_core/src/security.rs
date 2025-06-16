@@ -15,7 +15,7 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use tracing::{info, debug};
 
-use crate::{CoreError, CoreResult};
+use crate::{CoreError};
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -180,7 +180,7 @@ impl SecurityAuditor {
     }
     
     /// Generate security report
-    fn generate_report(&self) -> PyResult<HashMap<String, serde_json::Value>> {
+    fn generate_report(&self) -> PyResult<String> {
         let mut report = HashMap::new();
         
         report.insert(
@@ -208,7 +208,9 @@ impl SecurityAuditor {
             serde_json::Value::Number(serde_json::Number::from_f64(security_score).unwrap())
         );
         
-        Ok(report)
+        // Convert report to JSON string
+        serde_json::to_string_pretty(&report)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("JSON serialization error: {}", e)))
     }
 }
 
@@ -216,7 +218,8 @@ impl SecurityAuditor {
 
 /// Hash passwords in parallel using Argon2
 #[pyfunction]
-fn hash_passwords_batch_py(passwords: Vec<String>) -> PyResult<Vec<String>> {
+#[inline]
+pub fn hash_passwords_batch_py(passwords: Vec<String>) -> PyResult<Vec<String>> {
     info!("Hashing {} passwords", passwords.len());
     
     let hashes: Result<Vec<String>, CoreError> = passwords
@@ -237,7 +240,8 @@ fn hash_passwords_batch_py(passwords: Vec<String>) -> PyResult<Vec<String>> {
 
 /// Verify passwords in parallel
 #[pyfunction]
-fn verify_passwords_batch_py(passwords: Vec<String>, hashes: Vec<String>) -> PyResult<Vec<bool>> {
+#[inline]
+pub fn verify_passwords_batch_py(passwords: Vec<String>, hashes: Vec<String>) -> PyResult<Vec<bool>> {
     if passwords.len() != hashes.len() {
         return Err(CoreError::Security(
             "Password and hash counts must match".to_string()
@@ -262,8 +266,8 @@ fn verify_passwords_batch_py(passwords: Vec<String>, hashes: Vec<String>) -> PyR
 
 /// Generate HMAC signatures in parallel
 #[pyfunction]
-fn generate_hmac_batch_py(messages: Vec<String>, key: &[u8]) -> PyResult<Vec<String>> {
-    let mac = HmacSha256::new_from_slice(key)
+pub fn generate_hmac_batch_py(messages: Vec<String>, key: &[u8]) -> PyResult<Vec<String>> {
+    let mac = <HmacSha256 as Mac>::new_from_slice(key)
         .map_err(|_| CoreError::Security("Invalid HMAC key length".to_string()))?;
     
     let signatures: Vec<String> = messages

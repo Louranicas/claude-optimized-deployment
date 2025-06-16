@@ -1,0 +1,177 @@
+# Security Chapter Extract
+Book: Darren Kitchen - Bash Bunny_ A Guide to the HotPlug Attack Platform (2022, Hak5 LLC) - libgen.li
+Chapter: 0 - On an OSX/macOS host, the Bash Bunny will register as 
+/dev/tty.usbmodemch000001.
+Security Relevance Score: 4
+Word Count: 1273
+Extracted: 2025-06-13 23:40:20
+
+---
+
+On an OSX/macOS host, the Bash Bunny will register as 
+/dev/tty.usbmodemch000001.
+2.Next, connect to the serial device using screen, minicom or your terminal emulator of choice.
+If screen is not installed it can usually be found from your distributions package manager.
+sudo apt install screen 1
+Connecting with screen
+sudo screen /dev/ttyACM0 115200 1
+Disconnect with keyboard combo: CTRL+a followed by CTRL+\
+Remote Triggers for the Bash Bunny Mark II
+One of the greatest new features of the  is remote triggers. With this, a payload — or 
+multiple stages of a payload — can be triggered from afar. These can be done with any bluetooth low-
+energy device, including most smartphones. In this article I'll demonstrate how to use this handy new 
+feature.Bash Bunny Mark II
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+THE SCENARIO
+Imagine a social engineering engagement where the target is asked to print a document from a flash drive. 
+The Bash Bunny, with ATTACKMODE STORAGE, will present itself as just such a benign device in the first 
+stage of an attack. Then the opportunity presents itself to launch a second stage — emulating a HID device 
+and performing keystroke injection — when the target turns their back to fetch the printout.
+ 
+THE CODE
+ 
+#1
+# Remote Trigger for Bash Bunny Mark II Example 2
+#3
+LED SETUP 4
+5
+#6
+# Stage 1: Benign flash drive 7
+#8
+ATTACKMODE STORAGE 9
+LED STAGE1 10
+WAIT_FOR_PRESENT myphone 11
+12
+#13
+# Stage 2: Evil keystroke injection attack 14
+#15
+ATTACKMODE STORAGE HID 16
+LED STAGE2 17
+QUACK GUI r 18
+QUACK DELAY 200 19
+QUACK STRING cmd /k tree c:\ 20
+QUACK ENTER 21
+PULLING OFF THE ATTACK
+For this attack to proceed to the second stage, you simply need to advertise the BLE device named 
+"myphone". This can either be the name of a BLE device that advertises whenever it's on — like a bluetooth 
+speaker — or advertisements specifically sent from an app like . BLE Tool
+ 
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+CONFIGURING BLE TOOL
+Any bluetooth utility capable of broadcasting BLE advertisements will work. In testing I often times find 
+myself using the highly configurable and aptly named BLE Tool for Android. If you choose to test with it, 
+there are only 3 steps to follow:
+1.Tap GATT Server
+2.Specify a device name from the Advertiser settings (under the [...] menu)
+3.Tap Start Advertising
+ 
+HOW REMOTE TRIGGERS WORK
+The WAIT_FOR_PRESENT and WAIT_FOR_NOT_PRESENT extensions work by setting the BLE module 
+to Observation mode (AT+ROLE=2), then continuously saving the scanned airwaves to a temporary file on 
+a 5 second interval (timeout 5s cat /dev/ttyS1 > /tmp/bt_observation). That binary file is 
+then checked for the string value specified with the extension (grep -qao $1 
+/tmp/bt_observation).
+If you're curious what other advertisements might be found, consider running strings against this file 
+while in observation mode. For faster remote triggers, consider modifying the extension for shorter scan 
+durations. 
+Geofencing for the Bash Bunny Mark II
+Once upon a time a friend of mine robbed the wrong bank. True story. Turns out he got the directions wrong 
+on a physical engagement.
+Hotplug attacks are great, until they're not — which is why it's important to limit the scope of engagement. 
+Thankfully the  can do this with a geofencing feature using bluetooth signals to prevent 
+payloads from running unless it's certain to be in the defined area.Bash Bunny Mark II
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+THE SCENARIO
+Imagine an engagement where you want to exfiltrate loot from the boss' home office. You know she has IoT 
+gear all around her house — voice assistants, wireless lamps, bluetooth speakers. You also know that you 
+definitely don't want the payload to run if by chance the Bash Bunny walks. Geofencing time!
+It's easy — just prefix your payload with this:
+WAIT_FOR_PRESENT name-of-btle-device 1
+Now the payload is paused until the Bluetooth low energy device specified is seen. Similarly the geofencing 
+feature can be used to exclude a certain area — only running when Bluetooth devices are not visible.
+WAIT_FOR_NOT_PRESENT name-of-btle-device 1
+So, how do we know which devices are where? I'm glad you asked. Enter the 
+.Bluetooth Geofence Profiler 
+payload
+THE CODE
+# Title:       Bluetooth Geofence Profiler 1
+# Description: Saves bluetooth scan in loot folder for geofenced payloads 2
+# Author:      Hak5Darren 3
+# Version:     1.0 4
+# Category:    General 5
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+6#7
+# Enable serial BTLE module 8
+#9
+LED SETUP 10
+stty -F /dev/ttyS1 speed 115200 cs8 -cstopb -parenb -echo -ixon -icanon -opost 11
+stty -F /dev/ttyS1 speed 115200 cs8 -cstopb -parenb -echo -ixon -icanon -opost 12
+sleep 1 13
+14
+#15
+# Set BTLE module to observation mode 16
+#17
+echo -n -e "AT+ROLE=2" > /dev/ttyS1 18
+echo -n -e "AT+RESET" > /dev/ttyS1 19
+20
+#21
+# Copy strings from 10 second observation scan to file in loot folder 22
+#23
+LED ATTACK 24
+timeout 10s cat /dev/ttyS1 > /tmp/bt_observation 25
+strings /tmp/bt_observation > /root/udisk/loot/btle-profile.txt 26
+27
+#28
+# Sync file system and finish 29
+#30
+LED CLEANUP 31
+sync32
+LED FINISH 33
+Load this payload to your switch position of choosing and execute while in the vicinity you wish to wirelessly 
+profile. It'll create a new btle-profile.txt file in the loot folder. In it you'll find strings from the BTLE wireless 
+landscape. For example, at my place I find the following:
+Ld+x1
+LE-Bose SoundLink Micro 2
+Ld+x3
+MBAudio 4
+PULLING OFF THE ATTACK
+Armed with the Bluetooth Low Energy landscape of our target, we can populate our payload with 
+WAIT_FOR_PRESENT commands to prevent the payload from further executing until, as the Ducky Script 
+command implies, they're present.
+Double up on the devices to even further the specificity!
+WAIT_FOR_PRESENT SoundLink
+WAIT_FOR_PRESENT MBAudio
+Even if the Bash Bunny finds its way into an area where another Bose SoundLink Micro device lives, the 
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+payload will continue to halt until MBAudio is also seen. The more devices are specified, the greater the 
+geofence.
+HOW GEOFENCING WORKS
+The  accepts a single parameter ($1) — in our case SoundLink or 
+MBAudio — and continues looping over a scan of the BTLE landscape until the string specified is found via 
+grep.WAIT_FOR_PRESENT extension
+This is the same extension that can be used for  for multi-stage payloads. remote triggers
+Internet Connectivity
+Getting the Bash Bunny Online
+Getting the Bash Bunny online can be convenient for a number of reasons, such as installing software with 
+apt or git. Similar to the WiFi Pineapple, the host computer's Internet connection can be shared with the 
+Bash Bunny. Begin by setting the Bash Bunny to Ethernet mode. For Windows hosts, you’ll want to boot the 
+bash bunny with a payload.txt containing ATTACKMODE RNDIS_ETHERNET On a Linux host you’ll most 
+likely want ATTACKMODE ECM_ETHERNET. With the Bash Bunny booted and registering on your host 
+computer as an Ethernet device, you can now share its Internet connection.
+Sharing an Internet connection from Windows
+1.Configure a payload.txt for ATTACKMODE RNDIS_ETHERNET
+2.Boot Bash Bunny from RNDIS_ETHERNET configured payload on the host Windows PC
+3.Open Control Panel > Network Connections (Start > Run > “ncpa.cpl” > Enter)
+4.Identify Bash Bunny interface. Device name: “USB Ethernet/RNDIS Gadget”
+5.Right-click Internet interface (e.g. Wi-Fi) and click Properties.
+6.From the Sharing tab, check “Allow other network users to connect through this computer’s Internet 
+connection”, select the Bash Bunny from the Home networking connection list (e.g. Ethernet 2) and click 
+OK.
+7.Right-click Bash Bunny interface (e.g. Ethenet 2) and click Properties.
+8.Select TCP/IPv4 and click Properties.
+9.Set the IP address to 172.16.64.

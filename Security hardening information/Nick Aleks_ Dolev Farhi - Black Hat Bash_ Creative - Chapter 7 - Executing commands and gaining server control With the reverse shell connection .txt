@@ -1,0 +1,31 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 7 - Executing commands and gaining server control: With the reverse shell connection established, the attacker gains control over the compromised target system and may execute shell commands remotely.
+In the next section, we’ll see these steps in practice.
+Security Relevance Score: 4
+Word Count: 221
+Extracted: 2025-06-13 23:40:57
+
+---
+
+Executing commands and gaining server control: With the reverse shell connection established, the attacker gains control over the compromised target system and may execute shell commands remotely.
+In the next section, we’ll see these steps in practice.
+
+
+
+Executing a Connection
+Let’s use bash to establish a reverse shell connection between the Kali attacker machine and a target, the p-web-02 web application server (172.16.10.12).
+
+Setting Up a Netcat Listener
+First, we must use Netcat to set up a shell listener on the Kali machine. Execute the following command in a brand-new terminal window:
+$ nc -l -p 1337 -vv
+The -l option instructs Netcat to listen for incoming connections. The -p 1337 option specifies the port number to listen on, and the -vv option enables verbose mode, providing more detailed output for monitoring and debugging purposes.
+
+NOTE
+
+In real-life scenarios, choose a port that will blend in with the environment so it’s harder to notice. For example, outbound connections on port 1337 could raise alerts, whereas blue team analysts might overlook traffic on common ports such as 80 or 443, which are often used by HTTP.
+When the command executes, Netcat should start listening for incoming connections on the port specified.
+
+
+Crafting a Payload
+Next, we’ll craft an interactive reverse shell payload by using the single line of bash in Listing 7-

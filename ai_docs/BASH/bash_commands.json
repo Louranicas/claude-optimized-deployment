@@ -1,0 +1,1222 @@
+{
+  "metadata": {
+    "generated_by": "SYNTHEX Fleet",
+    "instances": 9,
+    "timestamp": "2025-06-13T18:01:57.434928",
+    "total_commands": 95,
+    "last_updated": "2025-06-13T18:29:38.272830"
+  },
+  "commands": [
+    {
+      "command": "find . -type f -name '*.log' | xargs grep -l 'ERROR' | while read f; do echo \"=== $f ===\"; grep -C 3 'ERROR' \"$f\"; done | less",
+      "description": "Complex pipe chain for contextual error log analysis",
+      "category": "pipe_chains",
+      "example": "Finds all log files, filters those with ERRORs, shows context",
+      "synergy_with": [
+        "find",
+        "xargs",
+        "grep",
+        "while",
+        "less"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "ps aux | awk '{sum+=$4} END {print \"Total Memory Usage: \" sum \"%\"}' | tee >(logger -t memory)",
+      "description": "Process memory calculation with simultaneous logging",
+      "category": "pipe_chains",
+      "example": "Calculates total memory usage and logs it",
+      "synergy_with": [
+        "ps",
+        "awk",
+        "tee",
+        "logger"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "tar -czf - /path/to/dir | tee >(sha256sum > backup.sha256) | ssh user@host 'cat > backup.tar.gz'",
+      "description": "Create compressed backup with checksum while streaming to remote",
+      "category": "pipe_chains",
+      "example": "Backup, checksum, and remote copy in one pipeline",
+      "synergy_with": [
+        "tar",
+        "tee",
+        "sha256sum",
+        "ssh"
+      ],
+      "power_level": 9
+    },
+    {
+      "command": "git log --oneline | head -20 | awk '{print $1}' | xargs -I {} git show {} --stat | grep -E '^[+-]' | awk '{ins+=$1; del+=$2} END {print \"Insertions: \" ins \" Deletions: \" del}'",
+      "description": "Git statistics pipeline for recent commits",
+      "category": "pipe_chains",
+      "example": "Analyzes insertion/deletion stats for last 20 commits",
+      "synergy_with": [
+        "git",
+        "head",
+        "awk",
+        "xargs",
+        "grep"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "dmesg | tail -f | grep -E '(error|fail|warn)' --line-buffered | while read line; do echo \"[$(date +%Y-%m-%d\\ %H:%M:%S)] $line\" | tee -a kernel_issues.log | mail -s \"Kernel Alert\" admin@example.com; done",
+      "description": "Real-time kernel monitoring with alerts",
+      "category": "pipe_chains",
+      "example": "Monitors kernel messages and sends email alerts",
+      "synergy_with": [
+        "dmesg",
+        "tail",
+        "grep",
+        "while",
+        "tee",
+        "mail"
+      ],
+      "power_level": 9
+    },
+    {
+      "command": "diff <(ls -la /dir1) <(ls -la /dir2)",
+      "description": "Compare directory listings using process substitution",
+      "category": "process_substitution",
+      "example": "Shows differences between two directory listings",
+      "synergy_with": [
+        "diff",
+        "ls"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "comm -23 <(sort file1 | uniq) <(sort file2 | uniq)",
+      "description": "Find unique lines in file1 not in file2",
+      "category": "process_substitution",
+      "example": "Set difference operation on files",
+      "synergy_with": [
+        "comm",
+        "sort",
+        "uniq"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "paste <(cut -d: -f1 /etc/passwd) <(cut -d: -f7 /etc/passwd) | column -t",
+      "description": "Create formatted table of users and shells",
+      "category": "process_substitution",
+      "example": "Extracts and formats user/shell information",
+      "synergy_with": [
+        "paste",
+        "cut",
+        "column"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "while read url; do curl -s \"$url\" | grep -o 'href=\"[^\"]*\"' | sed 's/href=\"\\(.*\\)\"/\\1/g'; done < urls.txt | sort | uniq > all_links.txt",
+      "description": "Extract all links from multiple URLs",
+      "category": "process_substitution",
+      "example": "Web scraping pipeline for link extraction",
+      "synergy_with": [
+        "while",
+        "curl",
+        "grep",
+        "sed",
+        "sort",
+        "uniq"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "join -t, <(sort -t, -k1 file1.csv) <(sort -t, -k1 file2.csv) > merged.csv",
+      "description": "SQL-like join operation on CSV files",
+      "category": "process_substitution",
+      "example": "Merges two CSV files on first column",
+      "synergy_with": [
+        "join",
+        "sort"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "{ echo \"Starting backup at $(date)\"; rsync -av /source/ /backup/ && echo \"Backup successful\" || echo \"Backup failed\"; echo \"Completed at $(date)\"; } | tee -a backup.log",
+      "description": "Grouped commands for atomic logging operations",
+      "category": "command_grouping",
+      "example": "Groups multiple commands for unified output handling",
+      "synergy_with": [
+        "echo",
+        "rsync",
+        "date",
+        "tee"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "(cd /tmp && wget http://example.com/script.sh && chmod +x script.sh && ./script.sh && rm script.sh)",
+      "description": "Subshell for isolated directory operations",
+      "category": "command_grouping",
+      "example": "Downloads and executes script without changing current directory",
+      "synergy_with": [
+        "cd",
+        "wget",
+        "chmod",
+        "rm"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "{ find . -name '*.tmp' -print0; find . -name '*.cache' -print0; } | xargs -0 rm -f",
+      "description": "Group multiple find commands for batch deletion",
+      "category": "command_grouping",
+      "example": "Combines multiple find patterns for efficient cleanup",
+      "synergy_with": [
+        "find",
+        "xargs",
+        "rm"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "parallel -j 4 'echo \"Processing {}\"; convert {} -resize 800x600 thumb_{}' ::: *.jpg",
+      "description": "Parallel image processing with GNU parallel",
+      "category": "command_grouping",
+      "example": "Processes multiple images concurrently",
+      "synergy_with": [
+        "parallel",
+        "convert"
+      ],
+      "power_level": 9
+    },
+    {
+      "command": "{ ps aux | head -1; ps aux | grep -v grep | grep httpd; } | awk '{sum+=$6} END {print \"Total RSS: \" sum/1024 \" MB\"}'",
+      "description": "Header-preserving process filtering with calculation",
+      "category": "command_grouping",
+      "example": "Shows httpd processes with header and total memory",
+      "synergy_with": [
+        "ps",
+        "head",
+        "grep",
+        "awk"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "exec 3>&1 4>&2 1>output.log 2>&1; echo \"This goes to log\"; echo \"This goes to screen\" >&3; exec 1>&3 2>&4 3>&- 4>&-",
+      "description": "Advanced file descriptor manipulation for selective output",
+      "category": "advanced_redirection",
+      "example": "Redirects stdout/stderr while preserving ability to write to screen",
+      "synergy_with": [
+        "exec",
+        "echo"
+      ],
+      "power_level": 9
+    },
+    {
+      "command": "cat <<< \"$(<file.txt)\" | tr '[:lower:]' '[:upper:]' > file.txt",
+      "description": "In-place file transformation using here-string",
+      "category": "advanced_redirection",
+      "example": "Converts file to uppercase in-place",
+      "synergy_with": [
+        "cat",
+        "tr"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "mkfifo /tmp/fifo; command1 > /tmp/fifo & command2 < /tmp/fifo; rm /tmp/fifo",
+      "description": "Named pipe for inter-process communication",
+      "category": "advanced_redirection",
+      "example": "Creates FIFO for complex command communication",
+      "synergy_with": [
+        "mkfifo",
+        "rm"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "{ echo \"Error occurred\" | tee /dev/stderr | logger -t myapp; } 2>&1 | grep -v '^$'",
+      "description": "Simultaneous stderr, syslog, and stdout with filtering",
+      "category": "advanced_redirection",
+      "example": "Multi-destination output with filtering",
+      "synergy_with": [
+        "echo",
+        "tee",
+        "logger",
+        "grep"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "strace -e trace=file -o >(grep -E 'open|access' | tee file_access.log) command",
+      "description": "Real-time system call filtering and logging",
+      "category": "advanced_redirection",
+      "example": "Traces file operations with selective logging",
+      "synergy_with": [
+        "strace",
+        "grep",
+        "tee"
+      ],
+      "power_level": 9
+    },
+    {
+      "command": "[ -f ~/.ssh/id_rsa ] || ssh-keygen -t rsa -b 4096 -N '' -f ~/.ssh/id_rsa && ssh-copy-id user@host",
+      "description": "Conditional SSH key generation and deployment",
+      "category": "conditional_execution",
+      "example": "Creates SSH key if missing, then copies to remote",
+      "synergy_with": [
+        "test",
+        "ssh-keygen",
+        "ssh-copy-id"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "ping -c 1 -W 1 google.com &>/dev/null && echo \"Online\" || echo \"Offline\"",
+      "description": "Network connectivity check with status output",
+      "category": "conditional_execution",
+      "example": "Quick internet connectivity test",
+      "synergy_with": [
+        "ping",
+        "echo"
+      ],
+      "power_level": 5
+    },
+    {
+      "command": "for host in host1 host2 host3; do ssh -o ConnectTimeout=5 $host 'uptime' && echo \"$host: OK\" || echo \"$host: FAILED\"; done | tee status.log",
+      "description": "Multi-host health check with status logging",
+      "category": "conditional_execution",
+      "example": "Checks multiple servers and logs results",
+      "synergy_with": [
+        "for",
+        "ssh",
+        "echo",
+        "tee"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "until mysql -h localhost -u root -p$PASS -e 'SELECT 1' &>/dev/null; do echo \"Waiting for MySQL...\"; sleep 2; done && echo \"MySQL is ready!\"",
+      "description": "Service readiness check with retry loop",
+      "category": "conditional_execution",
+      "example": "Waits for MySQL to become available",
+      "synergy_with": [
+        "until",
+        "mysql",
+        "echo",
+        "sleep"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "[[ $(date +%H) -lt 12 ]] && greeting=\"Good morning\" || { [[ $(date +%H) -lt 18 ]] && greeting=\"Good afternoon\" || greeting=\"Good evening\"; }; echo \"$greeting, $USER\"",
+      "description": "Time-based conditional greeting",
+      "category": "conditional_execution",
+      "example": "Dynamic greeting based on time of day",
+      "synergy_with": [
+        "date",
+        "echo"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "for i in {1..10}; do (sleep $((RANDOM % 5)) && echo \"Task $i completed\") & done; wait; echo \"All tasks done\"",
+      "description": "Parallel task execution with synchronization",
+      "category": "parallel_execution",
+      "example": "Runs 10 tasks in parallel and waits for completion",
+      "synergy_with": [
+        "for",
+        "sleep",
+        "wait"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "cat urls.txt | xargs -P 10 -I {} sh -c 'curl -s {} | wc -l | xargs printf \"%s: %d lines\\n\" {}'",
+      "description": "Parallel URL fetching with line counting",
+      "category": "parallel_execution",
+      "example": "Fetches multiple URLs concurrently and counts lines",
+      "synergy_with": [
+        "cat",
+        "xargs",
+        "curl",
+        "wc"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "find . -name '*.jpg' -print0 | parallel -0 -j+0 'convert {} -quality 85 compressed_{/}'",
+      "description": "Parallel image compression using all CPU cores",
+      "category": "parallel_execution",
+      "example": "Compresses all JPG files using maximum parallelism",
+      "synergy_with": [
+        "find",
+        "parallel",
+        "convert"
+      ],
+      "power_level": 9
+    },
+    {
+      "command": "seq 1 100 | xargs -n 1 -P 8 -I {} bash -c 'echo \"Processing {}\"; sleep 0.1'",
+      "description": "Controlled parallel execution with progress",
+      "category": "parallel_execution",
+      "example": "Processes 100 items with 8 parallel workers",
+      "synergy_with": [
+        "seq",
+        "xargs",
+        "bash"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "export -f process_file; find . -type f -name '*.txt' | parallel -j 4 process_file",
+      "description": "Parallel execution of exported shell function",
+      "category": "parallel_execution",
+      "example": "Runs custom function on multiple files in parallel",
+      "synergy_with": [
+        "export",
+        "find",
+        "parallel"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "while IFS=: read -r user pass uid gid desc home shell; do [[ $uid -ge 1000 ]] && echo \"User: $user (UID: $uid) Shell: $shell\"; done < /etc/passwd",
+      "description": "Parse structured data with field splitting",
+      "category": "loop_constructs",
+      "example": "Extracts user information for regular users",
+      "synergy_with": [
+        "while",
+        "read",
+        "echo"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "for ((i=0, j=100; i<=100; i++, j--)); do printf \"\\rProgress: [%-50s] %d%% (i=%d, j=%d)\" \"$(printf '#%.0s' {1..50} | head -c $((i/2)))\" \"$i\" \"$i\" \"$j\"; sleep 0.1; done; echo",
+      "description": "C-style for loop with progress bar",
+      "category": "loop_constructs",
+      "example": "Shows progress with dual counter",
+      "synergy_with": [
+        "for",
+        "printf",
+        "sleep"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "mapfile -t files < <(find . -type f -name '*.sh'); for i in \"${!files[@]}\"; do echo \"[$i] ${files[$i]}\"; done",
+      "description": "Array population from command with indexed iteration",
+      "category": "loop_constructs",
+      "example": "Creates indexed list of shell scripts",
+      "synergy_with": [
+        "mapfile",
+        "find",
+        "for"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "while read -r line; do echo \"$line\" | rev; done < file.txt | tac",
+      "description": "Reverse lines and their content",
+      "category": "loop_constructs",
+      "example": "Completely reverses a text file",
+      "synergy_with": [
+        "while",
+        "read",
+        "rev",
+        "tac"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "for dir in */; do (cd \"$dir\" && git pull &); done; wait",
+      "description": "Parallel git pull in subdirectories",
+      "category": "loop_constructs",
+      "example": "Updates all git repositories in parallel",
+      "synergy_with": [
+        "for",
+        "cd",
+        "git",
+        "wait"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "tail -f /var/log/syslog | stdbuf -oL grep -E '(error|fail)' | while read line; do echo \"$(date): $line\" | tee -a filtered.log; done",
+      "description": "Real-time log filtering with buffering control",
+      "category": "stream_manipulation",
+      "example": "Filters and timestamps live log entries",
+      "synergy_with": [
+        "tail",
+        "stdbuf",
+        "grep",
+        "while",
+        "tee"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "awk 'BEGIN{OFS=\",\"} FNR==1{print $0, \"hash\"} FNR>1{cmd=\"echo \" $0 \" | sha256sum | cut -d\\  -f1\"; cmd | getline hash; close(cmd); print $0, hash}' data.csv",
+      "description": "Add hash column to CSV using AWK",
+      "category": "stream_manipulation",
+      "example": "Computes hash for each row in CSV",
+      "synergy_with": [
+        "awk",
+        "sha256sum",
+        "cut"
+      ],
+      "power_level": 9
+    },
+    {
+      "command": "sed -n 'h;n;H;g;s/\\n/ /p' file.txt | awk '{print NR \": \" $0}'",
+      "description": "Merge pairs of lines with line numbers",
+      "category": "stream_manipulation",
+      "example": "Combines adjacent lines with numbering",
+      "synergy_with": [
+        "sed",
+        "awk"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "paste -d' ' <(seq 1 10) <(seq 11 20) | awk '{print $1 * $2}'",
+      "description": "Parallel sequence multiplication",
+      "category": "stream_manipulation",
+      "example": "Multiplies corresponding numbers from two sequences",
+      "synergy_with": [
+        "paste",
+        "seq",
+        "awk"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "tee >(grep ERROR > errors.log) >(grep WARN > warnings.log) < input.log | grep -v -E '(ERROR|WARN)' > info.log",
+      "description": "Multi-stream log splitting",
+      "category": "stream_manipulation",
+      "example": "Splits log file into severity-based files",
+      "synergy_with": [
+        "tee",
+        "grep"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "for file in *.txt; do mv \"$file\" \"${file%.txt}_$(date +%Y%m%d).${file##*.}\"; done",
+      "description": "Batch rename with date insertion",
+      "category": "parameter_expansion",
+      "example": "Adds date to filename before extension",
+      "synergy_with": [
+        "for",
+        "mv",
+        "date"
+      ],
+      "power_level": 7
+    },
+    {
+      "command": "echo ${PATH//:/\\n} | sort | uniq | while read p; do [ -d \"$p\" ] && echo \"\u2713 $p\" || echo \"\u2717 $p\"; done",
+      "description": "PATH validation with visual indicators",
+      "category": "parameter_expansion",
+      "example": "Checks each PATH directory existence",
+      "synergy_with": [
+        "echo",
+        "sort",
+        "uniq",
+        "while"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "var='Hello World'; echo \"${var:0:1}${var,,}\" | sed 's/h/H/2'",
+      "description": "Complex string manipulation with expansion",
+      "category": "parameter_expansion",
+      "example": "Capitalizes first letter, lowercases rest, then fixes second 'h'",
+      "synergy_with": [
+        "echo",
+        "sed"
+      ],
+      "power_level": 5
+    },
+    {
+      "command": "for i in {1..10}; do printf \"%0${#i}d\\n\" $i; done",
+      "description": "Dynamic width formatting based on value length",
+      "category": "parameter_expansion",
+      "example": "Zero-pads numbers based on max width",
+      "synergy_with": [
+        "for",
+        "printf"
+      ],
+      "power_level": 6
+    },
+    {
+      "command": "declare -A count; while read word; do ((count[$word]++)); done < <(tr ' ' '\\n' < text.txt); for word in \"${!count[@]}\"; do echo \"$word: ${count[$word]}\"; done | sort -k2 -nr",
+      "description": "Word frequency counter using associative arrays",
+      "category": "parameter_expansion",
+      "example": "Counts word occurrences and sorts by frequency",
+      "synergy_with": [
+        "declare",
+        "while",
+        "tr",
+        "sort"
+      ],
+      "power_level": 8
+    },
+    {
+      "command": "pidstat -u 1 5 | awk 'NR>3 && $8!=\"CPU\" {cpu[$2]+=$8; count[$2]++} END {for (p in cpu) printf \"%-20s %.2f%%\\n\", p, cpu[p]/count[p]}' | sort -k2 -nr | head -10",
+      "description": "Real-time CPU usage averaging by process",
+      "example": "Tracks CPU usage over 5 seconds and shows average per process",
+      "power_level": 8,
+      "category": "system_performance",
+      "synergy_with": [
+        "awk",
+        "for",
+        "head",
+        "printf",
+        "sort"
+      ]
+    },
+    {
+      "command": "while true; do clear; echo \"=== Memory Pressure ===\"; ps aux | awk '{mem[$11]+=$6} END {for (p in mem) printf \"%-30s %.2f MB\\n\", p, mem[p]/1024}' | sort -k2 -nr | head -10; sleep 2; done",
+      "description": "Live memory usage dashboard by command",
+      "example": "Shows top memory consumers refreshed every 2 seconds",
+      "power_level": 7,
+      "category": "system_performance",
+      "synergy_with": [
+        "awk",
+        "echo",
+        "for",
+        "head",
+        "printf",
+        "ps",
+        "sort",
+        "ss",
+        "while"
+      ]
+    },
+    {
+      "command": "sar -n DEV 1 | awk '/Average/ && $2!=\"IFACE\" {print $2, \"RX:\", $5*8/1024, \"Mbps TX:\", $6*8/1024, \"Mbps\"}' | column -t",
+      "description": "Network interface throughput in Mbps",
+      "example": "Converts sar network stats to megabits per second",
+      "power_level": 8,
+      "category": "system_performance",
+      "synergy_with": [
+        "awk",
+        "ps",
+        "sar"
+      ]
+    },
+    {
+      "command": "for pid in $(ls /proc | grep -E '^[0-9]+$'); do if [ -r /proc/$pid/status ]; then echo -n \"PID $pid: \"; awk '/VmSwap/{print $2 $3}' /proc/$pid/status; fi; done 2>/dev/null | sort -k3 -hr | head -20",
+      "description": "Find processes using swap memory",
+      "example": "Lists top 20 processes by swap usage",
+      "power_level": 9,
+      "category": "system_performance",
+      "synergy_with": [
+        "awk",
+        "echo",
+        "for",
+        "grep",
+        "head",
+        "sort"
+      ]
+    },
+    {
+      "command": "iostat -x 1 | awk '/^[sv]d[a-z]/ {util[$1]+=$14; count[$1]++} END {for (d in util) printf \"Disk %s avg utilization: %.2f%%\\n\", d, util[d]/count[d]}'",
+      "description": "Disk utilization averaging over time",
+      "example": "Calculates average disk busy percentage",
+      "power_level": 8,
+      "category": "system_performance",
+      "synergy_with": [
+        "awk",
+        "for",
+        "iostat",
+        "printf"
+      ]
+    },
+    {
+      "command": "ss -tunap | awk '$1~/^(tcp|udp)/ && $5!~/^(127\\.0\\.0\\.1|::1)/ {split($5,a,\":\"); print $1, a[1], $6}' | sort | uniq -c | sort -nr",
+      "description": "Network connections summary by state and IP",
+      "example": "Shows connection counts grouped by protocol, IP, and state",
+      "power_level": 8,
+      "category": "network_security",
+      "synergy_with": [
+        "awk",
+        "sort",
+        "ss",
+        "uniq"
+      ]
+    },
+    {
+      "command": "tcpdump -nn -c 100 -q | awk '{split($3,src,\".\"); split($5,dst,\".\"); print src[1]\".\"src[2]\".\"src[3]\".\"src[4], \"->\", dst[1]\".\"dst[2]\".\"dst[3]\".\"dst[4]}' | sort | uniq -c | sort -nr",
+      "description": "Quick traffic flow analysis",
+      "example": "Captures 100 packets and shows traffic patterns",
+      "power_level": 9,
+      "category": "network_security",
+      "synergy_with": [
+        "awk",
+        "sort",
+        "tcpdump",
+        "uniq"
+      ]
+    },
+    {
+      "command": "nmap -sn 192.168.1.0/24 -oG - | awk '/Up$/{print $2}' | xargs -P10 -I{} sh -c 'echo -n \"{}: \"; timeout 1 nc -zv {} 22,80,443 2>&1 | grep -o \"open\" | wc -l | xargs echo \"open ports\"'",
+      "description": "Parallel network service discovery",
+      "example": "Scans subnet for hosts and checks common ports",
+      "power_level": 9,
+      "category": "network_security",
+      "synergy_with": [
+        "awk",
+        "echo",
+        "grep",
+        "nc",
+        "nmap",
+        "xargs"
+      ]
+    },
+    {
+      "command": "iptables -nvL | awk '/^Chain/{chain=$2} /^[0-9]/{print chain, $1, $2, $8, $9}' | sort -k2,3 -nr | head -20",
+      "description": "Top firewall rules by packet/byte count",
+      "example": "Shows most active iptables rules",
+      "power_level": 8,
+      "category": "network_security",
+      "synergy_with": [
+        "awk",
+        "head",
+        "iptables",
+        "sort"
+      ]
+    },
+    {
+      "command": "tshark -i any -Y 'http.request or http.response' -T fields -e ip.src -e ip.dst -e http.request.method -e http.response.code | awk '{count[$1\" -> \"$2\" \"$3$4]++} END {for (i in count) print count[i], i}' | sort -nr | head -20",
+      "description": "HTTP traffic pattern analysis",
+      "example": "Analyzes HTTP flows and response codes",
+      "power_level": 9,
+      "category": "network_security",
+      "synergy_with": [
+        "awk",
+        "for",
+        "head",
+        "sort"
+      ]
+    },
+    {
+      "command": "docker ps -q | xargs -I{} docker stats {} --no-stream --format 'table {{.Container}}\\t{{.CPUPerc}}\\t{{.MemUsage}}' | sort -k2 -hr",
+      "description": "Snapshot container resource usage sorted by CPU",
+      "example": "Shows current container stats sorted by CPU usage",
+      "power_level": 7,
+      "category": "container_ops",
+      "synergy_with": [
+        "docker",
+        "for",
+        "ps",
+        "sort",
+        "xargs"
+      ]
+    },
+    {
+      "command": "kubectl get pods --all-namespaces -o json | jq -r '.items[] | select(.status.phase!=\"Running\") | [.metadata.namespace, .metadata.name, .status.phase] | @tsv' | column -t",
+      "description": "Find all non-running pods across namespaces",
+      "example": "Lists problematic pods in Kubernetes cluster",
+      "power_level": 8,
+      "category": "container_ops",
+      "synergy_with": [
+        "kubectl"
+      ]
+    },
+    {
+      "command": "docker ps -aq | xargs -P5 -I{} sh -c 'echo -n \"Container {}: \"; docker exec {} sh -c \"ps aux | wc -l\" 2>/dev/null || echo \"stopped\"' | sort -k3 -nr",
+      "description": "Parallel process count in all containers",
+      "example": "Checks process count in containers concurrently",
+      "power_level": 8,
+      "category": "container_ops",
+      "synergy_with": [
+        "docker",
+        "echo",
+        "ps",
+        "sort",
+        "top",
+        "xargs"
+      ]
+    },
+    {
+      "command": "kubectl top nodes --no-headers | awk '{cpu+=$3; mem+=$5; nodes++} END {printf \"Cluster: %.1f%% CPU, %.1f%% Memory (avg of %d nodes)\\n\", cpu/nodes, mem/nodes, nodes}'",
+      "description": "Kubernetes cluster resource usage summary",
+      "example": "Shows average CPU and memory across all nodes",
+      "power_level": 7,
+      "category": "container_ops",
+      "synergy_with": [
+        "awk",
+        "head",
+        "kubectl",
+        "printf",
+        "top"
+      ]
+    },
+    {
+      "command": "docker inspect $(docker ps -q) | jq -r '.[] | {name: .Name, restart_count: .RestartCount, state: .State.Status, started: .State.StartedAt} | select(.restart_count > 0)' | jq -s 'sort_by(.restart_count) | reverse'",
+      "description": "Find containers with restart issues",
+      "example": "Lists containers sorted by restart count",
+      "power_level": 9,
+      "category": "container_ops",
+      "synergy_with": [
+        "docker",
+        "ps",
+        "sort",
+        "tar"
+      ]
+    },
+    {
+      "command": "awk 'BEGIN{FPAT=\"([^,]*)|(\\\"[^\\\"]+\\\")\"; OFS=\",\"} {gsub(/^\"|\"$/,\"\",$3); $3=toupper($3); print}' data.csv",
+      "description": "CSV field manipulation with quoted field handling",
+      "example": "Uppercase third column in CSV preserving quotes",
+      "power_level": 8,
+      "category": "text_processing",
+      "synergy_with": [
+        "awk"
+      ]
+    },
+    {
+      "command": "perl -MText::Levenshtein -nle 'BEGIN{$target=\"example\"} print \"$_: \", distance($target, $_)' words.txt | sort -k2 -n | head -10",
+      "description": "Find similar words using Levenshtein distance",
+      "example": "Shows 10 most similar words to target",
+      "power_level": 9,
+      "category": "text_processing",
+      "synergy_with": [
+        "head",
+        "nc",
+        "perl",
+        "sort",
+        "tar"
+      ]
+    },
+    {
+      "command": "sed -n '1h; 2,$H; ${g; s/\\n/|/g; p}' file.txt | awk -F'|' '{for(i=1;i<=NF;i++) a[i]=a[i] (a[i]?\" \":\"\"$i)} END{for(i in a) print \"Column \"i\": \"a[i]}'",
+      "description": "Transpose rows to columns with labels",
+      "example": "Converts row-based data to column view",
+      "power_level": 8,
+      "category": "text_processing",
+      "synergy_with": [
+        "awk",
+        "for",
+        "sed"
+      ]
+    },
+    {
+      "command": "grep -o -E '\\b[A-Za-z]+\\b' text.txt | awk '{len=length($0); hist[len]++} END{for(i in hist) print i, hist[i]}' | sort -n | awk '{print $1\": \"$2; for(i=0;i<$2/10;i++) printf \"\u2588\"; print \"\"}'",
+      "description": "Word length histogram with visual bars",
+      "example": "Creates distribution graph of word lengths",
+      "power_level": 8,
+      "category": "text_processing",
+      "synergy_with": [
+        "awk",
+        "for",
+        "grep",
+        "printf",
+        "sort"
+      ]
+    },
+    {
+      "command": "xmlstarlet sel -t -m \"//element\" -v \"@attribute\" -o \" : \" -v \".\" -n file.xml | awk -F' : ' '{count[$1]++; values[$1]=values[$1]?values[$1]\",\"$2:$2} END{for(k in count) print k\" (\"count[k]\"x): \"values[k]}'",
+      "description": "XML attribute value aggregation",
+      "example": "Extracts and groups XML attribute values",
+      "power_level": 9,
+      "category": "text_processing",
+      "synergy_with": [
+        "awk",
+        "for",
+        "tar"
+      ]
+    },
+    {
+      "command": "strace -c -p $(pgrep -f process_name) -f 2>&1 | tee trace.log | awk '/^%/{flag=1} flag && /^[0-9]/{if($2>5.00) print $0}'",
+      "description": "Profile system calls taking >5% time",
+      "example": "Identifies expensive system calls in running process",
+      "power_level": 9,
+      "category": "system_debugging",
+      "synergy_with": [
+        "awk",
+        "grep",
+        "ss",
+        "strace",
+        "tee"
+      ]
+    },
+    {
+      "command": "perf record -F 99 -p $(pgrep process) -g -- sleep 10 && perf report --stdio | awk '/^#/{next} /^[[:space:]]*[0-9]/{if($1>1.00) print}'",
+      "description": "CPU profiling with flame graph data",
+      "example": "Samples CPU usage and shows hot functions",
+      "power_level": 9,
+      "category": "system_debugging",
+      "synergy_with": [
+        "awk",
+        "grep",
+        "ss"
+      ]
+    },
+    {
+      "command": "lsof -p $(pgrep -f app) | awk '$4~/[0-9]+[uw]/{print $2, $4, $9}' | sort -k2 -hr | uniq | head -20",
+      "description": "Find largest open files by process",
+      "example": "Shows files sorted by descriptor number",
+      "power_level": 8,
+      "category": "system_debugging",
+      "synergy_with": [
+        "awk",
+        "grep",
+        "head",
+        "sort",
+        "uniq"
+      ]
+    },
+    {
+      "command": "dmesg -T | awk '/Out of memory:|Killed process/{print; getline; print; print \"---\"}' | tail -50",
+      "description": "Extract OOM killer events with context",
+      "example": "Shows recent memory pressure events",
+      "power_level": 7,
+      "category": "system_debugging",
+      "synergy_with": [
+        "awk",
+        "ss",
+        "tail"
+      ]
+    },
+    {
+      "command": "bpftrace -e 'tracepoint:syscalls:sys_exit_* /args->ret < 0/ { @errors[comm, ksym(kstack()), args->ret] = count(); } END { print(@errors, 10); }'",
+      "description": "Trace system call errors with stack traces",
+      "example": "Uses eBPF to track syscall failures",
+      "power_level": 10,
+      "category": "system_debugging",
+      "synergy_with": []
+    },
+    {
+      "command": "rsync -av --info=progress2 --log-file=backup.log source/ dest/ 2>&1 | tee >(awk '/to-chk/{print \"Progress:\", 100-$2*100/($2+$3)\"%\"}' | tail -1)",
+      "description": "Rsync with real-time progress percentage",
+      "example": "Shows accurate transfer progress",
+      "power_level": 8,
+      "category": "backup_recovery",
+      "synergy_with": [
+        "awk",
+        "nc",
+        "rsync",
+        "ss",
+        "tail",
+        "tee"
+      ]
+    },
+    {
+      "command": "find /backup -name '*.tar.gz' -mtime +30 -printf '%s %p\\n' | awk '{sum+=$1; print} END{printf \"Total space to reclaim: %.2f GB\\n\", sum/1024/1024/1024}'",
+      "description": "Calculate space from old backups",
+      "example": "Finds backups older than 30 days and totals size",
+      "power_level": 7,
+      "category": "backup_recovery",
+      "synergy_with": [
+        "awk",
+        "find",
+        "printf",
+        "tar"
+      ]
+    },
+    {
+      "command": "tar --listed-incremental=backup.snar -czf backup-$(date +%Y%m%d).tar.gz /data 2>&1 | tee >(grep -E '^tar: .+: (New|Changed)' | wc -l | xargs echo \"Files changed:\")",
+      "description": "Incremental backup with change count",
+      "example": "Creates incremental backup showing modified files",
+      "power_level": 8,
+      "category": "backup_recovery",
+      "synergy_with": [
+        "echo",
+        "grep",
+        "nc",
+        "tar",
+        "tee",
+        "xargs"
+      ]
+    },
+    {
+      "command": "parallel -j4 'echo \"Compressing {}\"; tar -czf {.}.tar.gz {} && rm -rf {}' ::: */",
+      "description": "Parallel directory compression",
+      "example": "Compresses multiple directories concurrently",
+      "power_level": 8,
+      "category": "backup_recovery",
+      "synergy_with": [
+        "echo",
+        "ss",
+        "tar"
+      ]
+    },
+    {
+      "command": "duplicity collection-status file:///backup/path | awk '/^Chain start time:/{start=$4} /^Chain end time:/{end=$4} /^Number of contained backup sets:/{sets=$6} END{print \"Backup chain:\", start, \"-\", end, \"(\", sets, \"sets)\"}'",
+      "description": "Duplicity backup chain summary",
+      "example": "Shows backup chain timeline and set count",
+      "power_level": 9,
+      "category": "backup_recovery",
+      "synergy_with": [
+        "awk",
+        "tar"
+      ]
+    },
+    {
+      "command": "git log --format='%ae' | sort | uniq -c | while read count email; do echo -n \"$count $email \"; git log --author=\"$email\" --pretty=tformat: --numstat | awk '{add+=$1; del+=$2} END {printf \"(+%s -%s)\\n\", add, del}'; done | sort -nr",
+      "description": "Developer impact analysis with additions/deletions",
+      "example": "Shows commit count and total lines changed per author",
+      "power_level": 9,
+      "category": "git_advanced",
+      "synergy_with": [
+        "awk",
+        "echo",
+        "for",
+        "git",
+        "printf",
+        "sort",
+        "uniq",
+        "while"
+      ]
+    },
+    {
+      "command": "git reflog --format='%ci %gs' | awk '{date=$1; $1=$2=$3=\"\"; cmd=$0; if (!seen[cmd]++) print date, cmd}' | head -20",
+      "description": "Unique Git commands history with timestamps",
+      "example": "Shows deduplicated reflog with dates",
+      "power_level": 8,
+      "category": "git_advanced",
+      "synergy_with": [
+        "awk",
+        "for",
+        "git",
+        "head"
+      ]
+    },
+    {
+      "command": "comm -12 <(git branch -r --merged | sed 's/origin\\///' | sort) <(git branch -r --no-merged | sed 's/origin\\///' | sort) | xargs -I{} git log --oneline --merges --grep=\"{}\" | head -20",
+      "description": "Find conflicting branch merges",
+      "example": "Identifies branches that appear in both merged and unmerged lists",
+      "power_level": 9,
+      "category": "git_advanced",
+      "synergy_with": [
+        "git",
+        "grep",
+        "head",
+        "nc",
+        "sed",
+        "sort",
+        "xargs"
+      ]
+    },
+    {
+      "command": "git log --all --format='%H %ct' | while read hash time; do git diff-tree --no-commit-id --name-only -r $hash | wc -l | xargs printf \"%s %s %d\\n\" $hash $(date -d @$time +%Y-%m-%d); done | awk '$3>50{print $2, $3}' | sort | uniq -c",
+      "description": "Large commits by date distribution",
+      "example": "Shows dates with commits affecting >50 files",
+      "power_level": 8,
+      "category": "git_advanced",
+      "synergy_with": [
+        "awk",
+        "for",
+        "git",
+        "printf",
+        "sort",
+        "uniq",
+        "while",
+        "xargs"
+      ]
+    },
+    {
+      "command": "git ls-tree -r HEAD --name-only | while read file; do echo -n \"$file: \"; git log --oneline \"$file\" | wc -l; done | sort -k2 -nr | head -20 | awk '{printf \"%-50s %4d commits\\n\", $1, $2}'",
+      "description": "Most frequently modified files with commit count",
+      "example": "Shows hot spots in codebase",
+      "power_level": 8,
+      "category": "git_advanced",
+      "synergy_with": [
+        "awk",
+        "echo",
+        "git",
+        "head",
+        "printf",
+        "sort",
+        "while"
+      ]
+    },
+    {
+      "command": "systemd-cgtop -n 1 -b | awk 'NR>1 && $3~/[0-9]/{print $1, $3, $4, $5}' | sort -k2 -hr | head -10 | column -t",
+      "description": "cgroup resource usage snapshot",
+      "example": "Shows top cgroups by CPU usage",
+      "power_level": 8,
+      "category": "resource_mgmt",
+      "synergy_with": [
+        "awk",
+        "head",
+        "sort",
+        "top"
+      ]
+    },
+    {
+      "command": "find /proc -maxdepth 2 -name cgroup 2>/dev/null | xargs grep -H memory 2>/dev/null | awk -F: '{split($1,a,\"/\"); printf \"PID %s: %s\\n\", a[3], $2}' | sort -u",
+      "description": "Process to cgroup memory mapping",
+      "example": "Maps processes to their memory cgroups",
+      "power_level": 9,
+      "category": "resource_mgmt",
+      "synergy_with": [
+        "awk",
+        "find",
+        "grep",
+        "printf",
+        "sort",
+        "xargs"
+      ]
+    },
+    {
+      "command": "cat /proc/pressure/cpu | awk '/^some/{print \"CPU pressure (some):\", $2, $4, $6} /^full/{print \"CPU pressure (full):\", $2, $4, $6}'",
+      "description": "System pressure stall information",
+      "example": "Shows PSI metrics for CPU pressure",
+      "power_level": 8,
+      "category": "resource_mgmt",
+      "synergy_with": [
+        "awk",
+        "cat",
+        "ss"
+      ]
+    },
+    {
+      "command": "ipcs -m | awk '/^0x/{cmd=\"ps -p \"$3\" -o comm=\"; cmd | getline proc; close(cmd); printf \"%-10s %8s %8s %s\\n\", $1, $5/1024/1024\"M\", $3, proc}' | sort -k2 -hr",
+      "description": "Shared memory segments by process",
+      "example": "Lists IPC shared memory with process names",
+      "power_level": 8,
+      "category": "resource_mgmt",
+      "synergy_with": [
+        "awk",
+        "printf",
+        "ps",
+        "sort"
+      ]
+    },
+    {
+      "command": "lscpu | awk -F: '/^CPU\\(s\\)/{cpus=$2} /^Thread\\(s\\) per core/{tpc=$2} /^Core\\(s\\) per socket/{cps=$2} /^Socket\\(s\\)/{sockets=$2} END{print \"Physical cores:\", sockets*cps, \"Logical CPUs:\", cpus, \"SMT:\", (cpus>sockets*cps)?\"Enabled\":\"Disabled\"}'",
+      "description": "CPU topology analysis",
+      "example": "Shows physical vs logical CPU configuration",
+      "power_level": 7,
+      "category": "resource_mgmt",
+      "synergy_with": [
+        "awk",
+        "ps"
+      ]
+    },
+    {
+      "command": "journalctl --since '1 hour ago' -o json | jq -r 'select(.PRIORITY<=\"3\") | [.SYSLOG_TIMESTAMP, .PRIORITY, .MESSAGE] | @tsv' | awk -F'\\t' '{prio[int($2)]++} END{for(p=0;p<=3;p++) printf \"Priority %d: %d events\\n\", p, prio[p]+0}'",
+      "description": "Critical event distribution from journal",
+      "example": "Counts events by severity in last hour",
+      "power_level": 8,
+      "category": "log_forensics",
+      "synergy_with": [
+        "awk",
+        "for",
+        "journalctl",
+        "nc",
+        "printf"
+      ]
+    },
+    {
+      "command": "zgrep -h 'ERROR\\|FAIL' /var/log/*.gz | awk '{hour=substr($3,1,2); errors[hour]++} END{for(h=0;h<24;h++) printf \"%02d:00 %5d %s\\n\", h, errors[sprintf(\"%02d\",h)]+0, (errors[sprintf(\"%02d\",h)]>0)?sprintf(\"%-\"errors[sprintf(\"%02d\",h)]/10\"s\",\"\"):\"\"}' | sed 's/ /\u2588/g'",
+      "description": "24-hour error distribution histogram",
+      "example": "Visual timeline of errors from compressed logs",
+      "power_level": 9,
+      "category": "log_forensics",
+      "synergy_with": [
+        "awk",
+        "for",
+        "grep",
+        "printf",
+        "sed"
+      ]
+    },
+    {
+      "command": "find /var/log -name '*.log' -exec sh -c 'echo \"=== {} ===\"; grep -o \"[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\" {} | sort | uniq -c | sort -nr | head -5' \\;",
+      "description": "IP address frequency analysis across logs",
+      "example": "Finds most common IPs in all log files",
+      "power_level": 8,
+      "category": "log_forensics",
+      "synergy_with": [
+        "echo",
+        "find",
+        "grep",
+        "head",
+        "sort",
+        "uniq"
+      ]
+    },
+    {
+      "command": "tail -f /var/log/syslog | stdbuf -oL awk '{split($0,a,\" \"); key=a[5]\" \"a[6]; count[key]++; if(count[key]>10 && !alerted[key]){print \"ALERT: \\\"\"key\"\\\" repeated\", count[key], \"times\"; alerted[key]=1}}'",
+      "description": "Real-time log anomaly detection",
+      "example": "Alerts on repeated log patterns",
+      "power_level": 9,
+      "category": "log_forensics",
+      "synergy_with": [
+        "awk",
+        "tail"
+      ]
+    },
+    {
+      "command": "for f in /var/log/*.log; do echo -n \"$f: \"; tail -1000 \"$f\" | awk '{size+=length($0)} END{printf \"%.2f KB/1000 lines, \", size/1024}'; wc -l \"$f\"; done | sort -k2 -hr",
+      "description": "Log file density analysis",
+      "example": "Shows data density and total lines per log",
+      "power_level": 7,
+      "category": "log_forensics",
+      "synergy_with": [
+        "awk",
+        "echo",
+        "for",
+        "printf",
+        "sort",
+        "tail"
+      ]
+    },
+    {
+      "command": "set -euo pipefail; trap 'echo \"Error on line $LINENO\"' ERR; false || echo \"This won't print\"",
+      "description": "Robust error handling with line numbers",
+      "example": "Shows how to implement proper error trapping",
+      "power_level": 8,
+      "category": "shell_patterns",
+      "synergy_with": [
+        "echo"
+      ]
+    },
+    {
+      "command": "exec {lock_fd}>>/tmp/script.lock; flock -n $lock_fd || { echo \"Already running\"; exit 1; }; trap \"exec {lock_fd}>&-\" EXIT",
+      "description": "Script singleton pattern with file locking",
+      "example": "Ensures only one instance runs",
+      "power_level": 9,
+      "category": "shell_patterns",
+      "synergy_with": [
+        "echo"
+      ]
+    },
+    {
+      "command": "coproc bc -l; echo \"scale=10; 4*a(1)\" >&${COPROC[1]}; read -u ${COPROC[0]} pi; echo \"Pi calculated: $pi\"; kill $COPROC_PID",
+      "description": "Coprocess for calculator operations",
+      "example": "Uses bc as a background calculator service",
+      "power_level": 9,
+      "category": "shell_patterns",
+      "synergy_with": [
+        "echo"
+      ]
+    },
+    {
+      "command": "readonly -f $(declare -F | awk '{print $3}'); set -o nounset; shopt -s failglob",
+      "description": "Defensive shell programming setup",
+      "example": "Makes functions readonly and enables strict mode",
+      "power_level": 8,
+      "category": "shell_patterns",
+      "synergy_with": [
+        "awk"
+      ]
+    },
+    {
+      "command": "source <(curl -s https://example.com/script.sh | tee >(sha256sum >&2) | grep -v '^#')",
+      "description": "Secure remote script execution with hash",
+      "example": "Sources remote script while showing its hash",
+      "power_level": 8,
+      "category": "shell_patterns",
+      "synergy_with": [
+        "curl",
+        "grep",
+        "ps",
+        "tee"
+      ]
+    }
+  ]
+}

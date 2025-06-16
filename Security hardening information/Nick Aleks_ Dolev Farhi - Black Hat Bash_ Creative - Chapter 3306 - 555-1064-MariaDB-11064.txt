@@ -1,0 +1,16 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3306 - 5.5.5-10.6.4-MariaDB-1:10.6.4
+Security Relevance Score: 2
+Word Count: 124
+Extracted: 2025-06-13 23:40:57
+
+---
+
+5.5.5-10.6.4-MariaDB-1:10.6.4
+
+The database on c-backup-01 is a MariaDB server. It uses TCP port 3306, similarly to MySQL. Accessing a database’s management console requires a username and sometimes a password, if set by an administrator. In this section, we’ll attempt to brute-force the database to gain remote access to it.
+
+Port Forwarding
+Although both p-jumpbox-01 and p-web-02 are connected to the corporate network, neither has an installed database client we could use to connect with. To get around this, we can use port forwarding and the tools available on Kali to brute-force the database. We’ll establish a local port forward from the Kali machine by using an intermediate jump host, p-jumpbox-01 (172.16.10.13).
+We can perform the port forwarding by using the command in Listing 11-

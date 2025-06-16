@@ -22,6 +22,10 @@ from .query_handler import QueryHandler
 from .response_collector import ResponseCollector
 from src.circle_of_experts.utils.logging import setup_logging, LogContext
 from src.circle_of_experts.utils.rust_integration import get_rust_integration
+__all__ = [
+    "ExpertManager"
+]
+
 from src.circle_of_experts.utils.validation import (
     validate_string, validate_dict, validate_list, 
     validate_query_parameters, ValidationError
@@ -391,7 +395,11 @@ class ExpertManager:
         focus_areas = validate_list(focus_areas, "focus_areas", item_type=str)
         
         title = f"Code Review Request: {language}"
-        content = f"Please review the following {language} code:\n\n```{language}\n{code}\n```"
+        content = f"""Please review the following {language} code:
+
+```{language}
+{code}
+```"""
         
         if focus_areas:
             content += f"\n\nPlease focus on: {', '.join(focus_areas)}"

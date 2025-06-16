@@ -1,0 +1,189 @@
+{
+  "customMcpServers": {
+    "circle-of-experts": {
+      "description": "Multi-AI consultation system for consensus-based decisions",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.circle_of_experts_server"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "",
+        "ANTHROPIC_API_KEY": "",
+        "GOOGLE_API_KEY": ""
+      },
+      "capabilities": [
+        "Multi-model AI consultation",
+        "Consensus building",
+        "Expert opinion aggregation",
+        "Quality scoring"
+      ]
+    },
+    "rust-accelerator": {
+      "description": "High-performance Rust optimization server",
+      "command": "cargo",
+      "args": [
+        "run",
+        "--bin",
+        "mcp_rust_server"
+      ],
+      "env": {},
+      "capabilities": [
+        "10-50x performance acceleration",
+        "SIMD operations",
+        "Zero-copy optimization",
+        "Lock-free data structures"
+      ]
+    },
+    "memory-monitor": {
+      "description": "Advanced memory monitoring and optimization",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.memory_monitor_server"
+      ],
+      "env": {},
+      "capabilities": [
+        "Real-time memory tracking",
+        "Leak detection",
+        "GC optimization",
+        "Memory pressure alerts"
+      ]
+    },
+    "deployment-orchestrator": {
+      "description": "Intelligent deployment automation",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.deployment_orchestrator"
+      ],
+      "env": {
+        "KUBERNETES_CONFIG": "",
+        "DOCKER_REGISTRY": ""
+      },
+      "capabilities": [
+        "Multi-environment deployment",
+        "Progressive rollouts",
+        "Automated rollback",
+        "Health checks"
+      ]
+    },
+    "security-auditor": {
+      "description": "Comprehensive security scanning and auditing",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.security_auditor_server"
+      ],
+      "env": {},
+      "capabilities": [
+        "SAST/DAST scanning",
+        "Dependency auditing",
+        "OWASP compliance",
+        "Real-time threat detection"
+      ]
+    },
+    "performance-analyzer": {
+      "description": "Deep performance analysis and optimization",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.performance_analyzer"
+      ],
+      "env": {},
+      "capabilities": [
+        "Bottleneck identification",
+        "Resource optimization",
+        "Load testing",
+        "Performance predictions"
+      ]
+    },
+    "infrastructure-commander": {
+      "description": "Infrastructure automation and management",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.infrastructure.commander_server"
+      ],
+      "env": {
+        "TERRAFORM_WORKSPACE": "",
+        "ANSIBLE_INVENTORY": ""
+      },
+      "capabilities": [
+        "IaC management",
+        "Resource provisioning",
+        "Configuration management",
+        "Drift detection"
+      ]
+    },
+    "data-pipeline": {
+      "description": "ETL and data processing orchestration",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.data_pipeline_server"
+      ],
+      "env": {},
+      "capabilities": [
+        "Stream processing",
+        "Batch ETL",
+        "Data validation",
+        "Pipeline monitoring"
+      ]
+    },
+    "ml-operations": {
+      "description": "MLOps lifecycle management",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.mlops_server"
+      ],
+      "env": {
+        "MLFLOW_TRACKING_URI": "",
+        "MODEL_REGISTRY": ""
+      },
+      "capabilities": [
+        "Model versioning",
+        "Experiment tracking",
+        "A/B testing",
+        "Model deployment"
+      ]
+    },
+    "monitoring-hub": {
+      "description": "Centralized monitoring and alerting",
+      "command": "python",
+      "args": [
+        "-m",
+        "src.mcp.monitoring.prometheus_server"
+      ],
+      "env": {
+        "PROMETHEUS_URL": "",
+        "GRAFANA_API_KEY": ""
+      },
+      "capabilities": [
+        "Metrics aggregation",
+        "Alert management",
+        "Dashboard generation",
+        "Anomaly detection"
+      ]
+    }
+  },
+  "integrationPatterns": {
+    "circleOfExperts": {
+      "servers": ["circle-of-experts", "memory", "brave-search"],
+      "workflow": "Query → Expert Consultation → Consensus → Action"
+    },
+    "deploymentPipeline": {
+      "servers": ["git", "docker", "kubernetes", "deployment-orchestrator"],
+      "workflow": "Code → Build → Test → Deploy → Monitor"
+    },
+    "securityScanning": {
+      "servers": ["security-auditor", "vault", "github"],
+      "workflow": "Scan → Detect → Report → Remediate"
+    },
+    "performanceOptimization": {
+      "servers": ["performance-analyzer", "rust-accelerator", "prometheus"],
+      "workflow": "Profile → Analyze → Optimize → Verify"
+    }
+  }
+}

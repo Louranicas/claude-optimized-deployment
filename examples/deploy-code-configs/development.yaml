@@ -1,0 +1,356 @@
+# Development environment configuration for deploy-code
+# Optimized for local development with hot reloading and debugging
+
+# Application metadata
+name: dev-app
+version: development
+description: "Local development environment with debugging tools"
+
+# Deployment target for development
+target:
+  type: docker
+  
+  # Docker-specific configuration for development
+  docker:
+    # Use Docker Compose for multi-container development
+    compose:
+      enabled: true
+      file: docker-compose.dev.yml
+      
+      # Development-specific overrides
+      overrides:
+        - docker-compose.override.yml
+    
+    # Network configuration
+    network:
+      name: dev-network
+      driver: bridge
+
+# Source configuration
+source:
+  # Use local path for development
+  repository: .
+  
+  # Watch for changes
+  watch:
+    enabled: true
+    
+    # Files and directories to watch
+    paths:
+      - src/
+      - config/
+      - package.json
+    
+    # Files to ignore
+    ignore:
+      - node_modules/
+      - .git/
+      - "*.log"
+      - "*.tmp"
+    
+    # Debounce delay (milliseconds)
+    debounce: 1000
+  
+  # Development build configuration
+  build:
+    type: npm
+    
+    # Development-specific build commands
+    commands:
+      install: npm install
+      build: npm run build:dev
+      postBuild: npm run lint
+    
+    # Enable source maps
+    sourceMap: true
+    
+    # Development optimizations
+    optimization:
+      minimize: false
+      treeShaking: false
+      splitChunks: false
+
+# Runtime configuration for development
+runtime:
+  # Development command with debugging
+  command: npm run dev
+  
+  # Enable Node.js debugging
+  nodeOptions:
+    - --inspect=0.0.0.0:9229
+    - --enable-source-maps
+    - --trace-warnings
+  
+  # Development environment variables
+  environment:
+    NODE_ENV: development
+    DEBUG: "app:*"
+    LOG_LEVEL: debug
+    PORT: "3000"
+    
+    # Database configuration (local)
+    DB_HOST: localhost
+    DB_PORT: "5432"
+    DB_NAME: dev_database
+    DB_USER: developer
+    DB_PASSWORD: dev_password
+    
+    # Redis configuration (local)
+    REDIS_HOST: localhost
+    REDIS_PORT: "6379"
+    
+    # API URLs (local mocks)
+    API_BASE_URL: http://localhost:3000
+    EXTERNAL_API_URL: http://localhost:8080/mock
+  
+  # Volume mounts for development
+  volumes:
+    # Mount source code for hot reloading
+    - type: bind
+      source: ./src
+      target: /app/src
+      consistency: delegated
+    
+    # Mount configuration files
+    - type: bind
+      source: ./config
+      target: /app/config
+      readOnly: false
+    
+    # Named volume for node_modules (performance)
+    - type: volume
+      source: node_modules
+      target: /app/node_modules
+
+# Development-specific services
+services:
+  # Local database
+  database:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: dev_database
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+  
+  # Local Redis cache
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+  
+  # Local mail server (for testing emails)
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+  
+  # Mock external API
+  mock-api:
+    image: mockserver/mockserver
+    ports:
+      - "8080:1080"
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/mocks.json
+    volumes:
+      - ./tests/mocks:/config
+
+# Development tools
+tools:
+  # Code quality tools
+  linting:
+    enabled: true
+    
+    # ESLint configuration
+    eslint:
+      config: .eslintrc.dev.js
+      autoFix: true
+      cache: true
+    
+    # Prettier configuration
+    prettier:
+      config: .prettierrc
+      autoFormat: true
+  
+  # Testing tools
+  testing:
+    # Unit tests with coverage
+    unit:
+      command: npm run test:unit
+      watch: true
+      coverage:
+        enabled: true
+        threshold:
+          statements: 80
+          branches: 75
+          functions: 80
+          lines: 80
+    
+    # Integration tests
+    integration:
+      command: npm run test:integration
+      environment:
+        TEST_DB_URL: postgresql://developer:dev_password@localhost:5432/test_db
+  
+  # Debugging tools
+  debugging:
+    # Chrome DevTools configuration
+    chrome:
+      enabled: true
+      port: 9229
+      
+    # VS Code debugging
+    vscode:
+      enabled: true
+      config: .vscode/launch.json
+  
+  # API documentation
+  documentation:
+    # Swagger/OpenAPI
+    swagger:
+      enabled: true
+      path: /api-docs
+      spec: ./openapi.yaml
+    
+    # API testing with Postman
+    postman:
+      collection: ./postman/collection.json
+      environment: ./postman/dev-environment.json
+
+# Hot reloading configuration
+hotReload:
+  enabled: true
+  
+  # Nodemon configuration
+  nodemon:
+    watch:
+      - "src/**/*.js"
+      - "src/**/*.ts"
+      - "config/**/*.json"
+    ignore:
+      - "**/*.test.js"
+      - "**/*.spec.js"
+    ext: "js,json,ts"
+    delay: 1000
+    
+    # Environment-specific overrides
+    env:
+      DEBUG: "app:*"
+      NODE_OPTIONS: "--trace-warnings"
+
+# Proxy configuration for development
+proxy:
+  enabled: true
+  
+  # Proxy rules
+  rules:
+    # Proxy API calls to backend
+    - path: /api
+      target: http://localhost:3001
+      changeOrigin: true
+      
+    # Proxy WebSocket connections
+    - path: /socket.io
+      target: ws://localhost:3001
+      ws: true
+      
+    # Proxy to external services
+    - path: /external
+      target: https://api.external-service.com
+      changeOrigin: true
+      headers:
+        X-Dev-Token: ${DEV_API_TOKEN}
+
+# Git hooks for development
+gitHooks:
+  # Pre-commit hooks
+  preCommit:
+    - command: npm run lint
+      description: "Run linting"
+    - command: npm run test:unit
+      description: "Run unit tests"
+  
+  # Pre-push hooks
+  prePush:
+    - command: npm run test:integration
+      description: "Run integration tests"
+    - command: npm run build
+      description: "Verify build"
+
+# Development-specific monitoring
+monitoring:
+  # Performance profiling
+  profiling:
+    enabled: true
+    
+    # CPU profiling
+    cpu:
+      enabled: true
+      outputPath: ./profiles/cpu
+      duration: 30000  # 30 seconds
+    
+    # Memory profiling
+    memory:
+      enabled: true
+      outputPath: ./profiles/memory
+      heapSnapshot: true
+      interval: 60000  # 1 minute
+  
+  # Local metrics dashboard
+  dashboard:
+    enabled: true
+    port: 9090
+    
+    # Metrics to display
+    metrics:
+      - cpu_usage
+      - memory_usage
+      - request_rate
+      - error_rate
+      - response_time
+
+# Seed data for development
+seedData:
+  enabled: true
+  
+  # Database seeding
+  database:
+    command: npm run seed:dev
+    data:
+      users: 100
+      posts: 1000
+      comments: 5000
+  
+  # Cache warming
+  cache:
+    command: npm run cache:seed
+    ttl: 3600  # 1 hour
+
+# Development shortcuts
+shortcuts:
+  # Quick commands
+  commands:
+    reset: "npm run db:reset && npm run seed:dev"
+    clean: "rm -rf node_modules dist && npm install"
+    update: "npm update && npm audit fix"
+    
+  # Environment presets
+  presets:
+    minimal:
+      services: ["database"]
+      environment:
+        LOG_LEVEL: "error"
+    
+    full:
+      services: ["database", "redis", "mailhog", "mock-api"]
+      environment:
+        LOG_LEVEL: "debug"
+        DEBUG: "*"

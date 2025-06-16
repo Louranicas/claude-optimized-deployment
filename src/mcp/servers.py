@@ -10,16 +10,24 @@ from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
 import logging
 
+__all__ = [
+    "BraveMCPServer"
+]
+
 from src.mcp.protocols import (
     MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities,
     BraveSearchResult, BraveSearchResponse, MCPError, MCPServer
 )
-from src.mcp.client import MCPClient, HTTPTransport
+
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError
+)
 
 logger = logging.getLogger(__name__)
-
-
-# Remove the duplicate MCPServer definition - it's now imported from protocols
 
 
 class BraveMCPServer(MCPServer):
@@ -420,92 +428,3 @@ class BraveMCPServer(MCPServer):
         if self.session:
             await self.session.close()
             self.session = None
-
-
-class MCPServerRegistry:
-    """Registry for managing multiple MCP servers."""
-    
-    def __init__(self, permission_checker: Any):
-        """Initialize registry with required permission checker.
-        
-        Args:
-            permission_checker: Required permission checker for authentication
-            
-        Raises:
-            ValueError: If permission checker is not provided
-        """
-        if not permission_checker:
-            raise ValueError(
-                "Permission checker is required for MCP server registry. "
-                "Cannot create registry without proper authentication system."
-            )
-        self.servers: Dict[str, MCPServer] = {}
-        self.permission_checker = permission_checker
-        self._initialize_default_servers()
-    
-    def _initialize_default_servers(self):
-        """Initialize default MCP servers with permission checker."""
-        # SECURITY: Ensure permission checker is always provided
-        if not self.permission_checker:
-            raise ValueError(
-                "Permission checker is required for all MCP servers. "
-                "Cannot initialize servers without proper authentication."
-            )
-            
-        # Add Brave server
-        self.register("brave", BraveMCPServer(permission_checker=self.permission_checker))
-        
-        # Add infrastructure servers
-        from src.mcp.infrastructure_servers import (
-            DesktopCommanderMCPServer,
-            DockerMCPServer,
-            KubernetesMCPServer
-        )
-        
-        # Add DevOps servers
-        from src.mcp.devops_servers import (
-            AzureDevOpsMCPServer,
-            WindowsSystemMCPServer
-        )
-        
-        # Add advanced research-based servers
-        from src.mcp.monitoring.prometheus_server import PrometheusMonitoringMCPServer
-        from src.mcp.security.scanner_server import SecurityScannerMCPServer
-        from src.mcp.security.sast_server import SASTMCPServer
-        from src.mcp.security.supply_chain_server import SupplyChainSecurityMCPServer
-        from src.mcp.communication.slack_server import SlackNotificationMCPServer
-        from src.mcp.storage.s3_server import S3StorageMCPServer
-        from src.mcp.storage.cloud_storage_server import CloudStorageMCP
-        
-        self.register("desktop-commander", DesktopCommanderMCPServer(permission_checker=self.permission_checker))
-        self.register("docker", DockerMCPServer(permission_checker=self.permission_checker))
-        self.register("kubernetes", KubernetesMCPServer(permission_checker=self.permission_checker))
-        self.register("azure-devops", AzureDevOpsMCPServer(permission_checker=self.permission_checker))
-        self.register("windows-system", WindowsSystemMCPServer(permission_checker=self.permission_checker))
-        self.register("prometheus-monitoring", PrometheusMonitoringMCPServer(permission_checker=self.permission_checker))
-        self.register("security-scanner", SecurityScannerMCPServer(permission_checker=self.permission_checker))
-        self.register("sast-scanner", SASTMCPServer(permission_checker=self.permission_checker))
-        self.register("supply-chain-security", SupplyChainSecurityMCPServer(permission_checker=self.permission_checker))
-        self.register("slack-notifications", SlackNotificationMCPServer(permission_checker=self.permission_checker))
-        self.register("s3-storage", S3StorageMCPServer(permission_checker=self.permission_checker))
-        self.register("cloud-storage", CloudStorageMCP(permission_checker=self.permission_checker))
-    
-    def register(self, name: str, server: MCPServer):
-        """Register an MCP server."""
-        self.servers[name] = server
-        logger.info(f"Registered MCP server: {name}")
-    
-    def get(self, name: str) -> Optional[MCPServer]:
-        """Get an MCP server by name."""
-        return self.servers.get(name)
-    
-    def list_servers(self) -> List[str]:
-        """List registered server names."""
-        return list(self.servers.keys())
-    
-    def get_all_tools(self) -> Dict[str, List[MCPTool]]:
-        """Get all tools from all registered servers."""
-        tools = {}
-        for name, server in self.servers.items():
-            tools[name] = server.get_tools()
-        return tools

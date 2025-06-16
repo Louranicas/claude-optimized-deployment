@@ -13,6 +13,21 @@ from ..circle_of_experts.models.response import ConsensusResponse
 from .permissions import PermissionChecker, ResourceType
 from .models import User
 
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    AuthenticationError,
+    AuthorizationError,
+    RateLimitError,
+    log_error
+)
+
+__all__ = [
+    "AuthenticatedExpertContext",
+    "AuthenticatedExpertManager"
+]
+
+
 
 @dataclass
 class AuthenticatedExpertContext:

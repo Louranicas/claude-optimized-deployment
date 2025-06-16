@@ -24,6 +24,10 @@ from src.circle_of_experts.utils.validation import (
     validate_string, validate_list, validate_number,
     ValidationError
 )
+
+__all__ = [
+    "ResponseCollector"
+]
 from src.core.lru_cache import create_ttl_dict
 from src.core.cleanup_scheduler import get_cleanup_scheduler
 
@@ -423,7 +427,8 @@ class ResponseCollector:
                 f"",
             ])
         
-        return "\n".join(report_lines)
+        return "
+".join(report_lines)
     
     async def save_consensus_report(
         self,

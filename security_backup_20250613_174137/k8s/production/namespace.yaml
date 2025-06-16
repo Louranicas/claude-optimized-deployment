@@ -1,0 +1,136 @@
+# Production Namespace Configuration
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: claude-deployment-prod
+  labels:
+    name: claude-deployment-prod
+    environment: production
+    security: restricted
+    istio-injection: enabled
+  annotations:
+    scheduler.alpha.kubernetes.io/node-selector: "node-role.kubernetes.io/worker=true"
+    scheduler.alpha.kubernetes.io/tolerations: |
+      [
+        {
+          "key": "node.kubernetes.io/not-ready",
+          "operator": "Exists",
+          "effect": "NoExecute",
+          "tolerationSeconds": 300
+        },
+        {
+          "key": "node.kubernetes.io/unreachable", 
+          "operator": "Exists",
+          "effect": "NoExecute",
+          "tolerationSeconds": 300
+        }
+      ]
+spec:
+  finalizers:
+  - kubernetes
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: claude-deployment-limits
+  namespace: claude-deployment-prod
+spec:
+  limits:
+  - default:
+      cpu: "2000m"
+      memory: "8Gi"
+      ephemeral-storage: "10Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+      ephemeral-storage: "1Gi"
+    max:
+      cpu: "8000m"
+      memory: "32Gi"
+      ephemeral-storage: "50Gi"
+    min:
+      cpu: "50m"
+      memory: "128Mi"
+      ephemeral-storage: "100Mi"
+    type: Container
+  - default:
+      storage: "10Gi"
+    max:
+      storage: "100Gi"
+    min:
+      storage: "1Gi"
+    type: PersistentVolumeClaim
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: claude-deployment-quota
+  namespace: claude-deployment-prod
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: "80Gi"
+    requests.storage: "500Gi"
+    limits.cpu: "40"
+    limits.memory: "160Gi"
+    pods: "50"
+    persistentvolumeclaims: "20"
+    services: "10"
+    secrets: "50"
+    configmaps: "50"
+    services.loadbalancers: "2"
+    services.nodeports: "0"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: claude-deployment-network-policy
+  namespace: claude-deployment-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: claude-deployment-prod
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090

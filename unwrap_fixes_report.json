@@ -1,0 +1,4370 @@
+[
+  {
+    "file": "rust_core/src/mcp_manager/fusion/tool_enhancer.rs",
+    "unwraps": 46,
+    "fixes": [
+      {
+        "line": 19,
+        "original": "(Regex::new(r\"^docker\\s+ps\").unwrap(), \"list_containers\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+ps\").expect(\"Invalid regex pattern\"), \"list_containers\"),"
+      },
+      {
+        "line": 20,
+        "original": "(Regex::new(r\"^docker\\s+images\").unwrap(), \"list_images\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+images\").expect(\"Invalid regex pattern\"), \"list_images\"),"
+      },
+      {
+        "line": 21,
+        "original": "(Regex::new(r\"^docker\\s+run\").unwrap(), \"run_container\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+run\").expect(\"Invalid regex pattern\"), \"run_container\"),"
+      },
+      {
+        "line": 22,
+        "original": "(Regex::new(r\"^docker\\s+build\").unwrap(), \"build_image\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+build\").expect(\"Invalid regex pattern\"), \"build_image\"),"
+      },
+      {
+        "line": 23,
+        "original": "(Regex::new(r\"^docker\\s+logs\").unwrap(), \"get_logs\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+logs\").expect(\"Invalid regex pattern\"), \"get_logs\"),"
+      },
+      {
+        "line": 24,
+        "original": "(Regex::new(r\"^docker\\s+exec\").unwrap(), \"exec_command\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+exec\").expect(\"Invalid regex pattern\"), \"exec_command\"),"
+      },
+      {
+        "line": 25,
+        "original": "(Regex::new(r\"^docker\\s+stop\").unwrap(), \"stop_container\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+stop\").expect(\"Invalid regex pattern\"), \"stop_container\"),"
+      },
+      {
+        "line": 26,
+        "original": "(Regex::new(r\"^docker\\s+rm\").unwrap(), \"remove_container\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker\\s+rm\").expect(\"Invalid regex pattern\"), \"remove_container\"),"
+      },
+      {
+        "line": 27,
+        "original": "(Regex::new(r\"^docker-compose\\s+up\").unwrap(), \"compose_up\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker-compose\\s+up\").expect(\"Invalid regex pattern\"), \"compose_up\"),"
+      },
+      {
+        "line": 28,
+        "original": "(Regex::new(r\"^docker-compose\\s+down\").unwrap(), \"compose_down\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^docker-compose\\s+down\").expect(\"Invalid regex pattern\"), \"compose_down\"),"
+      },
+      {
+        "line": 33,
+        "original": "(Regex::new(r\"^git\\s+status\").unwrap(), \"get_status\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^git\\s+status\").expect(\"Invalid regex pattern\"), \"get_status\"),"
+      },
+      {
+        "line": 34,
+        "original": "(Regex::new(r\"^git\\s+log\").unwrap(), \"get_commits\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^git\\s+log\").expect(\"Invalid regex pattern\"), \"get_commits\"),"
+      },
+      {
+        "line": 35,
+        "original": "(Regex::new(r\"^git\\s+diff\").unwrap(), \"get_diff\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^git\\s+diff\").expect(\"Invalid regex pattern\"), \"get_diff\"),"
+      },
+      {
+        "line": 36,
+        "original": "(Regex::new(r\"^git\\s+add\").unwrap(), \"stage_files\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^git\\s+add\").expect(\"Invalid regex pattern\"), \"stage_files\"),"
+      },
+      {
+        "line": 37,
+        "original": "(Regex::new(r\"^git\\s+commit\").unwrap(), \"create_commit\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^git\\s+commit\").expect(\"Invalid regex pattern\"), \"create_commit\"),"
+      },
+      {
+        "line": 38,
+        "original": "(Regex::new(r\"^git\\s+push\").unwrap(), \"push_changes\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^git\\s+push\").expect(\"Invalid regex pattern\"), \"push_changes\"),"
+      },
+      {
+        "line": 39,
+        "original": "(Regex::new(r\"^git\\s+pull\").unwrap(), \"pull_changes\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^git\\s+pull\").expect(\"Invalid regex pattern\"), \"pull_changes\"),"
+      },
+      {
+        "line": 40,
+        "original": "(Regex::new(r\"^gh\\s+pr\\s+create\").unwrap(), \"create_pull_request\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^gh\\s+pr\\s+create\").expect(\"Invalid regex pattern\"), \"create_pull_request\"),"
+      },
+      {
+        "line": 41,
+        "original": "(Regex::new(r\"^gh\\s+issue\\s+create\").unwrap(), \"create_issue\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^gh\\s+issue\\s+create\").expect(\"Invalid regex pattern\"), \"create_issue\"),"
+      },
+      {
+        "line": 42,
+        "original": "(Regex::new(r\"^gh\\s+release\\s+create\").unwrap(), \"create_release\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^gh\\s+release\\s+create\").expect(\"Invalid regex pattern\"), \"create_release\"),"
+      },
+      {
+        "line": 47,
+        "original": "(Regex::new(r\"^ls\\s+\").unwrap(), \"list_directory\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^ls\\s+\").expect(\"Invalid regex pattern\"), \"list_directory\"),"
+      },
+      {
+        "line": 48,
+        "original": "(Regex::new(r\"^cat\\s+\").unwrap(), \"read_file\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^cat\\s+\").expect(\"Invalid regex pattern\"), \"read_file\"),"
+      },
+      {
+        "line": 49,
+        "original": "(Regex::new(r\"^grep\\s+\").unwrap(), \"search_files\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^grep\\s+\").expect(\"Invalid regex pattern\"), \"search_files\"),"
+      },
+      {
+        "line": 50,
+        "original": "(Regex::new(r\"^find\\s+\").unwrap(), \"find_files\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^find\\s+\").expect(\"Invalid regex pattern\"), \"find_files\"),"
+      },
+      {
+        "line": 51,
+        "original": "(Regex::new(r\"^cp\\s+\").unwrap(), \"copy_file\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^cp\\s+\").expect(\"Invalid regex pattern\"), \"copy_file\"),"
+      },
+      {
+        "line": 52,
+        "original": "(Regex::new(r\"^mv\\s+\").unwrap(), \"move_file\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^mv\\s+\").expect(\"Invalid regex pattern\"), \"move_file\"),"
+      },
+      {
+        "line": 53,
+        "original": "(Regex::new(r\"^rm\\s+\").unwrap(), \"delete_file\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^rm\\s+\").expect(\"Invalid regex pattern\"), \"delete_file\"),"
+      },
+      {
+        "line": 54,
+        "original": "(Regex::new(r\"^mkdir\\s+\").unwrap(), \"create_directory\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^mkdir\\s+\").expect(\"Invalid regex pattern\"), \"create_directory\"),"
+      },
+      {
+        "line": 55,
+        "original": "(Regex::new(r\"^touch\\s+\").unwrap(), \"create_file\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^touch\\s+\").expect(\"Invalid regex pattern\"), \"create_file\"),"
+      },
+      {
+        "line": 56,
+        "original": "(Regex::new(r\"^chmod\\s+\").unwrap(), \"change_permissions\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^chmod\\s+\").expect(\"Invalid regex pattern\"), \"change_permissions\"),"
+      },
+      {
+        "line": 61,
+        "original": "(Regex::new(r\"^kubectl\\s+get\\s+pods\").unwrap(), \"list_pods\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+get\\s+pods\").expect(\"Invalid regex pattern\"), \"list_pods\"),"
+      },
+      {
+        "line": 62,
+        "original": "(Regex::new(r\"^kubectl\\s+get\\s+services\").unwrap(), \"list_services\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+get\\s+services\").expect(\"Invalid regex pattern\"), \"list_services\"),"
+      },
+      {
+        "line": 63,
+        "original": "(Regex::new(r\"^kubectl\\s+apply\").unwrap(), \"apply_manifest\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+apply\").expect(\"Invalid regex pattern\"), \"apply_manifest\"),"
+      },
+      {
+        "line": 64,
+        "original": "(Regex::new(r\"^kubectl\\s+delete\").unwrap(), \"delete_resource\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+delete\").expect(\"Invalid regex pattern\"), \"delete_resource\"),"
+      },
+      {
+        "line": 65,
+        "original": "(Regex::new(r\"^kubectl\\s+logs\").unwrap(), \"get_pod_logs\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+logs\").expect(\"Invalid regex pattern\"), \"get_pod_logs\"),"
+      },
+      {
+        "line": 66,
+        "original": "(Regex::new(r\"^kubectl\\s+exec\").unwrap(), \"exec_in_pod\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+exec\").expect(\"Invalid regex pattern\"), \"exec_in_pod\"),"
+      },
+      {
+        "line": 67,
+        "original": "(Regex::new(r\"^kubectl\\s+describe\").unwrap(), \"describe_resource\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+describe\").expect(\"Invalid regex pattern\"), \"describe_resource\"),"
+      },
+      {
+        "line": 68,
+        "original": "(Regex::new(r\"^kubectl\\s+rollout\").unwrap(), \"manage_rollout\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^kubectl\\s+rollout\").expect(\"Invalid regex pattern\"), \"manage_rollout\"),"
+      },
+      {
+        "line": 69,
+        "original": "(Regex::new(r\"^helm\\s+install\").unwrap(), \"helm_install\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^helm\\s+install\").expect(\"Invalid regex pattern\"), \"helm_install\"),"
+      },
+      {
+        "line": 70,
+        "original": "(Regex::new(r\"^helm\\s+upgrade\").unwrap(), \"helm_upgrade\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^helm\\s+upgrade\").expect(\"Invalid regex pattern\"), \"helm_upgrade\"),"
+      },
+      {
+        "line": 75,
+        "original": "(Regex::new(r\"^curl.*metrics\").unwrap(), \"get_metrics\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^curl.*metrics\").expect(\"Invalid regex pattern\"), \"get_metrics\"),"
+      },
+      {
+        "line": 76,
+        "original": "(Regex::new(r\"^prometheus.*query\").unwrap(), \"query_prometheus\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^prometheus.*query\").expect(\"Invalid regex pattern\"), \"query_prometheus\"),"
+      },
+      {
+        "line": 77,
+        "original": "(Regex::new(r\"^grafana.*dashboard\").unwrap(), \"manage_dashboard\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^grafana.*dashboard\").expect(\"Invalid regex pattern\"), \"manage_dashboard\"),"
+      },
+      {
+        "line": 78,
+        "original": "(Regex::new(r\"^tail.*log\").unwrap(), \"tail_logs\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^tail.*log\").expect(\"Invalid regex pattern\"), \"tail_logs\"),"
+      },
+      {
+        "line": 79,
+        "original": "(Regex::new(r\"^journalctl\").unwrap(), \"system_logs\"),",
+        "category": "regex",
+        "suggested": "(Regex::new(r\"^journalctl\").expect(\"Invalid regex pattern\"), \"system_logs\"),"
+      },
+      {
+        "line": 548,
+        "original": "let params = extract_docker_params(\"docker run -d nginx\", \"run_container\").unwrap();",
+        "category": "other",
+        "suggested": "let params = extract_docker_params(\"docker run -d nginx\", \"run_container\")?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/optimization/cache.rs",
+    "unwraps": 35,
+    "fixes": [
+      {
+        "line": 107,
+        "original": "let mut storage = self.storage.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut storage = self.storage.write()?;"
+      },
+      {
+        "line": 116,
+        "original": "self.stats.write().unwrap().expirations += 1;",
+        "category": "other",
+        "suggested": "self.stats.write()?.expirations += 1;"
+      },
+      {
+        "line": 117,
+        "original": "self.stats.write().unwrap().misses += 1;",
+        "category": "other",
+        "suggested": "self.stats.write()?.misses += 1;"
+      },
+      {
+        "line": 129,
+        "original": "self.stats.write().unwrap().hits += 1;",
+        "category": "other",
+        "suggested": "self.stats.write()?.hits += 1;"
+      },
+      {
+        "line": 132,
+        "original": "self.stats.write().unwrap().misses += 1;",
+        "category": "other",
+        "suggested": "self.stats.write()?.misses += 1;"
+      },
+      {
+        "line": 165,
+        "original": "let mut storage = self.storage.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut storage = self.storage.write()?;"
+      },
+      {
+        "line": 169,
+        "original": "let mut stats = self.stats.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut stats = self.stats.write()?;"
+      },
+      {
+        "line": 186,
+        "original": "let mut storage = self.storage.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut storage = self.storage.write()?;"
+      },
+      {
+        "line": 189,
+        "original": "self.stats.write().unwrap().total_size -= entry.size;",
+        "category": "other",
+        "suggested": "self.stats.write()?.total_size -= entry.size;"
+      },
+      {
+        "line": 190,
+        "original": "self.stats.write().unwrap().entry_count -= 1;",
+        "category": "other",
+        "suggested": "self.stats.write()?.entry_count -= 1;"
+      },
+      {
+        "line": 203,
+        "original": "self.storage.write().unwrap().clear();",
+        "category": "other",
+        "suggested": "self.storage.write()?.clear();"
+      },
+      {
+        "line": 205,
+        "original": "self.frequency_map.write().unwrap().clear();",
+        "category": "other",
+        "suggested": "self.frequency_map.write()?.clear();"
+      },
+      {
+        "line": 208,
+        "original": "let mut stats = self.stats.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut stats = self.stats.write()?;"
+      },
+      {
+        "line": 215,
+        "original": "let stats = self.stats.read().unwrap();",
+        "category": "other",
+        "suggested": "let stats = self.stats.read()?;"
+      },
+      {
+        "line": 233,
+        "original": "self.stats.write().unwrap().evictions += 1;",
+        "category": "other",
+        "suggested": "self.stats.write()?.evictions += 1;"
+      },
+      {
+        "line": 247,
+        "original": "let frequency_map = self.frequency_map.read().unwrap();",
+        "category": "other",
+        "suggested": "let frequency_map = self.frequency_map.read()?;"
+      },
+      {
+        "line": 264,
+        "original": "let storage = self.storage.read().unwrap();",
+        "category": "other",
+        "suggested": "let storage = self.storage.read()?;"
+      },
+      {
+        "line": 278,
+        "original": "let storage = self.storage.read().unwrap();",
+        "category": "other",
+        "suggested": "let storage = self.storage.read()?;"
+      },
+      {
+        "line": 296,
+        "original": "let mut freq_map = self.frequency_map.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut freq_map = self.frequency_map.write()?;"
+      },
+      {
+        "line": 310,
+        "original": "self.frequency_map.write().unwrap().insert(key, 1);",
+        "category": "other",
+        "suggested": "self.frequency_map.write()?.insert(key, 1);"
+      },
+      {
+        "line": 326,
+        "original": "self.frequency_map.write().unwrap().remove(key);",
+        "category": "other",
+        "suggested": "self.frequency_map.write()?.remove(key);"
+      },
+      {
+        "line": 350,
+        "original": "let storage_map = storage.read().unwrap();",
+        "category": "other",
+        "suggested": "let storage_map = storage.read()?;"
+      },
+      {
+        "line": 361,
+        "original": "let mut storage_map = storage.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut storage_map = storage.write()?;"
+      },
+      {
+        "line": 362,
+        "original": "let mut stats_mut = stats.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut stats_mut = stats.write()?;"
+      },
+      {
+        "line": 378,
+        "original": "self.stats.read().unwrap().clone()",
+        "category": "other",
+        "suggested": "self.stats.read()?.clone()"
+      },
+      {
+        "line": 383,
+        "original": "let stats = self.stats.read().unwrap();",
+        "category": "other",
+        "suggested": "let stats = self.stats.read()?;"
+      },
+      {
+        "line": 395,
+        "original": "self.stats.read().unwrap().total_size",
+        "category": "other",
+        "suggested": "self.stats.read()?.total_size"
+      },
+      {
+        "line": 400,
+        "original": "self.stats.read().unwrap().entry_count",
+        "category": "other",
+        "suggested": "self.stats.read()?.entry_count"
+      },
+      {
+        "line": 486,
+        "original": "cache.put(\"a\".to_string(), 1, 10).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"a\".to_string(), 1, 10).await?;"
+      },
+      {
+        "line": 487,
+        "original": "cache.put(\"b\".to_string(), 2, 10).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"b\".to_string(), 2, 10).await?;"
+      },
+      {
+        "line": 488,
+        "original": "cache.put(\"c\".to_string(), 3, 10).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"c\".to_string(), 3, 10).await?;"
+      },
+      {
+        "line": 494,
+        "original": "cache.put(\"d\".to_string(), 4, 10).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"d\".to_string(), 4, 10).await?;"
+      },
+      {
+        "line": 512,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 531,
+        "original": "cache.put(\"hit\".to_string(), 1, 10).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"hit\".to_string(), 1, 10).await?;"
+      },
+      {
+        "line": 560,
+        "original": "multi_cache.put(\"key\".to_string(), \"value\", 10).await.unwrap();",
+        "category": "other",
+        "suggested": "multi_cache.put(\"key\".to_string(), \"value\", 10).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/actor_tests.rs",
+    "unwraps": 30,
+    "fixes": [
+      {
+        "line": 41,
+        "original": "let server_id = runtime.deploy(server_config).await.unwrap();",
+        "category": "other",
+        "suggested": "let server_id = runtime.deploy(server_config).await?;"
+      },
+      {
+        "line": 45,
+        "original": "let servers = runtime.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = runtime.list_servers().await?;"
+      },
+      {
+        "line": 50,
+        "original": "let metrics = runtime.get_metrics(None).await.unwrap();",
+        "category": "other",
+        "suggested": "let metrics = runtime.get_metrics(None).await?;"
+      },
+      {
+        "line": 56,
+        "original": "runtime.undeploy(&server_id).await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.undeploy(&server_id).await?;"
+      },
+      {
+        "line": 59,
+        "original": "let servers = runtime.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = runtime.list_servers().await?;"
+      },
+      {
+        "line": 63,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      },
+      {
+        "line": 87,
+        "original": "let server_id = result.as_ref().unwrap().as_ref().unwrap();",
+        "category": "other",
+        "suggested": "let server_id = result.as_ref()?.as_ref()?;"
+      },
+      {
+        "line": 92,
+        "original": "let servers = runtime.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = runtime.list_servers().await?;"
+      },
+      {
+        "line": 96,
+        "original": "let metrics = runtime.get_metrics(None).await.unwrap();",
+        "category": "other",
+        "suggested": "let metrics = runtime.get_metrics(None).await?;"
+      },
+      {
+        "line": 99,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      },
+      {
+        "line": 109,
+        "original": "runtime.deploy(server_config.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.deploy(server_config.clone()).await?;"
+      },
+      {
+        "line": 122,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      },
+      {
+        "line": 141,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      },
+      {
+        "line": 163,
+        "original": "assert!(result.unwrap().is_ok());",
+        "category": "other",
+        "suggested": "assert!(result?.is_ok());"
+      },
+      {
+        "line": 166,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      },
+      {
+        "line": 180,
+        "original": "manager.initialize().await.unwrap();",
+        "category": "other",
+        "suggested": "manager.initialize().await?;"
+      },
+      {
+        "line": 183,
+        "original": "let servers = manager.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = manager.list_servers().await?;"
+      },
+      {
+        "line": 190,
+        "original": "manager.deploy_server(new_server).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.deploy_server(new_server).await?;"
+      },
+      {
+        "line": 193,
+        "original": "let servers = manager.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = manager.list_servers().await?;"
+      },
+      {
+        "line": 202,
+        "original": "let metrics = manager.get_metrics(None).await.unwrap();",
+        "category": "other",
+        "suggested": "let metrics = manager.get_metrics(None).await?;"
+      },
+      {
+        "line": 206,
+        "original": "manager.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "manager.shutdown().await?;"
+      },
+      {
+        "line": 217,
+        "original": "runtime.deploy(config).await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.deploy(config).await?;"
+      },
+      {
+        "line": 229,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      },
+      {
+        "line": 242,
+        "original": "runtime.deploy(server1).await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.deploy(server1).await?;"
+      },
+      {
+        "line": 245,
+        "original": "runtime.deploy(server2).await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.deploy(server2).await?;"
+      },
+      {
+        "line": 248,
+        "original": "runtime.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.list_servers().await?;"
+      },
+      {
+        "line": 249,
+        "original": "runtime.health_check(\"metrics1\").await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.health_check(\"metrics1\").await?;"
+      },
+      {
+        "line": 256,
+        "original": "let metrics = runtime.get_metrics(None).await.unwrap();",
+        "category": "other",
+        "suggested": "let metrics = runtime.get_metrics(None).await?;"
+      },
+      {
+        "line": 263,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      },
+      {
+        "line": 286,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/resilience/chaos.rs",
+    "unwraps": 26,
+    "fixes": [
+      {
+        "line": 184,
+        "original": "if *self.safety_enabled.read().unwrap() {",
+        "category": "other",
+        "suggested": "if *self.safety_enabled.read()? {"
+      },
+      {
+        "line": 203,
+        "original": "self.experiments.write().unwrap().insert(id.clone(), result);",
+        "category": "other",
+        "suggested": "self.experiments.write()?.insert(id.clone(), result);"
+      },
+      {
+        "line": 220,
+        "original": "self.service_hooks.write().unwrap().insert(service, hook);",
+        "category": "other",
+        "suggested": "self.service_hooks.write()?.insert(service, hook);"
+      },
+      {
+        "line": 273,
+        "original": "let experiment_id = experiments.read().unwrap()",
+        "category": "other",
+        "suggested": "let experiment_id = experiments.read()?"
+      },
+      {
+        "line": 281,
+        "original": "if let Some(result) = experiments.write().unwrap().get_mut(&experiment_id) {",
+        "category": "other",
+        "suggested": "if let Some(result) = experiments.write()?.get_mut(&experiment_id) {"
+      },
+      {
+        "line": 292,
+        "original": "if let Some(hook) = service_hooks.read().unwrap().get(&config.target) {",
+        "category": "other",
+        "suggested": "if let Some(hook) = service_hooks.read()?.get(&config.target) {"
+      },
+      {
+        "line": 301,
+        "original": "if let Some(hook) = service_hooks.read().unwrap().get(&config.target) {",
+        "category": "other",
+        "suggested": "if let Some(hook) = service_hooks.read()?.get(&config.target) {"
+      },
+      {
+        "line": 309,
+        "original": "if let Some(hook) = service_hooks.read().unwrap().get(&config.target) {",
+        "category": "other",
+        "suggested": "if let Some(hook) = service_hooks.read()?.get(&config.target) {"
+      },
+      {
+        "line": 317,
+        "original": "if let Some(hook) = service_hooks.read().unwrap().get(&config.target) {",
+        "category": "other",
+        "suggested": "if let Some(hook) = service_hooks.read()?.get(&config.target) {"
+      },
+      {
+        "line": 326,
+        "original": "if let Some(hook) = service_hooks.read().unwrap().get(&config.target) {",
+        "category": "other",
+        "suggested": "if let Some(hook) = service_hooks.read()?.get(&config.target) {"
+      },
+      {
+        "line": 335,
+        "original": "if let Some(hook) = service_hooks.read().unwrap().get(&config.target) {",
+        "category": "other",
+        "suggested": "if let Some(hook) = service_hooks.read()?.get(&config.target) {"
+      },
+      {
+        "line": 354,
+        "original": "if let Some(result) = experiments.write().unwrap().get_mut(&experiment_id) {",
+        "category": "other",
+        "suggested": "if let Some(result) = experiments.write()?.get_mut(&experiment_id) {"
+      },
+      {
+        "line": 395,
+        "original": "if !*safety_enabled.read().unwrap() {",
+        "category": "other",
+        "suggested": "if !*safety_enabled.read()? {"
+      },
+      {
+        "line": 399,
+        "original": "let baseline = baseline_metrics.read().unwrap();",
+        "category": "other",
+        "suggested": "let baseline = baseline_metrics.read()?;"
+      },
+      {
+        "line": 400,
+        "original": "let current = current_metrics.read().unwrap();",
+        "category": "other",
+        "suggested": "let current = current_metrics.read()?;"
+      },
+      {
+        "line": 411,
+        "original": "let running_experiments: Vec<String> = experiments.read().unwrap()",
+        "category": "other",
+        "suggested": "let running_experiments: Vec<String> = experiments.read()?"
+      },
+      {
+        "line": 437,
+        "original": "let mut metrics = current_metrics.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut metrics = current_metrics.write()?;"
+      },
+      {
+        "line": 462,
+        "original": "if let Some(result) = experiments.write().unwrap().get_mut(&experiment_id) {",
+        "category": "other",
+        "suggested": "if let Some(result) = experiments.write()?.get_mut(&experiment_id) {"
+      },
+      {
+        "line": 492,
+        "original": "let experiments = self.experiments.read().unwrap();",
+        "category": "other",
+        "suggested": "let experiments = self.experiments.read()?;"
+      },
+      {
+        "line": 527,
+        "original": "self.experiments.read().unwrap().get(experiment_id).cloned()",
+        "category": "other",
+        "suggested": "self.experiments.read()?.get(experiment_id).cloned()"
+      },
+      {
+        "line": 532,
+        "original": "self.experiments.read().unwrap().values().cloned().collect()",
+        "category": "other",
+        "suggested": "self.experiments.read()?.values().cloned().collect()"
+      },
+      {
+        "line": 537,
+        "original": "self.current_metrics.read().unwrap().clone()",
+        "category": "other",
+        "suggested": "self.current_metrics.read()?.clone()"
+      },
+      {
+        "line": 542,
+        "original": "let current = self.current_metrics.read().unwrap().clone();",
+        "category": "other",
+        "suggested": "let current = self.current_metrics.read()?.clone();"
+      },
+      {
+        "line": 543,
+        "original": "*self.baseline_metrics.write().unwrap() = current;",
+        "category": "other",
+        "suggested": "*self.baseline_metrics.write()? = current;"
+      },
+      {
+        "line": 548,
+        "original": "*self.safety_enabled.write().unwrap() = enabled;",
+        "category": "other",
+        "suggested": "*self.safety_enabled.write()? = enabled;"
+      },
+      {
+        "line": 603,
+        "original": "let id = chaos.schedule_experiment(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let id = chaos.schedule_experiment(config).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/tests.rs",
+    "unwraps": 23,
+    "fixes": [
+      {
+        "line": 89,
+        "original": "let serialized = serde_json::to_string(&strategy).unwrap();",
+        "category": "other",
+        "suggested": "let serialized = serde_json::to_string(&strategy)?;"
+      },
+      {
+        "line": 90,
+        "original": "let deserialized: ExecutionStrategy = serde_json::from_str(&serialized).unwrap();",
+        "category": "other",
+        "suggested": "let deserialized: ExecutionStrategy = serde_json::from_str(&serialized)?;"
+      },
+      {
+        "line": 111,
+        "original": "let service = create_bashgod_service(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let service = create_bashgod_service(config).await?;"
+      },
+      {
+        "line": 139,
+        "original": "let chain_result = result.unwrap();",
+        "category": "other",
+        "suggested": "let chain_result = result?;"
+      },
+      {
+        "line": 146,
+        "original": "let service = create_bashgod_service(BashGodConfig::default()).await.unwrap();",
+        "category": "other",
+        "suggested": "let service = create_bashgod_service(BashGodConfig::default()).await?;"
+      },
+      {
+        "line": 185,
+        "original": "let service = create_bashgod_service(BashGodConfig::default()).await.unwrap();",
+        "category": "other",
+        "suggested": "let service = create_bashgod_service(BashGodConfig::default()).await?;"
+      },
+      {
+        "line": 191,
+        "original": "assert_eq!(insights.unwrap().len(), 0);",
+        "category": "other",
+        "suggested": "assert_eq!(insights?.len(), 0);"
+      },
+      {
+        "line": 212,
+        "original": "assert!(!similar.unwrap().is_empty());",
+        "category": "other",
+        "suggested": "assert!(!similar?.is_empty());"
+      },
+      {
+        "line": 227,
+        "original": "}).await.unwrap();",
+        "category": "other",
+        "suggested": "}).await?;"
+      },
+      {
+        "line": 236,
+        "original": "}).await.unwrap();",
+        "category": "other",
+        "suggested": "}).await?;"
+      },
+      {
+        "line": 239,
+        "original": "memory.add_dependency(\"cmd1\", \"cmd2\").await.unwrap();",
+        "category": "other",
+        "suggested": "memory.add_dependency(\"cmd1\", \"cmd2\").await?;"
+      },
+      {
+        "line": 242,
+        "original": "let deps = memory.find_dependencies(\"cmd1\").await.unwrap();",
+        "category": "other",
+        "suggested": "let deps = memory.find_dependencies(\"cmd1\").await?;"
+      },
+      {
+        "line": 309,
+        "original": "let synergies = detector.detect(&commands, &context).await.unwrap();",
+        "category": "other",
+        "suggested": "let synergies = detector.detect(&commands, &context).await?;"
+      },
+      {
+        "line": 365,
+        "original": "let result = optimizer.optimize(commands, vec![synergy], &context).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = optimizer.optimize(commands, vec![synergy], &context).await?;"
+      },
+      {
+        "line": 404,
+        "original": "let enhanced = enhancer.enhance(&cmd, &config).await.unwrap();",
+        "category": "other",
+        "suggested": "let enhanced = enhancer.enhance(&cmd, &config).await?;"
+      },
+      {
+        "line": 440,
+        "original": "}).await.unwrap();",
+        "category": "other",
+        "suggested": "}).await?;"
+      },
+      {
+        "line": 470,
+        "original": "let result = service.execute_chain(chain).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = service.execute_chain(chain).await?;"
+      },
+      {
+        "line": 489,
+        "original": "memory.store_pattern(&format!(\"pattern-{}\", i), pattern).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(&format!(\"pattern-{}\", i), pattern).await?;"
+      },
+      {
+        "line": 497,
+        "original": "let similar = memory.find_similar(&search_pattern, 10).await.unwrap();",
+        "category": "other",
+        "suggested": "let similar = memory.find_similar(&search_pattern, 10).await?;"
+      },
+      {
+        "line": 512,
+        "original": "let service = create_bashgod_service(BashGodConfig::default()).await.unwrap();",
+        "category": "other",
+        "suggested": "let service = create_bashgod_service(BashGodConfig::default()).await?;"
+      },
+      {
+        "line": 538,
+        "original": "assert!(result.is_err() || !result.unwrap().success);",
+        "category": "other",
+        "suggested": "assert!(result.is_err() || !result?.success);"
+      },
+      {
+        "line": 543,
+        "original": "let service = create_bashgod_service(BashGodConfig::default()).await.unwrap();",
+        "category": "other",
+        "suggested": "let service = create_bashgod_service(BashGodConfig::default()).await?;"
+      },
+      {
+        "line": 576,
+        "original": "assert!(result.is_err() || !result.unwrap().success);",
+        "category": "other",
+        "suggested": "assert!(result.is_err() || !result?.success);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/security_enhanced.rs",
+    "unwraps": 21,
+    "fixes": [
+      {
+        "line": 43,
+        "original": "Regex::new(r\"^[a-zA-Z0-9_\\-\\.\\/]+$\").unwrap()",
+        "category": "regex",
+        "suggested": "Regex::new(r\"^[a-zA-Z0-9_\\-\\.\\/]+$\").expect(\"Invalid regex pattern\")"
+      },
+      {
+        "line": 48,
+        "original": "Regex::new(r\"(;|\\||&&|\\$\\(|\\`|>|<)\").unwrap(),  // Command injection",
+        "category": "regex",
+        "suggested": "Regex::new(r\"(;|\\||&&|\\$\\(|\\`|>|<)\").expect(\"Invalid regex pattern\"),  // Command injection"
+      },
+      {
+        "line": 49,
+        "original": "Regex::new(r\"\\.\\.\\/\").unwrap(),                  // Path traversal",
+        "category": "regex",
+        "suggested": "Regex::new(r\"\\.\\.\\/\").expect(\"Invalid regex pattern\"),                  // Path traversal"
+      },
+      {
+        "line": 50,
+        "original": "Regex::new(r\"\\$\\{.*\\}\").unwrap(),               // Variable expansion",
+        "category": "regex",
+        "suggested": "Regex::new(r\"\\$\\{.*\\}\").expect(\"Invalid regex pattern\"),               // Variable expansion"
+      },
+      {
+        "line": 51,
+        "original": "Regex::new(r\"eval|exec|system\").unwrap(),       // Dangerous functions",
+        "category": "regex",
+        "suggested": "Regex::new(r\"eval|exec|system\").expect(\"Invalid regex pattern\"),       // Dangerous functions"
+      },
+      {
+        "line": 331,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      },
+      {
+        "line": 483,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      },
+      {
+        "line": 852,
+        "original": "pattern: Regex::new(r#\"(password|passwd|pwd)\\s*=\\s*['\\\"].*['\\\"]\"#).unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: Regex::new(r#\"(password|passwd|pwd)\\s*=\\s*['\\\"].*['\\\"]\"#).expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 857,
+        "original": "pattern: Regex::new(r\"(MD5|SHA1|DES|RC4)\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: Regex::new(r\"(MD5|SHA1|DES|RC4)\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 862,
+        "original": "pattern: Regex::new(r\"pickle\\.loads|yaml\\.load\\(\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: Regex::new(r\"pickle\\.loads|yaml\\.load\\(\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 1153,
+        "original": "\"timestamp\": SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),",
+        "category": "other",
+        "suggested": "\"timestamp\": SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs(),"
+      },
+      {
+        "line": 1155,
+        "original": "\"audit_summary\": serde_json::from_str::<serde_json::Value>(&audit_report).unwrap(),",
+        "category": "other",
+        "suggested": "\"audit_summary\": serde_json::from_str::<serde_json::Value>(&audit_report)?,"
+      },
+      {
+        "line": 1195,
+        "original": "assert!(validator.validate_command(\"ls -la\", &context).unwrap());",
+        "category": "other",
+        "suggested": "assert!(validator.validate_command(\"ls -la\", &context)?);"
+      },
+      {
+        "line": 1198,
+        "original": "assert!(!validator.validate_command(\"rm -rf /; echo hacked\", &context).unwrap());",
+        "category": "other",
+        "suggested": "assert!(!validator.validate_command(\"rm -rf /; echo hacked\", &context)?);"
+      },
+      {
+        "line": 1206,
+        "original": "assert!(validator.validate_path(\"/home/user/file.txt\", Some(\"/home/user\")).unwrap());",
+        "category": "other",
+        "suggested": "assert!(validator.validate_path(\"/home/user/file.txt\", Some(\"/home/user\"))?);"
+      },
+      {
+        "line": 1209,
+        "original": "assert!(!validator.validate_path(\"../../../etc/passwd\", Some(\"/home/user\")).unwrap());",
+        "category": "other",
+        "suggested": "assert!(!validator.validate_path(\"../../../etc/passwd\", Some(\"/home/user\"))?);"
+      },
+      {
+        "line": 1217,
+        "original": "let key_id = manager.generate_key(\"test-key\", \"aes256\").unwrap();",
+        "category": "other",
+        "suggested": "let key_id = manager.generate_key(\"test-key\", \"aes256\")?;"
+      },
+      {
+        "line": 1221,
+        "original": "let encrypted = manager.encrypt_data(plaintext, &key_id).unwrap();",
+        "category": "other",
+        "suggested": "let encrypted = manager.encrypt_data(plaintext, &key_id)?;"
+      },
+      {
+        "line": 1224,
+        "original": "let decrypted = manager.decrypt_data(&encrypted, &key_id).unwrap();",
+        "category": "other",
+        "suggested": "let decrypted = manager.decrypt_data(&encrypted, &key_id)?;"
+      },
+      {
+        "line": 1248,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 1258,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/metrics.rs",
+    "unwraps": 20,
+    "fixes": [
+      {
+        "line": 19,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 25,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 31,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 37,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 43,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 49,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 55,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 61,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 80,
+        "original": "registry.register(Box::new(REQUEST_COUNTER.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(REQUEST_COUNTER.clone()))?;"
+      },
+      {
+        "line": 81,
+        "original": "registry.register(Box::new(RESPONSE_TIME.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(RESPONSE_TIME.clone()))?;"
+      },
+      {
+        "line": 82,
+        "original": "registry.register(Box::new(ACTIVE_CONNECTIONS.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(ACTIVE_CONNECTIONS.clone()))?;"
+      },
+      {
+        "line": 83,
+        "original": "registry.register(Box::new(HEALTH_CHECK_RESULTS.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(HEALTH_CHECK_RESULTS.clone()))?;"
+      },
+      {
+        "line": 84,
+        "original": "registry.register(Box::new(CIRCUIT_BREAKER_STATE.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(CIRCUIT_BREAKER_STATE.clone()))?;"
+      },
+      {
+        "line": 85,
+        "original": "registry.register(Box::new(CONNECTION_POOL_SIZE.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(CONNECTION_POOL_SIZE.clone()))?;"
+      },
+      {
+        "line": 86,
+        "original": "registry.register(Box::new(SERVER_AVAILABILITY.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(SERVER_AVAILABILITY.clone()))?;"
+      },
+      {
+        "line": 87,
+        "original": "registry.register(Box::new(ERROR_RATE.clone())).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(Box::new(ERROR_RATE.clone()))?;"
+      },
+      {
+        "line": 190,
+        "original": "encoder.encode(&metric_families, &mut buffer).unwrap();",
+        "category": "other",
+        "suggested": "encoder.encode(&metric_families, &mut buffer)?;"
+      },
+      {
+        "line": 191,
+        "original": "String::from_utf8(buffer).unwrap()",
+        "category": "other",
+        "suggested": "String::from_utf8(buffer)?"
+      },
+      {
+        "line": 295,
+        "original": "encoder.encode(&all_metrics, &mut buffer).unwrap();",
+        "category": "other",
+        "suggested": "encoder.encode(&all_metrics, &mut buffer)?;"
+      },
+      {
+        "line": 296,
+        "original": "String::from_utf8(buffer).unwrap()",
+        "category": "other",
+        "suggested": "String::from_utf8(buffer)?"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/lockfree_collections.rs",
+    "unwraps": 19,
+    "fixes": [
+      {
+        "line": 719,
+        "original": "assert!(stack.push(\"item1\".to_string()).unwrap());",
+        "category": "other",
+        "suggested": "assert!(stack.push(\"item1\".to_string())?);"
+      },
+      {
+        "line": 720,
+        "original": "assert!(stack.push(\"item2\".to_string()).unwrap());",
+        "category": "other",
+        "suggested": "assert!(stack.push(\"item2\".to_string())?);"
+      },
+      {
+        "line": 723,
+        "original": "assert_eq!(stack.pop().unwrap(), Some(\"item2\".to_string()));",
+        "category": "other",
+        "suggested": "assert_eq!(stack.pop()?, Some(\"item2\".to_string()));"
+      },
+      {
+        "line": 724,
+        "original": "assert_eq!(stack.pop().unwrap(), Some(\"item1\".to_string()));",
+        "category": "other",
+        "suggested": "assert_eq!(stack.pop()?, Some(\"item1\".to_string()));"
+      },
+      {
+        "line": 734,
+        "original": "assert!(queue.enqueue(\"item1\".to_string()).unwrap());",
+        "category": "other",
+        "suggested": "assert!(queue.enqueue(\"item1\".to_string())?);"
+      },
+      {
+        "line": 735,
+        "original": "assert!(queue.enqueue(\"item2\".to_string()).unwrap());",
+        "category": "other",
+        "suggested": "assert!(queue.enqueue(\"item2\".to_string())?);"
+      },
+      {
+        "line": 738,
+        "original": "assert_eq!(queue.dequeue().unwrap(), Some(\"item1\".to_string()));",
+        "category": "other",
+        "suggested": "assert_eq!(queue.dequeue()?, Some(\"item1\".to_string()));"
+      },
+      {
+        "line": 739,
+        "original": "assert_eq!(queue.dequeue().unwrap(), Some(\"item2\".to_string()));",
+        "category": "other",
+        "suggested": "assert_eq!(queue.dequeue()?, Some(\"item2\".to_string()));"
+      },
+      {
+        "line": 749,
+        "original": "assert!(map.insert(\"key1\".to_string(), \"value1\".to_string()).unwrap());",
+        "category": "other",
+        "suggested": "assert!(map.insert(\"key1\".to_string(), \"value1\".to_string())?);"
+      },
+      {
+        "line": 750,
+        "original": "assert_eq!(map.get(\"key1\".to_string()).unwrap(), Some(\"value1\".to_string()));",
+        "category": "other",
+        "suggested": "assert_eq!(map.get(\"key1\".to_string())?, Some(\"value1\".to_string()));"
+      },
+      {
+        "line": 753,
+        "original": "assert_eq!(map.remove(\"key1\".to_string()).unwrap(), Some(\"value1\".to_string()));",
+        "category": "other",
+        "suggested": "assert_eq!(map.remove(\"key1\".to_string())?, Some(\"value1\".to_string()));"
+      },
+      {
+        "line": 763,
+        "original": "collector.increment_counter(\"requests\".to_string()).unwrap();",
+        "category": "other",
+        "suggested": "collector.increment_counter(\"requests\".to_string())?;"
+      },
+      {
+        "line": 764,
+        "original": "collector.add_to_counter(\"requests\".to_string(), 5).unwrap();",
+        "category": "other",
+        "suggested": "collector.add_to_counter(\"requests\".to_string(), 5)?;"
+      },
+      {
+        "line": 765,
+        "original": "assert_eq!(collector.get_counter(\"requests\".to_string()).unwrap(), 6);",
+        "category": "other",
+        "suggested": "assert_eq!(collector.get_counter(\"requests\".to_string())?, 6);"
+      },
+      {
+        "line": 767,
+        "original": "collector.set_gauge(\"memory_usage\".to_string(), 1024).unwrap();",
+        "category": "other",
+        "suggested": "collector.set_gauge(\"memory_usage\".to_string(), 1024)?;"
+      },
+      {
+        "line": 768,
+        "original": "assert_eq!(collector.get_gauge(\"memory_usage\".to_string()).unwrap(), 1024);",
+        "category": "other",
+        "suggested": "assert_eq!(collector.get_gauge(\"memory_usage\".to_string())?, 1024);"
+      },
+      {
+        "line": 770,
+        "original": "collector.record_histogram(\"latency\".to_string(), 123.45).unwrap();",
+        "category": "other",
+        "suggested": "collector.record_histogram(\"latency\".to_string(), 123.45)?;"
+      },
+      {
+        "line": 771,
+        "original": "let stats = collector.get_histogram_stats(\"latency\".to_string()).unwrap();",
+        "category": "other",
+        "suggested": "let stats = collector.get_histogram_stats(\"latency\".to_string())?;"
+      },
+      {
+        "line": 772,
+        "original": "assert_eq!(stats.get(\"count\").unwrap(), &1.0);",
+        "category": "other",
+        "suggested": "assert_eq!(stats.get(\"count\")?, &1.0);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/optimization/prefetch.rs",
+    "unwraps": 19,
+    "fixes": [
+      {
+        "line": 180,
+        "original": "self.stats.write().unwrap().predictions_made += 1;",
+        "category": "other",
+        "suggested": "self.stats.write()?.predictions_made += 1;"
+      },
+      {
+        "line": 187,
+        "original": "let sequential_state = self.sequential_state.read().unwrap();",
+        "category": "other",
+        "suggested": "let sequential_state = self.sequential_state.read()?;"
+      },
+      {
+        "line": 208,
+        "original": "let temporal_patterns = self.temporal_patterns.read().unwrap();",
+        "category": "other",
+        "suggested": "let temporal_patterns = self.temporal_patterns.read()?;"
+      },
+      {
+        "line": 242,
+        "original": "let spatial_map = self.spatial_map.read().unwrap();",
+        "category": "other",
+        "suggested": "let spatial_map = self.spatial_map.read()?;"
+      },
+      {
+        "line": 263,
+        "original": "let model = self.markov_model.read().unwrap();",
+        "category": "other",
+        "suggested": "let model = self.markov_model.read()?;"
+      },
+      {
+        "line": 268,
+        "original": "predictions.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());",
+        "category": "other",
+        "suggested": "predictions.sort_by(|a, b| b.1.partial_cmp(a.1)?);"
+      },
+      {
+        "line": 298,
+        "original": "let model = self.neural_model.read().unwrap();",
+        "category": "other",
+        "suggested": "let model = self.neural_model.read()?;"
+      },
+      {
+        "line": 308,
+        "original": "indexed_predictions.sort_by(|a, b| b.1.partial_cmp(a.1).unwrap());",
+        "category": "other",
+        "suggested": "indexed_predictions.sort_by(|a, b| b.1.partial_cmp(a.1)?);"
+      },
+      {
+        "line": 367,
+        "original": "sorted_predictions.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());",
+        "category": "other",
+        "suggested": "sorted_predictions.sort_by(|a, b| b.1.partial_cmp(&a.1)?);"
+      },
+      {
+        "line": 480,
+        "original": "*sequential_state.write().unwrap() = sequences;",
+        "category": "other",
+        "suggested": "*sequential_state.write()? = sequences;"
+      },
+      {
+        "line": 493,
+        "original": "*temporal_patterns.write().unwrap() = temporal;",
+        "category": "other",
+        "suggested": "*temporal_patterns.write()? = temporal;"
+      },
+      {
+        "line": 512,
+        "original": "*spatial_map.write().unwrap() = spatial;",
+        "category": "other",
+        "suggested": "*spatial_map.write()? = spatial;"
+      },
+      {
+        "line": 515,
+        "original": "let mut model = markov_model.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut model = markov_model.write()?;"
+      },
+      {
+        "line": 564,
+        "original": "stats.write().unwrap().total_prefetched += request.keys.len();",
+        "category": "other",
+        "suggested": "stats.write()?.total_prefetched += request.keys.len();"
+      },
+      {
+        "line": 588,
+        "original": "let mut model = neural_model.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut model = neural_model.write()?;"
+      },
+      {
+        "line": 623,
+        "original": "let mut stats = self.stats.write().unwrap();",
+        "category": "other",
+        "suggested": "let mut stats = self.stats.write()?;"
+      },
+      {
+        "line": 643,
+        "original": "self.stats.read().unwrap().clone()",
+        "category": "other",
+        "suggested": "self.stats.read()?.clone()"
+      },
+      {
+        "line": 671,
+        "original": "let sequential_state = prefetcher.sequential_state.read().unwrap();",
+        "category": "other",
+        "suggested": "let sequential_state = prefetcher.sequential_state.read()?;"
+      },
+      {
+        "line": 696,
+        "original": "let model = prefetcher.markov_model.read().unwrap();",
+        "category": "other",
+        "suggested": "let model = prefetcher.markov_model.read()?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/performance.rs",
+    "unwraps": 17,
+    "fixes": [
+      {
+        "line": 159,
+        "original": "tx_io.send((task.id.clone(), duration.as_secs_f64())).unwrap();",
+        "category": "other",
+        "suggested": "tx_io.send((task.id.clone(), duration.as_secs_f64()))?;"
+      },
+      {
+        "line": 176,
+        "original": "tx_cpu.send((task.id.clone(), duration.as_secs_f64())).unwrap();",
+        "category": "other",
+        "suggested": "tx_cpu.send((task.id.clone(), duration.as_secs_f64()))?;"
+      },
+      {
+        "line": 184,
+        "original": "let runtime = tokio::runtime::Runtime::new().unwrap();",
+        "category": "other",
+        "suggested": "let runtime = tokio::runtime::Runtime::new()?;"
+      },
+      {
+        "line": 192,
+        "original": "tx_async.send((task.id.clone(), duration.as_secs_f64())).unwrap();",
+        "category": "other",
+        "suggested": "tx_async.send((task.id.clone(), duration.as_secs_f64()))?;"
+      },
+      {
+        "line": 267,
+        "original": "sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());",
+        "category": "other",
+        "suggested": "sorted.sort_by(|a, b| a.partial_cmp(b)?);"
+      },
+      {
+        "line": 271,
+        "original": "stats.insert(\"min\".to_string(), *sorted.first().unwrap());",
+        "category": "other",
+        "suggested": "stats.insert(\"min\".to_string(), *sorted.first()?);"
+      },
+      {
+        "line": 272,
+        "original": "stats.insert(\"max\".to_string(), *sorted.last().unwrap());",
+        "category": "other",
+        "suggested": "stats.insert(\"max\".to_string(), *sorted.last()?);"
+      },
+      {
+        "line": 398,
+        "original": "let _json = serde_json::to_string(&vec![1, 2, 3, 4, 5]).unwrap();",
+        "category": "other",
+        "suggested": "let _json = serde_json::to_string(&vec![1, 2, 3, 4, 5])?;"
+      },
+      {
+        "line": 459,
+        "original": "let results = executor.execute_batch(py, tasks).unwrap();",
+        "category": "other",
+        "suggested": "let results = executor.execute_batch(py, tasks)?;"
+      },
+      {
+        "line": 470,
+        "original": "let duration = monitor.end_operation(\"test_op\".to_string()).unwrap();",
+        "category": "other",
+        "suggested": "let duration = monitor.end_operation(\"test_op\".to_string())?;"
+      },
+      {
+        "line": 474,
+        "original": "let stats = monitor.get_operation_stats(\"test_op\").unwrap();",
+        "category": "other",
+        "suggested": "let stats = monitor.get_operation_stats(\"test_op\")?;"
+      },
+      {
+        "line": 483,
+        "original": "let r1 = pool.acquire().unwrap().unwrap();",
+        "category": "other",
+        "suggested": "let r1 = pool.acquire()??;"
+      },
+      {
+        "line": 484,
+        "original": "let r2 = pool.acquire().unwrap().unwrap();",
+        "category": "other",
+        "suggested": "let r2 = pool.acquire()??;"
+      },
+      {
+        "line": 485,
+        "original": "let r3 = pool.acquire().unwrap().unwrap();",
+        "category": "other",
+        "suggested": "let r3 = pool.acquire()??;"
+      },
+      {
+        "line": 488,
+        "original": "assert!(pool.acquire().unwrap().is_none());",
+        "category": "other",
+        "suggested": "assert!(pool.acquire()?.is_none());"
+      },
+      {
+        "line": 491,
+        "original": "pool.release(r1).unwrap();",
+        "category": "other",
+        "suggested": "pool.release(r1)?;"
+      },
+      {
+        "line": 494,
+        "original": "let r4 = pool.acquire().unwrap().unwrap();",
+        "category": "other",
+        "suggested": "let r4 = pool.acquire()??;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/memory/graph.rs",
+    "unwraps": 13,
+    "fixes": [
+      {
+        "line": 401,
+        "original": "let node_idx = graph.add_node(pattern, resources).unwrap();",
+        "category": "other",
+        "suggested": "let node_idx = graph.add_node(pattern, resources)?;"
+      },
+      {
+        "line": 417,
+        "original": "graph.add_node(pattern1, HashSet::new()).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_node(pattern1, HashSet::new())?;"
+      },
+      {
+        "line": 418,
+        "original": "graph.add_node(pattern2, HashSet::new()).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_node(pattern2, HashSet::new())?;"
+      },
+      {
+        "line": 421,
+        "original": "graph.add_dependency(\"build\", \"push\", DependencyType::Sequential, 0.9).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_dependency(\"build\", \"push\", DependencyType::Sequential, 0.9)?;"
+      },
+      {
+        "line": 424,
+        "original": "let deps = graph.find_dependencies(\"push\").unwrap();",
+        "category": "other",
+        "suggested": "let deps = graph.find_dependencies(\"push\")?;"
+      },
+      {
+        "line": 428,
+        "original": "let dependents = graph.find_dependents(\"build\").unwrap();",
+        "category": "other",
+        "suggested": "let dependents = graph.find_dependents(\"build\")?;"
+      },
+      {
+        "line": 441,
+        "original": "graph.add_node(pattern, HashSet::new()).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_node(pattern, HashSet::new())?;"
+      },
+      {
+        "line": 444,
+        "original": "graph.add_dependency(\"build\", \"test\", DependencyType::Sequential, 1.0).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_dependency(\"build\", \"test\", DependencyType::Sequential, 1.0)?;"
+      },
+      {
+        "line": 445,
+        "original": "graph.add_dependency(\"test\", \"deploy\", DependencyType::Sequential, 1.0).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_dependency(\"test\", \"deploy\", DependencyType::Sequential, 1.0)?;"
+      },
+      {
+        "line": 447,
+        "original": "let order = graph.find_execution_order(&commands.iter().map(|s| s.to_string()).collect::<Vec<_>>()).unwrap();",
+        "category": "other",
+        "suggested": "let order = graph.find_execution_order(&commands.iter().map(|s| s.to_string()).collect::<Vec<_>>())?;"
+      },
+      {
+        "line": 462,
+        "original": "graph.add_node(pattern1, resources1).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_node(pattern1, resources1)?;"
+      },
+      {
+        "line": 463,
+        "original": "graph.add_node(pattern2, resources2).unwrap();",
+        "category": "other",
+        "suggested": "graph.add_node(pattern2, resources2)?;"
+      },
+      {
+        "line": 465,
+        "original": "let conflicts = graph.detect_conflicts(&vec![\"app1\".to_string(), \"app2\".to_string()]).unwrap();",
+        "category": "other",
+        "suggested": "let conflicts = graph.detect_conflicts(&vec![\"app1\".to_string(), \"app2\".to_string()])?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/memory/index.rs",
+    "unwraps": 10,
+    "fixes": [
+      {
+        "line": 335,
+        "original": "index.add_entry(\"docker-build-123\", node_idx).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"docker-build-123\", node_idx)?;"
+      },
+      {
+        "line": 352,
+        "original": "index.add_entry(\"docker-build\", NodeIndex::new(0)).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"docker-build\", NodeIndex::new(0))?;"
+      },
+      {
+        "line": 353,
+        "original": "index.add_entry(\"docker-run\", NodeIndex::new(1)).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"docker-run\", NodeIndex::new(1))?;"
+      },
+      {
+        "line": 354,
+        "original": "index.add_entry(\"kubectl-apply\", NodeIndex::new(2)).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"kubectl-apply\", NodeIndex::new(2))?;"
+      },
+      {
+        "line": 372,
+        "original": "index.add_entry(\"app1\", NodeIndex::new(0)).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"app1\", NodeIndex::new(0))?;"
+      },
+      {
+        "line": 373,
+        "original": "index.update_resources(\"app1\", &HashSet::from([\"port:8080\".to_string()])).unwrap();",
+        "category": "other",
+        "suggested": "index.update_resources(\"app1\", &HashSet::from([\"port:8080\".to_string()]))?;"
+      },
+      {
+        "line": 375,
+        "original": "index.add_entry(\"app2\", NodeIndex::new(1)).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"app2\", NodeIndex::new(1))?;"
+      },
+      {
+        "line": 376,
+        "original": "index.update_resources(\"app2\", &HashSet::from([\"port:8080\".to_string(), \"db:postgres\".to_string()])).unwrap();",
+        "category": "other",
+        "suggested": "index.update_resources(\"app2\", &HashSet::from([\"port:8080\".to_string(), \"db:postgres\".to_string()]))?;"
+      },
+      {
+        "line": 393,
+        "original": "index.add_entry(\"cmd1\", NodeIndex::new(0)).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"cmd1\", NodeIndex::new(0))?;"
+      },
+      {
+        "line": 395,
+        "original": "index.add_entry(\"cmd2\", NodeIndex::new(1)).unwrap();",
+        "category": "other",
+        "suggested": "index.add_entry(\"cmd2\", NodeIndex::new(1))?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/memory/hybrid.rs",
+    "unwraps": 9,
+    "fixes": [
+      {
+        "line": 372,
+        "original": ".unwrap();",
+        "category": "other",
+        "suggested": "?;"
+      },
+      {
+        "line": 396,
+        "original": "memory.store_pattern(pattern.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(pattern.clone()).await?;"
+      },
+      {
+        "line": 399,
+        "original": "let results = memory.find_similar(&pattern, 0.8).await.unwrap();",
+        "category": "other",
+        "suggested": "let results = memory.find_similar(&pattern, 0.8).await?;"
+      },
+      {
+        "line": 411,
+        "original": ".unwrap();",
+        "category": "other",
+        "suggested": "?;"
+      },
+      {
+        "line": 430,
+        "original": "memory.store_pattern(pattern).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(pattern).await?;"
+      },
+      {
+        "line": 434,
+        "original": "let stats = memory.get_memory_stats().await.unwrap();",
+        "category": "other",
+        "suggested": "let stats = memory.get_memory_stats().await?;"
+      },
+      {
+        "line": 445,
+        "original": ".unwrap();",
+        "category": "other",
+        "suggested": "?;"
+      },
+      {
+        "line": 467,
+        "original": "memory.store_pattern(pattern).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(pattern).await?;"
+      },
+      {
+        "line": 471,
+        "original": "let result = memory.optimize_memory().await.unwrap();",
+        "category": "other",
+        "suggested": "let result = memory.optimize_memory().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/memory/graph.rs",
+    "unwraps": 9,
+    "fixes": [
+      {
+        "line": 630,
+        "original": "memory.add_pattern(&pattern).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.add_pattern(&pattern).await?;"
+      },
+      {
+        "line": 658,
+        "original": "memory.add_pattern(&pattern1).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.add_pattern(&pattern1).await?;"
+      },
+      {
+        "line": 676,
+        "original": "memory.add_pattern(&pattern2).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.add_pattern(&pattern2).await?;"
+      },
+      {
+        "line": 699,
+        "original": "let related = memory.find_related(\"pattern1\", 2).await.unwrap();",
+        "category": "other",
+        "suggested": "let related = memory.find_related(\"pattern1\", 2).await?;"
+      },
+      {
+        "line": 725,
+        "original": "memory.add_pattern(&pattern).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.add_pattern(&pattern).await?;"
+      },
+      {
+        "line": 730,
+        "original": "let idx0 = memory.node_index.get(\"pattern0\").unwrap();",
+        "category": "other",
+        "suggested": "let idx0 = memory.node_index.get(\"pattern0\")?;"
+      },
+      {
+        "line": 731,
+        "original": "let idx1 = memory.node_index.get(\"pattern1\").unwrap();",
+        "category": "other",
+        "suggested": "let idx1 = memory.node_index.get(\"pattern1\")?;"
+      },
+      {
+        "line": 732,
+        "original": "let idx2 = memory.node_index.get(\"pattern2\").unwrap();",
+        "category": "other",
+        "suggested": "let idx2 = memory.node_index.get(\"pattern2\")?;"
+      },
+      {
+        "line": 752,
+        "original": "let communities = memory.detect_communities().await.unwrap();",
+        "category": "other",
+        "suggested": "let communities = memory.detect_communities().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/infrastructure.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 128,
+        "original": "let _permit = semaphore.acquire().await.unwrap();",
+        "category": "other",
+        "suggested": "let _permit = semaphore.acquire().await?;"
+      },
+      {
+        "line": 341,
+        "original": "&self.validated_configs.get(&config_id).unwrap().value()",
+        "category": "other",
+        "suggested": "&self.validated_configs.get(&config_id)?.value()"
+      },
+      {
+        "line": 408,
+        "original": "regex::Regex::new(r\"(?i)(error|exception|failed)\").unwrap()",
+        "category": "regex",
+        "suggested": "regex::Regex::new(r\"(?i)(error|exception|failed)\").expect(\"Invalid regex pattern\")"
+      },
+      {
+        "line": 412,
+        "original": "regex::Regex::new(r\"(?i)(warn|warning|deprecated)\").unwrap()",
+        "category": "regex",
+        "suggested": "regex::Regex::new(r\"(?i)(warn|warning|deprecated)\").expect(\"Invalid regex pattern\")"
+      },
+      {
+        "line": 416,
+        "original": "regex::Regex::new(r\"\\d{4}-\\d{2}-\\d{2}[T\\s]\\d{2}:\\d{2}:\\d{2}\").unwrap()",
+        "category": "regex",
+        "suggested": "regex::Regex::new(r\"\\d{4}-\\d{2}-\\d{2}[T\\s]\\d{2}:\\d{2}:\\d{2}\").expect(\"Invalid regex pattern\")"
+      },
+      {
+        "line": 522,
+        "original": "let results = scanner.scan_services(py, targets).unwrap();",
+        "category": "other",
+        "suggested": "let results = scanner.scan_services(py, targets)?;"
+      },
+      {
+        "line": 543,
+        "original": "let result = parser.parse_yaml(yaml).unwrap();",
+        "category": "parse",
+        "suggested": "let result = parser.parse_yaml(yaml).map_err(|e| anyhow::anyhow!(\"Parse error: {}\", e))?;"
+      },
+      {
+        "line": 555,
+        "original": "let results = analyzer.analyze_logs(py, logs).unwrap();",
+        "category": "other",
+        "suggested": "let results = analyzer.analyze_logs(py, logs)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/security.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 208,
+        "original": "serde_json::Value::Number(serde_json::Number::from_f64(security_score).unwrap())",
+        "category": "other",
+        "suggested": "serde_json::Value::Number(serde_json::Number::from_f64(security_score)?)"
+      },
+      {
+        "line": 319,
+        "original": "let ciphertext = vault.encrypt(plaintext).unwrap();",
+        "category": "other",
+        "suggested": "let ciphertext = vault.encrypt(plaintext)?;"
+      },
+      {
+        "line": 320,
+        "original": "let decrypted = vault.decrypt(&ciphertext).unwrap();",
+        "category": "other",
+        "suggested": "let decrypted = vault.decrypt(&ciphertext)?;"
+      },
+      {
+        "line": 333,
+        "original": "let results = verify_passwords_batch_py(passwords, hashes).unwrap();",
+        "category": "other",
+        "suggested": "let results = verify_passwords_batch_py(passwords, hashes)?;"
+      },
+      {
+        "line": 342,
+        "original": "assert!(!auditor.check_password_strength(\"weak\").unwrap());",
+        "category": "other",
+        "suggested": "assert!(!auditor.check_password_strength(\"weak\")?);"
+      },
+      {
+        "line": 343,
+        "original": "assert!(auditor.check_password_strength(\"Str0ng!P@ssw0rd\").unwrap());",
+        "category": "other",
+        "suggested": "assert!(auditor.check_password_strength(\"Str0ng!P@ssw0rd\")?);"
+      },
+      {
+        "line": 350,
+        "original": "let vulns = auditor.scan_vulnerabilities(config).unwrap();",
+        "category": "other",
+        "suggested": "let vulns = auditor.scan_vulnerabilities(config)?;"
+      },
+      {
+        "line": 359,
+        "original": "let signatures = generate_hmac_batch_py(messages, key).unwrap();",
+        "category": "other",
+        "suggested": "let signatures = generate_hmac_batch_py(messages, key)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/tests.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 79,
+        "original": "let server1 = lb_hash.select_server(Some(\"user123\")).await.unwrap();",
+        "category": "other",
+        "suggested": "let server1 = lb_hash.select_server(Some(\"user123\")).await?;"
+      },
+      {
+        "line": 80,
+        "original": "let server2 = lb_hash.select_server(Some(\"user123\")).await.unwrap();",
+        "category": "other",
+        "suggested": "let server2 = lb_hash.select_server(Some(\"user123\")).await?;"
+      },
+      {
+        "line": 127,
+        "original": "manager.save_snapshot(\"primary\".to_string(), data).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.save_snapshot(\"primary\".to_string(), data).await?;"
+      },
+      {
+        "line": 151,
+        "original": "let experiment_id = chaos.schedule_experiment(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let experiment_id = chaos.schedule_experiment(config).await?;"
+      },
+      {
+        "line": 175,
+        "original": "assert_eq!(result.unwrap(), 42);",
+        "category": "other",
+        "suggested": "assert_eq!(result?, 42);"
+      },
+      {
+        "line": 196,
+        "original": "cache.put(\"key1\".to_string(), vec![1, 2, 3], 3).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"key1\".to_string(), vec![1, 2, 3], 3).await?;"
+      },
+      {
+        "line": 197,
+        "original": "cache.put(\"key2\".to_string(), vec![4, 5, 6], 3).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"key2\".to_string(), vec![4, 5, 6], 3).await?;"
+      },
+      {
+        "line": 269,
+        "original": "cache.put(\"key1\".to_string(), vec![1, 2, 3], 3).await.unwrap();",
+        "category": "other",
+        "suggested": "cache.put(\"key1\".to_string(), vec![1, 2, 3], 3).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/version.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 824,
+        "original": "let version = Version::parse(version_str).unwrap();",
+        "category": "parse",
+        "suggested": "let version = Version::parse(version_str).map_err(|e| anyhow::anyhow!(\"Parse error: {}\", e))?;"
+      },
+      {
+        "line": 847,
+        "original": "manager.register_version(plugin_id.clone(), info).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.register_version(plugin_id.clone(), info).await?;"
+      },
+      {
+        "line": 851,
+        "original": "let req = VersionReq::parse(\"^1.0.0\").unwrap();",
+        "category": "parse",
+        "suggested": "let req = VersionReq::parse(\"^1.0.0\").map_err(|e| anyhow::anyhow!(\"Parse error: {}\", e))?;"
+      },
+      {
+        "line": 852,
+        "original": "let resolved = manager.resolve_version(&plugin_id, &req).await.unwrap();",
+        "category": "other",
+        "suggested": "let resolved = manager.resolve_version(&plugin_id, &req).await?;"
+      },
+      {
+        "line": 853,
+        "original": "assert_eq!(resolved, Version::parse(\"1.2.0\").unwrap());",
+        "category": "parse",
+        "suggested": "assert_eq!(resolved, Version::parse(\"1.2.0\").map_err(|e| anyhow::anyhow!(\"Parse error: {}\", e))?);"
+      },
+      {
+        "line": 856,
+        "original": "let req = VersionReq::parse(\"^2.0.0\").unwrap();",
+        "category": "parse",
+        "suggested": "let req = VersionReq::parse(\"^2.0.0\").map_err(|e| anyhow::anyhow!(\"Parse error: {}\", e))?;"
+      },
+      {
+        "line": 857,
+        "original": "let resolved = manager.resolve_version(&plugin_id, &req).await.unwrap();",
+        "category": "other",
+        "suggested": "let resolved = manager.resolve_version(&plugin_id, &req).await?;"
+      },
+      {
+        "line": 858,
+        "original": "assert_eq!(resolved, Version::parse(\"2.0.0\").unwrap());",
+        "category": "parse",
+        "suggested": "assert_eq!(resolved, Version::parse(\"2.0.0\").map_err(|e| anyhow::anyhow!(\"Parse error: {}\", e))?);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/distributed/load_balancer.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 324,
+        "original": "Arc::new(McpServer::new(id.to_string(), config).unwrap())",
+        "category": "other",
+        "suggested": "Arc::new(McpServer::new(id.to_string(), config)?)"
+      },
+      {
+        "line": 338,
+        "original": "let server1 = lb.select_server(\"test-pool\", None).await.unwrap();",
+        "category": "other",
+        "suggested": "let server1 = lb.select_server(\"test-pool\", None).await?;"
+      },
+      {
+        "line": 339,
+        "original": "let server2 = lb.select_server(\"test-pool\", None).await.unwrap();",
+        "category": "other",
+        "suggested": "let server2 = lb.select_server(\"test-pool\", None).await?;"
+      },
+      {
+        "line": 355,
+        "original": "lb.update_connections(\"test-pool\", \"server-0\", 5).await.unwrap();",
+        "category": "other",
+        "suggested": "lb.update_connections(\"test-pool\", \"server-0\", 5).await?;"
+      },
+      {
+        "line": 356,
+        "original": "lb.update_connections(\"test-pool\", \"server-1\", 2).await.unwrap();",
+        "category": "other",
+        "suggested": "lb.update_connections(\"test-pool\", \"server-1\", 2).await?;"
+      },
+      {
+        "line": 359,
+        "original": "let server = lb.select_server(\"test-pool\", None).await.unwrap();",
+        "category": "other",
+        "suggested": "let server = lb.select_server(\"test-pool\", None).await?;"
+      },
+      {
+        "line": 374,
+        "original": "let server1 = lb.select_server(\"test-pool\", Some(\"192.168.1.1\")).await.unwrap();",
+        "category": "other",
+        "suggested": "let server1 = lb.select_server(\"test-pool\", Some(\"192.168.1.1\")).await?;"
+      },
+      {
+        "line": 375,
+        "original": "let server2 = lb.select_server(\"test-pool\", Some(\"192.168.1.1\")).await.unwrap();",
+        "category": "other",
+        "suggested": "let server2 = lb.select_server(\"test-pool\", Some(\"192.168.1.1\")).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/memory/tensor.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 66,
+        "original": "let cache_size = NonZeroUsize::new(cache_size).unwrap_or(NonZeroUsize::new(1000).unwrap());",
+        "category": "other",
+        "suggested": "let cache_size = NonZeroUsize::new(cache_size).unwrap_or(NonZeroUsize::new(1000)?);"
+      },
+      {
+        "line": 239,
+        "original": "results.sort_by(|a, b| b.similarity_score.partial_cmp(&a.similarity_score).unwrap());",
+        "category": "other",
+        "suggested": "results.sort_by(|a, b| b.similarity_score.partial_cmp(&a.similarity_score)?);"
+      },
+      {
+        "line": 328,
+        "original": "memory.store_pattern(pattern.clone()).unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(pattern.clone())?;"
+      },
+      {
+        "line": 330,
+        "original": "let results = memory.find_similar(&pattern, 0.9, 10).unwrap();",
+        "category": "other",
+        "suggested": "let results = memory.find_similar(&pattern, 0.9, 10)?;"
+      },
+      {
+        "line": 341,
+        "original": "memory.store_pattern(create_test_pattern(\"docker-1\", \"docker\")).unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(create_test_pattern(\"docker-1\", \"docker\"))?;"
+      },
+      {
+        "line": 342,
+        "original": "memory.store_pattern(create_test_pattern(\"docker-2\", \"docker\")).unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(create_test_pattern(\"docker-2\", \"docker\"))?;"
+      },
+      {
+        "line": 343,
+        "original": "memory.store_pattern(create_test_pattern(\"kubectl-1\", \"kubectl\")).unwrap();",
+        "category": "other",
+        "suggested": "memory.store_pattern(create_test_pattern(\"kubectl-1\", \"kubectl\"))?;"
+      },
+      {
+        "line": 347,
+        "original": "let results = memory.find_similar(&query, 0.7, 10).unwrap();",
+        "category": "other",
+        "suggested": "let results = memory.find_similar(&query, 0.7, 10)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/resources/storage_manager.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 428,
+        "original": "let allocation = manager.allocate(&service_id, 1024).await.unwrap();",
+        "category": "other",
+        "suggested": "let allocation = manager.allocate(&service_id, 1024).await?;"
+      },
+      {
+        "line": 435,
+        "original": "manager.release(&service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.release(&service_id).await?;"
+      },
+      {
+        "line": 444,
+        "original": "manager.allocate(&service_id, 500).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.allocate(&service_id, 500).await?;"
+      },
+      {
+        "line": 447,
+        "original": "let resized = manager.resize_allocation(&service_id, 1000).await.unwrap();",
+        "category": "other",
+        "suggested": "let resized = manager.resize_allocation(&service_id, 1000).await?;"
+      },
+      {
+        "line": 452,
+        "original": "let resized = manager.resize_allocation(&service_id, 250).await.unwrap();",
+        "category": "other",
+        "suggested": "let resized = manager.resize_allocation(&service_id, 250).await?;"
+      },
+      {
+        "line": 462,
+        "original": "manager.allocate(&service_id, 1024).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.allocate(&service_id, 1024).await?;"
+      },
+      {
+        "line": 465,
+        "original": "manager.set_io_limits(&service_id, Some(1000), Some(100)).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.set_io_limits(&service_id, Some(1000), Some(100)).await?;"
+      },
+      {
+        "line": 467,
+        "original": "let allocation = manager.allocations.get(&service_id).unwrap();",
+        "category": "other",
+        "suggested": "let allocation = manager.allocations.get(&service_id)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/query_parser.rs",
+    "unwraps": 8,
+    "fixes": [
+      {
+        "line": 223,
+        "original": "Regex::new(r\"find|search|look for|locate|discover\").unwrap(),",
+        "category": "regex",
+        "suggested": "Regex::new(r\"find|search|look for|locate|discover\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 224,
+        "original": "Regex::new(r\"what is|who is|where is|when is\").unwrap(),",
+        "category": "regex",
+        "suggested": "Regex::new(r\"what is|who is|where is|when is\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 229,
+        "original": "Regex::new(r\"sum|total|average|count|statistics\").unwrap(),",
+        "category": "regex",
+        "suggested": "Regex::new(r\"sum|total|average|count|statistics\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 230,
+        "original": "Regex::new(r\"aggregate|combine|merge|collect\").unwrap(),",
+        "category": "regex",
+        "suggested": "Regex::new(r\"aggregate|combine|merge|collect\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 235,
+        "original": "Regex::new(r\"create|update|delete|modify|execute\").unwrap(),",
+        "category": "regex",
+        "suggested": "Regex::new(r\"create|update|delete|modify|execute\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 236,
+        "original": "Regex::new(r\"run|start|stop|deploy|configure\").unwrap(),",
+        "category": "regex",
+        "suggested": "Regex::new(r\"run|start|stop|deploy|configure\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 318,
+        "original": "Regex::new(r\"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\").unwrap()",
+        "category": "regex",
+        "suggested": "Regex::new(r\"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\").expect(\"Invalid regex pattern\")"
+      },
+      {
+        "line": 323,
+        "original": "Regex::new(r\"\\b\\d+\\.?\\d*\\b\").unwrap()",
+        "category": "regex",
+        "suggested": "Regex::new(r\"\\b\\d+\\.?\\d*\\b\").expect(\"Invalid regex pattern\")"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/services/registry.rs",
+    "unwraps": 7,
+    "fixes": [
+      {
+        "line": 342,
+        "original": "registry.register_service(metadata.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "registry.register_service(metadata.clone()).await?;"
+      },
+      {
+        "line": 344,
+        "original": "let retrieved = registry.get_service(metadata.id).await.unwrap();",
+        "category": "other",
+        "suggested": "let retrieved = registry.get_service(metadata.id).await?;"
+      },
+      {
+        "line": 381,
+        "original": "handle.await.unwrap().unwrap();",
+        "category": "other",
+        "suggested": "handle.await??;"
+      },
+      {
+        "line": 384,
+        "original": "let services = registry.list_services().await.unwrap();",
+        "category": "other",
+        "suggested": "let services = registry.list_services().await?;"
+      },
+      {
+        "line": 410,
+        "original": "registry.register_service(metadata.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "registry.register_service(metadata.clone()).await?;"
+      },
+      {
+        "line": 413,
+        "original": "registry.update_service_state(metadata.id, DeploymentState::Running).await.unwrap();",
+        "category": "other",
+        "suggested": "registry.update_service_state(metadata.id, DeploymentState::Running).await?;"
+      },
+      {
+        "line": 415,
+        "original": "let updated = registry.get_service(metadata.id).await.unwrap();",
+        "category": "other",
+        "suggested": "let updated = registry.get_service(metadata.id).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/actor.rs",
+    "unwraps": 7,
+    "fixes": [
+      {
+        "line": 442,
+        "original": "let servers = runtime.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = runtime.list_servers().await?;"
+      },
+      {
+        "line": 460,
+        "original": "let server_id = runtime.deploy(server_config).await.unwrap();",
+        "category": "other",
+        "suggested": "let server_id = runtime.deploy(server_config).await?;"
+      },
+      {
+        "line": 464,
+        "original": "let servers = runtime.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = runtime.list_servers().await?;"
+      },
+      {
+        "line": 469,
+        "original": "let metrics = runtime.get_metrics(None).await.unwrap();",
+        "category": "other",
+        "suggested": "let metrics = runtime.get_metrics(None).await?;"
+      },
+      {
+        "line": 474,
+        "original": "runtime.undeploy(&server_id).await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.undeploy(&server_id).await?;"
+      },
+      {
+        "line": 477,
+        "original": "let servers = runtime.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = runtime.list_servers().await?;"
+      },
+      {
+        "line": 481,
+        "original": "runtime.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "runtime.shutdown().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/server_types/monitoring.rs",
+    "unwraps": 7,
+    "fixes": [
+      {
+        "line": 46,
+        "original": "let obj = config.as_object().unwrap();",
+        "category": "other",
+        "suggested": "let obj = config.as_object()?;"
+      },
+      {
+        "line": 259,
+        "original": "let transformed = handler.transform_response(response).await.unwrap();",
+        "category": "other",
+        "suggested": "let transformed = handler.transform_response(response).await?;"
+      },
+      {
+        "line": 260,
+        "original": "let obj = transformed.as_object().unwrap();",
+        "category": "other",
+        "suggested": "let obj = transformed.as_object()?;"
+      },
+      {
+        "line": 263,
+        "original": "let std_metrics = obj.get(\"standardized_metrics\").unwrap().as_object().unwrap();",
+        "category": "other",
+        "suggested": "let std_metrics = obj.get(\"standardized_metrics\")?.as_object()?;"
+      },
+      {
+        "line": 265,
+        "original": "assert!(std_metrics.get(\"cpu\").unwrap().get(\"value\").unwrap().as_f64().unwrap() == 45.5);",
+        "category": "other",
+        "suggested": "assert!(std_metrics.get(\"cpu\")?.get(\"value\")?.as_f64()? == 45.5);"
+      },
+      {
+        "line": 266,
+        "original": "assert!(std_metrics.get(\"memory\").unwrap().get(\"value\").unwrap().as_f64().unwrap() == 1024.0);",
+        "category": "other",
+        "suggested": "assert!(std_metrics.get(\"memory\")?.get(\"value\")?.as_f64()? == 1024.0);"
+      },
+      {
+        "line": 267,
+        "original": "assert!(std_metrics.get(\"disk\").unwrap().get(\"value\").unwrap().as_f64().unwrap() == 80.0);",
+        "category": "other",
+        "suggested": "assert!(std_metrics.get(\"disk\")?.get(\"value\")?.as_f64()? == 80.0);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/distributed/failover.rs",
+    "unwraps": 7,
+    "fixes": [
+      {
+        "line": 248,
+        "original": "healthy_backups.choose(&mut rand::thread_rng()).unwrap()",
+        "category": "other",
+        "suggested": "healthy_backups.choose(&mut rand::thread_rng())?"
+      },
+      {
+        "line": 254,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      },
+      {
+        "line": 364,
+        "original": "Arc::new(McpServer::new(id.to_string(), config).unwrap())",
+        "category": "other",
+        "suggested": "Arc::new(McpServer::new(id.to_string(), config)?)"
+      },
+      {
+        "line": 379,
+        "original": "let backup_id = manager.handle_failure(\"primary-1\").await.unwrap();",
+        "category": "other",
+        "suggested": "let backup_id = manager.handle_failure(\"primary-1\").await?;"
+      },
+      {
+        "line": 398,
+        "original": "let backup_id = manager.handle_failure(\"primary-1\").await.unwrap();",
+        "category": "other",
+        "suggested": "let backup_id = manager.handle_failure(\"primary-1\").await?;"
+      },
+      {
+        "line": 413,
+        "original": "manager.handle_failure(\"primary-1\").await.unwrap();",
+        "category": "other",
+        "suggested": "manager.handle_failure(\"primary-1\").await?;"
+      },
+      {
+        "line": 421,
+        "original": ".unwrap();",
+        "category": "other",
+        "suggested": "?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/memory/hybrid.rs",
+    "unwraps": 7,
+    "fixes": [
+      {
+        "line": 408,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 414,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 420,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 432,
+        "original": "let result = memory.query(query).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = memory.query(query).await?;"
+      },
+      {
+        "line": 453,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 459,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 471,
+        "original": "let result = memory.query(query).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = memory.query(query).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/network/service_mesh.rs",
+    "unwraps": 7,
+    "fixes": [
+      {
+        "line": 384,
+        "original": "mesh.register_service(&service_id, \"test-service\".to_string()).await.unwrap();",
+        "category": "other",
+        "suggested": "mesh.register_service(&service_id, \"test-service\".to_string()).await?;"
+      },
+      {
+        "line": 394,
+        "original": "mesh.add_endpoint(&service_id, endpoint).await.unwrap();",
+        "category": "other",
+        "suggested": "mesh.add_endpoint(&service_id, endpoint).await?;"
+      },
+      {
+        "line": 397,
+        "original": "let endpoints = mesh.discover_service(\"test-service\").await.unwrap();",
+        "category": "other",
+        "suggested": "let endpoints = mesh.discover_service(\"test-service\").await?;"
+      },
+      {
+        "line": 406,
+        "original": "mesh.register_service(&service_id, \"policy-test\".to_string()).await.unwrap();",
+        "category": "other",
+        "suggested": "mesh.register_service(&service_id, \"policy-test\".to_string()).await?;"
+      },
+      {
+        "line": 409,
+        "original": "let policy = mesh.get_traffic_policy(\"policy-test\").await.unwrap();",
+        "category": "other",
+        "suggested": "let policy = mesh.get_traffic_policy(\"policy-test\").await?;"
+      },
+      {
+        "line": 416,
+        "original": "mesh.update_traffic_policy(\"policy-test\", new_policy).await.unwrap();",
+        "category": "other",
+        "suggested": "mesh.update_traffic_policy(\"policy-test\", new_policy).await?;"
+      },
+      {
+        "line": 418,
+        "original": "let updated = mesh.get_traffic_policy(\"policy-test\").await.unwrap();",
+        "category": "other",
+        "suggested": "let updated = mesh.get_traffic_policy(\"policy-test\").await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/memory/tensor.rs",
+    "unwraps": 7,
+    "fixes": [
+      {
+        "line": 725,
+        "original": "let memory = TensorMemory::new(config).unwrap();",
+        "category": "other",
+        "suggested": "let memory = TensorMemory::new(config)?;"
+      },
+      {
+        "line": 750,
+        "original": "memory.store(pattern.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.store(pattern.clone()).await?;"
+      },
+      {
+        "line": 753,
+        "original": "let results = memory.find_similar(&vec![0.5; 128], 0.9).await.unwrap();",
+        "category": "other",
+        "suggested": "let results = memory.find_similar(&vec![0.5; 128], 0.9).await?;"
+      },
+      {
+        "line": 767,
+        "original": "let memory = TensorMemory::new(config).unwrap();",
+        "category": "other",
+        "suggested": "let memory = TensorMemory::new(config)?;"
+      },
+      {
+        "line": 791,
+        "original": "memory.store(pattern).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.store(pattern).await?;"
+      },
+      {
+        "line": 802,
+        "original": "memory.update_stats(\"stats-test\", &execution_result).await.unwrap();",
+        "category": "other",
+        "suggested": "memory.update_stats(\"stats-test\", &execution_result).await?;"
+      },
+      {
+        "line": 805,
+        "original": "let updated = memory.patterns.get(\"stats-test\").unwrap();",
+        "category": "other",
+        "suggested": "let updated = memory.patterns.get(\"stats-test\")?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/services/lifecycle.rs",
+    "unwraps": 6,
+    "fixes": [
+      {
+        "line": 483,
+        "original": "manager.register_service(service_id, vec![]).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.register_service(service_id, vec![]).await?;"
+      },
+      {
+        "line": 486,
+        "original": "let state = manager.get_service_state(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "let state = manager.get_service_state(service_id).await?;"
+      },
+      {
+        "line": 490,
+        "original": "manager.start_service(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.start_service(service_id).await?;"
+      },
+      {
+        "line": 492,
+        "original": "let state = manager.get_service_state(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "let state = manager.get_service_state(service_id).await?;"
+      },
+      {
+        "line": 496,
+        "original": "manager.stop_service(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.stop_service(service_id).await?;"
+      },
+      {
+        "line": 498,
+        "original": "let state = manager.get_service_state(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "let state = manager.get_service_state(service_id).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/manager_v2.rs",
+    "unwraps": 6,
+    "fixes": [
+      {
+        "line": 246,
+        "original": "manager.initialize().await.unwrap();",
+        "category": "other",
+        "suggested": "manager.initialize().await?;"
+      },
+      {
+        "line": 249,
+        "original": "let servers = manager.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = manager.list_servers().await?;"
+      },
+      {
+        "line": 253,
+        "original": "let metrics = manager.get_metrics(None).await.unwrap();",
+        "category": "other",
+        "suggested": "let metrics = manager.get_metrics(None).await?;"
+      },
+      {
+        "line": 257,
+        "original": "manager.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "manager.shutdown().await?;"
+      },
+      {
+        "line": 280,
+        "original": "let server_id = manager.deploy_server(manager.config.servers[0].clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "let server_id = manager.deploy_server(manager.config.servers[0].clone()).await?;"
+      },
+      {
+        "line": 290,
+        "original": "manager.shutdown().await.unwrap();",
+        "category": "other",
+        "suggested": "manager.shutdown().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/server_types/infrastructure.rs",
+    "unwraps": 6,
+    "fixes": [
+      {
+        "line": 47,
+        "original": "let obj = config.as_object().unwrap();",
+        "category": "other",
+        "suggested": "let obj = config.as_object()?;"
+      },
+      {
+        "line": 195,
+        "original": "let transformed = handler.transform_request(request).await.unwrap();",
+        "category": "other",
+        "suggested": "let transformed = handler.transform_request(request).await?;"
+      },
+      {
+        "line": 196,
+        "original": "let obj = transformed.as_object().unwrap();",
+        "category": "other",
+        "suggested": "let obj = transformed.as_object()?;"
+      },
+      {
+        "line": 211,
+        "original": "let transformed = handler.transform_response(response).await.unwrap();",
+        "category": "other",
+        "suggested": "let transformed = handler.transform_response(response).await?;"
+      },
+      {
+        "line": 212,
+        "original": "let obj = transformed.as_object().unwrap();",
+        "category": "other",
+        "suggested": "let obj = transformed.as_object()?;"
+      },
+      {
+        "line": 214,
+        "original": "assert_eq!(obj.get(\"standard_status\").unwrap().as_str().unwrap(), \"ok\");",
+        "category": "other",
+        "suggested": "assert_eq!(obj.get(\"standard_status\")?.as_str()?, \"ok\");"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/resources/memory_manager.rs",
+    "unwraps": 6,
+    "fixes": [
+      {
+        "line": 353,
+        "original": "let allocation = manager.allocate(&service_id, 1024).await.unwrap();",
+        "category": "other",
+        "suggested": "let allocation = manager.allocate(&service_id, 1024).await?;"
+      },
+      {
+        "line": 364,
+        "original": "manager.release(&service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.release(&service_id).await?;"
+      },
+      {
+        "line": 373,
+        "original": "manager.allocate(&service_id, 512).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.allocate(&service_id, 512).await?;"
+      },
+      {
+        "line": 376,
+        "original": "let updated = manager.update_allocation(&service_id, 1024).await.unwrap();",
+        "category": "other",
+        "suggested": "let updated = manager.update_allocation(&service_id, 1024).await?;"
+      },
+      {
+        "line": 381,
+        "original": "let updated = manager.update_allocation(&service_id, 256).await.unwrap();",
+        "category": "other",
+        "suggested": "let updated = manager.update_allocation(&service_id, 256).await?;"
+      },
+      {
+        "line": 398,
+        "original": "let allocation = manager.allocate(&service_id, 1024).await.unwrap();",
+        "category": "other",
+        "suggested": "let allocation = manager.allocate(&service_id, 1024).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/memory_mapped.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 428,
+        "original": "fs::write(test_file, test_content).unwrap();",
+        "category": "other",
+        "suggested": "fs::write(test_file, test_content)?;"
+      },
+      {
+        "line": 431,
+        "original": "let mmap_file = MemoryMappedFile::new(test_file.to_string(), None).unwrap();",
+        "category": "file",
+        "suggested": "let mmap_file = MemoryMappedFile::new(test_file.to_string(), None).map_err(|e| anyhow::anyhow!(\"File error: {}\", e))?;"
+      },
+      {
+        "line": 435,
+        "original": "let slice = mmap_file.read_slice(0, 5).unwrap();",
+        "category": "other",
+        "suggested": "let slice = mmap_file.read_slice(0, 5)?;"
+      },
+      {
+        "line": 438,
+        "original": "let line_count = mmap_file.count_lines().unwrap();",
+        "category": "other",
+        "suggested": "let line_count = mmap_file.count_lines()?;"
+      },
+      {
+        "line": 460,
+        "original": "let stats = cache.get_stats().unwrap();",
+        "category": "other",
+        "suggested": "let stats = cache.get_stats()?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/adaptive_learning.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 211,
+        "original": "self.process_single_pattern_optimized(pattern.to_slice().unwrap())",
+        "category": "other",
+        "suggested": "self.process_single_pattern_optimized(pattern.to_slice()?)"
+      },
+      {
+        "line": 295,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      },
+      {
+        "line": 735,
+        "original": "dict.set_item(\"pattern_id\", &pattern.pattern_id).unwrap();",
+        "category": "other",
+        "suggested": "dict.set_item(\"pattern_id\", &pattern.pattern_id)?;"
+      },
+      {
+        "line": 736,
+        "original": "dict.set_item(\"confidence\", pattern.confidence).unwrap();",
+        "category": "other",
+        "suggested": "dict.set_item(\"confidence\", pattern.confidence)?;"
+      },
+      {
+        "line": 737,
+        "original": "dict.set_item(\"enhancement_score\", pattern.enhancement_score).unwrap();",
+        "category": "other",
+        "suggested": "dict.set_item(\"enhancement_score\", pattern.enhancement_score)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/zero_copy_net.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 260,
+        "original": "let runtime = tokio::runtime::Runtime::new().unwrap();",
+        "category": "other",
+        "suggested": "let runtime = tokio::runtime::Runtime::new()?;"
+      },
+      {
+        "line": 392,
+        "original": "let runtime = tokio::runtime::Runtime::new().unwrap();",
+        "category": "other",
+        "suggested": "let runtime = tokio::runtime::Runtime::new()?;"
+      },
+      {
+        "line": 618,
+        "original": "let read_result = buffer.read_data(3).unwrap();",
+        "category": "other",
+        "suggested": "let read_result = buffer.read_data(3)?;"
+      },
+      {
+        "line": 621,
+        "original": "let stats = buffer.get_stats().unwrap();",
+        "category": "other",
+        "suggested": "let stats = buffer.get_stats()?;"
+      },
+      {
+        "line": 646,
+        "original": "let stats = pool.get_pool_stats().unwrap();",
+        "category": "other",
+        "suggested": "let stats = pool.get_pool_stats()?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/services/health_check.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 131,
+        "original": "(now - task.last_check.unwrap()).num_seconds() >= task.current_interval_secs as i64",
+        "category": "other",
+        "suggested": "(now - task.last_check?).num_seconds() >= task.current_interval_secs as i64"
+      },
+      {
+        "line": 147,
+        "original": "let _permit = permit.unwrap();",
+        "category": "other",
+        "suggested": "let _permit = permit?;"
+      },
+      {
+        "line": 435,
+        "original": "checker.start().await.unwrap();",
+        "category": "other",
+        "suggested": "checker.start().await?;"
+      },
+      {
+        "line": 442,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 444,
+        "original": "checker.stop().await.unwrap();",
+        "category": "other",
+        "suggested": "checker.stop().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/orchestrator/scheduler.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 413,
+        "original": "scheduler.schedule_deployment(task.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "scheduler.schedule_deployment(task.clone()).await?;"
+      },
+      {
+        "line": 420,
+        "original": "assert_eq!(next_task.unwrap().service_id, task.service_id);",
+        "category": "other",
+        "suggested": "assert_eq!(next_task?.service_id, task.service_id);"
+      },
+      {
+        "line": 456,
+        "original": "scheduler.schedule_deployment(low_priority.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "scheduler.schedule_deployment(low_priority.clone()).await?;"
+      },
+      {
+        "line": 457,
+        "original": "scheduler.schedule_deployment(high_priority.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "scheduler.schedule_deployment(high_priority.clone()).await?;"
+      },
+      {
+        "line": 460,
+        "original": "let next = scheduler.get_next_task().await.unwrap();",
+        "category": "other",
+        "suggested": "let next = scheduler.get_next_task().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/reliability/recovery.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 418,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 422,
+        "original": "assert_eq!(status.unwrap().strategy, RecoveryStrategy::Restart);",
+        "category": "other",
+        "suggested": "assert_eq!(status?.strategy, RecoveryStrategy::Restart);"
+      },
+      {
+        "line": 434,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 436,
+        "original": "manager.cancel_recovery(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.cancel_recovery(service_id).await?;"
+      },
+      {
+        "line": 452,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/network/port_allocator.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 314,
+        "original": "let allocation = allocator.allocate_port(&service_id, Protocol::Http).await.unwrap();",
+        "category": "other",
+        "suggested": "let allocation = allocator.allocate_port(&service_id, Protocol::Http).await?;"
+      },
+      {
+        "line": 323,
+        "original": "allocator.release_port(&service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "allocator.release_port(&service_id).await?;"
+      },
+      {
+        "line": 343,
+        "original": "allocator.allocate_port(&service_id, Protocol::Tcp).await.unwrap();",
+        "category": "other",
+        "suggested": "allocator.allocate_port(&service_id, Protocol::Tcp).await?;"
+      },
+      {
+        "line": 352,
+        "original": "allocator.release_port(&service_ids[0]).await.unwrap();",
+        "category": "other",
+        "suggested": "allocator.release_port(&service_ids[0]).await?;"
+      },
+      {
+        "line": 368,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/resources/cpu_manager.rs",
+    "unwraps": 5,
+    "fixes": [
+      {
+        "line": 321,
+        "original": "let allocation = manager.allocate(&service_id, 2.0).await.unwrap();",
+        "category": "other",
+        "suggested": "let allocation = manager.allocate(&service_id, 2.0).await?;"
+      },
+      {
+        "line": 332,
+        "original": "manager.release(&service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.release(&service_id).await?;"
+      },
+      {
+        "line": 341,
+        "original": "manager.allocate(&service_id, 1.0).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.allocate(&service_id, 1.0).await?;"
+      },
+      {
+        "line": 344,
+        "original": "let updated = manager.update_allocation(&service_id, 2.0).await.unwrap();",
+        "category": "other",
+        "suggested": "let updated = manager.update_allocation(&service_id, 2.0).await?;"
+      },
+      {
+        "line": 349,
+        "original": "let updated = manager.update_allocation(&service_id, 0.5).await.unwrap();",
+        "category": "other",
+        "suggested": "let updated = manager.update_allocation(&service_id, 0.5).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/orchestrator/executor.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 402,
+        "original": "let result = executor.execute_deployment(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = executor.execute_deployment(service_id).await?;"
+      },
+      {
+        "line": 430,
+        "original": "executor_clone.cancel_execution(service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "executor_clone.cancel_execution(service_id).await?;"
+      },
+      {
+        "line": 433,
+        "original": "let result = exec_handle.await.unwrap();",
+        "category": "other",
+        "suggested": "let result = exec_handle.await?;"
+      },
+      {
+        "line": 434,
+        "original": "assert!(result.is_err() || !result.unwrap().success);",
+        "category": "other",
+        "suggested": "assert!(result.is_err() || !result?.success);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/orchestrator/engine.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 397,
+        "original": "let engine = OrchestrationEngine::new(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let engine = OrchestrationEngine::new(config).await?;"
+      },
+      {
+        "line": 398,
+        "original": "assert!(engine.list_services().await.unwrap().is_empty());",
+        "category": "other",
+        "suggested": "assert!(engine.list_services().await?.is_empty());"
+      },
+      {
+        "line": 404,
+        "original": "let engine = OrchestrationEngine::new(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let engine = OrchestrationEngine::new(config).await?;"
+      },
+      {
+        "line": 416,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/negotiation.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 773,
+        "original": "proposals.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());",
+        "category": "other",
+        "suggested": "proposals.sort_by(|a, b| b.score.partial_cmp(&a.score)?);"
+      },
+      {
+        "line": 994,
+        "original": "negotiator.register_plugin(&provider_metadata).await.unwrap();",
+        "category": "other",
+        "suggested": "negotiator.register_plugin(&provider_metadata).await?;"
+      },
+      {
+        "line": 1001,
+        "original": "let session_id = negotiator.start_negotiation(\"test-consumer\", required).await.unwrap();",
+        "category": "other",
+        "suggested": "let session_id = negotiator.start_negotiation(\"test-consumer\", required).await?;"
+      },
+      {
+        "line": 1007,
+        "original": "let status = negotiator.check_negotiation_status(&session_id).await.unwrap();",
+        "category": "other",
+        "suggested": "let status = negotiator.check_negotiation_status(&session_id).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/rollback.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 763,
+        "original": "let strategy = strategies.get(&self.config.default_strategy).unwrap();",
+        "category": "other",
+        "suggested": "let strategy = strategies.get(&self.config.default_strategy)?;"
+      },
+      {
+        "line": 783,
+        "original": "let session = sessions.get_mut(&session_id).unwrap();",
+        "category": "other",
+        "suggested": "let session = sessions.get_mut(&session_id)?;"
+      },
+      {
+        "line": 802,
+        "original": "let session = sessions.get_mut(&session_id).unwrap();",
+        "category": "other",
+        "suggested": "let session = sessions.get_mut(&session_id)?;"
+      },
+      {
+        "line": 833,
+        "original": "let session = sessions.get_mut(&session_id).unwrap();",
+        "category": "other",
+        "suggested": "let session = sessions.get_mut(&session_id)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bash_god/command_chain.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 277,
+        "original": "let first_char = self.input.chars().nth(self.position).unwrap();",
+        "category": "other",
+        "suggested": "let first_char = self.input.chars().nth(self.position)?;"
+      },
+      {
+        "line": 475,
+        "original": "let ch = self.input.chars().nth(self.position).unwrap();",
+        "category": "other",
+        "suggested": "let ch = self.input.chars().nth(self.position)?;"
+      },
+      {
+        "line": 506,
+        "original": "if !self.input.chars().nth(self.position).unwrap().is_whitespace() {",
+        "category": "other",
+        "suggested": "if !self.input.chars().nth(self.position)?.is_whitespace() {"
+      },
+      {
+        "line": 530,
+        "original": "let ch = self.input.chars().nth(self.position).unwrap();",
+        "category": "other",
+        "suggested": "let ch = self.input.chars().nth(self.position)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bash_god/execution_engine.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 376,
+        "original": "let engine = ExecutionEngine::new(config).unwrap();",
+        "category": "other",
+        "suggested": "let engine = ExecutionEngine::new(config)?;"
+      },
+      {
+        "line": 381,
+        "original": "let result = engine.execute(chain).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = engine.execute(chain).await?;"
+      },
+      {
+        "line": 389,
+        "original": "let engine = ExecutionEngine::new(config).unwrap();",
+        "category": "other",
+        "suggested": "let engine = ExecutionEngine::new(config)?;"
+      },
+      {
+        "line": 397,
+        "original": "let results = engine.execute_parallel(chains).await.unwrap();",
+        "category": "other",
+        "suggested": "let results = engine.execute_parallel(chains).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/learning_engine/pattern_detector.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 270,
+        "original": "if best_match.is_none() || similarity > best_match.as_ref().unwrap().1 {",
+        "category": "other",
+        "suggested": "if best_match.is_none() || similarity > best_match.as_ref()?.1 {"
+      },
+      {
+        "line": 631,
+        "original": "detector.record_pattern(pattern).unwrap();",
+        "category": "other",
+        "suggested": "detector.record_pattern(pattern)?;"
+      },
+      {
+        "line": 634,
+        "original": "let detected = detector.detect_patterns(&commands).unwrap();",
+        "category": "other",
+        "suggested": "let detected = detector.detect_patterns(&commands)?;"
+      },
+      {
+        "line": 650,
+        "original": "let groups = detector.identify_parallel_groups(&commands).unwrap();",
+        "category": "other",
+        "suggested": "let groups = detector.identify_parallel_groups(&commands)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/python_bindings.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 587,
+        "original": "let module = PyModule::new(py, \"test_synthex_bashgod\").unwrap();",
+        "category": "other",
+        "suggested": "let module = PyModule::new(py, \"test_synthex_bashgod\")?;"
+      },
+      {
+        "line": 588,
+        "original": "synthex_bashgod(py, module).unwrap();",
+        "category": "other",
+        "suggested": "synthex_bashgod(py, module)?;"
+      },
+      {
+        "line": 590,
+        "original": "assert!(module.hasattr(\"PySynthexBashGod\").unwrap());",
+        "category": "other",
+        "suggested": "assert!(module.hasattr(\"PySynthexBashGod\")?);"
+      },
+      {
+        "line": 591,
+        "original": "assert!(module.hasattr(\"__version__\").unwrap());",
+        "category": "other",
+        "suggested": "assert!(module.hasattr(\"__version__\")?);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/flow_control.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 391,
+        "original": "let permit1 = controller.acquire().await.unwrap();",
+        "category": "other",
+        "suggested": "let permit1 = controller.acquire().await?;"
+      },
+      {
+        "line": 392,
+        "original": "let permit2 = controller.acquire().await.unwrap();",
+        "category": "other",
+        "suggested": "let permit2 = controller.acquire().await?;"
+      },
+      {
+        "line": 399,
+        "original": "assert!(result.is_err() || result.unwrap().is_err());",
+        "category": "other",
+        "suggested": "assert!(result.is_err() || result?.is_err());"
+      },
+      {
+        "line": 406,
+        "original": "let _permit3 = controller.acquire().await.unwrap();",
+        "category": "other",
+        "suggested": "let _permit3 = controller.acquire().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/mcp_integration/tool_enhancer.rs",
+    "unwraps": 4,
+    "fixes": [
+      {
+        "line": 313,
+        "original": "bash_pattern: regex::Regex::new(pattern).unwrap(),",
+        "category": "regex",
+        "suggested": "bash_pattern: regex::Regex::new(pattern).expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 328,
+        "original": "bash_pattern: regex::Regex::new(pattern).unwrap(),",
+        "category": "regex",
+        "suggested": "bash_pattern: regex::Regex::new(pattern).expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 343,
+        "original": "bash_pattern: regex::Regex::new(pattern).unwrap(),",
+        "category": "regex",
+        "suggested": "bash_pattern: regex::Regex::new(pattern).expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 358,
+        "original": "bash_pattern: regex::Regex::new(pattern).unwrap(),",
+        "category": "regex",
+        "suggested": "bash_pattern: regex::Regex::new(pattern).expect(\"Invalid regex pattern\"),"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/server.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 305,
+        "original": "let server = McpServer::new(\"test-1\".to_string(), config).unwrap();",
+        "category": "other",
+        "suggested": "let server = McpServer::new(\"test-1\".to_string(), config)?;"
+      },
+      {
+        "line": 316,
+        "original": "let server = McpServer::new(\"test-1\".to_string(), config).unwrap();",
+        "category": "other",
+        "suggested": "let server = McpServer::new(\"test-1\".to_string(), config)?;"
+      },
+      {
+        "line": 330,
+        "original": "let server = McpServer::new(\"test-1\".to_string(), config).unwrap();",
+        "category": "other",
+        "suggested": "let server = McpServer::new(\"test-1\".to_string(), config)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/deployment.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 428,
+        "original": "let server = manager.deploy_server(\"test-1\".to_string(), server_config).await.unwrap();",
+        "category": "other",
+        "suggested": "let server = manager.deploy_server(\"test-1\".to_string(), server_config).await?;"
+      },
+      {
+        "line": 444,
+        "original": "manager.deploy_server(\"test-1\".to_string(), server_config).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.deploy_server(\"test-1\".to_string(), server_config).await?;"
+      },
+      {
+        "line": 446,
+        "original": "let info = manager.get_deployment(\"test-1\").await.unwrap();",
+        "category": "other",
+        "suggested": "let info = manager.get_deployment(\"test-1\").await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/registry.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 103,
+        "original": "let server = Arc::new(McpServer::new(\"test\".to_string(), config).unwrap());",
+        "category": "other",
+        "suggested": "let server = Arc::new(McpServer::new(\"test\".to_string(), config)?);"
+      },
+      {
+        "line": 106,
+        "original": "registry.register(\"test\".to_string(), server.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "registry.register(\"test\".to_string(), server.clone()).await?;"
+      },
+      {
+        "line": 119,
+        "original": "registry.unregister(\"test\").await.unwrap();",
+        "category": "other",
+        "suggested": "registry.unregister(\"test\").await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/capabilities.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 601,
+        "original": "manager.register_capability(def.clone()).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.register_capability(def.clone()).await?;"
+      },
+      {
+        "line": 616,
+        "original": ").await.unwrap();",
+        "category": "other",
+        "suggested": ").await?;"
+      },
+      {
+        "line": 618,
+        "original": "let provider = manager.find_provider(&capability).await.unwrap();",
+        "category": "other",
+        "suggested": "let provider = manager.find_provider(&capability).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/memory/optimization.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 380,
+        "original": "assert_eq!(heap.pop().unwrap().entry_id, \"low\");",
+        "category": "other",
+        "suggested": "assert_eq!(heap.pop()?.entry_id, \"low\");"
+      },
+      {
+        "line": 381,
+        "original": "assert_eq!(heap.pop().unwrap().entry_id, \"medium\");",
+        "category": "other",
+        "suggested": "assert_eq!(heap.pop()?.entry_id, \"medium\");"
+      },
+      {
+        "line": 382,
+        "original": "assert_eq!(heap.pop().unwrap().entry_id, \"high\");",
+        "category": "other",
+        "suggested": "assert_eq!(heap.pop()?.entry_id, \"high\");"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/network/load_balancer.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 449,
+        "original": "let selected1 = lb.select_backend(None).unwrap();",
+        "category": "other",
+        "suggested": "let selected1 = lb.select_backend(None)?;"
+      },
+      {
+        "line": 453,
+        "original": "let selected2 = lb.select_backend(None).unwrap();",
+        "category": "other",
+        "suggested": "let selected2 = lb.select_backend(None)?;"
+      },
+      {
+        "line": 460,
+        "original": "let selected3 = lb.select_backend(None).unwrap();",
+        "category": "other",
+        "suggested": "let selected3 = lb.select_backend(None)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bash_god/learning_system.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 575,
+        "original": "let first = self.values.front().unwrap();",
+        "category": "other",
+        "suggested": "let first = self.values.front()?;"
+      },
+      {
+        "line": 576,
+        "original": "let last = self.values.back().unwrap();",
+        "category": "other",
+        "suggested": "let last = self.values.back()?;"
+      },
+      {
+        "line": 715,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/learning_engine/optimizer.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 670,
+        "original": "let (src, dst) = graph.edge_endpoints(e).unwrap();",
+        "category": "other",
+        "suggested": "let (src, dst) = graph.edge_endpoints(e)?;"
+      },
+      {
+        "line": 748,
+        "original": "let result = optimizer.optimize_chain(&commands).unwrap();",
+        "category": "other",
+        "suggested": "let result = optimizer.optimize_chain(&commands)?;"
+      },
+      {
+        "line": 765,
+        "original": "let result = optimizer.optimize_chain(&commands).unwrap();",
+        "category": "other",
+        "suggested": "let result = optimizer.optimize_chain(&commands)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/learning_engine/predictor.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 575,
+        "original": "predictions.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());",
+        "category": "other",
+        "suggested": "predictions.sort_by(|a, b| b.1.partial_cmp(&a.1)?);"
+      },
+      {
+        "line": 787,
+        "original": "let result = predictor.predict_optimal_chain(&commands, &context).unwrap();",
+        "category": "other",
+        "suggested": "let result = predictor.predict_optimal_chain(&commands, &context)?;"
+      },
+      {
+        "line": 804,
+        "original": "let features = predictor.extract_features_vec(&commands).unwrap();",
+        "category": "other",
+        "suggested": "let features = predictor.extract_features_vec(&commands)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/learning/pattern_detector.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 117,
+        "original": "pattern: regex::Regex::new(r\"^(.+)$\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: regex::Regex::new(r\"^(.+)$\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 126,
+        "original": "pattern: regex::Regex::new(r\"cat\\s+.+\\s*\\|\\s*grep\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: regex::Regex::new(r\"cat\\s+.+\\s*\\|\\s*grep\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 135,
+        "original": "pattern: regex::Regex::new(r\"eval\\s+\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: regex::Regex::new(r\"eval\\s+\").expect(\"Invalid regex pattern\"),"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/learning/predictor.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 500,
+        "original": "pattern: regex::Regex::new(r\"sudo|/root/|/etc/\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: regex::Regex::new(r\"sudo|/root/|/etc/\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 512,
+        "original": "pattern: regex::Regex::new(r\"find.*-exec|grep -r|tar|zip\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: regex::Regex::new(r\"find.*-exec|grep -r|tar|zip\").expect(\"Invalid regex pattern\"),"
+      },
+      {
+        "line": 524,
+        "original": "pattern: regex::Regex::new(r\"curl|wget|git clone|docker pull\").unwrap(),",
+        "category": "regex",
+        "suggested": "pattern: regex::Regex::new(r\"curl|wget|git clone|docker pull\").expect(\"Invalid regex pattern\"),"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/performance_optimizer.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 272,
+        "original": "l1_cache: Arc::new(RwLock::new(LruCache::new(NonZeroUsize::new(l1_size).unwrap()))),",
+        "category": "other",
+        "suggested": "l1_cache: Arc::new(RwLock::new(LruCache::new(NonZeroUsize::new(l1_size)?))),"
+      },
+      {
+        "line": 609,
+        "original": "let cache = TieredCache::new(100, None).unwrap();",
+        "category": "other",
+        "suggested": "let cache = TieredCache::new(100, None)?;"
+      },
+      {
+        "line": 615,
+        "original": "assert_eq!(result.unwrap(), Bytes::from(\"value1\"));",
+        "category": "other",
+        "suggested": "assert_eq!(result?, Bytes::from(\"value1\"));"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/engine.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 351,
+        "original": "let mut engine = SynthexEngine::new(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let mut engine = SynthexEngine::new(config).await?;"
+      },
+      {
+        "line": 359,
+        "original": "let engine = SynthexEngine::new(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let engine = SynthexEngine::new(config).await?;"
+      },
+      {
+        "line": 364,
+        "original": "let status = engine.get_agent_status().await.unwrap();",
+        "category": "other",
+        "suggested": "let status = engine.get_agent_status().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/agents/api_agent.rs",
+    "unwraps": 3,
+    "fixes": [
+      {
+        "line": 169,
+        "original": "match request.try_clone().unwrap().send().await {",
+        "category": "other",
+        "suggested": "match request.try_clone()?.send().await {"
+      },
+      {
+        "line": 343,
+        "original": "all_results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());",
+        "category": "other",
+        "suggested": "all_results.sort_by(|a, b| b.score.partial_cmp(&a.score)?);"
+      },
+      {
+        "line": 371,
+        "original": "let (_, endpoint) = endpoints.iter().next().unwrap();",
+        "category": "other",
+        "suggested": "let (_, endpoint) = endpoints.iter().next()?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/connection_pool.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 474,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      },
+      {
+        "line": 485,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/async_traits.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 133,
+        "original": "assert!(op.validate().await.unwrap());",
+        "category": "other",
+        "suggested": "assert!(op.validate().await?);"
+      },
+      {
+        "line": 140,
+        "original": "assert!(op.validate().await.unwrap());",
+        "category": "other",
+        "suggested": "assert!(op.validate().await?);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/python_bindings.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 128,
+        "original": "Ok(serde_json::to_string(&response).unwrap())",
+        "category": "other",
+        "suggested": "Ok(serde_json::to_string(&response)?)"
+      },
+      {
+        "line": 196,
+        "original": "Ok(serde_json::to_string(&response).unwrap())",
+        "category": "other",
+        "suggested": "Ok(serde_json::to_string(&response)?)"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/protocols/websocket.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 460,
+        "original": "let framed = framer.frame(&message).unwrap();",
+        "category": "other",
+        "suggested": "let framed = framer.frame(&message)?;"
+      },
+      {
+        "line": 464,
+        "original": "let messages = framer.unframe(&mut data).unwrap();",
+        "category": "other",
+        "suggested": "let messages = framer.unframe(&mut data)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/protocols/mod.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 282,
+        "original": "let json = serde_json::to_string(&request).unwrap();",
+        "category": "other",
+        "suggested": "let json = serde_json::to_string(&request)?;"
+      },
+      {
+        "line": 283,
+        "original": "let deserialized: MessageType = serde_json::from_str(&json).unwrap();",
+        "category": "other",
+        "suggested": "let deserialized: MessageType = serde_json::from_str(&json)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/schema.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 390,
+        "original": "serde_json::from_value(schema).unwrap(),",
+        "category": "other",
+        "suggested": "serde_json::from_value(schema)?,"
+      },
+      {
+        "line": 581,
+        "original": "registry.register(schema).unwrap();",
+        "category": "other",
+        "suggested": "registry.register(schema)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/zero_downtime.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 1153,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      },
+      {
+        "line": 1158,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/state_transfer.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 713,
+        "original": "let json = serde_json::to_string(&snapshot).unwrap();",
+        "category": "other",
+        "suggested": "let json = serde_json::to_string(&snapshot)?;"
+      },
+      {
+        "line": 716,
+        "original": "let restored: StateSnapshot = serde_json::from_str(&json).unwrap();",
+        "category": "other",
+        "suggested": "let restored: StateSnapshot = serde_json::from_str(&json)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/circle_of_experts/test_module.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 47,
+        "original": "let consensus = result.unwrap();",
+        "category": "other",
+        "suggested": "let consensus = result?;"
+      },
+      {
+        "line": 72,
+        "original": "let matrix = consensus::compute_similarity_matrix(&responses, &config).unwrap();",
+        "category": "other",
+        "suggested": "let matrix = consensus::compute_similarity_matrix(&responses, &config)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/circle_of_experts/analyzer.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 233,
+        "original": "let min_time = *timestamps.iter().min().unwrap();",
+        "category": "other",
+        "suggested": "let min_time = *timestamps.iter().min()?;"
+      },
+      {
+        "line": 234,
+        "original": "let max_time = *timestamps.iter().max().unwrap();",
+        "category": "other",
+        "suggested": "let max_time = *timestamps.iter().max()?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/execution.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 441,
+        "original": "working_directory: std::env::current_dir().unwrap(),",
+        "category": "env",
+        "suggested": "working_directory: std::env::current_dir().expect(\"Environment variable not set\"),"
+      },
+      {
+        "line": 458,
+        "original": "let result = executor.execute(context, ExecutionConfig::default()).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = executor.execute(context, ExecutionConfig::default()).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/mod.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 635,
+        "original": "let serialized = serde_json::to_string(&chain).unwrap();",
+        "category": "other",
+        "suggested": "let serialized = serde_json::to_string(&chain)?;"
+      },
+      {
+        "line": 636,
+        "original": "let deserialized: CommandChain = serde_json::from_str(&serialized).unwrap();",
+        "category": "other",
+        "suggested": "let deserialized: CommandChain = serde_json::from_str(&serialized)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/mcp_integration/server_manager.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 120,
+        "original": ".unwrap();",
+        "category": "other",
+        "suggested": "?;"
+      },
+      {
+        "line": 475,
+        "original": "let servers = manager.list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = manager.list_servers().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/resources/mod.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 200,
+        "original": "let allocation = manager.allocate_resources(&service_id, request).await.unwrap();",
+        "category": "other",
+        "suggested": "let allocation = manager.allocate_resources(&service_id, request).await?;"
+      },
+      {
+        "line": 208,
+        "original": "manager.release_resources(&service_id).await.unwrap();",
+        "category": "other",
+        "suggested": "manager.release_resources(&service_id).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/service.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 97,
+        "original": "let service = create_synthex_service(config).await.unwrap();",
+        "category": "other",
+        "suggested": "let service = create_synthex_service(config).await?;"
+      },
+      {
+        "line": 98,
+        "original": "let status = service.get_agent_status().await.unwrap();",
+        "category": "other",
+        "suggested": "let status = service.get_agent_status().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/bashgod_optimizer.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 140,
+        "original": ".max_by(|a, b| a.score.partial_cmp(&b.score).unwrap())",
+        "category": "other",
+        "suggested": ".max_by(|a, b| a.score.partial_cmp(&b.score)?)"
+      },
+      {
+        "line": 483,
+        "original": "matching_patterns.sort_by(|a, b| b.success_rate.partial_cmp(&a.success_rate).unwrap());",
+        "category": "other",
+        "suggested": "matching_patterns.sort_by(|a, b| b.success_rate.partial_cmp(&a.success_rate)?);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/knowledge_graph.rs",
+    "unwraps": 2,
+    "fixes": [
+      {
+        "line": 193,
+        "original": "related.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());",
+        "category": "other",
+        "suggested": "related.sort_by(|a, b| a.1.partial_cmp(&b.1)?);"
+      },
+      {
+        "line": 346,
+        "original": "similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());",
+        "category": "other",
+        "suggested": "similarities.sort_by(|a, b| b.1.partial_cmp(&a.1)?);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/async_helpers.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 118,
+        "original": "}).unwrap();",
+        "category": "other",
+        "suggested": "})?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/ffi_security.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 419,
+        "original": "let safe = SafeBuffer::from_pybytes(py, &PyBytes::new(py, &normal_buffer)).unwrap();",
+        "category": "other",
+        "suggested": "let safe = SafeBuffer::from_pybytes(py, &PyBytes::new(py, &normal_buffer))?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/circuit_breaker.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 384,
+        "original": "assert_eq!(result.unwrap(), 42);",
+        "category": "other",
+        "suggested": "assert_eq!(result?, 42);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/launcher.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 300,
+        "original": "let launcher = McpLauncher::new().unwrap();",
+        "category": "other",
+        "suggested": "let launcher = McpLauncher::new()?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/migration.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 219,
+        "original": "let servers = adapter.v2().list_servers().await.unwrap();",
+        "category": "other",
+        "suggested": "let servers = adapter.v2().list_servers().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/protocol.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 109,
+        "original": ".unwrap();",
+        "category": "other",
+        "suggested": "?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/fusion/command_router.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 680,
+        "original": "let result = router.execute_bash(\"echo 'Hello, World!'\").await.unwrap();",
+        "category": "other",
+        "suggested": "let result = router.execute_bash(\"echo 'Hello, World!'\").await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/fusion/cross_tool.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 857,
+        "original": "let plan = orchestrator.build_execution_plan(&workflow).unwrap();",
+        "category": "other",
+        "suggested": "let plan = orchestrator.build_execution_plan(&workflow)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/protocols/http.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 418,
+        "original": "let protocol = protocol.unwrap();",
+        "category": "other",
+        "suggested": "let protocol = protocol?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/server_types/security.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 77,
+        "original": "let obj = config.as_object().unwrap();",
+        "category": "other",
+        "suggested": "let obj = config.as_object()?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/registry.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 526,
+        "original": "let id = registry.register(Box::new(plugin)).await.unwrap();",
+        "category": "other",
+        "suggested": "let id = registry.register(Box::new(plugin)).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/hot_reload.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 868,
+        "original": "manager.start().await.unwrap();",
+        "category": "other",
+        "suggested": "manager.start().await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/discovery.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 590,
+        "original": ").unwrap();",
+        "category": "other",
+        "suggested": ")?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/mcp_manager/plugin/mod.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 402,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/reliability/circuit_breaker.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 388,
+        "original": "assert_eq!(result.unwrap(), 42);",
+        "category": "other",
+        "suggested": "assert_eq!(result?, 42);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/reliability/retry_policy.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 334,
+        "original": "assert_eq!(result.unwrap(), 42);",
+        "category": "other",
+        "suggested": "assert_eq!(result?, 42);"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/circle_of_experts/consensus.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 656,
+        "original": "let clusters = find_consensus_clusters(&matrix, 0.7).unwrap();",
+        "category": "other",
+        "suggested": "let clusters = find_consensus_clusters(&matrix, 0.7)?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/actor.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 553,
+        "original": "tx.send(ActorMessage::Shutdown).await.unwrap();",
+        "category": "other",
+        "suggested": "tx.send(ActorMessage::Shutdown).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/supervisor.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 407,
+        "original": "supervisor.start_actor(\"test-actor\", ActorConfig::default()).await.unwrap();",
+        "category": "other",
+        "suggested": "supervisor.start_actor(\"test-actor\", ActorConfig::default()).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/messages.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 228,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/distributed.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 267,
+        "original": ".unwrap()",
+        "category": "other",
+        "suggested": "?"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/synergy/optimizer.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 695,
+        "original": "let result = optimizer.optimize(commands, vec![synergy], &context).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = optimizer.optimize(commands, vec![synergy], &context).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/synergy/detector.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 693,
+        "original": "let result = detector.detect(&commands, &context).await.unwrap();",
+        "category": "other",
+        "suggested": "let result = detector.detect(&commands, &context).await?;"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex_bashgod/memory/mod.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 252,
+        "original": "lru_cache: lru::LruCache::new(capacity.try_into().unwrap()),",
+        "category": "other",
+        "suggested": "lru_cache: lru::LruCache::new(capacity.try_into()?),"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/bin/mcp_launcher_standalone.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 211,
+        "original": "server.auth_key.as_ref().unwrap()",
+        "category": "other",
+        "suggested": "server.auth_key.as_ref()?"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/config.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 133,
+        "original": "serde_json::from_str(&serde_json::to_string(self).unwrap()).unwrap()",
+        "category": "other",
+        "suggested": "serde_json::from_str(&serde_json::to_string(self)?)?"
+      }
+    ]
+  },
+  {
+    "file": "rust_core/src/synthex/agents/database_agent.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 144,
+        "original": "all_results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());",
+        "category": "other",
+        "suggested": "all_results.sort_by(|a, b| b.score.partial_cmp(&a.score)?);"
+      }
+    ]
+  },
+  {
+    "file": "mcp_launcher_rust/src/main.rs",
+    "unwraps": 1,
+    "fixes": [
+      {
+        "line": 186,
+        "original": "server.name, server.auth_key.as_ref().unwrap());",
+        "category": "other",
+        "suggested": "server.name, server.auth_key.as_ref()?);"
+      }
+    ]
+  }
+]

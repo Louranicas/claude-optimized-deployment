@@ -1,0 +1,798 @@
+name: Container Optimization & Security
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'Dockerfile*'
+      - 'docker-compose*.yml'
+      - '.dockerignore'
+  pull_request:
+    paths:
+      - 'Dockerfile*'
+      - 'docker-compose*.yml'
+      - '.dockerignore'
+  workflow_dispatch:
+    inputs:
+      optimization_level:
+        description: 'Optimization level'
+        required: false
+        default: 'standard'
+        type: choice
+        options:
+          - minimal
+          - standard
+          - aggressive
+      security_scan_level:
+        description: 'Security scan level'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options:
+          - basic
+          - comprehensive
+          - paranoid
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  BUILDX_VERSION: '0.11.2'
+  TRIVY_VERSION: '0.45.0'
+  HADOLINT_VERSION: '2.12.0'
+
+jobs:
+  # Dockerfile linting and optimization analysis
+  dockerfile-analysis:
+    name: Dockerfile Analysis
+    runs-on: ubuntu-latest
+    outputs:
+      optimization_recommendations: ${{ steps.analysis.outputs.recommendations }}
+      security_issues: ${{ steps.analysis.outputs.security_issues }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install analysis tools
+        run: |
+          # Install hadolint
+          wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v${{ env.HADOLINT_VERSION }}/hadolint-Linux-x86_64
+          chmod +x hadolint
+          sudo mv hadolint /usr/local/bin/
+          
+          # Install dive for image layer analysis
+          wget -O dive.tar.gz https://github.com/wagoodman/dive/releases/download/v0.11.0/dive_0.11.0_linux_amd64.tar.gz
+          tar -xzf dive.tar.gz
+          sudo mv dive /usr/local/bin/
+      
+      - name: Lint Dockerfiles
+        run: |
+          echo "## Dockerfile Linting Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          for dockerfile in Dockerfile*; do
+            if [[ -f "$dockerfile" ]]; then
+              echo "### $dockerfile" >> $GITHUB_STEP_SUMMARY
+              
+              # Run hadolint
+              if hadolint "$dockerfile" > "${dockerfile}.lint.txt" 2>&1; then
+                echo "✅ No issues found" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "⚠️ Issues found:" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+                cat "${dockerfile}.lint.txt" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+              fi
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+      
+      - name: Analyze Dockerfile optimization opportunities
+        id: analysis
+        run: |
+          cat > analyze_dockerfile.py << 'EOF'
+          import re
+          import json
+          from pathlib import Path
+          
+          def analyze_dockerfile(dockerfile_path):
+              """Analyze Dockerfile for optimization opportunities"""
+              with open(dockerfile_path, 'r') as f:
+                  content = f.read()
+              
+              recommendations = []
+              security_issues = []
+              
+              lines = content.split('\\n')
+              
+              # Check for multi-stage builds
+              from_count = len([line for line in lines if line.strip().startswith('FROM')])
+              if from_count == 1:
+                  recommendations.append({
+                      'type': 'optimization',
+                      'severity': 'medium',
+                      'message': 'Consider using multi-stage builds to reduce final image size',
+                      'line': 'N/A'
+                  })
+              
+              # Check for layer optimization
+              run_commands = [line for line in lines if line.strip().startswith('RUN')]
+              if len(run_commands) > 5:
+                  recommendations.append({
+                      'type': 'optimization',
+                      'severity': 'medium',
+                      'message': f'Consider combining {len(run_commands)} RUN commands to reduce layers',
+                      'line': 'Multiple'
+                  })
+              
+              # Check for cache optimization
+              copy_before_deps = False
+              for i, line in enumerate(lines):
+                  if line.strip().startswith('COPY') and not copy_before_deps:
+                      # Check if this COPY comes before dependency installation
+                      remaining_lines = lines[i+1:]
+                      if any('install' in line.lower() or 'pip' in line.lower() or 'npm' in line.lower() 
+                             for line in remaining_lines):
+                          recommendations.append({
+                              'type': 'optimization',
+                              'severity': 'high',
+                              'message': 'Copy dependency files before source code for better cache utilization',
+                              'line': i + 1
+                          })
+                          break
+              
+              # Security checks
+              for i, line in enumerate(lines):
+                  line_stripped = line.strip()
+                  
+                  # Check for running as root
+                  if line_stripped.startswith('USER') and 'root' in line_stripped:
+                      security_issues.append({
+                          'type': 'security',
+                          'severity': 'high',
+                          'message': 'Running as root user is a security risk',
+                          'line': i + 1
+                      })
+                  
+                  # Check for latest tag usage
+                  if line_stripped.startswith('FROM') and ':latest' in line_stripped:
+                      security_issues.append({
+                          'type': 'security',
+                          'severity': 'medium',
+                          'message': 'Using :latest tag reduces build reproducibility',
+                          'line': i + 1
+                      })
+                  
+                  # Check for sensitive information
+                  if any(keyword in line_stripped.upper() for keyword in ['PASSWORD', 'SECRET', 'KEY', 'TOKEN']):
+                      if not line_stripped.startswith('#'):
+                          security_issues.append({
+                              'type': 'security',
+                              'severity': 'critical',
+                              'message': 'Potential sensitive information in Dockerfile',
+                              'line': i + 1
+                          })
+              
+              # Check for health checks
+              has_healthcheck = any(line.strip().startswith('HEALTHCHECK') for line in lines)
+              if not has_healthcheck:
+                  recommendations.append({
+                      'type': 'optimization',
+                      'severity': 'low',
+                      'message': 'Consider adding HEALTHCHECK instruction',
+                      'line': 'N/A'
+                  })
+              
+              return {
+                  'recommendations': recommendations,
+                  'security_issues': security_issues
+              }
+          
+          # Analyze all Dockerfiles
+          all_recommendations = []
+          all_security_issues = []
+          
+          for dockerfile in Path('.').glob('Dockerfile*'):
+              if dockerfile.is_file():
+                  analysis = analyze_dockerfile(dockerfile)
+                  
+                  # Add filename context
+                  for item in analysis['recommendations']:
+                      item['file'] = str(dockerfile)
+                      all_recommendations.append(item)
+                  
+                  for item in analysis['security_issues']:
+                      item['file'] = str(dockerfile)
+                      all_security_issues.append(item)
+          
+          # Output results
+          with open('analysis_results.json', 'w') as f:
+              json.dump({
+                  'recommendations': all_recommendations,
+                  'security_issues': all_security_issues
+              }, f, indent=2)
+          
+          # Set outputs for GitHub Actions
+          print(f"recommendations={json.dumps(all_recommendations)}")
+          print(f"security_issues={json.dumps(all_security_issues)}")
+          EOF
+          
+          python analyze_dockerfile.py
+          
+          # Read results and set outputs
+          if [[ -f analysis_results.json ]]; then
+            echo "recommendations=$(jq -c '.recommendations' analysis_results.json)" >> $GITHUB_OUTPUT
+            echo "security_issues=$(jq -c '.security_issues' analysis_results.json)" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dockerfile-analysis
+          path: |
+            *.lint.txt
+            analysis_results.json
+
+  # Build optimized images
+  build-optimized:
+    name: Build Optimized Images
+    runs-on: ubuntu-latest
+    needs: dockerfile-analysis
+    strategy:
+      matrix:
+        optimization: [minimal, standard, aggressive]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: v${{ env.BUILDX_VERSION }}
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
+      
+      - name: Configure optimization settings
+        id: config
+        run: |
+          case "${{ matrix.optimization }}" in
+            minimal)
+              echo "build_args=--build-arg PYTHON_VERSION=3.11-slim" >> $GITHUB_OUTPUT
+              echo "cache_scope=minimal" >> $GITHUB_OUTPUT
+              echo "platforms=linux/amd64" >> $GITHUB_OUTPUT
+              ;;
+            standard)
+              echo "build_args=--build-arg PYTHON_VERSION=3.11-slim --build-arg NODE_VERSION=20-alpine" >> $GITHUB_OUTPUT
+              echo "cache_scope=standard" >> $GITHUB_OUTPUT
+              echo "platforms=linux/amd64" >> $GITHUB_OUTPUT
+              ;;
+            aggressive)
+              echo "build_args=--build-arg PYTHON_VERSION=3.11-alpine --build-arg NODE_VERSION=20-alpine --build-arg RUST_VERSION=1.75-alpine" >> $GITHUB_OUTPUT
+              echo "cache_scope=aggressive" >> $GITHUB_OUTPUT
+              echo "platforms=linux/amd64,linux/arm64" >> $GITHUB_OUTPUT
+              ;;
+          esac
+      
+      - name: Build and analyze image
+        id: build
+        run: |
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.optimization }}-${{ github.sha }}"
+          
+          # Build image with optimization
+          docker buildx build \
+            --platform ${{ steps.config.outputs.platforms }} \
+            --cache-from type=gha,scope=${{ steps.config.outputs.cache_scope }} \
+            --cache-to type=gha,mode=max,scope=${{ steps.config.outputs.cache_scope }} \
+            ${{ steps.config.outputs.build_args }} \
+            --tag "${IMAGE_TAG}" \
+            --load \
+            .
+          
+          # Analyze image with dive
+          CI=true dive "${IMAGE_TAG}" --json > "dive-analysis-${{ matrix.optimization }}.json"
+          
+          # Get image size
+          IMAGE_SIZE=$(docker images "${IMAGE_TAG}" --format "table {{.Size}}" | tail -n 1)
+          echo "image_size=${IMAGE_SIZE}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          
+          # Extract efficiency metrics from dive analysis
+          EFFICIENCY=$(jq -r '.Image.EfficiencyScore' "dive-analysis-${{ matrix.optimization }}.json")
+          WASTED_BYTES=$(jq -r '.Image.WastedBytes' "dive-analysis-${{ matrix.optimization }}.json")
+          
+          echo "efficiency=${EFFICIENCY}" >> $GITHUB_OUTPUT
+          echo "wasted_bytes=${WASTED_BYTES}" >> $GITHUB_OUTPUT
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-analysis-${{ matrix.optimization }}
+          path: |
+            dive-analysis-${{ matrix.optimization }}.json
+      
+      - name: Report optimization results
+        run: |
+          echo "## Build Results - ${{ matrix.optimization }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Size:** ${{ steps.build.outputs.image_size }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Efficiency Score:** ${{ steps.build.outputs.efficiency }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Wasted Bytes:** ${{ steps.build.outputs.wasted_bytes }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+  # Comprehensive security scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: build-optimized
+    strategy:
+      matrix:
+        scanner: [trivy, grype, snyk]
+        optimization: [minimal, standard, aggressive]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up security scanner
+        run: |
+          case "${{ matrix.scanner }}" in
+            trivy)
+              wget -O trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${{ env.TRIVY_VERSION }}/trivy_${{ env.TRIVY_VERSION }}_Linux-64bit.tar.gz"
+              tar -xzf trivy.tar.gz
+              sudo mv trivy /usr/local/bin/
+              ;;
+            grype)
+              curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+              ;;
+            snyk)
+              npm install -g snyk
+              ;;
+          esac
+      
+      - name: Build test image
+        run: |
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.optimization }}-${{ github.sha }}"
+          
+          # Rebuild image for scanning
+          docker build \
+            --tag "${IMAGE_TAG}" \
+            .
+      
+      - name: Run security scan
+        id: scan
+        run: |
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.optimization }}-${{ github.sha }}"
+          SCAN_FILE="security-scan-${{ matrix.scanner }}-${{ matrix.optimization }}.json"
+          
+          case "${{ matrix.scanner }}" in
+            trivy)
+              trivy image \
+                --format json \
+                --output "${SCAN_FILE}" \
+                --severity HIGH,CRITICAL \
+                "${IMAGE_TAG}"
+              
+              # Extract summary
+              CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "${SCAN_FILE}")
+              HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "${SCAN_FILE}")
+              ;;
+            grype)
+              grype "${IMAGE_TAG}" \
+                --output json \
+                --file "${SCAN_FILE}"
+              
+              # Extract summary
+              CRITICAL=$(jq '[.matches[] | select(.vulnerability.severity == "Critical")] | length' "${SCAN_FILE}")
+              HIGH=$(jq '[.matches[] | select(.vulnerability.severity == "High")] | length' "${SCAN_FILE}")
+              ;;
+            snyk)
+              snyk container test "${IMAGE_TAG}" \
+                --json \
+                --severity-threshold=high > "${SCAN_FILE}" || true
+              
+              # Extract summary
+              CRITICAL=$(jq '.vulnerabilities | map(select(.severity == "critical")) | length' "${SCAN_FILE}")
+              HIGH=$(jq '.vulnerabilities | map(select(.severity == "high")) | length' "${SCAN_FILE}")
+              ;;
+          esac
+          
+          echo "critical_vulns=${CRITICAL:-0}" >> $GITHUB_OUTPUT
+          echo "high_vulns=${HIGH:-0}" >> $GITHUB_OUTPUT
+          echo "scan_file=${SCAN_FILE}" >> $GITHUB_OUTPUT
+      
+      - name: Evaluate security threshold
+        run: |
+          CRITICAL_THRESHOLD=0
+          HIGH_THRESHOLD=5
+          
+          CRITICAL_COUNT=${{ steps.scan.outputs.critical_vulns }}
+          HIGH_COUNT=${{ steps.scan.outputs.high_vulns }}
+          
+          echo "Scanner: ${{ matrix.scanner }}, Optimization: ${{ matrix.optimization }}"
+          echo "Critical vulnerabilities: ${CRITICAL_COUNT}"
+          echo "High vulnerabilities: ${HIGH_COUNT}"
+          
+          if [[ "${CRITICAL_COUNT}" -gt "${CRITICAL_THRESHOLD}" ]]; then
+            echo "❌ Critical vulnerability threshold exceeded (${CRITICAL_COUNT} > ${CRITICAL_THRESHOLD})"
+            if [[ "${{ github.event.inputs.security_scan_level }}" == "paranoid" ]]; then
+              exit 1
+            fi
+          fi
+          
+          if [[ "${HIGH_COUNT}" -gt "${HIGH_THRESHOLD}" ]]; then
+            echo "⚠️ High vulnerability threshold exceeded (${HIGH_COUNT} > ${HIGH_THRESHOLD})"
+            if [[ "${{ github.event.inputs.security_scan_level }}" == "paranoid" ]]; then
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Security scan passed for ${{ matrix.scanner }}"
+      
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-${{ matrix.scanner }}-${{ matrix.optimization }}
+          path: ${{ steps.scan.outputs.scan_file }}
+
+  # Generate optimization report
+  optimization-report:
+    name: Generate Optimization Report
+    runs-on: ubuntu-latest
+    needs: [dockerfile-analysis, build-optimized, security-scan]
+    if: always()
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all analysis artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: analysis-results/
+      
+      - name: Generate comprehensive report
+        run: |
+          cat > generate_optimization_report.py << 'EOF'
+          import json
+          import os
+          from pathlib import Path
+          from datetime import datetime
+          
+          def load_analysis_data():
+              """Load all analysis data from artifacts"""
+              data = {
+                  'dockerfile_analysis': {},
+                  'build_results': {},
+                  'security_scans': {}
+              }
+              
+              results_dir = Path('analysis-results')
+              
+              # Load dockerfile analysis
+              dockerfile_analysis_dir = results_dir / 'dockerfile-analysis'
+              if dockerfile_analysis_dir.exists():
+                  analysis_file = dockerfile_analysis_dir / 'analysis_results.json'
+                  if analysis_file.exists():
+                      with open(analysis_file) as f:
+                          data['dockerfile_analysis'] = json.load(f)
+              
+              # Load build results
+              for item in results_dir.iterdir():
+                  if item.is_dir() and item.name.startswith('build-analysis-'):
+                      optimization_level = item.name.replace('build-analysis-', '')
+                      dive_file = item / f'dive-analysis-{optimization_level}.json'
+                      if dive_file.exists():
+                          with open(dive_file) as f:
+                              data['build_results'][optimization_level] = json.load(f)
+              
+              # Load security scan results
+              for item in results_dir.iterdir():
+                  if item.is_dir() and item.name.startswith('security-scan-'):
+                      parts = item.name.split('-')
+                      if len(parts) >= 4:
+                          scanner = parts[2]
+                          optimization = parts[3]
+                          
+                          for scan_file in item.iterdir():
+                              if scan_file.suffix == '.json':
+                                  try:
+                                      with open(scan_file) as f:
+                                          scan_data = json.load(f)
+                                      
+                                      if scanner not in data['security_scans']:
+                                          data['security_scans'][scanner] = {}
+                                      data['security_scans'][scanner][optimization] = scan_data
+                                  except:
+                                      pass
+              
+              return data
+          
+          def generate_html_report(data):
+              """Generate HTML optimization report"""
+              html = f'''
+              <!DOCTYPE html>
+              <html>
+              <head>
+                  <title>Container Optimization Report</title>
+                  <style>
+                      body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                      .summary-card {{ border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }}
+                      .success {{ border-left: 5px solid #4CAF50; }}
+                      .warning {{ border-left: 5px solid #FF9800; }}
+                      .error {{ border-left: 5px solid #f44336; }}
+                      table {{ border-collapse: collapse; width: 100%; margin: 10px 0; }}
+                      th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                      th {{ background-color: #f2f2f2; }}
+                      .metric {{ font-size: 1.5em; font-weight: bold; color: #2196F3; }}
+                      .chart {{ width: 100%; height: 300px; margin: 20px 0; }}
+                  </style>
+              </head>
+              <body>
+                  <h1>Container Optimization Report</h1>
+                  <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+              '''
+              
+              # Dockerfile Analysis Summary
+              dockerfile_data = data.get('dockerfile_analysis', {})
+              recommendations = dockerfile_data.get('recommendations', [])
+              security_issues = dockerfile_data.get('security_issues', [])
+              
+              critical_issues = len([i for i in security_issues if i.get('severity') == 'critical'])
+              high_issues = len([i for i in security_issues if i.get('severity') == 'high'])
+              
+              card_class = 'error' if critical_issues > 0 else 'warning' if high_issues > 0 else 'success'
+              
+              html += f'''
+              <div class="summary-card {card_class}">
+                  <h2>Dockerfile Analysis</h2>
+                  <table>
+                      <tr><th>Category</th><th>Count</th></tr>
+                      <tr><td>Optimization Recommendations</td><td>{len(recommendations)}</td></tr>
+                      <tr><td>Security Issues</td><td>{len(security_issues)}</td></tr>
+                      <tr><td>Critical Security Issues</td><td>{critical_issues}</td></tr>
+                      <tr><td>High Security Issues</td><td>{high_issues}</td></tr>
+                  </table>
+              </div>
+              '''
+              
+              # Build Results Comparison
+              build_data = data.get('build_results', {})
+              if build_data:
+                  html += '''
+                  <div class="summary-card">
+                      <h2>Build Optimization Comparison</h2>
+                      <table>
+                          <tr><th>Optimization Level</th><th>Efficiency Score</th><th>Wasted Bytes</th><th>Layer Count</th></tr>
+                  '''
+                  
+                  for level, result in build_data.items():
+                      image_data = result.get('Image', {})
+                      efficiency = image_data.get('EfficiencyScore', 0)
+                      wasted_bytes = image_data.get('WastedBytes', 0)
+                      layer_count = len(image_data.get('Layers', []))
+                      
+                      html += f'''
+                      <tr>
+                          <td>{level}</td>
+                          <td>{efficiency:.2f}%</td>
+                          <td>{wasted_bytes:,} bytes</td>
+                          <td>{layer_count}</td>
+                      </tr>
+                      '''
+                  
+                  html += '''
+                      </table>
+                  </div>
+                  '''
+              
+              # Security Scan Summary
+              security_data = data.get('security_scans', {})
+              if security_data:
+                  html += '''
+                  <div class="summary-card">
+                      <h2>Security Scan Results</h2>
+                      <table>
+                          <tr><th>Scanner</th><th>Optimization</th><th>Critical</th><th>High</th><th>Medium</th><th>Low</th></tr>
+                  '''
+                  
+                  for scanner, scans in security_data.items():
+                      for optimization, scan_result in scans.items():
+                          # Parse vulnerabilities based on scanner type
+                          if scanner == 'trivy':
+                              vulns = []
+                              for result in scan_result.get('Results', []):
+                                  vulns.extend(result.get('Vulnerabilities', []))
+                          elif scanner == 'grype':
+                              vulns = [match['vulnerability'] for match in scan_result.get('matches', [])]
+                          else:
+                              vulns = scan_result.get('vulnerabilities', [])
+                          
+                          critical = len([v for v in vulns if v.get('Severity', v.get('severity', '')).lower() == 'critical'])
+                          high = len([v for v in vulns if v.get('Severity', v.get('severity', '')).lower() == 'high'])
+                          medium = len([v for v in vulns if v.get('Severity', v.get('severity', '')).lower() == 'medium'])
+                          low = len([v for v in vulns if v.get('Severity', v.get('severity', '')).lower() == 'low'])
+                          
+                          html += f'''
+                          <tr>
+                              <td>{scanner}</td>
+                              <td>{optimization}</td>
+                              <td>{critical}</td>
+                              <td>{high}</td>
+                              <td>{medium}</td>
+                              <td>{low}</td>
+                          </tr>
+                          '''
+                  
+                  html += '''
+                      </table>
+                  </div>
+                  '''
+              
+              # Recommendations
+              if recommendations:
+                  html += '''
+                  <div class="summary-card">
+                      <h2>Optimization Recommendations</h2>
+                      <ul>
+                  '''
+                  
+                  for rec in recommendations[:10]:  # Show top 10
+                      html += f'<li><strong>{rec.get("severity", "").title()}:</strong> {rec.get("message", "")} (File: {rec.get("file", "N/A")}, Line: {rec.get("line", "N/A")})</li>'
+                  
+                  html += '''
+                      </ul>
+                  </div>
+                  '''
+              
+              html += '''
+              </body>
+              </html>
+              '''
+              
+              return html
+          
+          def generate_json_summary(data):
+              """Generate JSON summary for CI/CD consumption"""
+              summary = {
+                  'timestamp': datetime.now().isoformat(),
+                  'dockerfile_issues': len(data.get('dockerfile_analysis', {}).get('security_issues', [])),
+                  'optimization_recommendations': len(data.get('dockerfile_analysis', {}).get('recommendations', [])),
+                  'build_results': {},
+                  'security_summary': {},
+                  'overall_score': 0
+              }
+              
+              # Summarize build results
+              build_data = data.get('build_results', {})
+              for level, result in build_data.items():
+                  image_data = result.get('Image', {})
+                  summary['build_results'][level] = {
+                      'efficiency_score': image_data.get('EfficiencyScore', 0),
+                      'wasted_bytes': image_data.get('WastedBytes', 0),
+                      'layer_count': len(image_data.get('Layers', []))
+                  }
+              
+              # Summarize security scans
+              security_data = data.get('security_scans', {})
+              total_critical = 0
+              total_high = 0
+              
+              for scanner, scans in security_data.items():
+                  summary['security_summary'][scanner] = {}
+                  for optimization, scan_result in scans.items():
+                      # Count vulnerabilities
+                      if scanner == 'trivy':
+                          vulns = []
+                          for result in scan_result.get('Results', []):
+                              vulns.extend(result.get('Vulnerabilities', []))
+                      elif scanner == 'grype':
+                          vulns = [match['vulnerability'] for match in scan_result.get('matches', [])]
+                      else:
+                          vulns = scan_result.get('vulnerabilities', [])
+                      
+                      critical = len([v for v in vulns if v.get('Severity', v.get('severity', '')).lower() == 'critical'])
+                      high = len([v for v in vulns if v.get('Severity', v.get('severity', '')).lower() == 'high'])
+                      
+                      total_critical += critical
+                      total_high += high
+                      
+                      summary['security_summary'][scanner][optimization] = {
+                          'critical': critical,
+                          'high': high,
+                          'total_vulnerabilities': len(vulns)
+                      }
+              
+              # Calculate overall score (0-100)
+              score = 100
+              score -= min(total_critical * 20, 60)  # Max 60 point penalty for critical issues
+              score -= min(total_high * 5, 30)       # Max 30 point penalty for high issues
+              score -= min(summary['dockerfile_issues'] * 2, 10)  # Max 10 point penalty for dockerfile issues
+              
+              summary['overall_score'] = max(0, score)
+              summary['total_critical_vulns'] = total_critical
+              summary['total_high_vulns'] = total_high
+              
+              return summary
+          
+          # Generate reports
+          data = load_analysis_data()
+          
+          html_report = generate_html_report(data)
+          with open('container-optimization-report.html', 'w') as f:
+              f.write(html_report)
+          
+          json_summary = generate_json_summary(data)
+          with open('optimization-summary.json', 'w') as f:
+              json.dump(json_summary, f, indent=2)
+          
+          print("Container optimization report generated successfully")
+          print(f"Overall security score: {json_summary['overall_score']}/100")
+          print(f"Critical vulnerabilities: {json_summary['total_critical_vulns']}")
+          print(f"High vulnerabilities: {json_summary['total_high_vulns']}")
+          EOF
+          
+          python generate_optimization_report.py
+      
+      - name: Check optimization quality gate
+        run: |
+          SCORE=$(jq -r '.overall_score' optimization-summary.json)
+          CRITICAL_VULNS=$(jq -r '.total_critical_vulns' optimization-summary.json)
+          HIGH_VULNS=$(jq -r '.total_high_vulns' optimization-summary.json)
+          
+          echo "## Container Optimization Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Overall Score:** ${SCORE}/100" >> $GITHUB_STEP_SUMMARY
+          echo "- **Critical Vulnerabilities:** ${CRITICAL_VULNS}" >> $GITHUB_STEP_SUMMARY
+          echo "- **High Vulnerabilities:** ${HIGH_VULNS}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Quality gate
+          if [[ "${CRITICAL_VULNS}" -gt "0" ]]; then
+            echo "❌ Quality gate failed: Critical vulnerabilities found"
+            if [[ "${{ github.event.inputs.security_scan_level }}" == "paranoid" ]]; then
+              exit 1
+            fi
+          elif [[ "${SCORE}" -lt "70" ]]; then
+            echo "⚠️ Quality gate warning: Low optimization score (${SCORE} < 70)"
+          else
+            echo "✅ Quality gate passed"
+          fi
+      
+      - name: Upload optimization report
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-optimization-report
+          path: |
+            container-optimization-report.html
+            optimization-summary.json
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('optimization-summary.json', 'utf8'));
+            
+            const comment = `## 🐳 Container Optimization Report
+            
+            **Overall Score:** ${summary.overall_score}/100
+            **Critical Vulnerabilities:** ${summary.total_critical_vulns}
+            **High Vulnerabilities:** ${summary.total_high_vulns}
+            
+            ### Build Optimization Results
+            ${Object.entries(summary.build_results).map(([level, data]) => 
+              `- **${level}:** Efficiency ${data.efficiency_score.toFixed(2)}%, Wasted ${data.wasted_bytes} bytes`
+            ).join('\\n')}
+            
+            ${summary.overall_score >= 70 ? '✅' : summary.overall_score >= 50 ? '⚠️' : '❌'} 
+            ${summary.overall_score >= 70 ? 'Great optimization!' : 
+              summary.overall_score >= 50 ? 'Good, but room for improvement' : 
+              'Needs optimization work'}
+            
+            📊 [Full Report](container-optimization-report.html)
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

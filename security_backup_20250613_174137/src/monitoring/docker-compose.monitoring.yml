@@ -1,0 +1,218 @@
+version: '3.8'
+
+services:
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: claude-prometheus
+    user: "1000:1000"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert_rules.yaml:/etc/prometheus/alert_rules.yaml
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: claude-grafana
+    user: "1000:1000"
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - NODE_OPTIONS=--max-old-space-size=6144 --gc-interval=100 --optimize-for-size
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./dashboards:/var/lib/grafana/dashboards
+      - ./grafana-provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.47
+    container_name: claude-jaeger
+    user: "1000:1000"
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:16686:16686"  # Jaeger UI
+      - "127.0.0.1:14268:14268"  # HTTP collector
+      - "127.0.0.1:6831:6831/udp"  # UDP collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - jaeger-data:/var/lib/jaeger
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # AlertManager for alert routing
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    container_name: claude-alertmanager
+    user: "1000:1000"
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager-data:/var/lib/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/var/lib/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:v1.6.0
+    container_name: claude-node-exporter
+    user: "1000:1000"
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # cAdvisor for container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: claude-cadvisor
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    user: "1000:1000"
+    cap_add:
+      - SYS_ADMIN
+    cap_drop:
+      - ALL
+    devices:
+      - /dev/kmsg
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: claude-redis
+    user: "1000:1000"
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # PostgreSQL for metrics and alert history
+  postgres:
+    image: postgres:15-alpine
+    container_name: claude-postgres
+    user: "1000:1000"
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:5432:5432"
+    environment:
+      - POSTGRES_DB=claude_monitoring
+      - POSTGRES_USER=claude
+      - POSTGRES_PASSWORD=claude_pass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-monitoring-db.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Loki for log aggregation
+  loki:
+    image: grafana/loki:2.8.0
+    container_name: claude-loki
+    user: "1000:1000"
+    ports:
+      # Bind to localhost only for security - prevents external access
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/var/lib/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  # Promtail for log shipping to Loki
+  promtail:
+    image: grafana/promtail:2.8.0
+    container_name: claude-promtail
+    user: "1000:1000"
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  jaeger-data:
+  alertmanager-data:
+  redis-data:
+  postgres-data:
+  loki-data:
+
+networks:
+  monitoring:
+    driver: bridge

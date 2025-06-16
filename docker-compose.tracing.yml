@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # Jaeger - All-in-one deployment for development
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: claude-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # Jaeger HTTP collector
+      - "6831:6831/udp"  # Jaeger agent UDP
+      - "6832:6832/udp"  # Jaeger agent UDP
+      - "14250:14250"  # Jaeger gRPC
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    networks:
+      - tracing
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jaeger.rule=Host(`jaeger.local`)"
+      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
+
+  # Zipkin - Alternative trace collector
+  zipkin:
+    image: openzipkin/zipkin:2.24
+    container_name: claude-zipkin
+    ports:
+      - "9411:9411"  # Zipkin UI and API
+    environment:
+      - STORAGE_TYPE=mem
+    networks:
+      - tracing
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zipkin.rule=Host(`zipkin.local`)"
+      - "traefik.http.services.zipkin.loadbalancer.server.port=9411"
+
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    container_name: claude-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Prometheus exporter metrics
+    depends_on:
+      - jaeger
+      - zipkin
+    networks:
+      - tracing
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: claude-prometheus-tracing
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - tracing
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: claude-grafana-tracing
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./src/monitoring/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - tracing
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.local`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  # Redis for caching (example dependency)
+  redis:
+    image: redis:7-alpine
+    container_name: claude-redis-tracing
+    ports:
+      - "6379:6379"
+    networks:
+      - tracing
+
+  # Example application with tracing
+  claude-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.tracing
+    container_name: claude-app-traced
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - JAEGER_ENDPOINT=jaeger:6831
+      - ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - OTLP_ENDPOINT=http://otel-collector:4317
+      - REDIS_URL=redis://redis:6379
+      - TRACE_CONSOLE_ENABLED=true
+      - TRACE_SLOW_THRESHOLD_MS=1000
+      - API_SLOW_THRESHOLD_MS=500
+      - DB_SLOW_THRESHOLD_MS=100
+      - REDIS_SLOW_THRESHOLD_MS=50
+      - HTTP_SLOW_THRESHOLD_MS=2000
+    volumes:
+      - .:/app
+    depends_on:
+      - jaeger
+      - zipkin
+      - otel-collector
+      - redis
+    networks:
+      - tracing
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  tracing:
+    driver: bridge

@@ -1,0 +1,369 @@
+# Kubernetes Services for MCP Production Servers
+# Load balancing and service discovery for all MCP components
+
+---
+# Security Scanner MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-security-scanner-service
+  namespace: mcp-production
+  labels:
+    app: mcp-security-scanner
+    component: security
+    tier: security-scanning
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-security-scanner
+
+---
+# SAST MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-sast-service
+  namespace: mcp-production
+  labels:
+    app: mcp-sast-server
+    component: security
+    tier: static-analysis
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-sast-server
+
+---
+# Supply Chain Security MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-supply-chain-security-service
+  namespace: mcp-production
+  labels:
+    app: mcp-supply-chain-security
+    component: security
+    tier: supply-chain
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-supply-chain-security
+
+---
+# S3 Storage MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-s3-storage-service
+  namespace: mcp-production
+  labels:
+    app: mcp-s3-storage
+    component: storage
+    tier: cloud-storage
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-s3-storage
+
+---
+# Cloud Storage MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-cloud-storage-service
+  namespace: mcp-production
+  labels:
+    app: mcp-cloud-storage
+    component: storage
+    tier: multi-cloud
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-cloud-storage
+
+---
+# Slack Notifications MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-slack-notifications-service
+  namespace: mcp-production
+  labels:
+    app: mcp-slack-notifications
+    component: communication
+    tier: notifications
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-slack-notifications
+
+---
+# Communication Hub MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-communication-hub-service
+  namespace: mcp-production
+  labels:
+    app: mcp-communication-hub
+    component: communication
+    tier: hub
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-communication-hub
+
+---
+# Infrastructure Commander MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-infrastructure-commander-service
+  namespace: mcp-production
+  labels:
+    app: mcp-infrastructure-commander
+    component: infrastructure
+    tier: management
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-infrastructure-commander
+
+---
+# TypeScript High-Performance MCP Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-typescript-service
+  namespace: mcp-production
+  labels:
+    app: mcp-typescript-server
+    component: core
+    tier: performance
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: mcp-typescript-server
+
+---
+# MCP Gateway Service (LoadBalancer for external access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-gateway
+  namespace: mcp-production
+  labels:
+    component: gateway
+    tier: external
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: LoadBalancer
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 3000
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    component: core  # Route to core performance servers
+    tier: performance
+
+---
+# Headless Service for StatefulSet coordination
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-headless-service
+  namespace: mcp-production
+  labels:
+    component: coordination
+    tier: cluster
+spec:
+  clusterIP: None
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  selector:
+    app: mcp-server  # Generic selector for all MCP servers
+
+---
+# Persistent Volume Claim for Cloud Storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcp-cloud-storage-pvc
+  namespace: mcp-production
+  labels:
+    component: storage
+    tier: persistent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+# Persistent Volume Claim for Shared Cache
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcp-shared-cache-pvc
+  namespace: mcp-production
+  labels:
+    component: cache
+    tier: shared
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-storage
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Persistent Volume Claim for Logs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcp-logs-pvc
+  namespace: mcp-production
+  labels:
+    component: logging
+    tier: observability
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-storage
+  resources:
+    requests:
+      storage: 50Gi

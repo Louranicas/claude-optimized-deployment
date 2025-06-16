@@ -1,0 +1,227 @@
+# MCP Server Development Stack
+# Extends the main development compose file
+version: '3.8'
+
+services:
+  # MCP Development Environment
+  mcp-dev:
+    build:
+      context: ../..
+      dockerfile: containers/development/Dockerfile.mcp-server
+    container_name: claude-mcp-dev
+    user: "1000:1000"
+    environment:
+      - NODE_ENV=development
+      - MCP_DEV_MODE=true
+      - MCP_LOG_LEVEL=debug
+      - DATABASE_URL=postgresql://claude_dev:dev_password_change_in_production@postgres-dev:5432/claude_dev
+      - REDIS_URL=redis://redis-dev:6379
+    volumes:
+      - ../../mcp_servers:/workspace:cached
+      - mcp_node_modules:/workspace/node_modules
+      - mcp_logs:/app/logs
+    ports:
+      - "3000-3009:3000-3009"  # Range for multiple MCP servers
+    networks:
+      - development
+    depends_on:
+      - postgres-dev
+      - redis-dev
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  # Individual MCP Servers
+  mcp-filesystem:
+    extends:
+      service: mcp-dev
+    container_name: claude-mcp-filesystem
+    command: ["node", "/workspace/servers/filesystem/index.js"]
+    ports:
+      - "3000:3000"
+    environment:
+      - MCP_SERVER_NAME=filesystem
+      - MCP_SERVER_PORT=3000
+      - MCP_FILESYSTEM_ROOT=/workspace
+      - MCP_FILESYSTEM_PERMISSIONS=read,write
+
+  mcp-git:
+    extends:
+      service: mcp-dev
+    container_name: claude-mcp-git
+    command: ["node", "/workspace/servers/git/index.js"]
+    ports:
+      - "3001:3001"
+    environment:
+      - MCP_SERVER_NAME=git
+      - MCP_SERVER_PORT=3001
+      - MCP_GIT_REPOS_PATH=/workspace/repos
+
+  mcp-database:
+    extends:
+      service: mcp-dev
+    container_name: claude-mcp-database
+    command: ["node", "/workspace/servers/database/index.js"]
+    ports:
+      - "3002:3002"
+    environment:
+      - MCP_SERVER_NAME=database
+      - MCP_SERVER_PORT=3002
+      - MCP_DB_TYPE=postgresql
+      - MCP_DB_CONNECTION=postgresql://claude_dev:dev_password_change_in_production@postgres-dev:5432/claude_dev
+
+  mcp-memory:
+    extends:
+      service: mcp-dev
+    container_name: claude-mcp-memory
+    command: ["node", "/workspace/servers/memory/index.js"]
+    ports:
+      - "3003:3003"
+    environment:
+      - MCP_SERVER_NAME=memory
+      - MCP_SERVER_PORT=3003
+      - MCP_MEMORY_BACKEND=redis
+      - MCP_MEMORY_REDIS_URL=redis://redis-dev:6379/1
+
+  mcp-search:
+    extends:
+      service: mcp-dev
+    container_name: claude-mcp-search
+    command: ["node", "/workspace/servers/search/index.js"]
+    ports:
+      - "3004:3004"
+    environment:
+      - MCP_SERVER_NAME=search
+      - MCP_SERVER_PORT=3004
+      - MCP_SEARCH_ENGINE=elasticsearch
+      - MCP_SEARCH_URL=http://elasticsearch-dev:9200
+
+  mcp-web:
+    extends:
+      service: mcp-dev
+    container_name: claude-mcp-web
+    command: ["node", "/workspace/servers/web/index.js"]
+    ports:
+      - "3005:3005"
+    environment:
+      - MCP_SERVER_NAME=web
+      - MCP_SERVER_PORT=3005
+      - MCP_WEB_BROWSER=puppeteer
+      - MCP_WEB_HEADLESS=true
+
+  mcp-python-tools:
+    build:
+      context: ../..
+      dockerfile: containers/development/Dockerfile.python-ml
+    container_name: claude-mcp-python
+    user: "1000:1000"
+    command: ["python", "-m", "mcp_servers.python_tools"]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MCP_SERVER_NAME=python-tools
+      - MCP_SERVER_PORT=3006
+    volumes:
+      - ../../mcp_servers/python_tools:/app:cached
+      - ml_cache:/cache
+    ports:
+      - "3006:3006"
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '4.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+  # Elasticsearch for search MCP server
+  elasticsearch-dev:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: claude-elasticsearch-dev
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - development
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MCP Server Manager
+  mcp-manager:
+    build:
+      context: ../..
+      dockerfile: containers/development/Dockerfile.mcp-server
+    container_name: claude-mcp-manager
+    user: "1000:1000"
+    command: ["node", "/workspace/manager/index.js"]
+    environment:
+      - NODE_ENV=development
+      - MCP_MANAGER_PORT=3100
+      - MCP_SERVERS=filesystem:3000,git:3001,database:3002,memory:3003,search:3004,web:3005,python-tools:3006
+    volumes:
+      - ../../mcp_servers:/workspace:cached
+      - mcp_manager_data:/app/data
+    ports:
+      - "3100:3100"
+    networks:
+      - development
+    depends_on:
+      - mcp-filesystem
+      - mcp-git
+      - mcp-database
+      - mcp-memory
+      - mcp-search
+      - mcp-web
+      - mcp-python-tools
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mcp_node_modules:
+  mcp_logs:
+  mcp_manager_data:
+  elasticsearch_data:
+
+networks:
+  development:
+    external: true

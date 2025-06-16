@@ -1,0 +1,105 @@
+# Security Chapter Extract
+Book: Travis DeForge - Ultimate Penetration Testing with Nmap_ Master Cybersecurity Assessments for Network Security, Monitoring, and Scanning Using N (2024, Orange Education Pvt Ltd, AVA™) - libgen.li
+Chapter: 5 - Mapping a Large Environment, being able to quickly understand the attack surface and organize the deluge of data that is returned in each stage of scanning is critical to successful network penetration testing. Utilizing Zenmap to speed up this process by organizing the data is not only wise but in many cases simply indispensable.
+Leveraging Legion for Analysis and Scanning
+Legion at its core is a highly configurable semi-automated penetration testing framework, which aids network penetration testers in reconnaissance, attack surface mapping, and even exploitation of systems. Originally a fork of SECFORCE’s tool Sparta, Legion is maintained by Gotham Security and is regularly updated in current releases of Kali Linux.
+Legion has many capabilities similar to Zenmap; you can launch scans from it, import Nmap scans into it, and modify how the scans operate. However, what sets the two apart is the ability to couple the results of the Nmap scan with follow-up actions. Consider the convenience of identifying a series of web servers and then automatically capturing screenshots of what the HTTP and HTTPS ports resolve to. Then, you can launch additional tools such as Nikto for web vulnerability scanning on the most interesting of them with just another click.
+Legion incorporates dozens of additional open-source tools and more than one hundred scripts into a central suite that naturally integrates with and enhances Nmap. While Nmap is certainly at the core of Legion in terms of ingesting or collecting the initial dataset, being able to take additional action on the endpoints seamlessly is what makes Legion a differentiator.
+To begin, start Legion in Kali Linux with the following command:
+Sudo Legion
+This will open the GUI and provide you with a clean interface with which you can either configure or launch your own scans with some pre-configured options; or similar to Zenmap, you can import existing Nmap scan results in .xml format. First, we will look at how to set up and launch a scan within Legion:
+Security Relevance Score: 18
+Word Count: 2064
+Extracted: 2025-06-13 23:40:38
+
+---
+
+Mapping a Large Environment, being able to quickly understand the attack surface and organize the deluge of data that is returned in each stage of scanning is critical to successful network penetration testing. Utilizing Zenmap to speed up this process by organizing the data is not only wise but in many cases simply indispensable.
+Leveraging Legion for Analysis and Scanning
+Legion at its core is a highly configurable semi-automated penetration testing framework, which aids network penetration testers in reconnaissance, attack surface mapping, and even exploitation of systems. Originally a fork of SECFORCE’s tool Sparta, Legion is maintained by Gotham Security and is regularly updated in current releases of Kali Linux.
+Legion has many capabilities similar to Zenmap; you can launch scans from it, import Nmap scans into it, and modify how the scans operate. However, what sets the two apart is the ability to couple the results of the Nmap scan with follow-up actions. Consider the convenience of identifying a series of web servers and then automatically capturing screenshots of what the HTTP and HTTPS ports resolve to. Then, you can launch additional tools such as Nikto for web vulnerability scanning on the most interesting of them with just another click.
+Legion incorporates dozens of additional open-source tools and more than one hundred scripts into a central suite that naturally integrates with and enhances Nmap. While Nmap is certainly at the core of Legion in terms of ingesting or collecting the initial dataset, being able to take additional action on the endpoints seamlessly is what makes Legion a differentiator.
+To begin, start Legion in Kali Linux with the following command:
+Sudo Legion
+This will open the GUI and provide you with a clean interface with which you can either configure or launch your own scans with some pre-configured options; or similar to Zenmap, you can import existing Nmap scan results in .xml format. First, we will look at how to set up and launch a scan within Legion:
+
+
+
+Figure 6.6: Demonstrating initiating a new scan with Legion
+From here, you have several options to tune your scan. First, the timing and performance section is an exact simulacrum of the T0-T5 speed rating scheme within Nmap. Selecting normal, for example, will result in a T3 setting. Next, under port scan options, several options are available. By default, fragment is selected, which is the -f flag, along with obfuscated, which is --data-length 5 –-max-retries 2 –-randomize-hosts. Next are the host discovery options, which default to disable, corresponding to -Pn. So, by default, recent versions of Legion are obfuscated by design. You can also add additional arguments (Nmap flags) to the scan profile before launching the scan.
+Once initiated, you will see each stage of the scan running within the Legion GUI, and the results will be returned in real-time:
+
+
+
+Figure 6.7: Demonstrating a custom scan running with Legion
+Alternatively, you can also upload a previously completed Nmap scan into Legion by selecting “file” and then “import Nmap scan”:
+
+
+
+Figure 6.8: Demonstrating a host organized by services in Legion
+From here, you can sort the results by either hosts or services or launch a litany of additional tools that can aid in the penetration testing process. To initiate additional tools, simply right-click the host or port in question for a curated list of relevant tools. For example, sorting by services and selecting HTTP for pentest-ground.com, then right-clicking, provides the following options:
+
+
+
+Figure 6.9: Demonstrating options following an open HTTP port in Legion
+Dozens of options are available, ranging from taking a screenshot to specific CVE-based NSE scripts, or launching tools such as Nikto or WPscan. The ability of Legion to coordinate this degree of additional analysis within one consolidated platform is what sets it apart from the crowd of other available tools.
+Modifying the Legion Configuration File
+One of the things that makes Legion so uniquely powerful is the extremely high degree of customization that you can apply to how it operates. By modifying the configuration of the tool, you can specify exactly what occurs at each stage of the scanning process, as well as which follow-up tools to trigger.
+First, open an elevated command prompt in Kali and navigate to and open:/root/.local/share/legion/legion.conf:
+sudo -s
+nano /root/.local/share/legion/legion.conf
+This file defines the actions and parameters that Legion abides by when conducting the scans, including lists of default passwords to attempt, host actions, port actions, and much more. However, what we are going to focus on are the three sections at the bottom of the file: SchedulerSettings, StagedNmapSe4ttings, and ToolSettings:
+
+
+
+Figure 6.10: Viewing the Legion.conf file
+The SchedulerSettings define what will happen automatically when different conditions are met. For example, the top line in the preceding figure indicates that in a scenario when the File Transfer Protocol (FTP) is detected, Legion will attempt to authenticate with default credentials. Other default actions include attempting to enumerate SMTP and SNMP information and taking screenshots of identified web pages.
+During most engagements, but especially something nuanced like red teaming, blinding attempting default login attempts at scale across tons of systems will likely alert the client’s blue team of your activity. If remaining undetected, or at least more subtle, is a concern, removing some of the default scheduler settings can help define the exact actions that are intended. In the event that stealth is a concern, removing all options except for taking screenshots of the web pages would be beneficial:
+
+
+
+Figure 6.11: Identifying the SchedulerSettings and StangedNmapSettings of Legion
+Next, you can adjust the StagedNmapSettings to define what occurs at each stage of the Legion scan. This can be defining specific ports or even specific scripts that you want to occur. As scan results populate in the Nmap GUI in real-time as stages progress, this can be set up strategically to trickle in interesting information to analyze while the greater scan is still occurring.
+In the preceding image, we can see that stage 1 is focused primarily on web server ports, which are identified and then automatically captured by a screenshot, allowing you to quickly parse through and look at what is being served on each endpoint. The second stage adds a few additional ports, which can be insightful, such as SMTP (port 25), various ports associated with SMB, and others. Then, in stage 3, the vulners.nse script is run on the endpoints, followed by three more stages of progressively more robust scanning, culminating in stage 6, which includes over thirty thousand ports.
+While the default scan profile may provide a lot of information, such intensive scanning may also be overkill or simply too noisy for your particular situation. In these instances, modifying the actions at each stage can be extremely helpful.
+By default, there are three different custom configurations packaged with Legion on GitHub, each tailored differently for use with a small, medium, or large scope and can be viewed at: https://github.com/GoVanguard/legion/tree/master/custom_configs. Comparing the three, we can see insightful examples of different approaches to the use of Legion scanning based on different situations.
+Small Scope:
+[StagedNmapSettings]
+stage1-ports="T:80,88,443,4443,8080,8081,8082"
+stage2-ports="T:25,135,137,139,445,1433,3306,5432,U:137,161,162,1434"
+stage3-ports="T:23,21,22,110,111,2049,3389,8080,U:500,5060"
+stage4-ports="T:1-20,24,26-79,81-109,112-134,136,138, 140-442,444,446-1432,1434-2048,2050-3305,3307-3388,3390-5431,5433-8079,8081-65535"
+stage5-ports="U:1-65535"
+stage6-ports="Vulners,CVE"
+With a small scope, you, as a penetration tester, have the luxury of being able to thoroughly analyze each and every system and make sure that no stone goes unturned. This scan setting will begin, as the default does, with web server ports, but eventually progress to all ports for both TCP and UDP and strategically run the vulners.nse script at the end once all port and service information has been obtained. While this profile is extremely thorough, it is very noisy and extremely slow to finish on anything more than a small handful of hosts.
+Medium Scope:
+[StagedNmapSettings]
+stage1-ports="T:23,25,587,80,8080,443,8443, 8081,9443,3389,1099,4786,3306,5432,1521"
+stage2-ports="T:135,137,139,445,1433,88"
+stage3-ports="U:53,110,161,500, 623"
+stage4-ports="T:1-10000"
+stage5-ports="Vulners,CVE"
+stage6-ports="T:80"
+In contrast to the small-scoped scan settings, the medium scope reduces the total number of scanned ports to just over 10,000 TCP and a few UDP. Reducing the number of ports to scan by more than 50,000 substantially reduces the duration of the scan; although scanning that many ports will still not be quick. This scope is reasonable for analyzing a few /24 subnets at a time, especially if the rules of engagement allow for scans to run overnight.
+Large Scope
+[StagedNmapSettings]
+stage1-ports="T:23,25,587,80,8080,443,8443, 8081,9443,3389,1099,4786,3306,5432,1521"
+stage2-ports="T:135,137,139,445,1433,88"
+stage3-ports="U:53,110,161,500"
+stage4-ports="Vulners,CVE"
+stage5-ports="T:80"
+stage6-ports="T:80"
+This large-scoped scan is much different; considering how many endpoints must be checked, this scan focuses only on the most insightful (or most exploitable) ports. In contrast to the previous two, which focused largely on quantity, this scan profile is far more pinpointed, looking for specific services, which would then warrant deeper investigation.
+Finally, the ToolSettings option at the very bottom of legion.conf defines the paths for a few key tools that Legion relies on, such as Nmap, and also provides the opportunity to input a Shodan API key. For those unfamiliar, https://Shodan.io is an extremely useful tool for open-source intelligence gathering. Similar to how search engines like Google and Bing constantly index web pages across the internet, Shodan indexes internet-connected devices and catalogs information about publicly exposed ports and services. While Shodan can be used in the web interface for free, the API key (which is very inexpensive) allows for programmatic usage on a larger scale and is a great investment.
+Once you have made the changes you wish to legion.conf, save the file, and restart Legion from the command line. You can then verify that the changes have been honored by selecting Help and Config, which will show you the currently implemented configuration. In the following example, we can see that all except for the screenshot have been removed:
+
+
+
+Figure 6.12: Verifying the changed configuration in Legion
+Challenge: Creating a Custom Legion Configuration and Zenmap Profile
+By now, you have undoubtedly started to develop your own set of tactics and techniques when employing Nmap, either with highly specific flags to control the functionality, a sequence of different scans for different phases of the penetration test, or just some quality-of-life options. Take the opportunity to create some custom Legion configurations and Zenmap scan profiles that match your specific use cases. Not only will you have these custom settings for your own use in the future, but they are also a great opportunity to contribute to the cybersecurity community by posting on a blog or GitHub.
+Conclusion
+Both Zenmap and Legion deserve a place in your penetration testing toolkit. For network pentesting engagements, especially, the ability to quickly ingest and understand the attack surface of an individual subnet or a whole scope is invaluable. While this could certainly be accomplished within the traditional Nmap command line, the interface provides two key benefits. Firstly, you do not have to worry about losing data or missing something important when scrolling through the results in a command prompt. Secondly, and perhaps even more importantly, the scans can be saved and shared amongst your penetration testing team, which enhances collaboration and makes technical review of the findings in your report much more efficient.
+While the two tools outlined here are similar, their differences in terms of operating systems and options to go beyond simple port scanning, such as Legion triggering actional tools in a semi-automated fashion, make them distinct. By no means are these the only two tools that natively integrate with Nmap; in fact, there are dozens more that leverage Nmap in some way and provide the opportunity to ingest scan results. Some of these include SpearHead, Defect Dojo, Coda Intelligence, and Attack Forge; however, each of these are far more complex tools used for more intricate attack surface monitoring and reporting. Zenmap and Legion have a few key benefits over others; they are free and open source, can be installed easily, and are intuitive to use without extensive training.
+Many people just starting out in penetration testing fail to see the need for ingesting Nmap data into a GUI. This is due to the tendency for pentesting training and certifications to focus on only a small handful of systems instead of a large, robust, and realistic scope. With only a dozen or fewer systems to analyze, there is likely no reason to leave the command line. However, this changes drastically when you have a dozen subnets rather than a dozen endpoints. In those situations, the time that would be wasted by not efficiently organizing the results with these additional tools would be a large impediment to the timeline of the engagement.
+In the next chapter,

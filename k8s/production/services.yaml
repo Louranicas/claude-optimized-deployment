@@ -1,0 +1,320 @@
+# Production Services Configuration
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-deployment-api
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+    tier: api
+  annotations:
+    # Load balancer annotations for AWS
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-timeout: "60"
+    
+    # Prometheus annotations
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+    
+    # Traffic policy
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - name: http
+    port: 80
+    targetPort: nginx
+    protocol: TCP
+  - name: api
+    port: 8000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: claude-deployment-api
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-deployment-api-headless
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+    tier: api
+    service-type: headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: false
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: claude-deployment-api
+
+---
+# External service for database (if using external RDS)
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-deployment-postgres
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment
+    tier: database
+spec:
+  type: ExternalName
+  externalName: ${DB_ENDPOINT}
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
+
+---
+# External service for Redis (if using external ElastiCache)
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-deployment-redis
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment
+    tier: cache
+spec:
+  type: ExternalName
+  externalName: ${REDIS_ENDPOINT}
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    protocol: TCP
+
+---
+# Service Monitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: claude-deployment-api
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+    tier: api
+    monitoring: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: claude-deployment-api
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+    scheme: http
+    scrapeTimeout: 10s
+    honorLabels: false
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: node
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: kubernetes_namespace
+    - sourceLabels: [__meta_kubernetes_service_name]
+      targetLabel: kubernetes_service_name
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'go_.*'
+      action: drop
+    - sourceLabels: [__name__]
+      regex: 'promhttp_.*'
+      action: drop
+
+---
+# Network Policy for services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: claude-deployment-api-network-policy
+  namespace: claude-deployment-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: claude-deployment-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 8000
+  # Allow ingress from monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+  # Allow ingress from same namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: claude-deployment-prod
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 9090
+  # Allow ingress from istio-system
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  # Allow HTTPS outbound
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow HTTP outbound (for health checks)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+  # Allow database access
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow Redis access
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow monitoring
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+    - protocol: TCP
+      port: 8080
+  # Allow istio-system communication
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+
+---
+# Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-deployment-api
+  namespace: claude-deployment-prod
+  labels:
+    app: claude-deployment-api
+    tier: api
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/claude-deployment-api-role
+automountServiceAccountToken: true
+
+---
+# Role for the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: claude-deployment-api-role
+  namespace: claude-deployment-prod
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+---
+# Role binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-deployment-api-role-binding
+  namespace: claude-deployment-prod
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-api
+  namespace: claude-deployment-prod
+roleRef:
+  kind: Role
+  name: claude-deployment-api-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Cluster role for cross-namespace access (if needed)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-deployment-api-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["nodes", "pods"]
+  verbs: ["get", "list"]
+
+---
+# Cluster role binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-deployment-api-cluster-role-binding
+subjects:
+- kind: ServiceAccount
+  name: claude-deployment-api
+  namespace: claude-deployment-prod
+roleRef:
+  kind: ClusterRole
+  name: claude-deployment-api-cluster-role
+  apiGroup: rbac.authorization.k8s.io

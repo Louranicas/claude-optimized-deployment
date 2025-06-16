@@ -1,0 +1,120 @@
+{
+  "timestamp": "2025-06-07T07:30:47.904207",
+  "phase": 1,
+  "total_passed": 4,
+  "total_checks": 5,
+  "percentage": 80.0,
+  "results": {
+    "dependency_updates": {
+      "passed": true,
+      "details": [
+        [
+          "cryptography>=45.0.3",
+          true
+        ],
+        [
+          "twisted>=24.11.0",
+          true
+        ],
+        [
+          "PyJWT>=2.10.1",
+          true
+        ],
+        [
+          "PyYAML>=6.0.2",
+          true
+        ],
+        [
+          "requests>=2.32.0",
+          true
+        ]
+      ]
+    },
+    "mcp_authentication": {
+      "passed": true,
+      "details": [
+        [
+          "MCPAuthMiddleware",
+          true
+        ],
+        [
+          "UserRole",
+          true
+        ],
+        [
+          "Permission",
+          true
+        ],
+        [
+          "AuthContext",
+          true
+        ],
+        [
+          "generate_token",
+          true
+        ],
+        [
+          "validate_token",
+          true
+        ],
+        [
+          "validate_request",
+          true
+        ],
+        [
+          "check_tool_authorization",
+          true
+        ]
+      ]
+    },
+    "command_injection": {
+      "passed": true,
+      "details": [
+        [
+          "No shell=True",
+          true
+        ],
+        [
+          "Uses shlex.split",
+          true
+        ],
+        [
+          "Has command validation",
+          true
+        ],
+        [
+          "Has command whitelist",
+          true
+        ]
+      ]
+    },
+    "cryptography": {
+      "passed": false,
+      "details": {
+        "md5_count": 2,
+        "sha256_count": 11
+      }
+    },
+    "docker_security": {
+      "passed": true,
+      "details": [
+        [
+          "Non-root user",
+          true
+        ],
+        [
+          "Creates user",
+          true
+        ],
+        [
+          "Uses slim image",
+          true
+        ],
+        [
+          "Has healthcheck",
+          true
+        ]
+      ]
+    }
+  }
+}

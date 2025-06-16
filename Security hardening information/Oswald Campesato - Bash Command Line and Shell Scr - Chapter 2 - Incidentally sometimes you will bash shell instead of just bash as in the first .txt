@@ -1,0 +1,358 @@
+# Security Chapter Extract
+Book: Oswald Campesato - Bash Command Line and Shell Scripts (2020, Mercury Learning and Information LLC.) - libgen.li
+Chapter: 2 - Incidentally, sometimes you will “bash shell” instead of just bash (as in the first sentence of this paragraph), and although the former is actually redundant, there won’t be any confusion about its intended meaning.
+The first part of this chapter starts with a brief introduction to some Unix shells, followed by a discussion about files, file permissions, and directories. You will also learn how to create files and directories and how to change their access permissions.
+The second part of this chapter introduces simple shell scripts, along with commands for making them executable. Since shell scripts involve various bash commands (and can optionally contain user-defined functions), it’s a good idea to learn about bash commands before you create bash scripts.
+The third portion of this chapter discusses two useful bash commands: the cut command (for cutting or extracting columns and/or fields from a dataset) and the paste command (for “pasting” text or datasets together vertically).
+In addition, the final part of this chapter contains a use case involving the cut command and paste command that illustrates how to switch the order of two columns in a dataset. You can also perform this task using the awk command (discussed in Chapter 7 and Chapter 9).
+There are a few points to keep in mind before delving into the details of shell scripts. First, shell scripts can be executed from the command line after adding “execute” permissions to the text file containing the shell script. Second, you can use the crontab utility to schedule the execution of your shell scripts according to a schedule of your choice. Specifically, the crontab utility allows you to specify the execution of a shell script on an hourly, daily, weekly, or monthly basis. Tasks that are commonly scheduled via crontab include performing backups, removing unwanted files, and so forth. If you are completely new to Unix-based systems, just keep in mind that there is a way to run scripts both from the command line and in a “scheduled” manner. Setting file permissions to run the script from the command line will be discussed later.
+Third, the contents of any shell script can be as simple as a single command or can comprise hundreds of lines of bash commands. In general, the more useful (and often more interesting) shell scripts involve a combination of several bash commands. A learning tip: since there are usually several ways to produce the desired result, it’s helpful to read other people’s shell scripts to learn how to combine commands in useful ways.
+WHAT IS UNIX?
+Unix is an operating system created by Ken Thompson in the early 1970s, which eventually led to a number of variations, such as HP/UX for HP machines and AIX for IBM machines. Linux Torvalds developed the Linux operating system during the 1990s, and many Linux commands are the same as their bash counterparts (but differences exist, often in the commands for system administrators). The Mac OS X operating system is based on AT&T Unix.
+Unix has a rich and storied history, and if you are really interested in learning about its past, you can read online articles and also Wikipedia. This book foregoes those details and focuses on helping you quickly learn how to become productive with various commands.
+Available Shell Types
+The original Unix shell is the Bourne shell, which was written in the mid-1970s by Stephen R. Bourne. In addition, the Bourne shell was the first shell to appear on bash systems, and you will sometimes hear “the shell” as a reference to the Bourne shell. The Bourne shell is a POSIX standard shell, usually installed as /bin/sh on most versions of Unix, whose default prompt is the $ character. Consequently, Bourne shell scripts will execute on almost every version of Unix. In essence, the AT&T branches of Unix support the Bourne shell (sh), bash, Korn shell (ksh), tsh, and zsh.
+However, there is also the BSD branch of Unix that uses the “C” shell (csh), whose default prompt is the % character. In general, shell scripts written for csh will not execute on AT&T branches of Unix, unless the csh shell is also installed on those machines (and vice versa).
+The Bourne shell is the most ‘unadorned’ in the sense that it lacks some commands that are available in the other shells, such as history,  noclobber, and so forth. Some well-known variants for Bourne Shell are listed as follows:
+Korn shell (ksh)
+Bourne Again shell (bash)
+POSIX shell (sh)
+zsh (“Zee shell”)
+The different C-type shells are as shown below:
+C shell (csh)
+TENEX/TOPS C shell (tcsh)
+The commands and the shell scripts in this book are based on the bash shell, and many of the commands also work in other Bourne-related shells (and the remaining shells have a similar command to accomplish the same goal). When you are unable to perform a particular shell-related task, perform an Internet search for “how to use <bash command> in <shell name>” and you will often find an answer. Keep in mind that sometimes there are variations in syntax for a given command in a particular shell, and typing “man <command>” in a command shell can provide useful information.
+WHAT IS BASH?
+Bash is an acronym for “Bourne Again Shell”, which has its roots in the Bourne shell created by Stephen R. Bourne. Shell scripts based on the Bourne shell will execute in bash, but the converse is not necessarily true. The bash shell provides additional features that are unavailable in the Bourne shell, such as support for arrays (discussed later in this chapter).
+On Mac OS X, the /bin directory contains the following executable shells:
+-r-xr-xr-x 1 root wheel 1377872 Apr 28 2017 /bin/ksh
+Security Relevance Score: 3
+Word Count: 3283
+Extracted: 2025-06-13 23:40:50
+
+---
+
+Incidentally, sometimes you will “bash shell” instead of just bash (as in the first sentence of this paragraph), and although the former is actually redundant, there won’t be any confusion about its intended meaning.
+The first part of this chapter starts with a brief introduction to some Unix shells, followed by a discussion about files, file permissions, and directories. You will also learn how to create files and directories and how to change their access permissions.
+The second part of this chapter introduces simple shell scripts, along with commands for making them executable. Since shell scripts involve various bash commands (and can optionally contain user-defined functions), it’s a good idea to learn about bash commands before you create bash scripts.
+The third portion of this chapter discusses two useful bash commands: the cut command (for cutting or extracting columns and/or fields from a dataset) and the paste command (for “pasting” text or datasets together vertically).
+In addition, the final part of this chapter contains a use case involving the cut command and paste command that illustrates how to switch the order of two columns in a dataset. You can also perform this task using the awk command (discussed in Chapter 7 and Chapter 9).
+There are a few points to keep in mind before delving into the details of shell scripts. First, shell scripts can be executed from the command line after adding “execute” permissions to the text file containing the shell script. Second, you can use the crontab utility to schedule the execution of your shell scripts according to a schedule of your choice. Specifically, the crontab utility allows you to specify the execution of a shell script on an hourly, daily, weekly, or monthly basis. Tasks that are commonly scheduled via crontab include performing backups, removing unwanted files, and so forth. If you are completely new to Unix-based systems, just keep in mind that there is a way to run scripts both from the command line and in a “scheduled” manner. Setting file permissions to run the script from the command line will be discussed later.
+Third, the contents of any shell script can be as simple as a single command or can comprise hundreds of lines of bash commands. In general, the more useful (and often more interesting) shell scripts involve a combination of several bash commands. A learning tip: since there are usually several ways to produce the desired result, it’s helpful to read other people’s shell scripts to learn how to combine commands in useful ways.
+WHAT IS UNIX?
+Unix is an operating system created by Ken Thompson in the early 1970s, which eventually led to a number of variations, such as HP/UX for HP machines and AIX for IBM machines. Linux Torvalds developed the Linux operating system during the 1990s, and many Linux commands are the same as their bash counterparts (but differences exist, often in the commands for system administrators). The Mac OS X operating system is based on AT&T Unix.
+Unix has a rich and storied history, and if you are really interested in learning about its past, you can read online articles and also Wikipedia. This book foregoes those details and focuses on helping you quickly learn how to become productive with various commands.
+Available Shell Types
+The original Unix shell is the Bourne shell, which was written in the mid-1970s by Stephen R. Bourne. In addition, the Bourne shell was the first shell to appear on bash systems, and you will sometimes hear “the shell” as a reference to the Bourne shell. The Bourne shell is a POSIX standard shell, usually installed as /bin/sh on most versions of Unix, whose default prompt is the $ character. Consequently, Bourne shell scripts will execute on almost every version of Unix. In essence, the AT&T branches of Unix support the Bourne shell (sh), bash, Korn shell (ksh), tsh, and zsh.
+However, there is also the BSD branch of Unix that uses the “C” shell (csh), whose default prompt is the % character. In general, shell scripts written for csh will not execute on AT&T branches of Unix, unless the csh shell is also installed on those machines (and vice versa).
+The Bourne shell is the most ‘unadorned’ in the sense that it lacks some commands that are available in the other shells, such as history,  noclobber, and so forth. Some well-known variants for Bourne Shell are listed as follows:
+Korn shell (ksh)
+Bourne Again shell (bash)
+POSIX shell (sh)
+zsh (“Zee shell”)
+The different C-type shells are as shown below:
+C shell (csh)
+TENEX/TOPS C shell (tcsh)
+The commands and the shell scripts in this book are based on the bash shell, and many of the commands also work in other Bourne-related shells (and the remaining shells have a similar command to accomplish the same goal). When you are unable to perform a particular shell-related task, perform an Internet search for “how to use <bash command> in <shell name>” and you will often find an answer. Keep in mind that sometimes there are variations in syntax for a given command in a particular shell, and typing “man <command>” in a command shell can provide useful information.
+WHAT IS BASH?
+Bash is an acronym for “Bourne Again Shell”, which has its roots in the Bourne shell created by Stephen R. Bourne. Shell scripts based on the Bourne shell will execute in bash, but the converse is not necessarily true. The bash shell provides additional features that are unavailable in the Bourne shell, such as support for arrays (discussed later in this chapter).
+On Mac OS X, the /bin directory contains the following executable shells:
+-r-xr-xr-x 1 root wheel 1377872 Apr 28 2017 /bin/ksh
+
+-r-xr-xr-x 1 root wheel 630464 Apr 28 2017 /bin/sh
+
+-rwxr-xr-x 1 root wheel 375632 Apr 28 2017 /bin/csh
+
+-rwxr-xr-x 1 root wheel 592656 Apr 28 2017 /bin/zsh
+
+-r-xr-xr-x 1 root wheel 626272 Apr 28 2017 /bin/bash
+In case you’re interested, a nice comparison matrix of the support for various features among the preceding shells is here:
+https://stackoverflow.com/questions/5725296/difference-between-sh-and-bash Something else that might surprise you: in some environments the Bourne shell sh is the Bash shell, which you can check by typing the following command:
+sh --version
+
+GNU bash, version 3.2.57(1)-release (x86_64-apple-darwin16)
+
+Copyright (C) 2007 Free Software Foundation, Inc.
+If you are new to the command line (be it Mac, Linux, or PCs), please read the Preface that provides some useful guidelines for accessing command shells.
+Getting help for bash Commands
+If you want to see the options for a specific bash command, invoke the man command to see a description of that bash command and its options:
+man cat
+Keep in mind that the man command produces terse explanations, and if those explanations are not clear enough, you can search for online code samples that provide more details.
+Navigating Around Directories
+In a command shell, you will often perform some common operations, such as displaying (or changing) the current directory, listing the contents of a directory, displaying the contents of a file, and so forth. The following set of commands show you how to perform these operations, and you can execute a subset of these commands in the sequence that is relevant to you. Options for some of the commands in this section (such as the ls command) are described in greater detail later in this chapter.
+A frequently used Bash command is pwd (“print working directory”) that displays the current directory, as shown here:
+pwd
+The output of the preceding command might look something like this:
+/Users/jsmith
+Use the cd (“change directory”) command to go to a specific directory. For example, type the command cd /Users/jsmith/Mail to navigate to this directory (or some other existing directory). If you are currently in the /Users/jsmith directory, just type cd Mail.
+You can navigate to your home directory with either of these commands:
+$ cd $HOME
+
+$ cd
+One convenient way to return to the previous directory is the command cd –. Keep in mind that the cd command on Windows merely displays the current directory and does not change the current directory (unlike the cd command in bash).
+The history Command
+The history command displays a list (i.e., the history) of commands that you executed in the current command shell, as shown here:
+history
+A sample output of the preceding command is given below:
+1202 cat sample.txt > longfile2.txt
+1203 vi longfile2.txt
+1204 cat longfile2.txt |fold -40
+1205 cat longfile2.txt |fold -30
+1206 cat longfile2.txt |fold -50
+1207 cat longfile2.txt |fold -45
+1208 vi longfile2.txt
+1209 history
+1210 cd /Library/Developer/CommandLineTools/usr/include/ c++/
+1211 cd /tmp
+1212 cd $HOME/Desktop
+1213 history
+If you want to navigate to the directory that is shown in line 1210, you can do so simply by typing the following command:
+!1210
+The command !cd will search backwards through the history of commands to find the first command that matches the cd command, in this case, line 1212 is the first match. If there aren’t any intervening cd commands between the current command and the command in line 1210, then !1210 and !cd will have the same effect.
+NOTE
+Be careful with the “!” option with bash commands because the command that matches the “!” might not be the one you intended, so it’s safer to use the history command and then explicitly specify the correct number (in that history) when you invoke the “!” operator.
+LISTING FILENAMES WITH THE LS COMMAND
+The ls command is for listing filenames, and there are many switches available that you can use, as shown in this section. For example, the ls command displays the following filenames (the actual display depends on the font size and the width of the command shell) on my Mac:
+apple-care.txt      iphonemeetup.txt    outfile.txt
+ssl-instructions.txt   checkin-commands.txt   kyrgyzstan.txt output.txt
+The command ls -1 (the digit “1”) displays a vertical listing of filenames:
+apple-care.txt
+checkin-commands.txt
+iphonemeetup.txt
+kyrgyzstan.txt
+outfile.txt
+output.txt
+ssl-instructions.txt
+The command ls -1 (the letter “l”) displays a long listing of filenames:
+total 56
+
+-rwx------ 1 ocampesato staff 25 Apr 06 19:21
+apple-care.txt
+
+-rwx------ 1 ocampesato staff 146 Apr 06 19:21 checkin-
+commands.txt
+
+-rwx------ 1 ocampesato staff 478 Apr 06 19:21
+iphonemeetup.txt
+
+-rwx------ 1 ocampesato staff 12 Apr 06 19:21 kyrgyzstan.txt
+
+-rw-r--r-- 1 ocampesato staff 11 Apr 06 19:21 outfile.txt
+
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 19:21 output.txt
+
+-rwx------ 1 ocampesato staff 176 Apr 06 19:21
+ssl-instructions.txt
+The command ls -1t (the letters “l” and “t”) display a time-based long listing:
+total 56
+
+-rwx------ 1 ocampesato staff 25 Apr 06 19:21
+apple-care.txt
+
+-rwx------ 1 ocampesato staff 146 Apr 06 19:21 checkincommands.txt
+
+-rwx------ 1 ocampesato staff 478 Apr 06 19:21
+iphonemeetup.txt
+
+-rwx------ 1 ocampesato staff 12 Apr 06 19:21 kyrgyzstan.txt
+
+-rw-r--r-- 1 ocampesato staff 11 Apr 06 19:21 outfile.txt
+
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 19:21 output.txt
+
+-rwx------ 1 ocampesato staff 176 Apr 06 19:21
+ssl-instructions.txt
+The command ls -ltr (the letters “l”, “t”, and “r”) display a reversed time-based long listing of filenames:
+total 56
+
+-rwx------ 1 ocampesato staff 176 Apr 06 19:21
+ssl-instructions.txt
+
+-rw-r--r-- 1 ocampesato staff 12 Apr 06 19:21 output.txt
+
+-rw-r--r-- 1 ocampesato staff 11 Apr 06 19:21 outfile.txt
+
+-rwx------ 1 ocampesato staff 12 Apr 06 19:21 kyrgyzstan.
+txt
+
+-rwx------ 1 ocampesato staff 478 Apr 06 19:21
+iphonemeetup.txt
+
+-rwx------ 1 ocampesato staff 146 Apr 06 19:21 checkin-
+commands.txt
+
+-rwx------ 1 ocampesato staff 25 Apr 06 19:21 apple-care.txt
+Here is the description of all the listed columns in the preceding output:
+Column #1: represents file type and permission given on the file (see below)
+Column #2: the number of memory blocks taken by the file or directory
+Column #3: the (Bash user) owner of the file
+Column #4: represents a group of the owner
+Column #5: represents the file size in bytes.
+Column #6: the date and time when this file was created or last modified
+Column #7: represents a file or directory name
+In the ls -l listing example, every file line began with a d, -, or l. These characters indicate the type of file that is listed. These (and other) initial values are described below:
+
+
+-
+Regular file (ASCII text file, binary executable, or hard link)
+
+
+b
+Block special file (such as a physical hard drive)
+
+
+c
+Character special file (such as a physical hard drive)
+
+
+d
+Directory file that contains a listing of other files and directories.
+
+
+l
+Symbolic link file
+
+
+p
+Named pipe (a mechanism for interprocess communications)
+
+
+s
+Socket (for interprocess communication)
+
+
+If you look back at the long listing that is displayed earlier in this section, you will see that the leftmost character is a dash (“-”), which means that it’s a long listing of regular files.
+You can invoke the wc (word count) command to display the number of lines, words and characters in any text file, an example of which is shown here:
+wc iphonemeetup.txt
+10     5     478 iphonemeetup.txt
+The preceding output shows that the file iphonemeetup.txt contains 10 lines, 5 words and 478 characters, which means that the file size is actually quite small.
+Another point to keep in mind: this book works with files and directories, and occasionally with symbolic links; the other file types are primarily useful for programmers. Consult online documentation for more details regarding the ls command.
+DISPLAYING CONTENTS OF FILES
+This section introduces you to several commands for displaying different lines of text in a text file. The commands that you will learn about are cat, head, tail, fold, and also the pipe (“|”) command.
+The cat Command
+Invoke the cat command to display the entire contents of sample.txt:
+cat sample.txt
+The preceding command displays the following text:
+the contents
+of this
+long file
+are too long
+to see in a
+single screen
+and each line
+contains
+one or
+more words
+and if you
+use the cat
+command the
+(other lines are omitted)
+The cat command displays the entire contents of a file, which might be inconvenient when you want to see a small portion of a file. Fortunately, the head and tail commands are available, along with several commands that display only a portion of a file, such as less and more that are discussed later.
+You can also display the contents of multiple files via the cat command and a metacharacter (discussed in more detail later), such as ? or *. For example, suppose that the file temp1 has the following contents:
+this is line1 of temp1
+this is line2 of temp1
+this is line3 of temp1
+Let’s also suppose that the file temp2 has these contents:
+this is line1 of temp2
+this is line2 of temp2
+Now type the following command that contains the ? metacharacter:
+cat temp?
+The output from the preceding command is shown here:
+this is line1 of temp1
+this is line2 of temp1
+this is line3 of temp1
+this is line1 of temp2
+this is line2 of temp2
+If you type the command cat temp* then the output will be the contents of all the files whose name starts with temp in the current directory. If you have a file – let’s call it temp2 – that contains binary data, then you will probably see some strange-looking output on your screen!
+The head and tail Commands
+The head command displays the first ten lines of a text file (by default), an example of which is here:
+head sample.txt
+The preceding command displays the following text:
+the contents
+of this
+long file
+are too long
+to see in a
+single screen
+and each line
+contains
+one or
+more words
+The head command also provides an option to specify a different number of lines to display, as shown here:
+head -4 sample.txt
+The preceding command displays the following text:
+the contents
+of this
+long file
+are too long
+The tail command displays the last 10 lines (by default) of a text file:
+tail sample.txt
+The preceding command displays the following text:
+is available
+in every shell
+including the
+bash shell
+csh
+zsh
+ksh
+and Bourne shell
+NOTE
+The last two lines in the preceding output are blank lines (not a typographical error in this page).
+Similarly, the tail command allows you to specify a different number of lines to display: tail –4 sample.txt displays the last 4 lines of sample.txt.
+Use the more command to display a screenful of data, as shown here:
+more sample.txt
+Press the <spacebar> to view the next screenful of data, and press the <return> key to see the next line of text in a file. Incidentally, some people prefer the less command, which generates essentially the same output as the more command. (A geeky joke: “What’s less? It’s more.”)
+The Pipe Symbol
+A very useful feature of bash is its support for the pipe symbol (“ | ”) that enables you to “pipe” or redirect the output of one command to become the input of another command. The pipe command is very handy when you want to perform a sequence of operations involving various bash commands.
+For example, the following code snippet combines the head command with the cat command and the pipe (“| ”) symbol:
+cat sample.txt| head -2
+A technical point: the preceding command creates two bash processes (more about processes later) whereas the command head -2 sample.txt only creates a single bash process.
+You can use the head and tail commands in more interesting ways. For example, the following command sequence displays lines 11 through 15 of
+sample.txt:
+head -15 sample.txt |tail -5
+The preceding command displays the following text:
+and if you
+use the cat
+command the
+file contents
+scroll
+Display the line numbers for the preceding output as follows:
+cat –n sample.txt | head –15 | tail –5
+The preceding command displays the following text:
+11 and if you
+12 use the cat
+13 command the
+14 file contents
+15 scroll
+You won’t see the “tab” character from the output, but it’s visible if you redirect the previous command sequence to a file and then use the “-t” option with the cat command:
+
+cat –n sample.txt | head –15 | tail –5 > 1
+cat –t 1
+   11^Iand if you
+   12^Iuse the cat
+   13^Icommand the
+   14^Ifile contents
+   15^Iscroll
+The fold Command
+The fold command enables you to “fold” the lines in a text file, which is useful for text files that contain long lines of text that you want to split into shorter lines. For example, here are the contents of longfile2.txt:
+the contents of this long file are too long to see in a
+single screen and each line contains one or more words and
+if you use the cat command the file contents scroll off the
+screen so you can use other commands such as the head or
+tail or more commands in conjunction with the pipe command
+that is very useful in Bash and is available in every shell
+including the bash shell csh zsh ksh and Bourne shell
+You can “fold” the contents of longfile2.txt into lines whose length is 45 (just as an example) with this
+command: cat longfile2.txt |fold -45
+The output of the preceding command is here:
+the contents of this long file are too long t
+o see in a single screen and each line contai
+ns one or more words and if you use the cat c
+ommand the file contents scroll off the scree
+n so you can use other commands such as the h
+ead or tail or more commands in conjunction w
+ith the pipe command that is very useful in U
+nix and is available in every shell including
+the bash shell csh zsh ksh and Bourne shell
+Notice that some words in the preceding output are split based on the line width, and not “newspaper style.”
+In

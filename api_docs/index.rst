@@ -19,6 +19,10 @@ monitoring, security, and team communication.
    :maxdepth: 2
    :caption: API Reference
 
+   reference/cbc_core_api
+   reference/python_ffi_api
+   reference/tensor_mem_ai_api
+   reference/grpc_api
    reference/mcp_tools_reference
    reference/openapi_specification
    reference/error_codes
@@ -27,6 +31,7 @@ monitoring, security, and team communication.
    :maxdepth: 2
    :caption: Developer Resources
 
+   examples/api_examples
    examples/deployment_examples
    examples/monitoring_examples
    examples/security_examples
@@ -45,82 +50,104 @@ monitoring, security, and team communication.
 Overview
 --------
 
-The CODE MCP API provides programmatic access to:
+The CBC (Code Base Crawler) API ecosystem provides comprehensive programmatic access to:
 
-* **Infrastructure Automation** - Docker, Kubernetes, cloud services
-* **DevOps Integration** - Azure DevOps, CI/CD pipelines
-* **Security Scanning** - Vulnerability assessment and compliance
-* **Real-time Monitoring** - Prometheus metrics and observability
-* **Team Communication** - Slack notifications and alerts
-* **Cloud Storage** - S3 and multi-cloud storage management
+* **HTM Storage** - High-performance tensor-based storage and semantic search
+* **NAM/ANAM Validation** - Ethical and operational validation with 67 axioms (Λ01-Λ67)
+* **Tool System** - Extensible tool registry and execution framework
+* **Multi-Agent Coordination** - Advanced agent orchestration capabilities
+* **Memory Management** - Intelligent memory optimization and garbage collection
+* **Code Analysis** - Advanced AST parsing, complexity analysis, and pattern detection
+* **Security Framework** - Comprehensive security auditing and access control
 
 Key Features
 ------------
 
-* **51+ Tools** across 11 MCP servers
-* **Async/Await Support** for high-performance operations
-* **Built-in Security** with authentication and audit logging
-* **Extensible Architecture** for custom MCP servers
-* **Comprehensive Error Handling** with retry mechanisms
-* **Production-Ready** with battle-tested patterns
+* **Multi-Language Support** - Rust core with Python FFI and gRPC APIs
+* **Advanced Memory Management** - Rust-powered memory optimization
+* **Semantic Search** - HTM-based tensor storage and resonance scoring
+* **Ethical AI** - NAM/ANAM axiom validation system
+* **Async/Await Support** - Full async compatibility across all APIs
+* **Tool Chaining** - Advanced tool composition and workflow automation
+* **Multi-Agent Systems** - Sophisticated agent coordination capabilities
+* **High Performance** - Memory-mapped storage and efficient serialization
 
 Quick Example
 -------------
 
+**TensorMem AI (Python):**
+
 .. code-block:: python
 
-   from src.mcp.manager import get_mcp_manager
-   import asyncio
+   from tensor_mem_ai import TensorMemAgent, create_agent
+   from anam_py import HTMCore, AxiomValidator
+   import numpy as np
 
-   async def deploy_application():
-       manager = get_mcp_manager()
-       await manager.initialize()
+   # Create agent with HTM storage
+   agent = create_agent("code_analyzer")
+   htm = HTMCore("./storage", shard_count=4)
+   validator = AxiomValidator()
+
+   # Register analysis tool
+   def analyze_complexity(code):
+       return {"complexity": len(code.split()), "functions": code.count("def ")}
+
+   agent.register_tool("analyze", analyze_complexity)
+
+   # Execute analysis
+   result = agent.execute_tool("analyze", {"code": "def hello(): return 'world'"})
+   print(f"Analysis: {result['result']}")
+
+   # Store in HTM with semantic embedding
+   embedding = np.random.float32(768)
+   htm.store_embedding("example.py", embedding, {"language": "python"})
+
+   # Validate with NAM axioms
+   validation = validator.validate_axiom("AX_NO_HARM", ["AX_BENEFICENCE"])
+   print(f"NAM compliant: {validation['is_valid']}")
+
+**Rust Core:**
+
+.. code-block:: rust
+
+   use cbc_core::htm::HTMCore;
+   use cbc_core::tools::{ToolRegistry, FileSystemCrawler};
+   use nam_core::axioms::AxiomValidator;
+
+   #[tokio::main]
+   async fn main() -> Result<(), Box<dyn std::error::Error>> {
+       // Initialize HTM storage
+       let htm = HTMCore::new("./storage")?;
        
-       # Build Docker image
-       build_result = await manager.call_tool(
-           "docker.docker_build",
-           {
-               "dockerfile_path": "./Dockerfile",
-               "image_tag": "myapp:v1.0.0"
-           }
-       )
+       // Setup tool registry
+       let mut registry = ToolRegistry::new();
+       registry.register(FileSystemCrawler::new());
        
-       # Deploy to Kubernetes
-       deploy_result = await manager.call_tool(
-           "kubernetes.kubectl_apply",
-           {
-               "manifest_path": "./k8s/production/",
-               "namespace": "production"
-           }
-       )
+       // Validate operations with NAM
+       let validator = AxiomValidator::new();
+       let result = validator.validate_axiom("AX_NO_HARM", &[])?;
        
-       # Send notification
-       await manager.call_tool(
-           "slack-notifications.send_notification",
-           {
-               "channel": "#deployments",
-               "notification_type": "deployment_success",
-               "title": "Production Deployment Complete",
-               "details": {"version": "v1.0.0"}
-           }
-       )
+       println!("NAM validation: {}", result.is_valid);
+       Ok(())
+   }
 
-   asyncio.run(deploy_application())
+API Layers
+----------
 
-Available MCP Servers
----------------------
+1. **CBC Core (Rust)** - High-performance core with HTM storage and NAM validation
+2. **Python FFI (anam_py)** - Direct Python bindings with NumPy integration
+3. **TensorMem AI** - High-level Python library with multi-agent support
+4. **gRPC API** - Language-agnostic service interface
+5. **REST Gateway** - HTTP/JSON API layer (via FastAPI integration)
 
-1. **Desktop Commander** - Terminal commands and file operations
-2. **Docker** - Container lifecycle management
-3. **Kubernetes** - Cluster orchestration
-4. **Azure DevOps** - CI/CD pipeline automation
-5. **Windows System** - Native Windows automation
-6. **Prometheus Monitoring** - Metrics and observability
-7. **Security Scanner** - Vulnerability assessment
-8. **Slack Notifications** - Team communication
-9. **S3 Storage** - AWS S3 management
-10. **Cloud Storage** - Multi-cloud storage abstraction
-11. **Brave Search** - Web search and research
+Core Components
+---------------
+
+* **HTM Storage** - Hybrid Tensor Memory for embeddings and semantic search
+* **NAM/ANAM System** - 67 axioms (Λ01-Λ67) for ethical validation
+* **Tool System** - Extensible tool registry and execution framework
+* **Security Framework** - Comprehensive auditing and access control
+* **Multi-Agent Coordination** - Advanced agent orchestration capabilities
 
 Getting Help
 ------------

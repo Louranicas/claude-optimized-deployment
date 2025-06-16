@@ -1,0 +1,588 @@
+# Advanced Auto-scaling Policies for CODE Project
+# Horizontal Pod Autoscaler (HPA) and Vertical Pod Autoscaler (VPA) configurations
+
+---
+# API Horizontal Pod Autoscaler with Multiple Metrics
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: code-api-hpa
+  namespace: code-production
+  labels:
+    app: code-api
+    component: api
+    autoscaling: enabled
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: code-api
+  minReplicas: 3
+  maxReplicas: 50
+  metrics:
+  # CPU-based scaling
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  # Memory-based scaling
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Custom metrics - HTTP requests per second
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+        selector:
+          matchLabels:
+            app: code-api
+      target:
+        type: AverageValue
+        averageValue: "1000"
+  # Custom metrics - Response time P95
+  - type: Object
+    object:
+      metric:
+        name: http_request_duration_p95
+        selector:
+          matchLabels:
+            app: code-api
+      describedObject:
+        apiVersion: v1
+        kind: Service
+        name: code-api
+      target:
+        type: Value
+        value: "500m"
+  # Queue depth for background processing
+  - type: External
+    external:
+      metric:
+        name: redis_queue_depth
+        selector:
+          matchLabels:
+            queue: "background_jobs"
+      target:
+        type: AverageValue
+        averageValue: "10"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 5
+        periodSeconds: 30
+      selectPolicy: Max
+
+---
+# Worker Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: code-worker-hpa
+  namespace: code-production
+  labels:
+    app: code-worker
+    component: worker
+    autoscaling: enabled
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: code-worker
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 85
+  # Queue-based scaling for workers
+  - type: External
+    external:
+      metric:
+        name: redis_queue_length
+        selector:
+          matchLabels:
+            queue: "worker_queue"
+      target:
+        type: AverageValue
+        averageValue: "5"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600  # Longer stabilization for workers
+      policies:
+      - type: Percent
+        value: 20
+        periodSeconds: 120
+      - type: Pods
+        value: 1
+        periodSeconds: 120
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+      - type: Percent
+        value: 200
+        periodSeconds: 30
+      - type: Pods
+        value: 3
+        periodSeconds: 30
+      selectPolicy: Max
+
+---
+# MCP Servers Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: code-mcp-servers-hpa
+  namespace: code-production
+  labels:
+    app: code-mcp-servers
+    component: mcp
+    autoscaling: enabled
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: code-mcp-servers
+  minReplicas: 2
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 65
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  # MCP-specific metrics
+  - type: Pods
+    pods:
+      metric:
+        name: mcp_connections_active
+        selector:
+          matchLabels:
+            app: code-mcp-servers
+      target:
+        type: AverageValue
+        averageValue: "50"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 180
+      policies:
+      - type: Percent
+        value: 15
+        periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 45
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30
+      selectPolicy: Max
+
+---
+# API Vertical Pod Autoscaler
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: code-api-vpa
+  namespace: code-production
+  labels:
+    app: code-api
+    component: api
+    autoscaling: enabled
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: code-api
+  updatePolicy:
+    updateMode: "Auto"
+    minReplicas: 3
+  resourcePolicy:
+    containerPolicies:
+    - containerName: api
+      minAllowed:
+        cpu: 100m
+        memory: 256Mi
+      maxAllowed:
+        cpu: 4000m
+        memory: 8Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+    - containerName: sidecar-logger
+      minAllowed:
+        cpu: 50m
+        memory: 64Mi
+      maxAllowed:
+        cpu: 200m
+        memory: 256Mi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+
+---
+# Worker Vertical Pod Autoscaler
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: code-worker-vpa
+  namespace: code-production
+  labels:
+    app: code-worker
+    component: worker
+    autoscaling: enabled
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: code-worker
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: worker
+      minAllowed:
+        cpu: 200m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 6000m
+        memory: 12Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+
+---
+# Database Vertical Pod Autoscaler (Recommendation Mode)
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: code-postgres-vpa
+  namespace: code-production
+  labels:
+    app: code-postgres
+    component: database
+    autoscaling: recommendation
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: code-postgres
+  updatePolicy:
+    updateMode: "Off"  # Recommendation only for databases
+  resourcePolicy:
+    containerPolicies:
+    - containerName: postgres
+      minAllowed:
+        cpu: 500m
+        memory: 1Gi
+      maxAllowed:
+        cpu: 8000m
+        memory: 32Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Cluster Autoscaler Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-autoscaler-status
+  namespace: kube-system
+  labels:
+    app: cluster-autoscaler
+data:
+  nodes.max: "100"
+  nodes.min: "3"
+  scale-down-enabled: "true"
+  scale-down-delay-after-add: "10m"
+  scale-down-unneeded-time: "10m"
+  scale-down-utilization-threshold: "0.5"
+  skip-nodes-with-local-storage: "false"
+  skip-nodes-with-system-pods: "false"
+
+---
+# Pod Disruption Budget for API
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: code-api-pdb
+  namespace: code-production
+  labels:
+    app: code-api
+    component: api
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: code-api
+      component: api
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+# Pod Disruption Budget for Workers
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: code-worker-pdb
+  namespace: code-production
+  labels:
+    app: code-worker
+    component: worker
+spec:
+  maxUnavailable: 50%
+  selector:
+    matchLabels:
+      app: code-worker
+      component: worker
+
+---
+# Pod Disruption Budget for MCP Servers
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: code-mcp-servers-pdb
+  namespace: code-production
+  labels:
+    app: code-mcp-servers
+    component: mcp
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: code-mcp-servers
+      component: mcp
+
+---
+# Priority Classes for Different Workloads
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000
+globalDefault: false
+description: "High priority class for critical API services"
+
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: medium-priority
+value: 500
+globalDefault: false
+description: "Medium priority class for worker services"
+
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low-priority
+value: 100
+globalDefault: false
+description: "Low priority class for batch jobs and monitoring"
+
+---
+# Resource Quotas for Production Namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: code-production-quota
+  namespace: code-production
+spec:
+  hard:
+    requests.cpu: "100"
+    requests.memory: "200Gi"
+    limits.cpu: "200"
+    limits.memory: "400Gi"
+    persistentvolumeclaims: "20"
+    pods: "100"
+    services: "20"
+    secrets: "50"
+    configmaps: "50"
+
+---
+# Limit Ranges for Production Namespace
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: code-production-limits
+  namespace: code-production
+spec:
+  limits:
+  - type: Container
+    default:
+      cpu: "500m"
+      memory: "1Gi"
+      ephemeral-storage: "1Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+      ephemeral-storage: "256Mi"
+    max:
+      cpu: "8"
+      memory: "32Gi"
+      ephemeral-storage: "10Gi"
+    min:
+      cpu: "50m"
+      memory: "64Mi"
+      ephemeral-storage: "64Mi"
+  - type: Pod
+    max:
+      cpu: "16"
+      memory: "64Gi"
+      ephemeral-storage: "20Gi"
+  - type: PersistentVolumeClaim
+    max:
+      storage: "1Ti"
+    min:
+      storage: "1Gi"
+
+---
+# Custom Metrics Server Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adapter-config
+  namespace: custom-metrics
+data:
+  config.yaml: |
+    rules:
+    # HTTP requests per second
+    - seriesQuery: 'http_requests_total{namespace!="",pod!=""}'
+      seriesFilters: []
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: "^(.*)_total"
+        as: "${1}_per_second"
+      metricsQuery: 'rate(<<.Series>>{<<.LabelMatchers>>}[2m])'
+    
+    # HTTP request duration P95
+    - seriesQuery: 'http_request_duration_seconds{namespace!="",pod!=""}'
+      seriesFilters: []
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: "^(.*)_seconds"
+        as: "${1}_p95"
+      metricsQuery: 'histogram_quantile(0.95, rate(<<.Series>>_bucket{<<.LabelMatchers>>}[5m]))'
+    
+    # Redis queue depth
+    - seriesQuery: 'redis_queue_length{namespace!="",service!=""}'
+      seriesFilters: []
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          service:
+            resource: service
+      name:
+        matches: "^(.*)$"
+        as: "${1}"
+      metricsQuery: '<<.Series>>{<<.LabelMatchers>>}'
+    
+    # MCP connections
+    - seriesQuery: 'mcp_connections_active{namespace!="",pod!=""}'
+      seriesFilters: []
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: "^(.*)$"
+        as: "${1}"
+      metricsQuery: '<<.Series>>{<<.LabelMatchers>>}'
+
+---
+# KEDA ScaledObject for Event-Driven Autoscaling
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: code-worker-scaledobject
+  namespace: code-production
+spec:
+  scaleTargetRef:
+    name: code-worker
+  minReplicaCount: 2
+  maxReplicaCount: 50
+  cooldownPeriod: 300
+  pollingInterval: 30
+  triggers:
+  # Redis queue-based scaling
+  - type: redis
+    metadata:
+      address: "redis:6379"
+      listName: "worker_queue"
+      listLength: "5"
+      enableTLS: "false"
+    authenticationRef:
+      name: redis-auth
+  # Prometheus-based scaling
+  - type: prometheus
+    metadata:
+      serverAddress: "http://prometheus:9090"
+      metricName: "pending_jobs"
+      threshold: "10"
+      query: "sum(redis_queue_length{queue='background_jobs'})"
+  # Cron-based scaling for known traffic patterns
+  - type: cron
+    metadata:
+      timezone: "UTC"
+      start: "0 8 * * 1-5"  # Scale up at 8 AM on weekdays
+      end: "0 18 * * 1-5"   # Scale down at 6 PM on weekdays
+      desiredReplicas: "10"
+
+---
+# KEDA Authentication for Redis
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: redis-auth
+  namespace: code-production
+spec:
+  secretTargetRef:
+  - parameter: password
+    name: redis-password
+    key: password

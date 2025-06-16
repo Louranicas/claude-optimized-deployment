@@ -1,0 +1,86 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 05 - The acme-impact-alliance folder we downloaded appears to be empty. But is it really? When dealing with web servers, you may run into what seem to be dead ends only to find out that something is hiding there, just not in an obvious place. Take note of the empty folder for now; we’ll resume this exploration in a little bit.
+Security Relevance Score: 4
+Word Count: 915
+Extracted: 2025-06-13 23:40:57
+
+---
+
+The acme-impact-alliance folder we downloaded appears to be empty. But is it really? When dealing with web servers, you may run into what seem to be dead ends only to find out that something is hiding there, just not in an obvious place. Take note of the empty folder for now; we’ll resume this exploration in a little bit.
+
+
+Identifying Suspicious robots.txt Entries
+After scanning the third IP address, 172.16.10.12 (p-web-02), Nikto outputs the following:
++ Server: Apache/2.4.54 (Debian)
++ Retrieved x-powered-by header: PHP/8.0.28
+--snip--
++ Uncommon header 'link' found, with contents: <http://172.16.10.12/wp-json/>;
+rel="https://api.w.org/"
+--snip--
++ Entry '/wp-admin/' in robots.txt returned a non-forbidden or redirect HTTP
+code (302)
++ Entry '/donate.php' in robots.txt returned a non-forbidden or redirect HTTP
+code (200)
++ "robots.txt" contains 17 entries which should be manually viewed.
++ /wp-login.php: Wordpress login found
+--snip--
+
+Nikto was able to find a lot more information this time! It caught missing security headers (which is extremely common to see in the wild, unfortunately). Next, Nikto found that the server is running on Apache and Debian and that it is powered by PHP, a backend programming language commonly used in web applications.
+It also found an uncommon link that points to http://172.16.10.12/wp-json and found two suspicious entries in the robots.txt file—namely, /wp-admin/ and /donate.php. The robots.txt file is a special file used to indicate to web crawlers (such as Google’s search engine) which endpoints to index and which to ignore. Nikto hints that the robots.txt file may have more entries than just these two and advises us to inspect it manually.
+Finally, it also identified another endpoint at /wp-login.php, which is a login page for WordPress, a blog platform. Navigate to the main page at http://172.16.10.12/ to confirm you’ve identified a blog.
+Finding these non-indexed endpoints is useful during a penetration test because you can add them to your list of possible targets to test. When you open this file, you should notice a list of paths:
+User-agent:  *
+
+Disallow: /cgi-bin/
+Disallow: /z/j/
+Disallow: /z/c/
+Disallow: /stats/
+--snip--
+Disallow: /manual/*
+Disallow: /phpmanual/
+Disallow: /category/
+Disallow: /donate.php
+Disallow: /amount_to_donate.txt
+
+We identified some of these endpoints earlier (such as /donate.php and /wp-admin), but others we didn’t see when scanning with Nikto. In Exercise 5, you’ll use bash to automate your exploration of them.
+Exercise 5: Exploring Non-indexed Endpoints
+Nikto scanning returned a list of non-indexed endpoints. In this exercise, you’ll use bash to see whether they really exist on the server. Put together a script that will make an HTTP request to robots.txt, return the response, and iterate over each line, parsing the output to extract only the paths. Then the script should make an additional HTTP request to each path and check the status code it returns.
+Listing 5-2 is an example script that can get you started. It relies on a useful curl feature you’ll find handy in your bash scripts: built-in variables you can reference to extract particular values from HTTP requests and responses, such as the size of the request sent (%{size_request}) and the size of the headers returned in bytes (%{size_header}).
+
+curl_fetch _robots_txt.sh
+#!/bin/bash
+TARGET_URL="http://172.16.10.12"
+ROBOTS_FILE="robots.txt"
+
+❶ while read -r line; do
+❷ path=$(echo "${line}" | awk -F'Disallow: ' '{print $2}')
+❸ if [[-n "${path}"]]; then
+    url="${TARGET_URL}${path}"
+    status_code=$(curl -s -o /dev/null -w "%{http_code}" "${url}")
+    echo "URL: ${url} returned a status code of: ${status_code}"
+  fi
+
+❹ done < <(curl -s "${TARGET_URL}/${ROBOTS_FILE}")
+
+Listing 5-2: Reading robots.txt and making requests to individual paths
+At ❶, we read the output from the curl command at ❹ line by line. This command makes an HTTP GET request to http://172.16.10.12/robots.txt. We then parse each line and grab the second field (which is separated from the others by a space) to extract the path and assign it to the path variable ❷. We check that the path variable length is greater than zero to ensure we were able to properly parse it ❸.
+Then we create a url variable, which is a string concatenated from the TARGET_URL variable plus each path from the robots.txt file, and make an HTTP request to the URL. We use the -w (write-out) variable %{http_code} to extract only the status code from the response returned by the web server.
+To go beyond this script, try using other curl variables. You can find the full list of variables at https://curl.se/docs/manpage.html or by running the man curl command.
+
+
+
+Brute-Forcing Directories with dirsearch
+The dirsearch fast directory brute-forcing tool is used to find hidden paths and files on web servers. Written in Python by Mauro Soria, dirsearch provides features such as built-in web directory wordlists, bring-your-own-dictionary options, and advanced response filtering. We’ll use it to try to identify additional attack vectors and verify that Nikto hasn’t missed anything obvious.
+First, let’s rescan port 8081 on p-web-01 (172.16.10.10), which yielded no discovered endpoints when scanned by Nikto. The following dirsearch command uses the -u (URL) option to specify a base URL from which to start crawling:
+$ dirsearch -u http://172.16.10.10:8081/
+
+--snip--
+
+Target: http://172.16.10.10:8081/
+
+[00:14:55] Starting:
+[00:15:32] 200 -  371B  - /upload
+[00:15:35] 200 -   44B  - /uploads
+
+Great! This tool was able to pick up two previously unknown endpoints named /upload and /uploads. This is why it’s important to double- and triple-check your results by using more than one tool and to manually verify the findings; tools sometimes produce false positives or use limited path-list databases. If you navigate to the /upload page, you should see a file-upload form. Take note of this endpoint because we’ll test it in

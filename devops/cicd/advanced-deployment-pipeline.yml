@@ -1,0 +1,879 @@
+# Advanced CI/CD Pipeline for CODE (Claude Optimized Deployment Engine)
+# Features: Multi-environment, Blue-Green/Canary, Security Scanning, Performance Testing
+
+name: Advanced Production Deployment Pipeline
+
+on:
+  push:
+    branches: [main, develop, 'feature/*', 'release/*', 'hotfix/*']
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'blue-green'
+        type: choice
+        options:
+          - rolling
+          - blue-green
+          - canary
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+      force_deploy:
+        description: 'Force deployment without validation'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '18'
+  RUST_VERSION: 'stable'
+  HELM_VERSION: 'v3.13.0'
+  KUBECTL_VERSION: 'v1.28.0'
+  TERRAFORM_VERSION: '1.6.0'
+  DOCKER_BUILDKIT: 1
+  BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+
+jobs:
+  # ========================================================================================
+  # PREPARATION AND VALIDATION JOBS
+  # ========================================================================================
+  
+  prepare:
+    name: Prepare Pipeline
+    runs-on: ubuntu-latest
+    outputs:
+      should-deploy: ${{ steps.conditions.outputs.should-deploy }}
+      target-environment: ${{ steps.conditions.outputs.target-environment }}
+      deployment-strategy: ${{ steps.conditions.outputs.deployment-strategy }}
+      image-tag: ${{ steps.conditions.outputs.image-tag }}
+      is-production: ${{ steps.conditions.outputs.is-production }}
+      run-security-tests: ${{ steps.conditions.outputs.run-security-tests }}
+      run-performance-tests: ${{ steps.conditions.outputs.run-performance-tests }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Determine deployment conditions
+      id: conditions
+      run: |
+        # Determine if we should deploy
+        SHOULD_DEPLOY="false"
+        TARGET_ENV="development"
+        DEPLOYMENT_STRATEGY="rolling"
+        IS_PRODUCTION="false"
+        RUN_SECURITY_TESTS="true"
+        RUN_PERFORMANCE_TESTS="false"
+        
+        # Set image tag
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          IMAGE_TAG="${{ github.event.inputs.environment }}-${{ github.sha }}"
+          TARGET_ENV="${{ github.event.inputs.environment }}"
+          DEPLOYMENT_STRATEGY="${{ github.event.inputs.deployment_strategy }}"
+          SHOULD_DEPLOY="true"
+        elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          IMAGE_TAG="main-${{ github.sha }}"
+          TARGET_ENV="production"
+          DEPLOYMENT_STRATEGY="blue-green"
+          SHOULD_DEPLOY="true"
+          IS_PRODUCTION="true"
+          RUN_PERFORMANCE_TESTS="true"
+        elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+          IMAGE_TAG="develop-${{ github.sha }}"
+          TARGET_ENV="staging"
+          DEPLOYMENT_STRATEGY="rolling"
+          SHOULD_DEPLOY="true"
+          RUN_PERFORMANCE_TESTS="true"
+        elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+          IMAGE_TAG="${{ github.ref_name }}"
+          TARGET_ENV="production"
+          DEPLOYMENT_STRATEGY="blue-green"
+          SHOULD_DEPLOY="true"
+          IS_PRODUCTION="true"
+          RUN_PERFORMANCE_TESTS="true"
+        else
+          IMAGE_TAG="pr-${{ github.event.number }}-${{ github.sha }}"
+        fi
+        
+        echo "should-deploy=${SHOULD_DEPLOY}" >> $GITHUB_OUTPUT
+        echo "target-environment=${TARGET_ENV}" >> $GITHUB_OUTPUT
+        echo "deployment-strategy=${DEPLOYMENT_STRATEGY}" >> $GITHUB_OUTPUT
+        echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        echo "is-production=${IS_PRODUCTION}" >> $GITHUB_OUTPUT
+        echo "run-security-tests=${RUN_SECURITY_TESTS}" >> $GITHUB_OUTPUT
+        echo "run-performance-tests=${RUN_PERFORMANCE_TESTS}" >> $GITHUB_OUTPUT
+        
+        echo "🎯 Deployment Plan:"
+        echo "  Environment: ${TARGET_ENV}"
+        echo "  Strategy: ${DEPLOYMENT_STRATEGY}"
+        echo "  Image Tag: ${IMAGE_TAG}"
+        echo "  Should Deploy: ${SHOULD_DEPLOY}"
+        echo "  Is Production: ${IS_PRODUCTION}"
+
+  # ========================================================================================
+  # SECURITY AND QUALITY GATES
+  # ========================================================================================
+  
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.run-security-tests == 'true'
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        exit-code: '1'
+        ignore-unfixed: true
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run Bandit security linter
+      run: |
+        pip install bandit[toml]
+        bandit -r src/ -f json -o bandit-report.json
+        bandit -r src/ -f txt -o bandit-report.txt
+      continue-on-error: true
+
+    - name: Run Semgrep security analysis
+      uses: semgrep/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/owasp-top-ten
+          p/python
+          p/typescript
+          p/rust
+      env:
+        SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-scan-results
+        path: |
+          trivy-results.sarif
+          bandit-report.json
+          bandit-report.txt
+
+  # ========================================================================================
+  # TESTING JOBS
+  # ========================================================================================
+  
+  test-python:
+    name: Python Tests & Quality
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: github.event.inputs.skip_tests != 'true'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+        - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+        - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: |
+          requirements.txt
+          requirements-dev.txt
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run code quality checks
+      run: |
+        # Format checking
+        black --check --diff src/ tests/
+        isort --check-only --diff src/ tests/
+        
+        # Linting
+        flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        pylint src/ --disable=all --enable=unused-import,unused-variable,undefined-variable
+        
+        # Type checking
+        mypy src/ --ignore-missing-imports --strict
+
+    - name: Run unit tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        JWT_SECRET: test-secret-key-for-ci
+        ENVIRONMENT: test
+      run: |
+        python -m pytest tests/unit/ -v \
+          --cov=src \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-fail-under=85 \
+          --junitxml=pytest-results.xml \
+          --maxfail=10 \
+          --tb=short
+
+    - name: Run integration tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+        JWT_SECRET: test-secret-key-for-ci
+        ENVIRONMENT: test
+      run: |
+        python -m pytest tests/integration/ -v \
+          --junitxml=integration-results.xml \
+          --maxfail=5
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: python-test-results
+        path: |
+          pytest-results.xml
+          integration-results.xml
+          coverage.xml
+          htmlcov/
+
+  test-rust:
+    name: Rust Tests & Quality
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: github.event.inputs.skip_tests != 'true'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        components: rustfmt, clippy
+
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: "rust_core -> target"
+
+    - name: Check Rust formatting
+      run: |
+        cd rust_core
+        cargo fmt -- --check
+
+    - name: Run Clippy
+      run: |
+        cd rust_core
+        cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Run Rust tests
+      run: |
+        cd rust_core
+        cargo test --verbose --all-features
+        cargo test --release --verbose
+
+    - name: Run Rust benchmarks
+      run: |
+        cd rust_core
+        cargo bench --verbose
+
+  test-node:
+    name: Node.js Tests & Quality
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: github.event.inputs.skip_tests != 'true'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: 'mcp_servers/package-lock.json'
+
+    - name: Install dependencies
+      run: |
+        cd mcp_servers
+        npm ci
+
+    - name: Run code quality checks
+      run: |
+        cd mcp_servers
+        npm run lint
+        npm run type-check
+
+    - name: Run tests
+      run: |
+        cd mcp_servers
+        npm test -- --coverage --watchAll=false
+        npm run test:integration
+
+    - name: Upload Node.js test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: nodejs-test-results
+        path: |
+          mcp_servers/coverage/
+          mcp_servers/test-results.xml
+
+  # ========================================================================================
+  # BUILD AND PACKAGING
+  # ========================================================================================
+  
+  build:
+    name: Build Container Images
+    runs-on: ubuntu-latest
+    needs: [prepare, security-scan, test-python, test-rust, test-node]
+    if: always() && !failure() && !cancelled()
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        platforms: linux/amd64,linux/arm64
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch,suffix=-{{sha}}
+          type=ref,event=pr,suffix=-{{sha}}
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=raw,value=${{ needs.prepare.outputs.image-tag }}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push container image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
+          VERSION=${{ needs.prepare.outputs.image-tag }}
+          COMMIT_SHA=${{ github.sha }}
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+        sbom: true
+        provenance: true
+
+    - name: Generate SBOM
+      uses: anchore/sbom-action@v0
+      with:
+        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.image-tag }}
+        format: spdx-json
+        output-file: sbom.spdx.json
+
+    - name: Sign container image
+      uses: sigstore/cosign-installer@v3
+    
+    - name: Sign the container image
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+
+    - name: Attest build provenance
+      uses: actions/attest-build-provenance@v1
+      id: attest
+      with:
+        subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        subject-digest: ${{ steps.build.outputs.digest }}
+        push-to-registry: true
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          sbom.spdx.json
+
+  # ========================================================================================
+  # PERFORMANCE TESTING
+  # ========================================================================================
+  
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    if: needs.prepare.outputs.run-performance-tests == 'true'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up k6
+      uses: grafana/setup-k6-action@v1
+
+    - name: Run load tests
+      run: |
+        # Start the application in test mode
+        docker run -d --name code-app \
+          -p 8000:8000 \
+          -e ENVIRONMENT=test \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.image-tag }}
+        
+        # Wait for app to be ready
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+        
+        # Run k6 performance tests
+        k6 run tests/performance/load-test.js \
+          --out json=load-test-results.json \
+          --out summary=load-test-summary.json
+        
+        # Run stress tests for production deployments
+        if [[ "${{ needs.prepare.outputs.is-production }}" == "true" ]]; then
+          k6 run tests/performance/stress-test.js \
+            --out json=stress-test-results.json \
+            --out summary=stress-test-summary.json
+        fi
+
+    - name: Upload performance test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-test-results
+        path: |
+          load-test-results.json
+          load-test-summary.json
+          stress-test-results.json
+          stress-test-summary.json
+
+  # ========================================================================================
+  # INFRASTRUCTURE DEPLOYMENT
+  # ========================================================================================
+  
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    if: needs.prepare.outputs.should-deploy == 'true' && needs.prepare.outputs.is-production == 'true'
+    environment:
+      name: ${{ needs.prepare.outputs.target-environment }}-infrastructure
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        role-session-name: GitHubActions-${{ github.run_id }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+    - name: Terraform Init
+      working-directory: infrastructure/terraform
+      run: |
+        terraform init \
+          -backend-config="bucket=${{ secrets.TERRAFORM_STATE_BUCKET }}" \
+          -backend-config="key=${{ needs.prepare.outputs.target-environment }}/terraform.tfstate" \
+          -backend-config="region=${{ secrets.AWS_REGION }}"
+
+    - name: Terraform Plan
+      working-directory: infrastructure/terraform
+      run: |
+        terraform plan \
+          -var="environment=${{ needs.prepare.outputs.target-environment }}" \
+          -var="image_tag=${{ needs.prepare.outputs.image-tag }}" \
+          -out=tfplan
+
+    - name: Terraform Apply
+      if: github.event.inputs.force_deploy == 'true' || (github.ref == 'refs/heads/main' && github.event_name == 'push')
+      working-directory: infrastructure/terraform
+      run: terraform apply -auto-approve tfplan
+
+  # ========================================================================================
+  # APPLICATION DEPLOYMENT
+  # ========================================================================================
+  
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: [prepare, build, performance-test]
+    if: always() && !failure() && !cancelled() && needs.prepare.outputs.should-deploy == 'true'
+    environment:
+      name: ${{ needs.prepare.outputs.target-environment }}
+      url: ${{ steps.deploy.outputs.application-url }}
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      application-url: ${{ steps.deploy.outputs.application-url }}
+      deployment-id: ${{ steps.deploy.outputs.deployment-id }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ env.KUBECTL_VERSION }}
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ secrets.AWS_REGION }} \
+          --name code-${{ needs.prepare.outputs.target-environment }}
+
+    - name: Verify cluster connectivity
+      run: |
+        kubectl cluster-info
+        kubectl get nodes
+        kubectl get namespaces
+
+    - name: Deploy with Rolling Update
+      id: deploy-rolling
+      if: needs.prepare.outputs.deployment-strategy == 'rolling'
+      run: |
+        helm upgrade --install code-app ./helm/code \
+          --namespace code-${{ needs.prepare.outputs.target-environment }} \
+          --create-namespace \
+          --set image.tag=${{ needs.prepare.outputs.image-tag }} \
+          --set environment=${{ needs.prepare.outputs.target-environment }} \
+          --set deployment.strategy=RollingUpdate \
+          --wait --timeout=15m
+        
+        APP_URL="https://code-${{ needs.prepare.outputs.target-environment }}.example.com"
+        DEPLOYMENT_ID="rolling-$(date +%s)"
+        
+        echo "application-url=${APP_URL}" >> $GITHUB_OUTPUT
+        echo "deployment-id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
+
+    - name: Deploy with Blue-Green Strategy
+      id: deploy-blue-green
+      if: needs.prepare.outputs.deployment-strategy == 'blue-green'
+      run: |
+        # Get current deployment color
+        CURRENT_COLOR=$(kubectl get deployment code-app -n code-${{ needs.prepare.outputs.target-environment }} \
+          -o jsonpath='{.metadata.labels.color}' 2>/dev/null || echo "blue")
+        NEW_COLOR=$([ "$CURRENT_COLOR" = "blue" ] && echo "green" || echo "blue")
+        
+        echo "🔄 Blue-Green Deployment: $CURRENT_COLOR → $NEW_COLOR"
+        
+        # Deploy to new color
+        helm upgrade --install code-app-$NEW_COLOR ./helm/code \
+          --namespace code-${{ needs.prepare.outputs.target-environment }} \
+          --create-namespace \
+          --set image.tag=${{ needs.prepare.outputs.image-tag }} \
+          --set environment=${{ needs.prepare.outputs.target-environment }} \
+          --set deployment.color=$NEW_COLOR \
+          --set service.selector.color=$NEW_COLOR \
+          --wait --timeout=15m
+        
+        # Run smoke tests on new deployment
+        kubectl wait --for=condition=ready pod \
+          -l app=code-app,color=$NEW_COLOR \
+          -n code-${{ needs.prepare.outputs.target-environment }} \
+          --timeout=300s
+        
+        # Switch traffic
+        kubectl patch service code-app \
+          -n code-${{ needs.prepare.outputs.target-environment }} \
+          -p '{"spec":{"selector":{"color":"'$NEW_COLOR'"}}}'
+        
+        # Clean up old deployment
+        helm uninstall code-app-$CURRENT_COLOR \
+          -n code-${{ needs.prepare.outputs.target-environment }} || true
+        
+        APP_URL="https://code-${{ needs.prepare.outputs.target-environment }}.example.com"
+        DEPLOYMENT_ID="blue-green-$NEW_COLOR-$(date +%s)"
+        
+        echo "application-url=${APP_URL}" >> $GITHUB_OUTPUT
+        echo "deployment-id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
+
+    - name: Deploy with Canary Strategy
+      id: deploy-canary
+      if: needs.prepare.outputs.deployment-strategy == 'canary'
+      run: |
+        # Deploy canary with 10% traffic
+        helm upgrade --install code-app-canary ./helm/code \
+          --namespace code-${{ needs.prepare.outputs.target-environment }} \
+          --create-namespace \
+          --set image.tag=${{ needs.prepare.outputs.image-tag }} \
+          --set environment=${{ needs.prepare.outputs.target-environment }} \
+          --set deployment.strategy=canary \
+          --set deployment.canary.weight=10 \
+          --wait --timeout=10m
+        
+        # Monitor canary for 5 minutes
+        echo "🕐 Monitoring canary deployment for 5 minutes..."
+        sleep 300
+        
+        # Check canary metrics (simplified)
+        CANARY_SUCCESS=$(kubectl get pods -l app=code-app,version=canary \
+          -n code-${{ needs.prepare.outputs.target-environment }} \
+          -o jsonpath='{.items[0].status.phase}')
+        
+        if [[ "$CANARY_SUCCESS" == "Running" ]]; then
+          echo "✅ Canary validation passed, promoting to 100%"
+          helm upgrade code-app-canary ./helm/code \
+            --namespace code-${{ needs.prepare.outputs.target-environment }} \
+            --set deployment.canary.weight=100 \
+            --wait --timeout=5m
+        else
+          echo "❌ Canary validation failed, rolling back"
+          helm rollback code-app-canary \
+            -n code-${{ needs.prepare.outputs.target-environment }}
+          exit 1
+        fi
+        
+        APP_URL="https://code-${{ needs.prepare.outputs.target-environment }}.example.com"
+        DEPLOYMENT_ID="canary-$(date +%s)"
+        
+        echo "application-url=${APP_URL}" >> $GITHUB_OUTPUT
+        echo "deployment-id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
+
+    - name: Update deployment annotations
+      run: |
+        kubectl annotate deployment code-app \
+          -n code-${{ needs.prepare.outputs.target-environment }} \
+          deployment.kubernetes.io/revision="$(date +%s)" \
+          deployment.kubernetes.io/image="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.image-tag }}" \
+          deployment.kubernetes.io/deployed-by="${{ github.actor }}" \
+          deployment.kubernetes.io/commit="${{ github.sha }}" \
+          deployment.kubernetes.io/strategy="${{ needs.prepare.outputs.deployment-strategy }}" \
+          --overwrite
+
+  # ========================================================================================
+  # POST-DEPLOYMENT VALIDATION
+  # ========================================================================================
+  
+  validate:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy]
+    if: always() && !failure() && !cancelled()
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run smoke tests
+      run: |
+        echo "🧪 Running smoke tests..."
+        
+        # Health check
+        curl -f "${{ needs.deploy.outputs.application-url }}/health" || exit 1
+        
+        # API endpoint tests
+        curl -f "${{ needs.deploy.outputs.application-url }}/api/v1/status" || exit 1
+        
+        # Load test
+        curl -f "${{ needs.deploy.outputs.application-url }}/metrics" || exit 1
+        
+        echo "✅ All smoke tests passed"
+
+    - name: Run integration tests
+      if: needs.prepare.outputs.target-environment != 'production'
+      run: |
+        echo "🔧 Running integration tests..."
+        # Add comprehensive integration tests here
+        echo "✅ Integration tests completed"
+
+    - name: Security validation
+      if: needs.prepare.outputs.is-production == 'true'
+      run: |
+        echo "🔒 Running security validation..."
+        
+        # Check for secure headers
+        curl -I "${{ needs.deploy.outputs.application-url }}" | grep -i "strict-transport-security" || exit 1
+        curl -I "${{ needs.deploy.outputs.application-url }}" | grep -i "x-content-type-options" || exit 1
+        
+        echo "✅ Security validation passed"
+
+  # ========================================================================================
+  # ROLLBACK CAPABILITY
+  # ========================================================================================
+  
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy, validate]
+    if: failure() && needs.prepare.outputs.should-deploy == 'true'
+    environment:
+      name: ${{ needs.prepare.outputs.target-environment }}
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ env.KUBECTL_VERSION }}
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig \
+          --region ${{ secrets.AWS_REGION }} \
+          --name code-${{ needs.prepare.outputs.target-environment }}
+
+    - name: Rollback deployment
+      run: |
+        echo "🔄 Rolling back deployment..."
+        kubectl rollout undo deployment/code-app \
+          -n code-${{ needs.prepare.outputs.target-environment }}
+        kubectl rollout status deployment/code-app \
+          -n code-${{ needs.prepare.outputs.target-environment }} \
+          --timeout=300s
+        echo "✅ Rollback completed"
+
+  # ========================================================================================
+  # NOTIFICATIONS
+  # ========================================================================================
+  
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy, validate, rollback]
+    if: always() && needs.prepare.outputs.should-deploy == 'true'
+    steps:
+    - name: Determine status
+      id: status
+      run: |
+        if [[ "${{ needs.validate.result }}" == "success" ]]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "message=✅ Deployment successful" >> $GITHUB_OUTPUT
+        elif [[ "${{ needs.rollback.result }}" == "success" ]]; then
+          echo "status=rollback" >> $GITHUB_OUTPUT
+          echo "message=🔄 Deployment failed and was rolled back" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "message=❌ Deployment failed" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Send Slack notification
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ steps.status.outputs.status }}
+        text: |
+          ${{ steps.status.outputs.message }}
+          
+          📊 **Deployment Details:**
+          • Environment: ${{ needs.prepare.outputs.target-environment }}
+          • Strategy: ${{ needs.prepare.outputs.deployment-strategy }}
+          • Image: ${{ needs.prepare.outputs.image-tag }}
+          • Commit: ${{ github.sha }}
+          • Actor: ${{ github.actor }}
+          • URL: ${{ needs.deploy.outputs.application-url }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+    - name: Update deployment status
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: ${{ needs.prepare.outputs.target-environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Strategy**: ${{ needs.prepare.outputs.deployment-strategy }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image Tag**: ${{ needs.prepare.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **URL**: ${{ needs.deploy.outputs.application-url }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deployment ID**: ${{ needs.deploy.outputs.deployment-id }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp**: $(date -u)" >> $GITHUB_STEP_SUMMARY

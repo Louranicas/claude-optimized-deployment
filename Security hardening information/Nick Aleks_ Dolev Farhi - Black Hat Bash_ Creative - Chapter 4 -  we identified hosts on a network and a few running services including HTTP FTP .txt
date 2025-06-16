@@ -1,0 +1,85 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 4 - , we identified hosts on a network and a few running services, including HTTP, FTP, and SSH. Each of these protocols has its own set of tests we could perform. In this chapter, we’ll use specialized tools on the discovered services to find out as much as we can about them.
+In the process, we’ll use bash to run security testing tools, parse their output, and write custom scripts to scale security testing across many URLs. We’ll fuzz with tools such as ffuf and Wfuzz, write custom security checks using the Nuclei templating system, extract personally identifiable information (PII) from the output of tools, and create our own quick-and-dirty vulnerability scanners.
+Security Relevance Score: 9
+Word Count: 1163
+Extracted: 2025-06-13 23:40:57
+
+---
+
+, we identified hosts on a network and a few running services, including HTTP, FTP, and SSH. Each of these protocols has its own set of tests we could perform. In this chapter, we’ll use specialized tools on the discovered services to find out as much as we can about them.
+In the process, we’ll use bash to run security testing tools, parse their output, and write custom scripts to scale security testing across many URLs. We’ll fuzz with tools such as ffuf and Wfuzz, write custom security checks using the Nuclei templating system, extract personally identifiable information (PII) from the output of tools, and create our own quick-and-dirty vulnerability scanners.
+
+Scanning Websites with Nikto
+Nikto is a web scanning tool available on Kali. It performs banner grabbing and runs a few basic checks to determine if the web server uses security headers to mitigate known web vulnerabilities; these vulnerabilities include cross-site scripting (XSS), which is a client-side injection vulnerability targeting web browsers, and UI redressing (also known as clickjacking), a vulnerability that lets attackers use decoy layers in a web page to hijack user clicks. The security headers indicate to browsers what to do when loading certain resources and opening URLs, protecting the user from falling victim to an attack.
+After performing these security checks, Nikto also sends requests to possible endpoints on the server by using its built-in wordlist of common paths. The requests can discover interesting endpoints that could be useful for penetration testers. Let’s use Nikto to perform a basic web assessment of the three web servers we’ve identified on the IP addresses 172.16.10.10 (p-web-01), 172.16.10.11 (p-ftp-01), and 172.16.10.12 (p-web-02).
+We’ll run a Nikto scan against the web ports we found to be open on the three target IP addresses. Open a terminal and run the following commands one at a time so you can dissect the output for each IP address:
+$ nikto -host 172.16.10.10 -port 8081
+$ nikto -host 172.16.10.11 -port 80
+$ nikto -host 172.16.10.12 -port 80
+
+The output for 172.16.10.10 on port 8081 shouldn’t yield much interesting information about discovered endpoints, but it should indicate that the server doesn’t seem to be hardened, as it doesn’t use security headers:
++ Server: Werkzeug/2.2.3 Python/3.11.1
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user
+agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user
+agent to render the content of the site in a different fashion to the MIME
+type
+--snip--
++ Allowed HTTP Methods: OPTIONS, GET, HEAD
++ 7891 requests: 0 error(s) and 4 item(s) reported on remote host
+
+Nikto was able to perform a banner grab of the server, as indicated by the line that starts with the word Server. It then listed a few missing security headers. These are useful pieces of information but not enough to take over a server just yet.
+The IP address 172.16.10.11 on port 80 should give you a similar result, though Nikto also discovered a new endpoint, /backup, and that directory indexing mode is enabled:
++ Server: Apache/2.4.55 (Ubuntu)
+--snip--
++ OSVDB-3268: /backup/: Directory indexing found.
++ OSVDB-3092: /backup/: This might be interesting...
+
+Directory indexing is a server-side setting that, instead of a web page, lists files located at certain web paths. When enabled, the directory indexing setting lists the content of a directory when an index file is missing (such as index.html or index.php). Directory indexing is interesting to find because it could highlight sensitive files in an application, such as configuration files with connection strings, local database files (such as SQLite files), and other environmental files. Open the browser in Kali to http://172.16.10.11/backup to see the content of this endpoint (Figure 5-1).
+
+Figure 5-1: Directory indexing found on 172.16.10.11/backup
+
+Directory indexing lets you view files in the browser. You can click directories to open them, click files to download them, and so on. On the web page, you should identify two folders: acme-hyper-branding and acme-impact -alliance. The acme-hyper-branding folder appears to contain a file named app.py. Download it to Kali by clicking it so it’s available for later inspection.
+We’ll explore the third IP address in a moment, but first let’s use bash automation to take advantage of directory indexing.
+
+Building a Directory Indexing Scanner
+What if we wanted to run a scan against a list of URLs to check whether they enable directory indexing, then download all the files they serve? In Listing 5-1, we use bash to carry out such a task.
+
+directory _indexing _scanner.sh
+#!/bin/bash
+FILE="${1}"
+OUTPUT_FOLDER="${2}"
+
+❶ if [[! -s "${FILE}"]]; then
+  echo "You must provide a non-empty hosts file as an argument."
+  exit 1
+fi
+
+if [[-z "${OUTPUT_FOLDER}"]]; then
+❷ OUTPUT_FOLDER="data"
+fi
+
+while read -r line; do
+❸ url=$(echo "${line}" | xargs)
+  if [[-n "${url}"]]; then
+    echo "Testing ${url} for Directory indexing..."
+  ❹ if curl -L -s "${url}" | grep -q -e "Index of /" -e "[PARENTDIR]"; then
+      echo -e "\t -!- Found Directory Indexing page at ${url}"
+      echo -e "\t -!- Downloading to the \"${OUTPUT_FOLDER}\" folder..."
+      mkdir -p "${OUTPUT_FOLDER}"
+    ❺ wget -q -r -np -R "index.html*" "${url}" -P "${OUTPUT_FOLDER}"
+    fi
+  fi
+done < <(cat "${FILE}")
+
+Listing 5-1: Automatically downloading files available via directory indexing
+In this script, we define the FILE and OUTPUT_FOLDER variables. Their assigned values are taken from the arguments the user passes on the command line ($1 and $2). We then fail and exit the script (exit 1) if the FILE variable is not of the file type and of length zero (-s) ❶. If the file has a length of zero, it means the file is empty.
+We then use a while loop to read the file at the path assigned to the FILE variable. At ❸, we ensure that each whitespace character in each line from the file is removed by piping it to the xargs command. At ❹, we use curl to make an HTTP GET request and follow any HTTP redirects (using -L). We silence verbose output from curl (using -s) and pipe it to grep to find any instances of the strings Index of / and [PARENTDIR]. These two strings exist in directory indexing pages. You can verify this by viewing the source HTML page at http://172.16.10.11/backup.
+If we find either string, we call the wget command ❺ with the quiet option (-q) to silence verbose output, the recursive option (-r) to download files recursively from folders, the no-parent option (-np) to ensure we download only files at the same level of hierarchy or lower (subfolders), and the reject option (-R) to exclude files starting with index.html. We then use the target folder option (-P) to download the content to the path specified by the user calling the script (the OUTPUT_FOLDER variable). If the user didn’t provide a destination folder, the script will default to using the data folder ❷.
+
+NOTE
+
+You can download this chapter’s scripts from https://github.com/dolevf/Black-Hat-Bash/blob/master/ch

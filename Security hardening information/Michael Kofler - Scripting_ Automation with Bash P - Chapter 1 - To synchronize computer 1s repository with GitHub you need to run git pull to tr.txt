@@ -1,0 +1,64 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 1 - To synchronize computer 1’s repository with GitHub, you need to run git pull to transfer new commits from the remote repository to computer 1:
+computer1> git pull
+Security Relevance Score: 6
+Word Count: 1090
+Extracted: 2025-06-13 23:41:06
+
+---
+
+To synchronize computer 1’s repository with GitHub, you need to run git pull to transfer new commits from the remote repository to computer 1:
+computer1> git pull 
+
+git pull before git push
+As soon as code is changed in multiple places or by multiple developers, you should get into the habit of regularly running git pull to bring your local repository up to date. In general, you should always run git pull before git push. If you forget to git pull and Git detects that commits are missing from the local repository, git push results in the following error message: failed to push some refs to remote repository xxx. The solution is to run git pull first.
+
+Figure 14.2 shows—admittedly in a highly simplified manner—the effect of basic Git commands. The “staging area” is a special area of the Git database that stores files added via git add that are not yet part of a commit.
+
+Figure 14.2    
+            Basic Git Commands
+14.1.6    Git Status
+As your project grows, so does the risk of losing track of your Git repository. The solution to this problem is provided by git status. This command summarizes which files have been changed since the last commit, which ones have been added, and so on.
+Another useful command is git log, which outputs a summary of the latest commits (with the newest commit first). With git log, myriad options control how many details are displayed for each commit. You can get the shortest version using --oneline: Then, only a hexadecimal identification code (the first digits of the hash code) and the commit message are displayed:
+> git log  f2665d9 (HEAD -> main, origin/main, origin/HEAD) more bugfixes  5d3225d bugfixes in script1.ps1  679ca1a improved script2.ps1, started documentation  cd35ac9 script1 to script3.ps1: basic functions work  015ed58 Initial commit 
+Instead of getting used to using git log, you can also use the GitHub web interface where you can click through the commits, view the changes made with the commits, and more.
+
+Figure 14.3    
+            The State of the Local Repository
+14.1.7    Excluding Files from Git (.gitignore)
+Often, some files in your project directory should not be included in the repository, such as backups of your scripts created by the editor, files for logging and debugging, and so on. To prevent git status from listing these files, you can set up the .gitignore file in the local directory. This file contains samples of files that git should not consider, for example, the following kinds of files:
+*.bak*.log*~tmp/* 
+The .gitignore file itself should of course be stored in the repository:
+> git add .gitignore 
+If, as an exception, you want to add a file to the repository for which .gitignore contains a lock pattern, you should run git add with the -f (force) option:
+> git add debugging.log  The following paths are ignored by one of your .gitignore  files: debugging.log.  Hint: Use -f if you really want to add them.> git add -f debugging.log 
+14.1.8    Transferring Existing Code to a New Repository
+In this section, I assume that you’ve already set up a repository on GitHub, cloned an empty repository to your machine, and then have started developing your scripts there. Often, however, you’ve gone the other way around: You’ve been working on a new project for a few days and only later decide to use Git. That’s no problem either!
+First, you must create the new repository in GitHub. Make sure that you do not activate the Add a README file option! Do not add any other files to the repository.
+Then, open a terminal, go to your project directory, create a new local repository using git init, and add the desired files to it. Finally, git commit creates the first local commit:
+> cd my\project> git init> git add script*.sh readme.md> git commit -m 'initial commit' 
+Next, you must connect the local repository to the new remote repository. git branch ensures that the main branch in the local repository is called main. In current versions of Git, this name is used by default—the command is then superfluous but does not interfere. Only if your Git installation is rather old can it still use the obsolete master designation.
+git remote add origin defines the remote repository. Instead of MichaelKofler/test1235.git, you must specify your own GitHub account name and repository name again.
+git push performs the first upload. The -u (set upstream) option ensures that the mapping between the external repository for the main branch is stored permanently. Therefore, in the future, git push without any further options will be sufficient.
+> git branch -M main> git remote add origin git@github.com:MichaelKofler/test1235.git> git push -u origin main  To github.com:MichaelKofler/test1235.git   * [new branch]      main -> main  branch 'main' set up to track 'origin/main'. 
+Thus, the first commit is stored both locally and remotely. From that moment on, the git add, git commit, git pull and git push, git status, and git log commands work as described earlier.
+
+
+
+
+
+
+
+
+
+14.2    Handling Settings and Passwords Correctly
+Hackers are always looking for passwords for mail, FTP, and database servers. All too often, they find what they are looking for on GitHub, GitLab, and other Git hosts. That’s not because these platforms themselves are so insecure, but because code files stored there that are publicly accessible might simply contain the passwords in plain text. This vulnerability can arise if your code looks something like the following backup script:
+# Attention, negative example!... codemysqldump -u root -ptopSecret wordpress > db.sqllftp -u ftpuser,topSecret2 backupserver.example.com << EOFcd remote/dir/put db.sqlbyeEOF... more code 
+In this example, mysqldump first creates a backup of the database. The password required for this step is passed directly with the -p option. Then, lftp connects to an FTP server to store the backup there. The password is passed with the -u option. If you store this backup script in a Git repository, everyone who has access to the repository knows the passwords to the MySQL and FTP servers.
+By the way, you should avoid FTP altogether if possible. The protocol is inherently insecure. If anything, you should only store files on an FTP server that you have encrypted previously.
+14.2.1    What’s a Better Method?
+Several best practices for preventing these types of security breaches include the following:
+
+
+Storing passwords externallyAlmost all programs that require a password for authentication can read the password from a file. For mysqldump, the .my.cnf is used; for lftp, the .netrc file is used; and so on. With some tools, you don't need passwords at all and can use key files instead (for example, SSH; see

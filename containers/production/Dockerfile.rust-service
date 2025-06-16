@@ -1,0 +1,65 @@
+# Rust Service Production Container
+# Multi-stage build for minimal production image
+FROM rust:1.75-slim-bullseye AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure Rust for production builds
+ENV RUSTFLAGS="-C target-cpu=znver3 -C opt-level=3 -C lto=fat -C codegen-units=1" \
+    CARGO_BUILD_JOBS=16
+
+WORKDIR /build
+
+# Cache dependencies
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir src && echo "fn main() {}" > src/main.rs && \
+    cargo build --release && \
+    rm -rf src target/release/claude-optimized-deployment*
+
+# Build application
+COPY rust_core ./rust_core
+COPY src ./src
+RUN cargo build --release --bin claude-optimized-deployment && \
+    strip target/release/claude-optimized-deployment
+
+# Stage 2: Runtime
+FROM debian:bullseye-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl1.1 \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r claude && useradd -r -g claude -u 1000 claude && \
+    mkdir -p /app/bin /app/logs /app/data && \
+    chown -R claude:claude /app
+
+# Copy binary from builder
+COPY --from=builder --chown=claude:claude /build/target/release/claude-optimized-deployment /app/bin/
+
+# Security: Set proper permissions
+RUN chmod 755 /app/bin/claude-optimized-deployment && \
+    chmod 755 /app/logs /app/data
+
+USER claude
+WORKDIR /app
+
+# Production environment variables
+ENV RUST_LOG=warn \
+    RUST_BACKTRACE=0
+
+EXPOSE 8000
+
+# Health check binary mode
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD ["/app/bin/claude-optimized-deployment", "--health-check"]
+
+ENTRYPOINT ["/app/bin/claude-optimized-deployment"]

@@ -1,0 +1,65 @@
+# Security Chapter Extract
+Book: Shilpa Mahajan_ Mehak Khurana_ Vania Vieira Estrela - Applying Artificial Intelligence in Cybersecurity Analytics and Cyber Threat Detection (2024, WILEY) - libgen.li
+Chapter: 991 - https://doi.org/10.3103/S014641161708017X.
+5 AlSadhan, Tina & Park, Joon. (2016). Enhancing Risk‐Based Decisions by Leveraging Cyber Security Automation, 164–167. https://doi.org/10.1109/EISIC.2016.042.
+6 Mohammad, S.M. and Surya, L. (2018). Security automation in information technology. SSRN Electronic Journal 6: 901–905. https://doi.org/10.1729/Journal.24048.
+7 Aguirre, I. and Alonso, S. (2012). Improving the automation of security information management tools. A collaborative approach. Security & Privacy, IEEE 10: 1–1. https://doi.org/10.1109/MSP.2011.153.
+8 Erich, F., Amrit, C., and Daneva, M. (2017). A qualitative study of DevOps usage in practice. Journal of Software: Evolution and Process https://doi.org/10.1002/smr.1885.
+9 Biener, Adam & Crawford, Andrea. (2019). DevOps for Containerized Applications. Date of Indexing: https://doi.org/10.1007/978-3-319-94229-2_4
+Security Relevance Score: 11
+Word Count: 917
+Extracted: 2025-06-13 23:40:31
+
+---
+
+https://doi.org/10.3103/S014641161708017X.
+5 AlSadhan, Tina & Park, Joon. (2016). Enhancing Risk‐Based Decisions by Leveraging Cyber Security Automation, 164–167. https://doi.org/10.1109/EISIC.2016.042.
+6 Mohammad, S.M. and Surya, L. (2018). Security automation in information technology. SSRN Electronic Journal 6: 901–905. https://doi.org/10.1729/Journal.24048.
+7 Aguirre, I. and Alonso, S. (2012). Improving the automation of security information management tools. A collaborative approach. Security & Privacy, IEEE 10: 1–1. https://doi.org/10.1109/MSP.2011.153.
+8 Erich, F., Amrit, C., and Daneva, M. (2017). A qualitative study of DevOps usage in practice. Journal of Software: Evolution and Process https://doi.org/10.1002/smr.1885.
+9 Biener, Adam & Crawford, Andrea. (2019). DevOps for Containerized Applications. Date of Indexing: https://doi.org/10.1007/978-3-319-94229-2_4
+
+
+
+
+
+
+
+
+
+
+
+
+Part IICyber Threat Detection and Analysis Using Artificial Intelligence and Big Data
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+6Malware Analysis Techniques in Android‐Based Smartphone Applications
+Geetika Munjal, Avi Chakravarti, and Utkarsh Sharma
+Amity School of Engineering and Technology, Amity University, Noida, Uttar Pradesh, India
+
+
+6.1 Introduction
+Due to a decline in price and an expansion of features and services, mobile devices like smartphones and tablets have recently gained a lot of popularity. Additionally, the increasing trend of bringing your own device (BYOD) regulations into organizations has facilitated the adoption of these technologies. These policies encourage the use of such technologies for routine communication and to support commercial transactions and enterprise systems, all of which pose new security threats. Operating systems have also been crucial in this situation for the acceptance and growth of mobile devices and apps, allowing for the emergence of harmful malware [1]. This is true of the Android OS, as it has grown to be a significant part of the market for mobile devices as well as an appealing target for hackers because it is an open‐source OS.
+The Android development community, the Open Handset Alliance manufacturers, and Google have collectively put a lot of effort to increase the security of Android. Yet new security threats continue to appear and develop, and this is a significant concern [2]. This chapter presents some recent results and trends in the study of Android malware analysis and detection. This chapter first provides a quick overview of the security model for Android before moving on to a review of various static, dynamic, and hybrid malware detection and analysis methodologies. Following that, a comparative study between the malware analysis methodologies is provided.
+
+6.1.1 Android Security Architecture
+Android is not just an operating system but also a platform made up of the device hardware, Android OS, and application runtime. Firstly, the term “Android device hardware block” refers to the diverse variety of hardware setups on which Android may be used, including smartphones, smart TVs, tablets, watches, and cars [3]. Although Android is a processor‐independent OS, it does utilize some security features specific to hardware like ARM eXecute‐Never. Secondly, the “Android OS building block” refers to the operating system itself, which is based on the Linux kernel and through which all device resources are accessed. Thirdly, the managed runtime that apps and some system services on Android employ is called the “Android application runtime block” [4]. The fact that apps are created in Java and run on the Android runtime (ART) must be considered in this situation. However, a large number of programs, including the essential services and programs for Android, are native programs or contain native libraries [5]. The same security environment, controlled by the apps sandbox, is used to execute both ART and native programs. Applications now have their own area of the file system where they may store sensitive information like databases and raw files [6].
+A number of important security features are offered by Android, including strong OS‐level security provided by the Linux kernel, a requirement that all applications run in sandboxes, secure process‐to‐process communication, application signing, and permissions that are both application‐defined and user‐granted [7].
+The security capabilities made available by the Linux kernel are also utilized by the Android security model. The kernel separates the user resources from each other on a Linux system, which is a multi‐user OS, much as it does with processes [8]. As a result, unless expressly permitted, a user cannot access a file owned by another user, and each process runs under the user’s identity that initiated it. Since distinct physical users did not need to be registered with the system when Android was first created, the physical user is implicit and UIDs are utilized to differentiate applications instead. This is the foundation for Android’s application sandboxing [9].
+
+
+6.1.2 Android Attack Surface
+The qualities of a target that make it susceptible to security attacks are referred to as its “attack surface.” The method by which an attacker launches an attack is referred to as an attack vector [10]. The code that an attacker may run and therefore attack is referred to as the “attack surface” in other terms. An attack surface, in contrast to an attack vector, indicates where in‐code vulnerabilities could be lurking and waiting to be found, without depending on the attackers’ activities or requiring a vulnerability to be present. Generally, the amount of system interfaces a target has closely relates to the size of its attack surface [11].
+It is possible to attack or defend a system more efficiently by concentrating on specific dangerous attack surfaces. While determining attack surfaces, several factors are crucial, such as attack vectors, privileged access, memory security, and complexity [12]. It is vital to segregate Android attack surfaces since they are such a broad and complicated array. The attack surfaces for Android devices, as well as certain attack vectors and propagation methods [13], are illustrated in Figure 6.

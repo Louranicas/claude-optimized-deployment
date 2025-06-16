@@ -1,0 +1,414 @@
+{
+  "timestamp": "2025-06-08T14:58:53.777032",
+  "summary": {
+    "total_servers": 25,
+    "working": 0,
+    "not_working": 0,
+    "partially_working": 25
+  },
+  "servers": {
+    "typescript_servers": {
+      "name": "TypeScript MCP Servers",
+      "type": "npm/typescript",
+      "location": "/home/louranicas/projects/claude-optimized-deployment/mcp_servers",
+      "status": "partially_working",
+      "tests": {
+        "package_json": {
+          "status": "passed"
+        },
+        "dependencies": {
+          "status": "passed"
+        },
+        "api_keys": {
+          "status": "passed"
+        },
+        "typescript_compilation": {
+          "status": "failed",
+          "error": "Compilation failed"
+        },
+        "implementations": {
+          "status": "passed",
+          "servers": [
+            "ai-enhancement",
+            "development-workflow",
+            "search-integration"
+          ]
+        }
+      }
+    },
+    "learning_system_servers": [
+      {
+        "name": "MCP Development Server",
+        "type": "python/rust",
+        "location": "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/development",
+        "status": "partially_working",
+        "tests": {
+          "python_source": {
+            "status": "passed"
+          },
+          "rust_source": {
+            "status": "passed"
+          },
+          "rust_build": {
+            "status": "warning",
+            "note": "Not built for release"
+          },
+          "requirements": {
+            "status": "warning",
+            "note": "No requirements.txt"
+          }
+        }
+      },
+      {
+        "name": "MCP Bash_God Server",
+        "type": "python/rust",
+        "location": "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/bash_god",
+        "status": "partially_working",
+        "tests": {
+          "python_source": {
+            "status": "passed"
+          },
+          "rust_source": {
+            "status": "passed"
+          },
+          "rust_build": {
+            "status": "warning",
+            "note": "Not built for release"
+          },
+          "requirements": {
+            "status": "passed"
+          }
+        }
+      },
+      {
+        "name": "MCP Devops Server",
+        "type": "python/rust",
+        "location": "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/devops",
+        "status": "partially_working",
+        "tests": {
+          "python_source": {
+            "status": "passed",
+            "note": "Using main.py"
+          },
+          "rust_source": {
+            "status": "passed"
+          },
+          "rust_build": {
+            "status": "warning",
+            "note": "Not built for release"
+          },
+          "requirements": {
+            "status": "warning",
+            "note": "No requirements.txt"
+          }
+        }
+      },
+      {
+        "name": "MCP Quality Server",
+        "type": "python/rust",
+        "location": "/home/louranicas/projects/claude-optimized-deployment/mcp_learning_system/servers/quality",
+        "status": "partially_working",
+        "tests": {
+          "python_source": {
+            "status": "passed",
+            "note": "Using main.py"
+          },
+          "rust_source": {
+            "status": "passed"
+          },
+          "rust_build": {
+            "status": "warning",
+            "note": "Not built for release"
+          },
+          "requirements": {
+            "status": "warning",
+            "note": "No requirements.txt"
+          }
+        }
+      }
+    ],
+    "configured_servers": [
+      {
+        "name": "MCP Google-Maps Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/google-maps_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Smithery-Sdk Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/smithery-sdk_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Everything Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/everything_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Mcp Master Config 20250607 125216",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/mcp_master_config_20250607_125216.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "passed"
+          }
+        },
+        "servers_configured": [
+          "desktop-commander",
+          "filesystem",
+          "postgres",
+          "github",
+          "memory",
+          "brave-search",
+          "slack",
+          "puppeteer"
+        ]
+      },
+      {
+        "name": "MCP Github",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/github.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Claude Config Mcpso 20250607 125955",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/claude_config_mcpso_20250607_125955.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "passed"
+          }
+        },
+        "servers_configured": [
+          "desktop-commander",
+          "filesystem",
+          "postgres",
+          "github",
+          "memory",
+          "brave-search",
+          "slack",
+          "puppeteer",
+          "tavily-mcp",
+          "sequential-thinking",
+          "redis",
+          "google-maps",
+          "gdrive",
+          "everything",
+          "vercel-mcp-adapter",
+          "smithery-sdk"
+        ]
+      },
+      {
+        "name": "MCP Gdrive Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/gdrive_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Desktop-Commander",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/desktop-commander.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Filesystem",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/filesystem.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Tavily-Mcp Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/tavily-mcp_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Vercel-Mcp-Adapter Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/vercel-mcp-adapter_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Redis Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/redis_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Postgres",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/postgres.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Sequential-Thinking Mcpso",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/sequential-thinking_mcpso.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      },
+      {
+        "name": "MCP Memory",
+        "type": "configured",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_configs/memory.json",
+        "status": "configured",
+        "tests": {
+          "config_valid": {
+            "status": "warning",
+            "note": "No mcpServers section"
+          }
+        }
+      }
+    ],
+    "server_configs": [
+      {
+        "name": "Filesystem MCP Server",
+        "type": "configuration",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_server_configs/filesystem_config.json",
+        "status": "configured",
+        "config": {
+          "name": "filesystem-mcp-server",
+          "path": "./mcp_servers/node_modules/@modelcontextprotocol/server-filesystem",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "base_path": "/home/louranicas"
+          }
+        }
+      },
+      {
+        "name": "Postgresql MCP Server",
+        "type": "configuration",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_server_configs/postgresql_config.json",
+        "status": "configured",
+        "config": {
+          "name": "postgresql-mcp-server",
+          "path": "./mcp_servers/node_modules/@modelcontextprotocol/server-postgres",
+          "connection": {
+            "host": "localhost",
+            "port": 5432,
+            "database": "mcp_db",
+            "user": "mcp_user"
+          }
+        }
+      },
+      {
+        "name": "Git MCP Server",
+        "type": "configuration",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_server_configs/git_config.json",
+        "status": "configured",
+        "config": {
+          "name": "git-mcp",
+          "path": "./mcp_servers/node_modules/@modelcontextprotocol/server-git",
+          "repositories": [
+            "/home/louranicas/projects/claude-optimized-deployment"
+          ]
+        }
+      },
+      {
+        "name": "Elasticsearch MCP Server",
+        "type": "configuration",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_server_configs/elasticsearch_config.json",
+        "status": "configured",
+        "config": {
+          "name": "elasticsearch-mcp-server",
+          "path": "./mcp_servers/node_modules/@modelcontextprotocol/server-elasticsearch",
+          "connection": {
+            "host": "localhost",
+            "port": 9200,
+            "index_prefix": "mcp_"
+          }
+        }
+      },
+      {
+        "name": "Memory MCP Server",
+        "type": "configuration",
+        "config_file": "/home/louranicas/projects/claude-optimized-deployment/mcp_server_configs/memory_config.json",
+        "status": "configured",
+        "config": {
+          "name": "memory-mcp-server",
+          "path": "./mcp_servers/node_modules/@modelcontextprotocol/server-memory",
+          "storage": {
+            "type": "persistent",
+            "path": "./mcp_memory_store"
+          }
+        }
+      }
+    ]
+  }
+}

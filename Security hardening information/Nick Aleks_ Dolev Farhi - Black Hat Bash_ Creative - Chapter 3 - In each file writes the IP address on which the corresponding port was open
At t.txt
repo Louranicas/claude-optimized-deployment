@@ -1,0 +1,148 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - In each file, writes the IP address on which the corresponding port was open
+At the end of this exercise, you should have a bunch of files, such as port-22.txt, port-80.txt, and port-8080.txt, and in each file, you should see one or more IP addresses at which that port was found to be open. This can be useful when you have a large number of target hosts and want to attack them in clusters by targeting specific protocols associated with given ports.
+To get you started, Listing 4-9 shows an example solution.
+Security Relevance Score: 6
+Word Count: 1453
+Extracted: 2025-06-13 23:40:57
+
+---
+
+In each file, writes the IP address on which the corresponding port was open
+At the end of this exercise, you should have a bunch of files, such as port-22.txt, port-80.txt, and port-8080.txt, and in each file, you should see one or more IP addresses at which that port was found to be open. This can be useful when you have a large number of target hosts and want to attack them in clusters by targeting specific protocols associated with given ports.
+To get you started, Listing 4-9 shows an example solution.
+
+nmap_to _portfiles.sh
+#!/bin/bash
+HOSTS_FILE="172-16-10-hosts.txt"
+❶ RESULT=$(nmap -iL ${HOSTS_FILE} --open | grep "Nmap scan report\|tcp open")
+
+# Read the nmap output line by line.
+while read -r line; do
+❷ if echo "${line}" | grep -q "report for"; then
+    ip=$(echo "${line}" | awk -F'for ' '{print $2}')
+  else
+  ❸ port=$(echo "${line}" | grep open | awk -F'/' '{print $1}')
+  ❹ file="port-${port}.txt"
+  ❺ echo "${ip}" >> "${file}"
+  fi
+done <<< "${RESULT}"
+
+Listing 4-9: Using bash to organize scan results by port
+We assign the output of the nmap command to the variable NMAP_RESULT ❶. In this command, we also filter for specific lines containing the words Nmap scan report or tcp open. These lines are part of Nmap’s standard port scan output, and they indicate that open ports were found on an IP address.
+We use a while loop to read NMAP_RESULT line by line, checking whether each line contains the string report for ❷. This line will hold the IP address where ports are found open. If such a line exists, we assign it to the ip variable. Then we parse the line to extract the port that is found open ❸. At ❹, we create the file variable to hold the file we’ll create on disk with the naming scheme port-NUMBER.txt. Finally, we append the IP address to the file ❺.
+Save the script to a file named nmap_to_portfiles.sh and run it. Next, run ls -l to see what files were created, and use cat to view their contents:
+$ ls -l
+
+total 24
+-rw-r--r-- 1 kali kali 3448 Mar  6 22:18 172-16-10-hosts.txt
+-rw-r--r-- 1 kali kali   13 Mar  8 22:34 port-21.txt
+-rw-r--r-- 1 kali kali   25 Mar  8 22:34 port-22.txt
+--snip--
+
+$ cat port-21.txt
+
+172.16.10.11
+
+As you’ve seen, Nmap’s standard output format is a little challenging to parse but not impossible.
+To improve the script shown here, consider using one of Nmap’s additional output format options, which can make parsing easier, especially for scripting purposes. One of these options is the -oG flag, for the greppable output format, which is grep and awk friendly:
+$ nmap -iL 172-16-10-hosts.txt --open -oG -
+
+Host: 172.16.10.1 ()    Status: Up
+Host: 172.16.10.1 ()    Ports: 22/open/tcp//ssh///  Ignored State: closed (999)
+Host: 172.16.10.10 ()   Status: Up
+Host: 172.16.10.10 ()   Ports: 8081/open/tcp//blackice-icecap///  Ignored State: closed (999)
+--snip--
+
+The output now prints the IP address and its open ports on the same line.
+You can also tell Nmap to generate Extensible Markup Language (XML) output by using the -oX option. Open ports in an XML Nmap output look like the following:
+$ nmap -iL 172-16-10-hosts.txt --open -oX -
+
+--snip--
+<port protocol="tcp" portid="22"><state state="open" reason="syn-ack" reason_ttl="0"/><service
+name="ssh" method="table" conf="3"/></port>
+--snip--
+
+As an extra challenge, try putting together a one-liner bash script that extracts the open ports from XML output.
+
+
+
+Detecting New Open Ports
+What if you want to monitor a host until it opens a certain port? You may find this useful if you’re testing an environment in which hosts come up and down frequently. We can do this quite easily with a while loop.
+In Listing 4-10, we continuously check whether a port is open, waiting five seconds between each execution. Once we find an open port, we pass this information to Nmap to perform a service discovery and write the output to a file.
+
+port _watchdog.sh
+#!/bin/bash
+LOG_FILE="watchdog.log"
+IP_ADDRESS="${1}"
+WATCHED_PORT="${2}"
+
+service_discovery(){
+  local host
+  local port
+  host="${1}"
+  port="${2}"
+
+❶ nmap -sV -p "${port}" "${host}" >> "${LOG_FILE}"
+}
+
+❷ while true; do
+❸ port_scan=$(docker run --network=host -it --rm \
+             --name rustscan rustscan/rustscan:2.1.1 \
+             -a "${IP_ADDRESS}" -g -p "${WATCHED_PORT}")
+❹ if [[-n "${port_scan}"]]; then
+    echo "${IP_ADDRESS} has started responding on port ${WATCHED_PORT}!"
+    echo "Performing a service discovery..."
+  ❺ if service_discovery "${IP_ADDRESS}" "${WATCHED_PORT}"; then
+      echo "Wrote port scan data to ${LOG_FILE}"
+      break
+    fi
+  else
+    echo "Port is not yet open, sleeping for 5 seconds..."
+  ❻ sleep 5
+  fi
+done
+
+Listing 4-10: A watchdog script for newly opened ports
+At ❷, we start an infinite while loop. The loop runs RustScan, passing it the -a (address) argument containing an IP address we receive on the command line ❸. We also pass RustScan the -g (greppable) option to produce a format that is grep friendly, and the port option (-p) to scan a particular port, which we also receive on the command line and assign the result to the port_scan variable.
+We check the result of the scan ❹. If the result is not empty, we pass the IP address and the port to the service_discovery function ❺, which does an Nmap service-version discovery scan (-sV) and writes the result to the logfile watchdog.log ❶. If the port scan fails, which means the port is closed, we sleep for five seconds ❻. As a result, the process will repeat every five seconds until the port is found open.
+Save the script and then run it with the following arguments:
+$ ./port_watchdog.sh 127.0.0.1 3337
+Since nothing should be running on this port of your localhost, the script should run forever. We can simulate a port-opening event by using Python’s built-in http.server module, which starts a simple HTTP server:
+$ python3 -m http.server 3337
+Now the port_watchdog.sh script should show the following:
+Port is not yet open, sleeping for 5 seconds...
+127.0.0.1 has started responding on port 3337!
+Performing a service discovery...
+Wrote port scan data to watchdog.log
+
+You can view the results of the scan by opening the watchdog.log file:
+$ cat watchdog.log
+Starting Nmap (https://nmap.org)
+Nmap scan report for 172.16.10.10
+Host is up (0.000099s latency).
+
+PORT     STATE SERVICE          VERSION
+3337/tcp open  SimpleHTTPServer
+--snip--
+
+Using this script, you should be able to identify four IP addresses on the network with open ports: 172.16.10.10 (belonging to the p-web-01 machine) running 8081/TCP; 172.16.10.11 (belonging to the p-ftp-01 machine) running both 21/TCP and 80/TCP; 172.16.10.12 (belonging to the p-web-02 machine) running 80/TCP; and 172.16.10.13 (belonging to the p-jumpbox-01 machine) running 22/TCP.
+
+
+Banner Grabbing
+Learning about the software running on a remote server is a crucial step in a penetration test. In the remainder of this chapter, we’ll look at how to identify what’s behind a port and a service—for example, what web server is running on port 8081, and what technologies does it use to serve content to clients?
+Banner grabbing is the process of extracting the information published by remote network services when a connection is established between two parties. Services often transmit these banners to “greet” clients, which can use the information provided in various ways, such as to ensure they’re connecting to the right target. Banners could also include a system admin message of the day or the service’s specific running version.
+Passive banner grabbing uses third-party websites to look up banner information. For example, websites such as Shodan (https://shodan.io), ZoomEye (https://zoomeye.org), and Censys (https://censys.io) perform scans to map the internet, grabbing banners, versions, website pages, and ports, then create an inventory using this data. We can use such websites to look up banner information without ever interacting with the target server ourselves.
+Active banner grabbing is the opposite; it establishes a connection to a server and interacts with it directly to receive its banner information. Examples of network services that tend to advertise themselves by using banners include web servers, SSH servers, FTP servers, Telnet servers, network printers, Internet of Things devices, and message queues.
+Keep in mind that banners are generally free-form text fields, and they can be changed to mislead clients. For example, an Apache web server could present itself as another type of web server, such as nginx. Some organizations even create honeypot servers to lure threat actors (or penetration testers). Honeypots use deception technologies to masquerade as vulnerable servers, but their real purpose is to detect and analyze attacker activity. More often than not, however, banners transmit default settings that system administrators haven’t bothered to change.
+
+Using Active Banner Grabbing
+To demonstrate what active banner grabbing looks like, we’ll use the following Netcat command to connect to port 21 (FTP) running on IP address 172.16.10.11 (p-ftp-01):
+$ nc 172.16.10.11 -v 21
+
+172.16.10.11: inverse host lookup failed: Unknown host
+(UNKNOWN) [172.16.10.11] 21 (ftp) open
+220 (vsFTPd 3.0.5)
+
+As you can see, 172.16.10.11 is running the FTP server vsFTPd version 3.0.

@@ -1,0 +1,45 @@
+# Security Chapter Extract
+Book: Darren Kitchen - Bash Bunny_ A Guide to the HotPlug Attack Platform (2022, Hak5 LLC) - libgen.li
+Chapter: 64 - Leave Subnet mask as 255.255.255.0 and click OK on both 
+properties windows. Internet Connection Sharing is complete
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+Security Relevance Score: 2
+Word Count: 339
+Extracted: 2025-06-13 23:40:20
+
+---
+
+Leave Subnet mask as 255.255.255.0 and click OK on both 
+properties windows. Internet Connection Sharing is complete
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+Sharing an Internet connection from Linux
+1.Download the Internet Connection Sharing script from bashbunny.com/bb.sh
+2.Run the bb.sh connection script with bash as root
+3.Follow the [M]anual or [G]uided setup to configure iptables and routing
+4.Save settings for future sessions and [C]onnect
+wget bashbunny.com/bb.sh 1
+sudo bash ./bb.sh 2
+Sharing an Internet connection from MacOS
+The Bash Bunny can share the Internet connection of a host computer. This can be useful when installing 
+additional software on your Bash Bunny. Following these instructions, you will be able to share your Mac's 
+Internet connection with your Bash Bunny so that, when connected to your Bash Bunny via SSH, you will be 
+able to successfully issue commands requiring an Internet connection such as git clone or apt-get.
+ 
+METHOD 1: DHCLIENT EXTENSION
+OSX Internet Connection Sharing for Bash Bunny - Hak5 2512 OSX Internet Connection Sharing for Bash Bunny - Hak5 2512
+  https://youtu.be/U2UMz9C283M
+Hailey King - haileykq1w2e3r417@gmail.com - November 10, 2024
+
+1.Ensure that the Bash Bunny has been updated to the latest firmware and that the 
+ is present in the payloads/extensions/ directory on the Bash Bunny's USB mass storage 
+partition. If not, copy the extension from the linked Bash Bunny repository.get2_dhclient.sh 
+extension
+2.With the Bash Bunny in arming mode, create a new payload.txt in switch position 1 directory as follows:
+LED SETUPATTACKMODE ECM_ETHERNETDHCLIENTLED FINISH≈ 1
+3.Safely eject the Bash Bunny, then flip the selector switch to position 1 and reconnect it to your Mac.
+4.From the System Preferences > Sharing menu on your Mac, check Internet Sharing, then select the 
+Internet interface from "Share your connection from" and the Bash Bunny (labeled RNDIS/Ethernet 
+Gadget) from "To computer using", then save changes and close the menu.
+5.If this is your first time configuring Internet Connection Sharing for this Bash Bunny on your Mac, you 
+may now need to unplug and replug the Bash Bunny while in the same switch position

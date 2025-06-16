@@ -1,0 +1,39 @@
+[package]
+name = "devops-mcp-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+dashmap = "5.5"
+crossbeam = "0.8"
+parking_lot = "0.12"
+arc-swap = "1.6"
+chrono = { version = "0.4", features = ["serde"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+prometheus = "0.13"
+lazy_static = "1.4"
+anyhow = "1.0"
+thiserror = "1.0"
+futures = "0.3"
+rayon = "1.8"
+pyo3 = { version = "0.20", features = ["auto-initialize"] }
+ndarray = "0.15"
+linfa = "0.7"
+linfa-clustering = "0.7"
+linfa-trees = "0.7"
+smartcore = "0.3"
+
+[lib]
+name = "devops_mcp_server"
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3

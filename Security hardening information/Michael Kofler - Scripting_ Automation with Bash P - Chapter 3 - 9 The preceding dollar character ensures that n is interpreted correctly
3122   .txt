@@ -1,0 +1,81 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 3 - 9. The preceding dollar character ensures that \n is interpreted correctly.
+3.12.2    while and until
+The while loop is executed as long as the condition is met and uses the following structure:
+while condition; do  commandsdone# Example (output: 1, 2, 3, 4, 5)i=1while [ $i -le 5 ]; do    echo $i    (( $i++ ))done 
+while loops can be excellently combined with an input redirection or with the pipe command through the following structure:
+# Read file line by linewhile read filename; do    echo "$filename"done < files.txt# Process filesls *.jpg | while read filename; do  echo "$filename"done 
+until loops work similarly to while loops. The difference is that the loop continues as long as the condition is not met:
+# Output: 1, 2i=1until [ $i -eq 3 ]; do  echo $i  (( i++ ))done
+Security Relevance Score: 2
+Word Count: 970
+Extracted: 2025-06-13 23:41:06
+
+---
+
+9. The preceding dollar character ensures that \n is interpreted correctly.
+3.12.2    while and until
+The while loop is executed as long as the condition is met and uses the following structure:
+while condition; do  commandsdone# Example (output: 1, 2, 3, 4, 5)i=1while [ $i -le 5 ]; do    echo $i    (( $i++ ))done 
+while loops can be excellently combined with an input redirection or with the pipe command through the following structure:
+# Read file line by linewhile read filename; do    echo "$filename"done < files.txt# Process filesls *.jpg | while read filename; do  echo "$filename"done 
+until loops work similarly to while loops. The difference is that the loop continues as long as the condition is not met:
+# Output: 1, 2i=1until [ $i -eq 3 ]; do  echo $i  (( i++ ))done 
+
+break and continue
+The break and continue keywords work in Bash as they do in most programming languages: Using break, you can abort the execution of a loop prematurely. For nested loops, break n specifies how many loop levels are to be terminated.
+continue skips the remaining commands in the loop block, but then continues the loop.
+
+3.12.3    Loops over Text Files
+A common scenario involves text files that are supposed to be processed. In Bash, two commonly used procedures for this purpose exist, but they are not exactly equivalent.
+The following while loop reads one line from access.log with each loop pass. Note how this text file is used as default input for the entire loop construct due to the redirect character < with done!
+# Process text file line by linewhile read line; do    echo $linedone < access.log 
+As an alternative, you can create a list via $(cat file) and then process it using for. This procedure is recommended only for small text files. In the loop, the list is split at each space, tab, or line separator. The text is thus processed word by word.
+# Process text file word by word,# Word separation at ' ', \t and \nfor word in $(cat words.txt); do    echo $worddone 
+The points at which for splits the cat output into words are controlled by the IFS environment variable (internal field separator). In the following example, I have set : as a separator. In addition, the line break is always considered a separator. After the loop, the original state of IFS is restored.
+# Process text file word by word, word separation at : and \nOLDIFS=$IFSIFS=':'for word in $(cat words.txt); do    echo $worddonerestore IFS=$OLDIFS  # IFS 
+
+
+
+
+
+
+
+
+
+3.13    Functions
+The function keyword defines a function that can be called in the script like a command. The code of the function must be enclosed in curly brackets. Functions must be declared before they are called for the first time and are therefore often placed at the beginning of the script.
+Parameters can be passed to functions. Unlike many programming languages, the parameters are not enclosed in parentheses. Within the function, the parameters can be taken from the $1, $2, etc. variables. A function processes parameters in the same way that the script processes command-line arguments. The following mini-script outputs Hello World, Bash! 
+#!/bin/bashfunction myfunc {    echo "Hello World, $1!"}myfunc "Bash" 
+The function keyword is optional. If you omit function, however, the function name must be followed by parentheses. Thus, the following function is equivalent to the previous example:
+myfunc() {    echo "Hello World, $1!"} 
+Bash functions help you to clearly structure the code. You can also swap out blocks of code that are needed more than once, thus avoiding redundancy.
+Using return, you leave a function prematurely. No option exists to return data. However, you can of course perform outputs via echo or change variables.
+3.13.1    Local Variables
+Usually, all variables are “shared” throughout the script, so they are also accessible in functions and can be changed there. The local keyword provides the option to define local variables.
+function myfunc {    a=4    local b=4}a=3; b=3myfuncecho "$a $b"  # output 4 3 
+
+
+
+
+
+
+
+
+
+3.14    Error Protection
+Bash has a decidedly casual way of dealing with errors: If a command in a script triggers an error, Bash simply continues the script with the next statement! This strange strategy has to do with the fact that the return code of many commands often does not indicate real errors at all, but merely that a condition was not met or that when searching for a file it was not found. This occurrence does not necessarily have to be a “real” error.
+However, some exceptions exist. In case of obvious syntax errors, for instance, if quotes or brackets are missing or control structures are incomplete (no fi for if), the script will not be started at all.
+3.14.1    Detecting Errors
+The return code of each command is stored in $?. The value 0 means that everything is OK. Any other number indicates an error.
+command_might_failerrcode=$?if [ $errcode -ne 0 ]; then  echo "Errorcode $errcode"fi 
+3.14.2    Canceling in Case of Errors
+If you want your script to terminate on the first error, you need to add the -e option to the hash bang:
+#!/bin/bash -e 
+In the case of interlinked commands, the overall result is valid. If command1 fails in the following script—even if the command does not exist—command2 will be executed. Only if this command also leads to an error will the script be aborted.
+#!/bin/bash -ecommand1 || command2 
+Instead of setting the error behavior in the hash bang for the entire script, you can enable strict error testing via set -e for some lines of code and disable it later using set +e.
+
+Not Recommended
+Most Bash manuals and FAQs advise against running Bash with the -e option or enabling the function via set -e. The damage is greater than the benefit, as the behavior of the script can become unpredictable, as described in https://mywiki.wooledge.org/BashFAQ/

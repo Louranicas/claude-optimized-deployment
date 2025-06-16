@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::circle_of_experts::{
-    CircleConfig, ExpertResponse, ConsensusResult, SimilarityAlgorithm,
+    CircleConfig, ExpertResponse, SimilarityAlgorithm,
     process_expert_responses,
 };
 
@@ -198,7 +198,7 @@ pub fn py_compute_text_similarity(
     text2: &str,
     algorithm: Option<&str>,
 ) -> PyResult<f32> {
-    use crate::circle_of_experts::consensus::*;
+
     
     let alg = match algorithm {
         Some("jaccard") => SimilarityAlgorithm::Jaccard,
@@ -224,4 +224,9 @@ pub fn register_module(py: Python, parent_module: &PyModule) -> PyResult<()> {
     
     parent_module.add_submodule(circle_module)?;
     Ok(())
+}
+
+/// Alias for backward compatibility
+pub fn register_python_bindings(py: Python, parent_module: &PyModule) -> PyResult<()> {
+    register_module(py, parent_module)
 }

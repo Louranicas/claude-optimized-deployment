@@ -1,0 +1,85 @@
+# Security Chapter Extract
+Book: Andrey Sadovykh (editor), Dragos Truscan (editor), Wissam Mallou - CyberSecurity in a DevOps Environment_ From Requirements to Monitoring (2023, Springer) - libgen.li
+Chapter: 27 - C. Wohlin, P. Runeson, M. Höst, M.C. Ohlsson, B. Regnell, A. Wesslén, Experimentation in software engineering (Springer Science & Business Media, 2012) 
+Chapter 2 
+Natural Language Processing with 
+Machine Learning for Security 
+Requirements Analysis: Practical 
+Approaches 
+Andrey Sadovykh, Kirill Yakovlev, Alexandr Naumchev, and Vladimir Ivanov 
+Abstract Analyzing security requirements is a tedious task. Quite often they are 
+spread around requirements speciﬁcations or speciﬁed in a very generic form. The 
+experts have to make sure to extract all the security requirements and properly 
+detail by applying the best practices from appropriate standards such as OW ASP 
+ASVS, STIG, or IEC62443. The requirements are speciﬁed in various forms, most 
+commonly as statements in natural language. Natural language processing (NLP) 
+has been applied for many years in requirements engineering (RE) for many analysis 
+tasks. However, until recently, the performance on NLP methods on the RE tasks has 
+been questionable. In this chapter, we outline the state of the art in the NLP methods 
+in RE and in particular analysis of security requirements as well as provide practical 
+recipes application of modern transfer learning architectures to several important 
+RE tasks illustrated with an example. 
+Keywords Security requirements · Requirements engineering · Natural language 
+processing · Machine learning · Dataset · Classiﬁcation · Semantic search · 
+VeriDevOps
+Security Relevance Score: 6
+Word Count: 770
+Extracted: 2025-06-13 23:40:22
+
+---
+
+C. Wohlin, P. Runeson, M. Höst, M.C. Ohlsson, B. Regnell, A. Wesslén, Experimentation in software engineering (Springer Science & Business Media, 2012) 
+Chapter 2 
+Natural Language Processing with 
+Machine Learning for Security 
+Requirements Analysis: Practical 
+Approaches 
+Andrey Sadovykh, Kirill Yakovlev, Alexandr Naumchev, and Vladimir Ivanov 
+Abstract Analyzing security requirements is a tedious task. Quite often they are 
+spread around requirements speciﬁcations or speciﬁed in a very generic form. The 
+experts have to make sure to extract all the security requirements and properly 
+detail by applying the best practices from appropriate standards such as OW ASP 
+ASVS, STIG, or IEC62443. The requirements are speciﬁed in various forms, most 
+commonly as statements in natural language. Natural language processing (NLP) 
+has been applied for many years in requirements engineering (RE) for many analysis 
+tasks. However, until recently, the performance on NLP methods on the RE tasks has 
+been questionable. In this chapter, we outline the state of the art in the NLP methods 
+in RE and in particular analysis of security requirements as well as provide practical 
+recipes application of modern transfer learning architectures to several important 
+RE tasks illustrated with an example. 
+Keywords Security requirements · Requirements engineering · Natural language 
+processing · Machine learning · Dataset · Classiﬁcation · Semantic search · 
+VeriDevOps 
+2.1 Introduction 
+Requirements engineering (RE) is a crucial element in the software development to 
+meet customers’ expectations for a software product that should be delivered on time 
+and within a budget. Practically, RE enables to capture users’ needs for the system to 
+be developed by transferring these needs into precise and clear statements that will 
+A. Sadovykh (/envelopeback) · K. Yakovlev · A. Naumchev · V . Ivanov 
+SOFTEAM, Ivry-sur-Seine, France 
+e-mail: andrey. sadovykh@softeam. fr; kya@softeam- rd.eu; anau@softeam- rd.eu; 
+viv@softeam- rd.eu 
+© The Author(s), under exclusive license to Springer Nature Switzerland AG 2024 
+A. Sadovykh et al. (eds.), CyberSecurity in a DevOps Environment , 
+https:// doi.org/10.1007/ 978- 3-031- 42212- 6_235
+36 A. Sadovykh et al.
+be the basis for design, development, and validation [ 2]. Requirements engineering 
+helps to deﬁne the right scope of a project and address all nonfunctional properties 
+such as security starting from early stages of the design and implementation. This is often reported as an important approach to improve productivity, speed up the 
+delivery time, and decrease the costs of software development. In the case of cybersecurity, building-in the right security mechanisms, addressing the potential vulnerabilities, and following the standardized guidelines is the most common way 
+to protect the critical assets by the company, its customers, and system users. Nowadays, when the security threats are discovered on a daily basis, analyzing and ensuring implementation of security requirements have become of ultimate 
+importance. It is reported that the security mechanisms have to be built into the system starting from the architecture stages, since retroﬁtting these important aspects into the system is extremely expensive. 
+The requirements engineering includes many activities. One of them is a require-
+ments analysis involving the requirements categorization among other activities. Identifying and placing a requirement to the right category, for example, security, 
+may help to address important concerns by the right specialists as early as possible in the project life cycle. The current approach for automating quality control in a continuous manner with the Continuous Integration and Continuous Delivery 
+(CICD) pipelines with DevOps practices has brought many beneﬁts with respect to security properties veriﬁcation. However, the challenge of “left-shifting” the security veriﬁcation to early stages of development and even to the requirements 
+analysis still remains due to the lack of automation. 
+One of the challenges in creating the automation for requirements analysis and 
+veriﬁcation is that the prevailing method to specify requirements is natural language. 
+Although the formalization approaches exist and help in validating the requirements, 
+in practice, the requirements statements styles and lexical structures vary a lot. Natural language processing (NLP) proposes a number of methods to deal with texts 
+and receive the information, analyze semantic similarity, etc. NPL has been applied for many years to requirements engineering offering many practical beneﬁts though the performance of those legacy solutions is questionable. With the appearance of 
+deep neural networks and transformer architectures in 2018, NLP made a huge leap forward in terms of performance. Many researchers have started to apply those methods to requirements engineering and obtained interesting results. 
+In this chapter, we outline the legacy and novel NLP methods as applied to 
+requirements engineering. We illustrate the application of transformers architecture with our own experiments and prototypes for several RE tasks. Finally, discuss the 
+applicability of these methods and potential usage in the continuous cybersecurity assessment in the DevSecOps context.

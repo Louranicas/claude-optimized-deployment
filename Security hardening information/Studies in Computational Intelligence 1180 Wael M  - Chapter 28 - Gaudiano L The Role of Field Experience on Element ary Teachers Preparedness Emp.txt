@@ -1,0 +1,354 @@
+# Security Chapter Extract
+Book: [Studies in Computational Intelligence, 1180] Wael M. S. Yafooz, Yousef Al-Gumaei (Eds.) - AI-Driven_ Social Media Analytics and Cybersecurity (2025, Springer) [10.1007_978-3-031-80334-5] - libgen.li
+Chapter: 28 - Gaudiano L. The Role of Field Experience on Element ary Teachers’ Preparedness, Employa-
+bility and Self-Efﬁcacy: Grand Canyon University; 2 024.
+Machine Learning Approaches 
+for Sentiment Analysis on Social Media 
+Reham Alhejaili 
+Abstract Sentiment analysis is an essential task in natural language processing, 
+and it involves evaluating attitudes, opinions, and  emotions related to different enti-
+ties. However, most research on sentiment analysis has been focused on English, 
+leaving a gap for more diverse language studies, es pecially in Arabic. The preva-
+lence of behaviors such as sharing private messages , spreading rumors, and making 
+sexual comments has drawn signiﬁcant attention due to their severe negative social 
+consequences. Detecting bullying texts or messages on social media has become 
+a fundamental interest for researchers worldwide. T his study focuses on creating 
+an efﬁcient online method to identify abusive and b ullying messages by combining 
+natural language processing (NLP) with machine lear ning. The research assesses the 
+performance of different machine learning algorithm s using frequency-inverse docu-
+ment frequency (TFI_DF). This chapter delves into s igniﬁcant research on sentiment 
+analysis of Arabic text using deep learning algorit hms. It offers a detailed exami-
+nation of Sentiment analysis to detect cyberbullyin g, outlining the methodologies 
+employed for data collection, preprocessing, and an alysis. An extensive literature 
+review identiﬁed research gaps and practical techni ques for cyberbullying detec-
+tion across various languages, highlighting signiﬁc ant potential for advancement 
+in Arabic. Consequently, this research evaluates sp eciﬁc machine learning algo-
+rithms for classifying Arabic datasets obtained fro m Twitter (now known as X). The 
+Machine learning algorithms under investigation inc lude Support Vector Machine 
+(SVM), Support Vector Classiﬁer (SVC), Naïve Bayes (NB), Multinominal Naïve 
+Bayes (MNB), Random Forest (RF), Logistic Regressio n (LR), Gradient Boosting 
+(GBoost), K-nearest Neighbor (KNN), Adaptive Boosti ng (AdaBoost), Decision 
+Tree (DT) and eXtreme Gradient Boosting (XGBoost), selected for their proven 
+effectiveness in similar contexts. These algorithms ’ performance was measured 
+using well-established metrics such as accuracy, pr ecision, recall, and F1-score. RF 
+emerged as the top performer with an accuracy of 80 .9%, showing promise compared
+R. Alhejaili (B) 
+Department of Computer Science and Artiﬁcial Intelligence, College of Computer Science and 
+Engineering, University of Jeddah, Jeddah 23218, Sa udi Arabia 
+e-mail: Ralhejaili@uj.edu.sa 
+© The Author(s), under exclusive license to Springe r Nature Switzerland AG 2025 
+W. M. S. Yafooz and Y . Al-Gumaei (eds.), AI-Driven: Social Media Analytics and 
+Cybersecurity , Studies in Computational Intelligence 1180, 
+https://doi.org/10.1007/978-3-031-80334-5_2 21
+22 R. Alhejaili
+to current state-of-the-art methods. This research has the potential to signiﬁcantly 
+advance cyberbullying detection and stimulate furth er studies in this ﬁeld. 
+Keywords Arabic language sentiment analysis ·Social media ·Deep learning ·
+Machine Learning (ML) ·NLP 
+1 Introduction 
+Opinion mining, also known as sentiment analysis, s ystematically identiﬁes, extracts, 
+and quantiﬁes the emotional tone of subjective data . Social networking platforms 
+have become the primary venue for young people’s so cial interactions. However, 
+the widespread issue of cyberbullying on these digi tal platforms poses a signiﬁcant 
+and urgent threat to their well-being. According to  data from the White House and 
+the American Psychological Association, over 40% of  American teenagers have 
+experienced cyberbullying on social media platforms  [1]. Similarly, recent studies 
+from the UK highlight the severity of the issue, re vealing that cyberbullying is more 
+prevalent than physical bullying, with 12% of stude nts reporting such incidents [ 2]. 
+The frequency of cyberbullying incidents is increas ing annually, presenting a 
+complex issue with diverse motivations, methods, an d manifestations. This escalating 
+problem severely impacts the physical and mental he alth of victims, sometimes 
+leading to suicidal thoughts. Beyond individual eff ects, cyberbullying has emerged 
+as a signiﬁcant public health concern, prompting in creased research in psychology 
+and computer science. This study aims to understand  the nature of cyberbullying and 
+develop effective strategies to detect and address it on social networks [ 3]. 
+In the context of automated cyberbullying detection , where harmful verbal attacks 
+are prevalent, current efforts mainly focus on anal yzing textual features. Various 
+methods have been developed to classify text and id entify instances of cyberbullying, 
+deﬁned as the repeated posting of offensive or viol ent content on social media by 
+individuals or groups with the intent to harm or up set others [ 4]. However, relying 
+solely on textual analysis presents challenges in d etermining whether the content 
+targets speciﬁc individuals or groups without conte xtual information. Additionally, 
+inappropriate visual content within traditional tex t-based material adds another risk 
+on social media platforms. Therefore, it is essenti al to incorporate diverse types 
+of social media data, such as images, videos, comme nts, and social networks, into 
+cyberbullying detection efforts [ 5]. The potential of multi-modal data integration 
+offers hope for more effective cyberbullying detect ion in the future. 
+Current approaches that focus on multi-modal inform ation often prioritize speciﬁc 
+modalities. Comments and visual content, for exampl e, can provide valuable context 
+that text alone cannot capture. Combining these dif ferent types of data could lead to 
+more accurate and robust detection systems, which a re beneﬁcial and mandatory for 
+effectively identifying and mitigating cyberbullyin g [6]. 
+One study aimed [ 7] to enhance the understanding of context and behav ior by 
+utilizing contextual information. However, it did n ot account for the interaction
+Machine Learning Approaches for Sentiment Analysis on Soci al Media 23
+between individual comments while analyzing their c orrelation. In contrast, on other 
+study the authors [ 8] introduced a method incorporating visual elements  to address the 
+limitations of text-only analysis. While these meth ods outperform text analysis alone, 
+they still need to improve in overcoming the constr aints of single-mode informa-
+tion. Additionally, cyberbullying exhibits persiste nt and recurring hostile behavior, 
+as highlighted by Agoston et al. [ 9]. Addressing conversations about cyberbullying 
+without causing further harm presents a challenge, necessitating rapid detection of 
+multi-modal bullying content to prevent further dis cussions. 
+To tackle these evolving forms of sentiment analysi s to detect cyberbullying, we 
+propose a method that integrates textual, visual, a nd additional meta-information to 
+determine if a post is related to bullying. Our Cyb erbullying Machin learning Detec-
+tion used to address these challenges. We suggest i dentifying offensive comments in 
+blogs associated with cyberbullying. The textual co ntent features are used to improve 
+cyberbullying detection performance. The main contr ibutions of this work include 
+introducing a fresh perspective on problem-solving by leveraging and processing 
+NLP to effectively manage different types of cyberb ullying. We have applied (ML) 
+techniques for detecting cyberbullying that indepen dently analyzes textual, visual, 
+and other forms of information. By integrating thes e components, we achieve efﬁcient 
+information merging, which aids in resolving the co mplex issue of cyberbullying 
+more effectively. 
+We also collected data from prominent social media platforms, including Twitter, 
+to validate our methodology. Furthermore, we thorou ghly analyzed how the data 
+impacts cyberbullying detection, ensuring that our approach is practical. 
+This chapter provides a focused study evaluates mac hine learning classiﬁers used 
+in detecting cyberbullying, examining their perform ance based on accuracy, preci-
+sion, recall, and F1 score. The primary contributio ns of this work include an exten-
+sive review of quality papers to identify widely us ed machine learning methods for 
+cyberbullying detection on social media platforms a nd an evaluation of these classi-
+ﬁers’ usability and accuracy on a large, generic da taset. We developed an automated 
+detection model incorporating feature extraction to  enhance classiﬁer efﬁciency. We 
+compared the performance of seven commonly used ML classiﬁers for cyberbullying 
+detection, utilizing Frequency-Inverse Document Fre quency (TF-IDF) for feature 
+extraction. This comparison helped us to understand  the strengths and weaknesses 
+of (ML) text classiﬁcation models. Our research aim s to address the following ques-
+tions: What machine-learning techniques are extensiv ely used for detecting cyber-
+bullying on social media platforms? How can an auto matic cyberbullying detection 
+model be developed with high accuracy and minimal p rocessing time? How can 
+feature extraction improve the detection process?
+24 R. Alhejaili
+2 Related Studies 
+Over recent years, signiﬁcant studies have been mad e in the detection of cyber-
+bullying, offering hope for controlling or reducing  its prevalence on social media 
+platforms. Cyberbullying is particularly troubling as victims often struggle to cope 
+with the emotional burden of violent, intimidating,  degrading, and hostile messages. 
+Addressing the harmful effects of cyberbullying req uires comprehensive studies on 
+its detection, prevention, and mitigation [ 10]. 
+The Arabic language presents unique challenges for cyberbullying detection due to 
+its complex morphology, rich vocabulary, and numero us dialects. Written from right 
+to left, Arabic includes diacritics that can signiﬁ cantly alter word meanings. Addi-
+tionally, its morphology allows for creating new wo rds through various inﬂections, 
+complicating the detection of abusive language. The  diversity of Arabic dialects, 
+ranging from Modern Standard Arabic (MSA) to region al colloquial varieties, further 
+complicates the task of automatic text processing a nd cyberbullying detection [ 1, 2]. 
+Arabic sentiment analysis encounters several signiﬁ cant challenges. Firstly, the 
+morphological complexity of the language is a major  hurdle. Arabic words undergo 
+extensive transformations due to the root-based str ucture, which involves deriving 
+words from roots through various afﬁxes and inﬂecti ons. This technique necessi-
+tates advanced preprocessing techniques to effectiv ely normalize and stem words, 
+demanding a deep understanding of the language’s st ructure and context [ 3]. 
+Secondly, dialectal variation poses a problem, as A rabic comprises numerous dialects 
+with distinct expressions and slang. For instance, the word for ‘good’ differs between 
+‘zain’ in Levantine dialect and ‘jayyid’ in Modern Standard Arabic. This variability 
+complicates the use of machine learning models trai ned on one dialect for others, 
+making it essential for sentiment analysis models t o specialize in speciﬁc dialects or 
+handle multiple dialects simultaneously [ 4]. Lastly, the need for high-quality anno-
+tated data further challenges sentiment analysis ef forts. The training and validation 
+of machine learning models are hindered by the limi ted availability of large, labeled 
+datasets, which are essential for effective general ization. It is crucial to address this 
+shortage to advance Arabic sentiment analysis [ 5].
+Security Relevance Score: 10
+Word Count: 2167
+Extracted: 2025-06-13 23:40:23
+
+---
+
+Gaudiano L. The Role of Field Experience on Element ary Teachers’ Preparedness, Employa-
+bility and Self-Efﬁcacy: Grand Canyon University; 2 024.
+Machine Learning Approaches 
+for Sentiment Analysis on Social Media 
+Reham Alhejaili 
+Abstract Sentiment analysis is an essential task in natural language processing, 
+and it involves evaluating attitudes, opinions, and  emotions related to different enti-
+ties. However, most research on sentiment analysis has been focused on English, 
+leaving a gap for more diverse language studies, es pecially in Arabic. The preva-
+lence of behaviors such as sharing private messages , spreading rumors, and making 
+sexual comments has drawn signiﬁcant attention due to their severe negative social 
+consequences. Detecting bullying texts or messages on social media has become 
+a fundamental interest for researchers worldwide. T his study focuses on creating 
+an efﬁcient online method to identify abusive and b ullying messages by combining 
+natural language processing (NLP) with machine lear ning. The research assesses the 
+performance of different machine learning algorithm s using frequency-inverse docu-
+ment frequency (TFI_DF). This chapter delves into s igniﬁcant research on sentiment 
+analysis of Arabic text using deep learning algorit hms. It offers a detailed exami-
+nation of Sentiment analysis to detect cyberbullyin g, outlining the methodologies 
+employed for data collection, preprocessing, and an alysis. An extensive literature 
+review identiﬁed research gaps and practical techni ques for cyberbullying detec-
+tion across various languages, highlighting signiﬁc ant potential for advancement 
+in Arabic. Consequently, this research evaluates sp eciﬁc machine learning algo-
+rithms for classifying Arabic datasets obtained fro m Twitter (now known as X). The 
+Machine learning algorithms under investigation inc lude Support Vector Machine 
+(SVM), Support Vector Classiﬁer (SVC), Naïve Bayes (NB), Multinominal Naïve 
+Bayes (MNB), Random Forest (RF), Logistic Regressio n (LR), Gradient Boosting 
+(GBoost), K-nearest Neighbor (KNN), Adaptive Boosti ng (AdaBoost), Decision 
+Tree (DT) and eXtreme Gradient Boosting (XGBoost), selected for their proven 
+effectiveness in similar contexts. These algorithms ’ performance was measured 
+using well-established metrics such as accuracy, pr ecision, recall, and F1-score. RF 
+emerged as the top performer with an accuracy of 80 .9%, showing promise compared
+R. Alhejaili (B) 
+Department of Computer Science and Artiﬁcial Intelligence, College of Computer Science and 
+Engineering, University of Jeddah, Jeddah 23218, Sa udi Arabia 
+e-mail: Ralhejaili@uj.edu.sa 
+© The Author(s), under exclusive license to Springe r Nature Switzerland AG 2025 
+W. M. S. Yafooz and Y . Al-Gumaei (eds.), AI-Driven: Social Media Analytics and 
+Cybersecurity , Studies in Computational Intelligence 1180, 
+https://doi.org/10.1007/978-3-031-80334-5_2 21
+22 R. Alhejaili
+to current state-of-the-art methods. This research has the potential to signiﬁcantly 
+advance cyberbullying detection and stimulate furth er studies in this ﬁeld. 
+Keywords Arabic language sentiment analysis ·Social media ·Deep learning ·
+Machine Learning (ML) ·NLP 
+1 Introduction 
+Opinion mining, also known as sentiment analysis, s ystematically identiﬁes, extracts, 
+and quantiﬁes the emotional tone of subjective data . Social networking platforms 
+have become the primary venue for young people’s so cial interactions. However, 
+the widespread issue of cyberbullying on these digi tal platforms poses a signiﬁcant 
+and urgent threat to their well-being. According to  data from the White House and 
+the American Psychological Association, over 40% of  American teenagers have 
+experienced cyberbullying on social media platforms  [1]. Similarly, recent studies 
+from the UK highlight the severity of the issue, re vealing that cyberbullying is more 
+prevalent than physical bullying, with 12% of stude nts reporting such incidents [ 2]. 
+The frequency of cyberbullying incidents is increas ing annually, presenting a 
+complex issue with diverse motivations, methods, an d manifestations. This escalating 
+problem severely impacts the physical and mental he alth of victims, sometimes 
+leading to suicidal thoughts. Beyond individual eff ects, cyberbullying has emerged 
+as a signiﬁcant public health concern, prompting in creased research in psychology 
+and computer science. This study aims to understand  the nature of cyberbullying and 
+develop effective strategies to detect and address it on social networks [ 3]. 
+In the context of automated cyberbullying detection , where harmful verbal attacks 
+are prevalent, current efforts mainly focus on anal yzing textual features. Various 
+methods have been developed to classify text and id entify instances of cyberbullying, 
+deﬁned as the repeated posting of offensive or viol ent content on social media by 
+individuals or groups with the intent to harm or up set others [ 4]. However, relying 
+solely on textual analysis presents challenges in d etermining whether the content 
+targets speciﬁc individuals or groups without conte xtual information. Additionally, 
+inappropriate visual content within traditional tex t-based material adds another risk 
+on social media platforms. Therefore, it is essenti al to incorporate diverse types 
+of social media data, such as images, videos, comme nts, and social networks, into 
+cyberbullying detection efforts [ 5]. The potential of multi-modal data integration 
+offers hope for more effective cyberbullying detect ion in the future. 
+Current approaches that focus on multi-modal inform ation often prioritize speciﬁc 
+modalities. Comments and visual content, for exampl e, can provide valuable context 
+that text alone cannot capture. Combining these dif ferent types of data could lead to 
+more accurate and robust detection systems, which a re beneﬁcial and mandatory for 
+effectively identifying and mitigating cyberbullyin g [6]. 
+One study aimed [ 7] to enhance the understanding of context and behav ior by 
+utilizing contextual information. However, it did n ot account for the interaction
+Machine Learning Approaches for Sentiment Analysis on Soci al Media 23
+between individual comments while analyzing their c orrelation. In contrast, on other 
+study the authors [ 8] introduced a method incorporating visual elements  to address the 
+limitations of text-only analysis. While these meth ods outperform text analysis alone, 
+they still need to improve in overcoming the constr aints of single-mode informa-
+tion. Additionally, cyberbullying exhibits persiste nt and recurring hostile behavior, 
+as highlighted by Agoston et al. [ 9]. Addressing conversations about cyberbullying 
+without causing further harm presents a challenge, necessitating rapid detection of 
+multi-modal bullying content to prevent further dis cussions. 
+To tackle these evolving forms of sentiment analysi s to detect cyberbullying, we 
+propose a method that integrates textual, visual, a nd additional meta-information to 
+determine if a post is related to bullying. Our Cyb erbullying Machin learning Detec-
+tion used to address these challenges. We suggest i dentifying offensive comments in 
+blogs associated with cyberbullying. The textual co ntent features are used to improve 
+cyberbullying detection performance. The main contr ibutions of this work include 
+introducing a fresh perspective on problem-solving by leveraging and processing 
+NLP to effectively manage different types of cyberb ullying. We have applied (ML) 
+techniques for detecting cyberbullying that indepen dently analyzes textual, visual, 
+and other forms of information. By integrating thes e components, we achieve efﬁcient 
+information merging, which aids in resolving the co mplex issue of cyberbullying 
+more effectively. 
+We also collected data from prominent social media platforms, including Twitter, 
+to validate our methodology. Furthermore, we thorou ghly analyzed how the data 
+impacts cyberbullying detection, ensuring that our approach is practical. 
+This chapter provides a focused study evaluates mac hine learning classiﬁers used 
+in detecting cyberbullying, examining their perform ance based on accuracy, preci-
+sion, recall, and F1 score. The primary contributio ns of this work include an exten-
+sive review of quality papers to identify widely us ed machine learning methods for 
+cyberbullying detection on social media platforms a nd an evaluation of these classi-
+ﬁers’ usability and accuracy on a large, generic da taset. We developed an automated 
+detection model incorporating feature extraction to  enhance classiﬁer efﬁciency. We 
+compared the performance of seven commonly used ML classiﬁers for cyberbullying 
+detection, utilizing Frequency-Inverse Document Fre quency (TF-IDF) for feature 
+extraction. This comparison helped us to understand  the strengths and weaknesses 
+of (ML) text classiﬁcation models. Our research aim s to address the following ques-
+tions: What machine-learning techniques are extensiv ely used for detecting cyber-
+bullying on social media platforms? How can an auto matic cyberbullying detection 
+model be developed with high accuracy and minimal p rocessing time? How can 
+feature extraction improve the detection process?
+24 R. Alhejaili
+2 Related Studies 
+Over recent years, signiﬁcant studies have been mad e in the detection of cyber-
+bullying, offering hope for controlling or reducing  its prevalence on social media 
+platforms. Cyberbullying is particularly troubling as victims often struggle to cope 
+with the emotional burden of violent, intimidating,  degrading, and hostile messages. 
+Addressing the harmful effects of cyberbullying req uires comprehensive studies on 
+its detection, prevention, and mitigation [ 10]. 
+The Arabic language presents unique challenges for cyberbullying detection due to 
+its complex morphology, rich vocabulary, and numero us dialects. Written from right 
+to left, Arabic includes diacritics that can signiﬁ cantly alter word meanings. Addi-
+tionally, its morphology allows for creating new wo rds through various inﬂections, 
+complicating the detection of abusive language. The  diversity of Arabic dialects, 
+ranging from Modern Standard Arabic (MSA) to region al colloquial varieties, further 
+complicates the task of automatic text processing a nd cyberbullying detection [ 1, 2]. 
+Arabic sentiment analysis encounters several signiﬁ cant challenges. Firstly, the 
+morphological complexity of the language is a major  hurdle. Arabic words undergo 
+extensive transformations due to the root-based str ucture, which involves deriving 
+words from roots through various afﬁxes and inﬂecti ons. This technique necessi-
+tates advanced preprocessing techniques to effectiv ely normalize and stem words, 
+demanding a deep understanding of the language’s st ructure and context [ 3]. 
+Secondly, dialectal variation poses a problem, as A rabic comprises numerous dialects 
+with distinct expressions and slang. For instance, the word for ‘good’ differs between 
+‘zain’ in Levantine dialect and ‘jayyid’ in Modern Standard Arabic. This variability 
+complicates the use of machine learning models trai ned on one dialect for others, 
+making it essential for sentiment analysis models t o specialize in speciﬁc dialects or 
+handle multiple dialects simultaneously [ 4]. Lastly, the need for high-quality anno-
+tated data further challenges sentiment analysis ef forts. The training and validation 
+of machine learning models are hindered by the limi ted availability of large, labeled 
+datasets, which are essential for effective general ization. It is crucial to address this 
+shortage to advance Arabic sentiment analysis [ 5]. 
+2.1 Natural Language Processing 
+Natural Language Processing (NLP) has a long histor y and draws from multiple 
+ﬁelds to help computers work with human language by  analysing different aspects 
+of text. Its roots go back to the late 1940s, when efforts in Machine Translation began, 
+marking the start of attempts to automate language translation. Over the years, NLP 
+has expanded to cover many applications for analysi ng and understanding text. 
+NLP is a compelling area of computer science that p lays an increasingly vital 
+role in everyday life. It powers virtual assistants  like Siri and Alexa and language 
+translation services. The main goal of NLP is to br idge the gap between computers
+Machine Learning Approaches for Sentiment Analysis on Soci al Media 25
+and human language, aiming to create systems that c an understand and process 
+language on their own. Its many applications highli ght its growing importance in 
+today’s world. 
+Arabic, the fourth most widely used language online , showcases how essential 
+NLP is in enabling communication across different l anguages. Nearly 400 million 
+people in 22 countries speak Arabic, which includes  classical Arabic, which is mostly 
+used in literature, ofﬁcial documents, and religiou s texts like the Quran. Modern 
+Standard Arabic, which developed from Classical Ara bic, is used in formal commu-
+nication, while a range of regional dialects is spo ken in everyday conversations. 
+These dialects vary widely and lack a standardized format [ 11]. 
+Arabic’s complex structure and variety of dialects present speciﬁc challenges. 
+Its right-to-left script and lack of capitalization  cause the shape of letters to change 
+based on their position in a word. These challenges  require specialized methods to 
+address the language’s detailed structure and featu res [12]. 
+These techniques are not just theoretical, they hav e practical uses in many areas. 
+For instance, in information retrieval, they extrac t important information from large 
+datasets. In text summarization, they condense long  documents and provide accurate 
+answers to user questions. These methods are crucia l for making virtual assistants, 
+search engines, and translation tools work smoothly , improving their efﬁciency and 
+user experience. They also handle tasks like conver ting printed or handwritten text 
+into digital form (optical character recognition), identifying word boundaries, clar-
+ifying word meanings in context (word sense disambi guation), and turning spoken 
+language into text [ 13]. 
+Key areas of focus include analysing speech sounds (Acoustic–Phonetic anal-
+ysis), studying word structures and sentence format ion (Morphological-Syntactic 
+analysis), and interpreting meaning within broader contexts (Semantic-Pragmatic 
+analysis). These methods help bridge the gap betwee n human language and digital 
+systems, driving technological and research innovat ion [14]. 
+2.2 Machine Learning Approaches for Cyberbullying 
+Detection 
+Recent advances in machine learning have provided v aluable tools for improving how 
+we analyse sentiment, especially when detecting cyb erbullying. These techniques are 
+now being applied to Arabic, a more complex languag e with challenges. Below are 
+some signiﬁcant methods used to detect cyberbullyin g in Arabic [ 15]:

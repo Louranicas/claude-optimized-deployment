@@ -1,0 +1,67 @@
+# Security Chapter Extract
+Book: Nick Aleks_ Dolev Farhi - Black Hat Bash_ Creative Scripting for Hackers and Pentesters (2024, NO STARCH PRESS, INC) - libgen.li (1)
+Chapter: 3 - The script should exit with the correct status code for the runtime result.
+The script os_detect.sh in this book’s GitHub repository is an example of an operating system detection script.
+Security Relevance Score: 4
+Word Count: 813
+Extracted: 2025-06-13 23:40:57
+
+---
+
+The script should exit with the correct status code for the runtime result.
+The script os_detect.sh in this book’s GitHub repository is an example of an operating system detection script.
+
+
+Login Sessions and User Activity
+When a user logs in to a system or opens a new terminal session, the system records this information. This occurs no matter whether the user logs in locally (on a laptop, for example) or remotely, over a protocol such as SSH or Telnet.
+This information is valuable because it could tell you about previous connections, including source IP addresses used to connect. For example, if a system administrator uses a dedicated management server to connect to other servers, collecting login sessions would reveal the IP address of the management server.
+
+Collecting User Sessions
+To view the current users on a system, use the w or who commands:
+$ w
+$ who
+
+These commands show information such as the user’s username, their login time, and the command of their current process. The commands read this information from the /var/run/utmp file.
+The last command shows historical logins taken from the file /var/log/wtmp, which contains both current and past user sessions:
+$ last
+Attempt these commands on the p-jumpbox-01 machine (172.16.10.13) after logging in via SSH with the backup user.
+Another useful command is lastb (last bad). This command displays a list of bad login attempts, taken from /var/log/btmp, if such a file exists on the filesystem.
+Files such as /var/run/utmp and /var/log/wtmp are binary files. If you try to read them by using the cat command, the output will be garbled. Some systems may have the utmpdump command, which takes in these files as arguments and prints them in proper format to the screen.
+
+
+Investigating Executed Commands
+When a user starts executing commands in the shell, the system captures this information and writes it to history files, which are usually hidden files (those starting with a dot) stored in the user’s home folder. For example, the root user’s history file is located at /root/.bash_history. For normal users, the history file is usually saved under /home/<user>/.bash_history. Different shells may name history files differently. For example, the Z Shell history file is named .zsh_history.
+History files are interesting because they’re essentially a summary of a user’s actions on the command line. If someone ran a curl command with credentials to authenticate to a remote website, the command, along with the credentials, would be recorded in the history file. To see the history file of the current user, run the following command:
+$ history
+A quick bash one-liner using find can help us search for hidden files with the _history suffix (Listing 8-9).
+$ find / -name ".*_history" -type f
+Listing 8-9: Searching for shell command history files
+This command starts the search from the root directory (/) and performs a case-sensitive search of files (-type f) whose filenames end with the string _history.
+
+
+
+Networking
+Network information is among the most important data to gather about a system. During penetration tests, you may know of only one network (the one you’re connected to physically if you’re on an on-site engagement, for example), but that doesn’t mean this is the only network available. You may discover new networks if you happen to hack a multi-homed host: a machine with multiple network interfaces connected to different networks.
+
+Network Interfaces and Routes
+On a compromised host, a simple way to obtain all network interfaces is by looking at the files under the /sys/class/net directory. Go ahead and try listing files on the compromised boxes. The following examples are from the p-web-01 box (172.16.10.10):
+$ ls -l /sys/class/net/
+
+total 0
+lrwxrwxrwx 1 root root 0 May 10 03:13 eth0 -> ../../devices/virtual/net/eth0
+lrwxrwxrwx 1 root root 0 May 10 03:13 lo -> ../../devices/virtual/net/lo
+
+Each file is a symbolic link containing the name of a network interface, and each link points to a directory under /sys/devices/virtual/net/:
+$ ls -l /sys/devices/virtual/net/
+total 0
+drwxr-xr-x 5 root root 0 May 10 03:13 eth0
+drwxr-xr-x 5 root root 0 May 10 03:13 lo
+
+You could also use this network interface analysis to identify whether a network device is physical or virtual. It’s worth noting that an administrator can change network interface names, so these aren’t reliable indicators. However, physical network devices should show up differently when you list files under /sys/devices/virtual/net. Run the previous command on your Kali machine. You should see output similar to the following:
+lrwxrwxrwx 1 root root 0 Sep 25 16:15 br_corporate -> ../../devices/virtual/net/br_corporate
+lrwxrwxrwx 1 root root 0 Sep 25 16:15 br_public -> ../../devices/virtual/net/br_public
+lrwxrwxrwx 1 root root 0 Sep 19 21:41 docker0 -> ../../devices/virtual/net/docker0
+lrwxrwxrwx 1 root root 0 Sep 19 21:41 eth0 -> ../../devices/pci0000:00/0000:00:03.0/net/eth0
+lrwxrwxrwx 1 root root 0 Sep 19 21:41 lo -> ../../devices/virtual/net/lo
+
+As you can see, all devices are virtual except eth0, which has a Peripheral Component Interconnect bus identifier, pci0000:00/0000:00:03.

@@ -1,0 +1,516 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 7 - 6.
+Security Relevance Score: 8
+Word Count: 3000
+Extracted: 2025-06-13 23:41:06
+
+---
+
+6.1   Serial Execution
+3.6.2   Conditional Command Execution
+3.6.3   Running Commands in the Background
+3.6.4   Running Commands in a Subshell
+3.7   Standard Input and Standard Output
+3.7.1   Redirecting Input and Output
+3.7.2   The Pipe Operator
+3.7.3   Redirecting and Displaying Outputs at the Same Time
+3.8   Globbing, Brace Extension, and Handling File and Directory Names
+3.8.1   Recursive Globbing
+3.8.2   Access to Important Directories
+3.8.3   Brace Extension
+3.8.4   Filenames and Directory Names with Spaces
+3.9   Variables
+3.9.1   Initializing and Deleting Variables
+3.9.2   Declaring Variables
+3.9.3   Performing Calculations in Bash
+3.9.4   Arrays
+3.9.5   Predefined Variables
+3.9.6   Environment Variables
+3.10   Strings
+3.10.1   Single versus Double Quotation Marks
+3.10.2   Outputting Strings (echo)
+3.10.3   Colors
+3.10.4   Entering or Reading Character Strings (read)
+3.10.5   Substitution and Expansion Mechanisms
+3.10.6   Parameter Substitution
+3.10.7   Heredocs and Herestrings
+3.10.8   The Backslash
+3.11   Branches
+3.11.1   if Short Notation with && or ||
+3.11.2   Conditions
+3.11.3   Branches with case
+3.11.4   Parameter Analysis via case
+3.12   Loops
+3.12.1   Processing Filenames with Spaces
+3.12.2   while and until
+3.12.3   Loops over Text Files
+3.13   Functions
+3.13.1   Local Variables
+3.14   Error Protection
+3.14.1   Detecting Errors
+3.14.2   Canceling in Case of Errors
+3.14.3   exit
+3.14.4   Responding to Signals (trap)
+3.14.5   Timeout
+4   PowerShell
+4.1   Installation
+4.1.1   Installation on Linux
+4.1.2   Installation on macOS
+4.1.3   Limitations of PowerShell on Windows versus Linux/macOS
+4.1.4   Configuration
+4.2   Windows Terminal
+4.2.1   Configuration
+4.2.2   Operation
+4.3   Calling cmdlets and Functions
+4.3.1   cmdlets
+4.3.2   The Verb-Noun Terminology
+4.3.3   Aliases
+4.3.4   Parameters and Options
+4.3.5   Splatting
+4.3.6   Functions
+4.3.7   Running Conventional Commands
+4.3.8   Online Help
+4.4   Combining Commands
+4.4.1   Chains of Commands
+4.4.2   Multiline Statements
+4.4.3   Dealing with Special Characters
+4.5   The First Script
+4.5.1   Hello, World!
+4.5.2   Trouble with the Execution Policy
+4.5.3   Setting Up a Custom Script Directory
+4.5.4   Running Scripts on Linux and macOS
+4.5.5   Example: Cleaning Up the Downloads Directory
+4.5.6   Differentiating Between PowerShell Versions
+4.6   Variables, Strings, and Objects
+4.6.1   Data Types
+4.6.2   Calculating and Comparing
+4.6.3   Strings
+4.6.4   Command Substitution
+4.6.5   Objects
+4.6.6   Assembling Custom Objects
+4.6.7   Predefined Variables
+4.6.8   Environment Variables
+4.7   Arrays and Hash Tables
+4.7.1   Creating and Processing Custom Arrays
+4.7.2   Hash Tables
+4.8   Output Redirection
+4.8.1   Streams
+4.8.2   Output Redirection
+4.8.3   Duplicating Output (Tee-Object)
+4.8.4   (Not) Formatting the Output
+4.8.5   No Input Redirection
+4.9   Loops
+4.9.1   ForEach-Object
+4.9.2   for, while, do-while, and do-until
+4.10   Branches
+4.10.1   Case Distinctions Using switch
+4.11   Functions and Parameters
+4.11.1   Function Results
+4.11.2   return
+4.11.3   Parameters
+4.11.4   Calling Functions
+4.11.5   Processing Standard Input
+4.11.6   Syntax Variants
+4.12   Modules
+4.12.1   Module Directories
+4.12.2   Modules for Experts
+4.13   Error Protection
+4.13.1   Set-StrictMode
+4.13.2   Aborting Scripts on Errors
+4.13.3   Separating Error Messages from Other Output
+4.13.4   Error Protection Using try/catch
+4.13.5   Terminating the Script Execution Prematurely (Exit)
+5   Python
+5.1   Installing Python
+5.1.1   Windows
+5.1.2   macOS
+5.2   Getting to Know Python in a Terminal Window
+5.3   Programming Custom Scripts
+5.3.1   Shebang
+5.4   Elementary Syntax Rules
+5.4.1   Block Elements
+5.4.2   Comments
+5.5   Numbers
+5.5.1   Floats
+5.5.2   Random Numbers
+5.6   Strings
+5.6.1   Raw Strings
+5.6.2   Processing Strings
+5.6.3   Slicing
+5.6.4   print and input
+5.6.5   Formatting Outputs
+5.7   Lists
+5.7.1   List Comprehension
+5.7.2   map and filter
+5.8   Tuples, Sets, and Dictionaries
+5.8.1   Sets
+5.8.2   Dictionaries
+5.9   Variables
+5.9.1   Assignments
+5.9.2   Data Types
+5.9.3   Mutable or Immutable?
+5.10   Operators
+5.10.1   Combining Assignment and Evaluation
+5.11   Branches (if)
+5.11.1   Conditions
+5.11.2   Short Notation with if
+5.12   Loops (for and while)
+5.12.1   break, continue, and else
+5.12.2   Loops over Number Ranges (range)
+5.12.3   Loops over the Characters of a String
+5.12.4   Loops over Lists, Tuples, and Sets
+5.12.5   Loops over Dictionaries
+5.12.6   Loops over the Parameters of a Script
+5.12.7   Globbing on Windows
+5.12.8   Loops over the Lines of a Text File
+5.12.9   Loops over All Files in a Directory
+5.13   Functions
+5.13.1   Global and Local Variables
+5.13.2   Parameters
+5.13.3   Optional Parameters
+5.13.4   Variable Number of Parameters
+5.13.5   Lambda Functions
+5.14   Processing Text Files
+5.14.1   Example: Analyzing a CSV File
+5.14.2   Example: Creating SQL Commands
+5.15   Error Protection
+5.15.1   try/except
+5.16   System Functions
+5.16.1   Access to the Program Parameters
+5.16.2   Access to Standard Input and Standard Output
+5.16.3   Exiting a Program
+5.16.4   Calling Linux Commands
+5.16.5   Processing Results
+5.16.6   Running Commands through the Shell
+5.16.7   Error during a Command Call
+5.16.8   Waiting (sleep)
+5.17   Modules
+5.17.1   import
+5.17.2   Distributing Custom Scripts across Multiple Files
+5.18   Installing Additional Modules Using pip
+5.18.1   Installing pip
+5.18.2   Applying pip
+5.18.3   pip Problems with Windows
+5.18.4   pip Problems with Linux
+5.18.5   requirements.txt
+5.18.6   pipenv
+Part II   Work Techniques and Tools
+6   Linux Toolbox
+6.1   Directories and Files
+6.1.1   Listing, Copying, Moving, and Deleting Files
+6.2   Finding Files
+6.2.1   Text Search Using grep
+6.3   Compressing and Archiving Files
+6.3.1   Archiving Files Using tar
+6.3.2   ZIP Files
+6.4   Using Root Privileges
+6.4.1   sudo Privileges for Selected Accounts Only
+6.4.2   Issues with Output Redirection
+6.4.3   Access Rights
+6.4.4   Managing Processes
+6.4.5   Terminating Processes
+6.4.6   Background Processes and System Services
+6.4.7   Logging Files
+6.4.8   Determining Free Memory
+6.4.9   Determining Other System Information
+6.5   Software Installation
+6.5.1   Updating Software
+6.5.2   Installing Additional Packages
+6.6   Other Commands
+7   cmdlets for PowerShell
+7.1   Directories and Files
+7.1.1   Listing, Copying, Moving, and Deleting Files
+7.1.2   Reading and Writing Text
+7.1.3   Inputting and Outputting Text
+7.2   Finding Files
+7.2.1   Searching Text Files
+7.2.2   Text versus Objects
+7.3   Compressing and Archiving Files
+7.3.1   Compressing Search Results
+7.4   Process Management
+7.4.1   Launching Other PowerShell Scripts
+7.4.2   Running Commands in the Background
+7.4.3   Managing Services
+7.4.4   Working on Other Computers
+7.5   Registration Database and System Information
+7.5.1   Determining System Information
+7.5.2   Evaluating the Logging System
+7.6   Processing cmdlet Results
+7.6.1   Select-Object and Sort-Object
+7.6.2   Where-Object
+7.6.3   Group-Object
+7.6.4   ForEach-Item
+7.6.5   Measure-Object
+7.6.6   Formatting and Exporting cmdlet Results
+7.7   Other cmdlets
+7.8   Installing Additional Modules
+7.8.1   Listing Modules, Commands, and Package Sources
+7.8.2   NuGet and winget
+7.9   Standard Aliases
+8   Analyzing Texts with Filters and Pipes
+8.1   grep, sort, cut, and uniq
+8.1.1   grep
+8.1.2   wc
+8.1.3   cut
+8.1.4   sort
+8.1.5   head and tail
+8.1.6   uniq
+8.1.7   tr
+8.1.8   awk and sed
+8.2   Example: Statistical Data Analysis
+8.2.1   Data Extraction via Script
+8.3   Example: ping Analysis
+8.3.1   ping Call via Script
+8.4   Example: Apache Log Analysis
+8.4.1   Extracting IP Addresses
+8.4.2   Identifying Popular Pages
+8.5   CSV Files
+8.5.1   Processing CSV Files Using Python
+8.5.2   Processing CSV Files in PowerShell
+9   Regular Expressions
+9.1   Syntax Rules for Regular Expressions
+9.1.1   Characters
+9.2   Groups and Alternatives
+9.2.1   Quantifiers
+9.2.2   On Greed (Greedy versus Lazy)
+9.2.3   Alpha and Omega
+9.2.4   Exercise Pages and Cheat Sheets
+9.2.5   Example: Recognizing a Date
+9.2.6   Example: Recognizing IPv4 Addresses
+9.2.7   Example: Recognizing Email Addresses
+9.3   Regular Expressions in Bash (grep, sed)
+9.3.1   Bash Comparison Operator for Regular Expressions
+9.3.2   Filtering Text Using grep
+9.3.3   The "sed" Stream Editor
+9.3.4   Searching and Replacing Using sed
+9.3.5   sed Example: Manipulating Paths of Image Files
+9.4   Regular Expressions in PowerShell
+9.4.1   The match and replace Operators
+9.4.2   Select-String
+9.4.3   Example: Input Validation
+9.4.4   Example: List of Figures
+9.5   Regular Expressions in Python (re Module)
+9.5.1   Example: Verifying a MAC Address
+9.5.2   Example: Anonymizing a Logging File
+10   JSON, XML, and INI
+10.1   JSON in PowerShell
+10.1.1   Example: Saving Event Log Entries in JSON Format
+10.1.2   Example: Analyzing Domain Queries
+10.1.3   Example: Converting between CSV and JSON
+10.2   JSON and Python
+10.2.1   Example: Collecting Birthdays
+10.2.2   Example: Determining Holidays
+10.3   JSON in Bash
+10.3.1   Viewing JSON Files Interactively Using fx
+10.4   XML in PowerShell
+10.4.1   XML Data Type
+10.4.2   Select-Xml
+10.4.3   ConvertTo-Xml, Export-Clixml, and Import-Clixml
+10.5   XML and Python
+10.5.1   Example: Creating a Dictionary for Country Codes
+10.5.2   Example: Analyzing an RSS Feed
+10.5.3   Example: Extracting MAC Addresses from Virtual Machine Files
+10.6   XML in Bash
+10.6.1   xmllint
+10.6.2   XMLStarlet
+10.7   INI Files
+10.7.1   Python
+10.7.2   PowerShell
+10.7.3   Bash
+11   Running Scripts Automatically
+11.1   cron
+11.1.1   /etc/crontab
+11.1.2   Personal crontab Files
+11.1.3   Hourly, Daily, Weekly, and Monthly Directories
+11.1.4   Alternatives to cron
+11.1.5   Starting Jobs Automatically on macOS
+11.2   Example: Web Server Monitoring
+11.2.1   Testing and Troubleshooting
+11.2.2   Real Monitoring
+11.3   Microsoft Windows Task Scheduler
+11.3.1   Troubleshooting
+11.3.2   Setting Up Tasks via cmdlets
+11.4   Example: Saving Exchange Rates
+11.5   Tracking File System Changes
+11.5.1   inotify
+11.5.2   Alternatives to inotify
+12   SSH
+12.1   Installing the SSH Client and Server
+12.1.1   Linux
+12.1.2   macOS
+12.1.3   Windows
+12.1.4   Using an Editor in an SSH Session
+12.1.5   Securing an SSH Server
+12.2   Working with SSH
+12.2.1   Host Verification
+12.2.2   Potential Issues and Their Cause
+12.2.3   Running Linux and macOS Commands
+12.2.4   Running Windows Commands
+12.2.5   SSH Remoting in PowerShell
+12.3   scp and rsync
+12.3.1   Copy-Item with SSH Remoting
+12.3.2   rsync
+12.4   SSH Authentication with Keys
+12.4.1   Generating a Key Pair
+12.4.2   Storing the Public Component of the Key on the Server (macOS and Linux)
+12.4.3   Storing the Public Component of the Key on the Server (Windows)
+12.5   Example: Uploading Images to a Linux Web Server
+12.5.1   Preparatory Measures
+12.5.2   Bash Script
+12.5.3   PowerShell Script
+12.6   Example: Analyzing Virtual Machines
+13   Visual Studio Code
+13.1   Introduction
+13.1.1   Comparing VS Code, VSCodium, and Visual Studio
+13.1.2   Think in Terms of Directories, Not Files!
+13.2   Language-Specific VS Code Extensions
+13.2.1   PowerShell Extension
+13.2.2   Python Extension
+13.2.3   Bash/Shell Extensions
+13.3   Remote – SSH Extension
+13.3.1   Applying the Remote – SSH Extension
+13.3.2   Limitations
+14   Git
+14.1   Git Crash Course
+14.1.1   Preparation Tasks
+14.1.2   The First Repository
+14.1.3   The First Commit
+14.1.4   Additional Commits
+14.1.5   Setting Up the Repository on a Second Computer
+14.1.6   Git Status
+14.1.7   Excluding Files from Git (.gitignore)
+14.1.8   Transferring Existing Code to a New Repository
+14.2   Handling Settings and Passwords Correctly
+14.2.1   What’s a Better Method?
+14.2.2   Example
+14.3   Git Automation
+14.3.1   Controlling GitHub Remotely Using gh
+14.4   Git Hooks
+14.4.1   Example: Detecting Unversioned Files Before the Commit
+Part III   Applications and Examples
+15   Backups
+15.1   Synchronizing Directories to External Storage
+15.1.1   PowerShell Script with robocopy
+15.1.2   Ideas for Improvement
+15.1.3   Bash Script with rsync
+15.2   WordPress Backup
+15.3   SQL Server Backup
+15.3.1   Backing Up and Compressing all Databases via Script
+16   Image Processing
+16.1   Manipulating Image Files
+16.1.1   Installing ImageMagick
+16.1.2   Trying Out ImageMagick
+16.1.3   Example: convert2eps (Bash Variant)
+16.1.4   Example: convert2eps (PowerShell Variant)
+16.2   Sorting Photos by Date Taken
+16.2.1   Installing and Trying Out ExifTool
+16.2.2   Bash Example
+16.2.3   PowerShell Example
+16.3   Converting Exif Metadata to SQL Commands
+16.3.1   PyExifTool
+16.3.2   EXIF2SQL
+16.3.3   Options for Enhancement
+17   Web Scraping
+17.1   Limitations
+17.2   Web Scraping, Web Crawling, and Data Mining
+17.3   Downloading Websites Using wget
+17.3.1   Example 1: Downloading Directly Linked Images
+17.3.2   Example 2: Downloading all PDF Files Linked on the Website
+17.3.3   Example 3: Creating a Local Copy of the Website
+17.4   Web Scraping with Regular Expressions
+17.5   Web Scraping with Beautiful Soup
+17.5.1   Beautiful Soup and Requests
+17.5.2   Hello, Beautiful Soup!
+17.5.3   Example: Determining a List of Top Titles from Rheinwerk Publishing
+17.6   Web Scraping with Requests-HTML
+17.6.1   Example: Analyzing the GitHub Status
+17.7   Web Scraping with PowerShell
+17.7.1   PowerHTML Module
+18   Using REST APIs
+18.1   Tools
+18.2   Sample APIs to Try Out
+18.3   Implementing Custom REST APIs
+18.4   curl and wget
+18.4.1   curl
+18.4.2   wget
+18.4.3   Using REST APIs in Bash Scripts
+18.5   Using REST APIs in PowerShell
+18.5.1   Options
+18.6   Example: Determining the Current Weather
+18.7   Using REST APIs in Python
+18.8   Example: Determining Electricity Prices and Displaying Them Graphically
+18.8.1   aWATTar API
+18.8.2   Analysis of the Data
+18.8.3   Matplotlib
+18.8.4   Controlling the Energy Consumption
+19   Databases
+19.1   Updating and Maintaining Databases
+19.1.1   PowerShell and sqlcmd
+19.2   Creating a New Customer Account
+19.2.1   Account Data
+19.2.2   Structure of the Script
+19.3   Storing Exif Metadata in a Database
+19.3.1   PyMySQL
+19.3.2   Saving Exif Metadata
+19.4   Importing JSON Data into a Table
+20   Scripting in the Cloud
+20.1   AWS CLI
+20.1.1   Installation on Linux and macOS
+20.1.2   Configuration
+20.1.3   Getting Started
+20.1.4   Encrypting Files
+20.2   Example: Uploading Encrypted Backup Files to the Cloud
+20.3   AWS PowerShell Module
+20.3.1   Getting Started
+20.3.2   Copying Files
+20.4   Example: Offloading Large Files from a Website to the Cloud
+20.4.1   Preparations
+20.4.2   Script
+20.4.3   Limitations
+21   Virtual Machines
+21.1   Setting Up and Running Virtual Machines (KVMs)
+21.1.1   Cloning Virtual Machines
+21.1.2   Starting and Shutting Down Virtual Machines
+21.1.3   Running Scripts on Multiple Virtual Machines
+21.2   Automating the Network Configuration (KVMs)
+21.2.1   Starting Point
+21.3   Controlling Hyper-V
+21.3.1   Cloning Virtual Machines
+The Author
+Index
+Service Pages
+Legal Notes
+
+
+
+
+
+
+
+
+
+
+Preface
+A script is a small piece of code to solve a specific problem or automate a tedious task. You don’t need a development environment or a compiler to develop a script—an editor is enough. When it comes to scripting, minimalism is the name of the game, and its goal is achieving maximum impact with minimal resources. To put it casually, scripting is the art of solving IT problems in ten lines of code.
+In my work environment, scripts are ubiquitous. I use scripts to set the power saving mode for my laptop, to create a PDF file of this book from Markdown files, to automate backups to servers, to watermark e-books, to set up new customers in a web application, to scan dozens of databases for logical errors, to create virtual machines for teaching, to sort photos, and more.
+Bash, PowerShell, or Python?
+The “classic” scripting language is Bash. Its full name, Bourne Again Shell, is a pun. The predecessor was the Bourne shell, which was widely used on Unix. The license for the Bourne shell was unsuitable for Linux, which is why a new project was created. Today, Bash is the dominant Linux shell, both in interactive mode for executing commands and for script programming. macOS relies on the largely compatible Zsh, which is also gaining more and more followers on Linux.
+Bash is popular, but its antiquated syntax doesn’t win any beauty contests. On the contrary, Bash scripts sometimes look awful. For this reason, Microsoft did not even try to adapt Bash for Windows. Instead, with PowerShell, Microsoft has combined the basic ideas of a classic Unix shell with the concepts behind object-oriented programming languages and created a completely new language, which turned out surprisingly well! Not without reason, Windows administrators love PowerShell.
+Python is actually not a typical scripting language. Depending on the intended use, Python is the basis for AI developments, a tool for (natural) scientists, or a first language for entry-level programming. Probably no other language is used as universally as Python! The elegance of Python’s syntax and its almost inexhaustible supply of extension modules have led to Python also being used for system administration, converting files between different formats, as a database tool or for hardware control (for the Raspberry Pi). Python plays to its strengths the more complex the task.
+About This Book
+Because no single perfect scripting language exists, this book starts in Part I with crash courses for the Bash, PowerShell, and Python languages. If you want, you can focus on one of these three languages to get started and gradually increase your language vocabulary.
+Part II of this book introduces you to tools and working techniques typically used in scripts: These topics include commands for processing text files, cmdlets for applying regular expressions, and functions for handling JSON and XML files. I’ll show you how to run scripts regularly and automatically, how to run code or copy files to other machines via SSH, and how to combine version management for your code and scripting via Git. Many practical examples round off the information I provide throughout this book.
+Finally, Part III deals with concrete applications: Key topics include backups, image processing, web scraping, using REST APIs, databases, using the cloud, and virtual machine administration.
+I have tried as much as possible to design this book in a modular way. Thus, you don’t need to read all the chapters from start to finish, but instead, you can search specifically for the information important to you at a specific moment. All chapters in Parts II and III begin with a brief information box that summarizes the prerequisites for that chapter.
+Scripting and AI Tools
+Recently, ChatGPT has ushered in a sea change in many professions. As often is the case, your perspective will determine whether you see the glass as half full or as half empty: AI tools are far from perfect today, but they are definitely (already and likely even more so in coming years) a tool that will revolutionize software development.
+If you ask ChatGPT or GitHub Copilot in VS Code for a PowerShell script to read a JSON file and store the data it contains in a PostgreSQL database, the solution will output a plausible-looking script in seconds.
+Ideally, the script will work right away. In my experience, however, the code is rarely ideal—all the less so the more complex the problem is. Often, the generated code contains unique errors, such as options or commands that don’t exist. Sometimes, logical errors also exist that are more difficult to detect. With some scripting experience, most problems can usually be fixed quickly. You can even ask the AI tool specifically to improve a certain aspect of the code.
+My personal impression is that the more solid your prior knowledge is, the better you can use AI tools. An AI tool plus an experienced developer or an experienced programmer—in my view, that’s the dream team of the future. This book provides exactly the foundation needed, without dwelling on too many encyclopedic details. For the programming of the future, you don’t need to know a hundred syntax variants for certain regular expressions by heart. But you do need to know that regular expressions exist, the basics of how they work, and where pitfalls exist. This kind of knowledge is precisely the focus of this book.
+Scripting as a Core Competence for Efficient IT Work
+No matter in which branch of the IT industry or on what kind of projects you’re currently working on, even just a little scripting knowledge will go a long way to making you more efficient in your work. Focus on the essentials; leave tedious side tasks to scripts. I wish you every success in this endeavor!
+–Michael Kofler (https://kofler.info) 
+
+Downloadable Files
+All the sample files for this book can be downloaded at https://rheinwerk-computing.com/

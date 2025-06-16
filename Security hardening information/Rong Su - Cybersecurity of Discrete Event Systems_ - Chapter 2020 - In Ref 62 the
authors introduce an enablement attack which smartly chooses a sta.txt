@@ -1,0 +1,176 @@
+# Security Chapter Extract
+Book: Rong Su - Cybersecurity of Discrete Event Systems_ From Smart Attacks to Resilient Defence (2024, CRC Press) - libgen.li
+Chapter: 2020 - In Ref. [62], the
+authors introduce an enablement attack, which smartly chooses a state
+to enable an event, originally disabled by the supervisor at that state,
+Intro
+duction to Cybersecurity in Discrete Event Systems ■15
+to lead the plant to reach a damage state irreversibly, and ensure that,
+even when an actuator attack move is not successful due to inaccurate
+state estimation, the supervisor will not be aware of the existence of
+the actuator attack. The latter property is called attack covertness. In
+Ref. [70], the authors present a systematic transformation procedure
+to convert a smart actuator attack synthesis problem into a standard
+supervisor synthesis problem. From a defense viewpoint, in Ref. [71],
+the authors present a novel supervisor obfuscation strategy to “fool”
+an actuator attacker from achieving an informative state estimate that
+might permit a smart actuator attack. The culmination of this line
+of research is achieved in Ref. [72], where the authors prove that the
+existence of an obfuscated (or fortified) supervisor robust to all smart
+actuator attacks is decidable.
+Apart from early works on worst-case scenarios in supervisory
+control against sensor-actuator attacks, e.g., [51,53], in 2019, the
+authors in Ref. [64] presented an approach for synthesizing robust
+supervisors against smart sensor-actuator attacks, where an attacker
+tries to hide attack moves until a state is reached where damage is
+unavoidable. In this framework, an attacker can partially observe the
+input of a supervisor and fully observe the supervisor’s output control
+commands. The authors present a novel algorithm, which transforms
+the concerned robust supervisor synthesis problem into a problem
+of solving quantified Boolean formulas (QBF), which are extensions
+of Boolean formulas where each variable can be quantified either
+universally or existentially. The quantified Boolean formula is true if
+and only if there is an n-bounded resilient supervisor against all smart
+sensor-actuator attacks; in particular, if the formula is true, such an
+n-bounded supervisor can be extracted from the assignment on the
+existentially quantified Boolean variables that witnesses the validity of
+the formula. SAT solvers can be used to attain assignments satisfying
+those QBFs [174–176]. The proposed transformation only works when
+the number of states of each concerned robust supervisor is uniformly
+bounded with a known value. However, the article does not discuss how
+to solve the QBF problem efficiently, and how to address properties
+beyond safety. The smart sensor-actuator attack synthesis problem
+can also be formulated and solved in a standard supervisor synthesis
+framework, as introduced in, e.g., [63,67,68].
+16■Cybersecurit
+y of Discrete Event Systems
+Figure 1.10 Timeline
+of major new frameworks about DES cybersecurity.
+All previous works assume that an attacker has perfect knowledge
+about the plant and supervisor models, which may not be feasible
+in reality. Thus, starting in 2021, more and more interests are channeled
+into model learning part, where an attacker needs to decide, based
+on learned plant or supervisor’s behavior, whether it is possible to
+carry out a covert attack. One such framework is introduced in Refs.
+[65,69,84,116]. A defender, on the other hand, needs to know which
+part of the system information is critical for a successful smart attack,
+thus, requires special protections. In Ref. [66], the authors present a
+method to identify key system assets required by a specific smart attack
+strategy to carry out a convert sensor attack. This method relies on an
+automaton-based model reduction approach, whose idea was originally
+developed for supervisor reduction that manifests key control actions
+in a given supervisor [135].
+As a closing remark of this section, we use the following timeline
+shown in Figure 1.10, which is derived based on the existing literature,
+to illustrate how ideas of cybersecurity in the DES framework evolves
+over time, which we hope could shed light on future research directions.
+The timeline is not meant for providing a comprehensive overview of
+all relevant works up to the date, but rather for sketching some major
+ideas that result in a good number of follow-up activities in the DES
+community. Detailed literature reviews and historical accounts will be
+provided in each relevant chapter.
+Security Relevance Score: 6
+Word Count: 939
+Extracted: 2025-06-13 23:40:25
+
+---
+
+In Ref. [62], the
+authors introduce an enablement attack, which smartly chooses a state
+to enable an event, originally disabled by the supervisor at that state,
+Intro
+duction to Cybersecurity in Discrete Event Systems ■15
+to lead the plant to reach a damage state irreversibly, and ensure that,
+even when an actuator attack move is not successful due to inaccurate
+state estimation, the supervisor will not be aware of the existence of
+the actuator attack. The latter property is called attack covertness. In
+Ref. [70], the authors present a systematic transformation procedure
+to convert a smart actuator attack synthesis problem into a standard
+supervisor synthesis problem. From a defense viewpoint, in Ref. [71],
+the authors present a novel supervisor obfuscation strategy to “fool”
+an actuator attacker from achieving an informative state estimate that
+might permit a smart actuator attack. The culmination of this line
+of research is achieved in Ref. [72], where the authors prove that the
+existence of an obfuscated (or fortified) supervisor robust to all smart
+actuator attacks is decidable.
+Apart from early works on worst-case scenarios in supervisory
+control against sensor-actuator attacks, e.g., [51,53], in 2019, the
+authors in Ref. [64] presented an approach for synthesizing robust
+supervisors against smart sensor-actuator attacks, where an attacker
+tries to hide attack moves until a state is reached where damage is
+unavoidable. In this framework, an attacker can partially observe the
+input of a supervisor and fully observe the supervisor’s output control
+commands. The authors present a novel algorithm, which transforms
+the concerned robust supervisor synthesis problem into a problem
+of solving quantified Boolean formulas (QBF), which are extensions
+of Boolean formulas where each variable can be quantified either
+universally or existentially. The quantified Boolean formula is true if
+and only if there is an n-bounded resilient supervisor against all smart
+sensor-actuator attacks; in particular, if the formula is true, such an
+n-bounded supervisor can be extracted from the assignment on the
+existentially quantified Boolean variables that witnesses the validity of
+the formula. SAT solvers can be used to attain assignments satisfying
+those QBFs [174–176]. The proposed transformation only works when
+the number of states of each concerned robust supervisor is uniformly
+bounded with a known value. However, the article does not discuss how
+to solve the QBF problem efficiently, and how to address properties
+beyond safety. The smart sensor-actuator attack synthesis problem
+can also be formulated and solved in a standard supervisor synthesis
+framework, as introduced in, e.g., [63,67,68].
+16■Cybersecurit
+y of Discrete Event Systems
+Figure 1.10 Timeline
+of major new frameworks about DES cybersecurity.
+All previous works assume that an attacker has perfect knowledge
+about the plant and supervisor models, which may not be feasible
+in reality. Thus, starting in 2021, more and more interests are channeled
+into model learning part, where an attacker needs to decide, based
+on learned plant or supervisor’s behavior, whether it is possible to
+carry out a covert attack. One such framework is introduced in Refs.
+[65,69,84,116]. A defender, on the other hand, needs to know which
+part of the system information is critical for a successful smart attack,
+thus, requires special protections. In Ref. [66], the authors present a
+method to identify key system assets required by a specific smart attack
+strategy to carry out a convert sensor attack. This method relies on an
+automaton-based model reduction approach, whose idea was originally
+developed for supervisor reduction that manifests key control actions
+in a given supervisor [135].
+As a closing remark of this section, we use the following timeline
+shown in Figure 1.10, which is derived based on the existing literature,
+to illustrate how ideas of cybersecurity in the DES framework evolves
+over time, which we hope could shed light on future research directions.
+The timeline is not meant for providing a comprehensive overview of
+all relevant works up to the date, but rather for sketching some major
+ideas that result in a good number of follow-up activities in the DES
+community. Detailed literature reviews and historical accounts will be
+provided in each relevant chapter.
+1.4 PRELIMINARIES ON SUPERVISORY CONTROL THEORY
+Inthis
+section, we introduce basic concepts and notations that will
+be used in the remainder of this monograph to facilitate discussions
+of resilient control in DES. We will start with the concepts of
+Intro
+duction to Cybersecurity in Discrete Event Systems ■17
+regular languages and finite-state automata, and relevant language
+operations such as natural projection and synchronous product. After
+that, we provide a detailed account of Ramadge-Wonham (RW)
+supervisory control theory. We first introduce the closed-loop control
+architecture, the concepts of controllability and observability, and
+relevant assumptions about information generated by the plant and
+available for the supervisor. Then we present the supervisor existence
+conditions relying on the concepts of controllability and observability.
+Finally, we present the supervisor synthesis problem and some state-
+of-the-art synthesis frameworks. This section only aims to provide
+a concise overview of the RW framework and introduce standard
+notations which will be used consistently throughout this monograph.
+For a comprehensive introduction of the RW framework, we refer
+readers to Ref. [3]. For more advanced topics on languages and
+finite-state automata, we refer readers to Ref. [10,114].
+1.4.1 Languages and Finite-State Automata
+LetNbe the set of natural numbers and R+the set of all non-negative
+reals. Let Σ be a finite set of symbols. Each symbol denotes an event (or
+action) that can occur in a given DES. The occurrence of each event in
+Σ is assumed to be instantaneous, unless stated otherwise. Each finite
+sequence of events from Σ forms a finite string, including a special
+string ϵ, which denotes the empty string, whose length is considered
+as

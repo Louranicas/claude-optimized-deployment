@@ -9,6 +9,13 @@ import secrets
 from typing import Optional
 from pathlib import Path
 
+__all__ = [
+    "AuditConfig",
+    "get_audit_logger",
+    "setup_audit_signing_key"
+]
+
+
 
 class AuditConfig:
     """Configuration for audit logging system."""
@@ -149,9 +156,4 @@ def setup_audit_signing_key():
     print(f"New signing key generated and saved to: {key_file}")
     print("For production use, set the AUDIT_SIGNING_KEY environment variable:")
     print(f"export AUDIT_SIGNING_KEY='{new_key}'")
-    print("\nNever commit this key to version control!")
-
-
-if __name__ == "__main__":
-    # If run directly, set up signing key
-    setup_audit_signing_key()
+    print("\nNever commit this key to version control!")\n\n\nif __name__ == "__main__":\n    # If run directly, set up signing key\n    setup_audit_signing_key()

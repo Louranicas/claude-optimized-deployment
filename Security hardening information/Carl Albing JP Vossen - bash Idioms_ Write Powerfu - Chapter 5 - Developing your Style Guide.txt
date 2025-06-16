@@ -1,0 +1,30 @@
+# Security Chapter Extract
+Book: Carl Albing, JP Vossen - bash Idioms_ Write Powerful, Flexible, Readable Shell Scripts (2022, O'Reilly Media) - libgen.li
+Chapter: 5 - Developing your Style Guide
+Security Relevance Score: 2
+Word Count: 441
+Extracted: 2025-06-13 23:40:28
+
+---
+
+Developing your Style Guide
+
+A Note for Early Release Readers
+With Early Release ebooks, you get books in their earliest form—the author’s raw and unedited content as they write—so you can take advantage of these technologies long before the official release of these titles.
+This will be the 12th chapter of the final book. Please note that the GitHub repo will be made active later on.
+If you have comments about how we might improve the content and/or examples in this book, or if you notice missing material within this chapter, please reach out to the authors at bash-idioms@jpsdomain.org.
+
+The overarching theme of this book is writing idiomatic, yet readable bash code, in a consistent style, and we hope we’ve provided the tools you need to do that.  Style is just another way to say, “how we write things.”  Find some style guidelines, write ‘em down, and stick to ‘em.  We’ve covered a number of important style considerations in this book, and there are some other guidelines we’d like to mention as well, things to keep in mind when designing systems and writing code.  You can use this chapter as a starting point for your own style guide, or just adopt is as-is if you like it.  Appendix A is the same material without the talking points, to use as a “cheat sheet.”
+Some high level principles to keep in mind are:
+
+
+Above all: KISS — Keep It Simple, Stupid!  Complexity is the enemy of security 1, but it’s also the enemy of readability and understanding.  Sure, modern systems and circumstances are complex, so try hard not to make it any worse than it already is.
+
+
+The corollary, as Brian Kernighan famously said, is that debugging is twice as hard as writing the code in the first place, so if your code is as clever as you can make it, you are—by definition—not smart enough to debug it.
+
+
+Try not to re-invent the wheel.  Whatever you are trying to do has probably been done before, and there’s likely a tool or library for it.  If that tool is already installed, just use it.  No matter how how hard you try you are never going to be able to match the effort and testing that went into rsync, so just use it.  If you find random code on the internet…well, think about that one for a bit.
+
+
+Plan ahead for special cases or overrides, since they will happen.  Take a page out of Linux distribution packaging systems and provide an /etc/thing/global.cfg for defaults that you can blindly overwrite, then allow for overrides in /etc/thing/config.d/ or similar, see The dropin directories section in

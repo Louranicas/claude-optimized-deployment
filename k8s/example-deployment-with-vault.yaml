@@ -1,0 +1,367 @@
+---
+# Example deployment showing how to use Vault-managed secrets
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-api-example
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: claude-deployment
+      component: api
+  template:
+    metadata:
+      labels:
+        app: claude-deployment
+        component: api
+        vault-access: "true"  # Enable Vault access via NetworkPolicy
+      annotations:
+        # Vault Agent Injector annotations
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "claude-deployment"
+        vault.hashicorp.com/agent-inject-secret-database: "secret/data/claude-deployment/database"
+        vault.hashicorp.com/agent-inject-template-database: |
+          {{- with secret "secret/data/claude-deployment/database" -}}
+          export DATABASE_URL="{{ .Data.data.database_url }}"
+          export DB_USERNAME="{{ .Data.data.username }}"
+          export DB_PASSWORD="{{ .Data.data.password }}"
+          export DB_HOST="{{ .Data.data.host }}"
+          export DB_PORT="{{ .Data.data.port }}"
+          export DB_NAME="{{ .Data.data.database }}"
+          {{- end }}
+        vault.hashicorp.com/agent-inject-secret-jwt: "secret/data/claude-deployment/auth"
+        vault.hashicorp.com/agent-inject-template-jwt: |
+          {{- with secret "secret/data/claude-deployment/auth" -}}
+          export JWT_SECRET="{{ .Data.data.jwt_secret }}"
+          {{- end }}
+        vault.hashicorp.com/agent-inject-secret-api-keys: "secret/data/claude-deployment/api-keys"
+        vault.hashicorp.com/agent-inject-template-api-keys: |
+          {{- with secret "secret/data/claude-deployment/api-keys" -}}
+          export OPENAI_API_KEY="{{ .Data.data.openai_api_key }}"
+          export ANTHROPIC_API_KEY="{{ .Data.data.anthropic_api_key }}"
+          export GOOGLE_API_KEY="{{ .Data.data.google_api_key }}"
+          {{- end }}
+    spec:
+      serviceAccountName: claude-vault-auth
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: api
+        image: claude-deployment/api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+        # Option 1: Use environment variables from External Secrets
+        envFrom:
+        - secretRef:
+            name: claude-deployment-db-secret
+        - secretRef:
+            name: claude-deployment-jwt-secret
+        - secretRef:
+            name: claude-deployment-api-keys
+        # Option 2: Use specific environment variables
+        env:
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-redis-secret
+              key: redis-url
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-redis-secret
+              key: password
+        # Option 3: Source Vault injected files (if using Vault Agent)
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          # Source Vault secrets if available
+          if [ -f /vault/secrets/database ]; then
+            . /vault/secrets/database
+          fi
+          if [ -f /vault/secrets/jwt ]; then
+            . /vault/secrets/jwt
+          fi
+          if [ -f /vault/secrets/api-keys ]; then
+            . /vault/secrets/api-keys
+          fi
+          # Start the application
+          exec /app/start.sh
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /app/cache
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      # If using TLS certificates from secrets
+      - name: tls-certs
+        secret:
+          secretName: claude-deployment-tls-certs
+          defaultMode: 0400
+
+---
+# Example CronJob with Vault secrets for backups
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: claude-backup-job
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: backup
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        app: claude-deployment
+        component: backup
+        vault-access: "true"
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "claude-deployment"
+        vault.hashicorp.com/agent-inject-secret-backup: "secret/data/claude-deployment/backup"
+        vault.hashicorp.com/agent-pre-populate-only: "true"  # Don't keep agent running
+    spec:
+      template:
+        spec:
+          serviceAccountName: claude-vault-auth
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            fsGroup: 1000
+          containers:
+          - name: backup
+            image: claude-deployment/backup:latest
+            imagePullPolicy: Always
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            env:
+            # Use External Secrets
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: claude-deployment-backup-credentials
+                  key: aws-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: claude-deployment-backup-credentials
+                  key: aws-secret-access-key
+            - name: S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: claude-deployment-backup-credentials
+                  key: s3-bucket-name
+            - name: BACKUP_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: claude-deployment-backup-credentials
+                  key: backup-encryption-key
+            # Database connection from External Secrets
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: claude-deployment-db-secret
+                  key: database-url
+            command: ["/bin/sh"]
+            args:
+            - -c
+            - |
+              set -e
+              echo "Starting backup at $(date)"
+              
+              # Perform database backup
+              pg_dump "$DATABASE_URL" | \
+                openssl enc -aes-256-cbc -salt -pass env:BACKUP_ENCRYPTION_KEY | \
+                aws s3 cp - "s3://${S3_BUCKET}/backups/db-$(date +%Y%m%d-%H%M%S).sql.enc"
+              
+              echo "Backup completed at $(date)"
+            volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "250m"
+              limits:
+                memory: "1Gi"
+                cpu: "1000m"
+          volumes:
+          - name: tmp
+            emptyDir: {}
+
+---
+# Example StatefulSet with persistent storage and secrets
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: claude-redis-example
+  namespace: claude-deployment
+  labels:
+    app: claude-deployment
+    component: cache
+spec:
+  serviceName: claude-redis
+  replicas: 3
+  selector:
+    matchLabels:
+      app: claude-deployment
+      component: cache
+  template:
+    metadata:
+      labels:
+        app: claude-deployment
+        component: cache
+      annotations:
+        # Disable Vault agent for StatefulSets (use init container instead)
+        vault.hashicorp.com/agent-inject: "false"
+    spec:
+      serviceAccountName: claude-vault-auth
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # Redis user
+        fsGroup: 999
+      initContainers:
+      # Init container to fetch secrets from External Secrets
+      - name: secret-fetcher
+        image: busybox:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          # Wait for secrets to be available
+          until [ -f /secrets/redis/password ]; do
+            echo "Waiting for secrets..."
+            sleep 2
+          done
+          echo "Secrets available"
+        volumeMounts:
+        - name: redis-secret
+          mountPath: /secrets/redis
+          readOnly: true
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+          name: redis
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - SETUID
+            - SETGID
+        command: ["redis-server"]
+        args:
+        - "/etc/redis/redis.conf"
+        - "--requirepass"
+        - "$(REDIS_PASSWORD)"
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: claude-deployment-redis-secret
+              key: password
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: config
+          mountPath: /etc/redis
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: redis-secret
+        secret:
+          secretName: claude-deployment-redis-secret
+          defaultMode: 0400
+      - name: config
+        configMap:
+          name: redis-config
+      - name: tmp
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        app: claude-deployment
+        component: cache
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "fast-ssd"
+      resources:
+        requests:
+          storage: 10Gi

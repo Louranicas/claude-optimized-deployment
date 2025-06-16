@@ -1,0 +1,142 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 8 - , Section 8.1). In this chapter, I want to introduce you to other commands for text evaluation, including wc (word count), head and tail (display the first/last lines of a text), sort (sort text), and uniq (remove doubles).
+Security Relevance Score: 2
+Word Count: 529
+Extracted: 2025-06-13 23:41:06
+
+---
+
+, Section 8.1). In this chapter, I want to introduce you to other commands for text evaluation, including wc (word count), head and tail (display the first/last lines of a text), sort (sort text), and uniq (remove doubles).
+
+With a few options, the grep filter command becomes a powerful search tool. The following command searches the /etc directory recursively (-r) for files that contain the search term password in uppercase or lowercase (-i). The resulting files will be output in a list (-l).
+$ sudo grep -r -i -l password /etc 
+
+
+
+
+
+
+
+
+
+6.3    Compressing and Archiving Files
+To compress a single file, the easiest approach is to use gzip. This command renames the file immediately (i.e., name becomes name.gz). To unpack the file again, you must use gunzip. The extension .gz will be removed again.
+$ gzip somefile       # compresses the file -> somefile.gz$ gunzip somefile.gz  # decompresses the file -> somefile 
+A number of alternatives to the standard gzip and gunzip commands are available. xz compresses much better, but also requires much more CPU power. Conversely, lz4 works much more efficiently than gzip but does not provide as small files.
+6.3.1    Archiving Files Using tar
+The tar command actually stands for tape archive, so it comes from a time when tape drives were still used. Today, tar is mostly used to create compressed file archives. tar files play a similarly important role on Linux as zip files on Windows.
+For tar, the first option (-c, -r, -x, or -t) specifies the action that tar is supposed to perform. All other options affect the operation.
+
+
+
+
+Option
+
+
+Meaning
+
+
+
+
+
+
+-c
+
+
+Create new archive (create)
+
+
+
+
+-r
+
+
+Extend existing archive (replace)
+
+
+
+
+-x
+
+
+Unpack archive (extract)
+
+
+
+
+-t
+
+
+List contents (list)
+
+
+
+
+-v
+
+
+Show visual feedback (verbose)
+
+
+
+
+-z
+
+
+Compress/decompress using gzip 
+
+
+
+
+-j
+
+
+Compress/decompress using bzip2 
+
+
+
+
+-J
+
+
+Compress/decompress using xz 
+
+
+
+
+-f file.tar
+
+
+Filename of the archive (file)
+
+
+
+
+-f -
+
+
+Use standard input/standard output
+
+
+
+
+-C directory
+
+
+Work in this directory
+
+
+
+
+Table 6.2    
+            tar Options
+A particularly important option is -f filename: This option defines the filename of the archive file. If you forget this option, tar will try to access a tape drive. Since tape drives don’t exist on most computers, an error will occur.
+When you use -f -, tar writes the archive to the standard output or reads it from there. This approach is useful if you want to combine tar with another command, for example, to immediately encrypt an archive using tar cf - | gpg ....
+A common tactic is to combine the options passed to tar into a block of letters without a minus sign. Thus, -c -z -f or the short notation -czf simply becomes czf.
+The first of the following commands creates the compressed backup.tar.gz file, which contains all files within the images directory. (tar works recursively by default, so it also takes subdirectories into account.)
+The other commands display the table of contents of the archive and finally unpack it. Instead of .tar.gz, the shortened identifier .tgz is also common.
+$ tar czf backup.tar.gz images   # create archive$ tar tzf backup.tar.gz          # show contents$ cd other-directory             # unpack archive$ tar xzf backup.tar.gz 
+
+Backups
+More use cases for tar will follow in

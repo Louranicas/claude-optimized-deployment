@@ -1,0 +1,105 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 7 - 1. The following command returns a list of your own entries (HKEY_CURRENT_USER) on the first level. With the additional -Recurse option, the cmdlet runs through all levels of the registry.
+> Get-ChildItem HKCU:\  Name           Property  ----           --------  Console        ColorTable00             : 789516                 ...  Environment    OneDrive         : C:\Users\kofler\OneDrive                 OneDriveConsumer : C:\Users\kofler\OneDrive                 ... 
+Get-ItemProperty and Get-ItemPropertyValue allow you to view specifically the contents of a registry directory and a single entry, respectively:  
+# alle Einträge von HKEY_CURRENT_USER\Show environment> Get-ItemProperty HKCU:\Environment\  OneDrive         : C:\Users\kofler\OneDrive  OneDriveConsumer : C:\Users\kofler\OneDrive  Path             : C:\Users\kofler\AppData\Local\Programs\...  ...# show only the Path entry> Get-ItemProperty HKCU:\Environment\ | Select-Object Path  C:\Users\kofler\AppData\Local\Programs\Python\Python311\...# same result> Get-ItemPropertyValue "HKCU:\Environment" -Name Path  C:\Users\kofler\AppData\Local\Programs\Python\Python311\... 
+Of course, you can also modify the registry. New-Item creates a new key, while Set-ItemProperty stores an entry. But be careful to avoid changing any important settings!  
+# creates the \michael\mykey directory in two steps> New-Item HKCU:\michael> New-Item HKCU:\michael\mykey# saves version=1.0 there> Set-ItemProperty HKCU:\michael\mykey -Name version -Value 1.0# reads the data again> Get-ChildItem HKCU:\michael\  Hive: HKEY_CURRENT_USER\michael  Name    Property  ----    --------  mykey   version : 1> Get-ItemPropertyValue "HKCU:\michael\mykey" -Name version  1 
+Remove-Item deletes all registry directories and entries created in this example. Make sure you specify the correct path when you run this command. You can do a lot of damage with Remove-Item -Recurse, regardless of whether you’re deleting files or registry entries.
+> Remove-Item -Recurse HKCU:\michael\ 
+7.5.1    Determining System Information
+Get-ComputerInfo returns a long list of version numbers and strings to identify the Windows version. You can use Select-Object to filter out the information relevant to it:
+> Get-ComputerInfo | Select-Object OsName, OSType, OsProductType  OsName                    OsType   OsProductType  ------                    ------   -------------  Microsoft Windows 11 Pro   WINNT     WorkStation> Get-ComputerInfo | Select-Object OsVersion, WindowsVersion  OsVersion  WindowsVersion  ---------  --------------  10.0.22621 2009 
+However, the what’s called the display version for installed function updates can only be found in the registry:
+> $key = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"> (Get-ItemProperty $key).DisplayVersion  22H2 
+Often the language, time zone and installation location are also of interest:
+> Get-ComputerInfo | select OsLocale,TimeZone,OsWindowsDirectory  OsLocale TimeZone                            OsWindowsDirectory  -------- --------                            ------------------  de-DE    (UTC+01:00) Amsterdam, Berlin, ...  C:\Windows 
+Get-ComputerInfo also reveals the name of the CPU, the number of cores, the RAM size, and so on, if required. Get-PSDrive determines the free space on the drives (in our example, only for the C: drive, with information displayed in bytes):
+> Get-ComputerInfo | Select-Object CsProcessors  {Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz, ...}> Get-PSDrive C | Select-Object Used, Free         Used         Free         ----         ----  40943972352 173030539264 
+7.5.2    Evaluating the Logging System
+Windows logs all conceivable events in a logging system. Get-EventLog -List reveals the names of the logs. Using Get-EventLog <name> -Newest n, you can read the most recent n entries.
+> Get-EventLog Security -Newest 5 |  Select-Object TimeGenerated, Message  TimeGenerated         Message  -------------         -------  01/30/2023 03:47:30 PM  A new login has been ...  01/30/2023 03:47:30 PM  An account has been successfully registered.  01/30/2023 03:41:52 PM  A new login has been ...  01/30/2023 03:41:52 PM  An account has been successfully registered.  01/30/2023 03:13:48 PM  A new login has been ...
+Security Relevance Score: 3
+Word Count: 1622
+Extracted: 2025-06-13 23:41:06
+
+---
+
+1. The following command returns a list of your own entries (HKEY_CURRENT_USER) on the first level. With the additional -Recurse option, the cmdlet runs through all levels of the registry.
+> Get-ChildItem HKCU:\  Name           Property  ----           --------  Console        ColorTable00             : 789516                 ...  Environment    OneDrive         : C:\Users\kofler\OneDrive                 OneDriveConsumer : C:\Users\kofler\OneDrive                 ... 
+Get-ItemProperty and Get-ItemPropertyValue allow you to view specifically the contents of a registry directory and a single entry, respectively:  
+# alle Einträge von HKEY_CURRENT_USER\Show environment> Get-ItemProperty HKCU:\Environment\  OneDrive         : C:\Users\kofler\OneDrive  OneDriveConsumer : C:\Users\kofler\OneDrive  Path             : C:\Users\kofler\AppData\Local\Programs\...  ...# show only the Path entry> Get-ItemProperty HKCU:\Environment\ | Select-Object Path  C:\Users\kofler\AppData\Local\Programs\Python\Python311\...# same result> Get-ItemPropertyValue "HKCU:\Environment" -Name Path  C:\Users\kofler\AppData\Local\Programs\Python\Python311\... 
+Of course, you can also modify the registry. New-Item creates a new key, while Set-ItemProperty stores an entry. But be careful to avoid changing any important settings!  
+# creates the \michael\mykey directory in two steps> New-Item HKCU:\michael> New-Item HKCU:\michael\mykey# saves version=1.0 there> Set-ItemProperty HKCU:\michael\mykey -Name version -Value 1.0# reads the data again> Get-ChildItem HKCU:\michael\  Hive: HKEY_CURRENT_USER\michael  Name    Property  ----    --------  mykey   version : 1> Get-ItemPropertyValue "HKCU:\michael\mykey" -Name version  1 
+Remove-Item deletes all registry directories and entries created in this example. Make sure you specify the correct path when you run this command. You can do a lot of damage with Remove-Item -Recurse, regardless of whether you’re deleting files or registry entries.
+> Remove-Item -Recurse HKCU:\michael\ 
+7.5.1    Determining System Information
+Get-ComputerInfo returns a long list of version numbers and strings to identify the Windows version. You can use Select-Object to filter out the information relevant to it:
+> Get-ComputerInfo | Select-Object OsName, OSType, OsProductType  OsName                    OsType   OsProductType  ------                    ------   -------------  Microsoft Windows 11 Pro   WINNT     WorkStation> Get-ComputerInfo | Select-Object OsVersion, WindowsVersion  OsVersion  WindowsVersion  ---------  --------------  10.0.22621 2009 
+However, the what’s called the display version for installed function updates can only be found in the registry:
+> $key = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"> (Get-ItemProperty $key).DisplayVersion  22H2 
+Often the language, time zone and installation location are also of interest:
+> Get-ComputerInfo | select OsLocale,TimeZone,OsWindowsDirectory  OsLocale TimeZone                            OsWindowsDirectory  -------- --------                            ------------------  de-DE    (UTC+01:00) Amsterdam, Berlin, ...  C:\Windows 
+Get-ComputerInfo also reveals the name of the CPU, the number of cores, the RAM size, and so on, if required. Get-PSDrive determines the free space on the drives (in our example, only for the C: drive, with information displayed in bytes):
+> Get-ComputerInfo | Select-Object CsProcessors  {Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz, ...}> Get-PSDrive C | Select-Object Used, Free         Used         Free         ----         ----  40943972352 173030539264 
+7.5.2    Evaluating the Logging System
+Windows logs all conceivable events in a logging system. Get-EventLog -List reveals the names of the logs. Using Get-EventLog <name> -Newest n, you can read the most recent n entries.
+> Get-EventLog Security -Newest 5 |  Select-Object TimeGenerated, Message  TimeGenerated         Message  -------------         -------  01/30/2023 03:47:30 PM  A new login has been ...  01/30/2023 03:47:30 PM  An account has been successfully registered.  01/30/2023 03:41:52 PM  A new login has been ...  01/30/2023 03:41:52 PM  An account has been successfully registered.  01/30/2023 03:13:48 PM  A new login has been ... 
+
+
+
+
+
+
+
+
+
+7.6    Processing cmdlet Results
+cmdlets return objects, not just text. The text displayed in the terminal is created because PowerShell converts the objects into text by default. To achieve better readability, many details are removed in the process.
+One of the most basic PowerShell tasks is to pass results to a second cmdlet using the pipe operator. This allows you to filter, process, or format the data in a variety of ways. You have already seen some cmdlets for this purpose, such as Select-Object or ForEach-Item. This section summarizes the basic functions of these frequently needed cmdlets.
+7.6.1    Select-Object and Sort-Object
+You can use Select-Object (alias select) to reduce the output to single properties or select only the first/last results. This function is especially useful if you previously sorted the results according to a criterion using Sort-Object (alias sort). The -Descending option sorts in descending order. The following examples illustrate the most important application variants. Take the trouble and try the commands in a directory with many files.
+> Get-ChildItem    # show all files/default properties> Get-ChildItem | Select-Object Name         # show name only> Get-ChildItem | Select-Object Name, Size   # name and size# show the three smallest/largest files> Get-ChildItem | Sort-Object Size | Select-Object -First 3> Get-ChildItem | Sort-Object Size | Select-Object -Last 3# for the alphabetically first ten files, name and size only> Get-ChildItem | Sort-Object Name |  Select-Object -First 10 Name, Size# last modified/created, name, size and modification time> Get-ChildItem | Sort-Object LastWriteTime |  Select-Object -Last 10 Name, Size, LastWriteTime 
+Select-Object and Sort-Object can also be applied to properties that are not displayed at all by default, for example, to LastAccessTime for Get-ChildItem results. If you do not know the properties, you should apply Get-Member to the first result object, as in the following example:
+# Show properties of the first result of cmdlet> cmdlet | Select -First 1 | Get-Member -MemberType Properties 
+Select-Object can also skip the first n objects (-Skip n); skip the last objects (-SkipLast n); eliminate duplicates (-Unique); or select specific objects (-Index 2, 3, 7 for the 3rd, 4th, and 8th element; counting begins at 0).
+7.6.2    Where-Object
+Where-Object (alias ?) allows you to select the objects that meet a certain criterion. The condition is formulated in curly brackets. The respective object is addressed using $_. 
+# Show files > 1 MByte, only name and size> Get-ChildItem | ? {$_.Size -gt 1000000} | Select Name, Size 
+7.6.3    Group-Object
+Group-Object (alias group) forms groups of elements that have one property in common. The result contains the number of objects for each group, the value of the group property, and an enumeration of the elements.
+> Get-ChildItem | Group-Object -Property Extension  Count   Name   Group  -----   ----   -----     73   .jpg   {C:\Users\kofler\img_2234.jpg, ...}      5   .jpeg  {C:\Users\kofler\tree.jpeg, ...}    334   .png   {C:\Users\kofler\screenshot.jpeg, ...}      3   .tif   {C:\Users\kofler\figure-23.tif, ...}# the largest groups first, only three groups> Get-ChildItem | Group-Object -Property Extension |  Sort-Object -Property Count -Descending |  Select-Object -First 3# Processes with more than 5 subprocesses (threads)> Get-Process | Group-Object -Property ProcessName |  Where-Object { $_.Count -gt 5 } 
+7.6.4    ForEach-Item
+ForEach-Item (alias %) enables you to further process any of the determined objects. Which type of further processing is possible depends strongly on the type of objects. For example, you can copy or delete files, terminate processes, close open database connections, and update installed packages. The action to be executed is formulated in curly brackets, and access to the object is again created via $_. The following command sequence moves all files from the current directory that are older than one year (-lt for less than) to the old subdirectory:
+> $oneYear = (Get-Date).AddDays(-365)> mkdir old> Get-ChildItem | ? {$_.LastWriteTime -lt $oneYear} |  ForEach-Object { Move-Item $_ old\ } 
+7.6.5    Measure-Object
+Measure-Object (alias measure) applies aggregate functions to the specified objects. Without any further parameters, it simply counts the objects (Count result property). Depending on the option, the total, average, and minimum or maximum of a property can also be determined.
+# number of files, size of the smallest and largest file> Get-ChildItem | Measure-Object  -Property Size -Min -Max |  Select-Object Count, Minimum, Maximum  Count    Minimum       Maximum  -----    -------       -------    431   4096,000   3263035,000# lines, words and characters in the todo file> Get-Content todo.md | Measure-Object -Line -Word -Character  Lines  Words  Characters  -----  -----  ----------    195    899        6396 
+If you just want to count the number of objects, you can simply apply the Count property to the result. The following command determines the number of PDF files in the current directory and all subdirectories:
+> (Get-ChildItem *.pdf -Recurse).Count 
+7.6.6    Formatting and Exporting cmdlet Results
+What you see when you run a command in the terminal is mostly a short version of the available data. The Out-Default cmdlet is responsible for the default formatting. Among other things, the cmdlet takes into account XML files that specify for important classes (e.g., for System.IO.DirectoryInfo); which properties are to be output; and how.
+If you’re not happy with the default formatting, you can influence it in the following ways:   
+
+
+The cmdlet | Select-Object prop1, prop2, prop3 construct, which you already know, allows you to define which properties you want to see.
+
+
+Use cmdlet | Format-List to specify the most important properties of each object in list form. If you really want to see all properties, you can use Format-List -Property *. But be careful not to get overwhelmed by all the data since Get-Process | Format-List -Property * can return a thousand lines of output. In my work environment, there were about 11,000 lines that could be measured this way:
+> Get-Process | Format-List -Property * | Out-String |  Measure-Object -Line 
+
+
+cmdlet | Format-Table performs table-based output, as is the default for many classes. But you can influence the output via options. If you have a wide monitor, you can try, for example, Get-Process | Format-Table -Property * -AutoSize. The ‐AutoSize option takes the data into account to determine the ideal column width.
+
+
+cmdlet | Format-Wide tries to spread the most important property (such as the filename) across multiple columns. Get-ChildItem | Format-Wide -AutoSize returns, for example, a multi-column list of the names of all files in the current directory.
+
+
+cmdlet | Out-Gridview displays the result in a separate graphical window. The data can be re-sorted and filtered in that window, which is extremely helpful especially for extensive results.
+
+Figure 7.1    
+            Graphical Output of cmdlet Results
+
+
+cmdlet | Export-Csv saves the cmdlet result to a comma-separated values (CSV) file. By default, the first row contains the names of all properties as column labels. In the other rows, all texts are enclosed in quotation marks and separated by commas. You can manipulate the formatting details of the file via various options. The counterpart to Export-Csv is Import-Csv. I will introduce you to this command in

@@ -8,13 +8,10 @@ automation with enterprise-level resilience patterns and observability.
 from __future__ import annotations
 import os
 import asyncio
-import subprocess
 import json
 import time
 import hashlib
-import resource
 import tempfile
-import shlex
 import re
 from typing import Dict, Any, List, Optional, Tuple, Set
 from pathlib import Path
@@ -25,29 +22,28 @@ import logging
 
 from src.mcp.protocols import MCPTool, MCPToolParameter, MCPServerInfo, MCPCapabilities, MCPError
 from src.mcp.servers import MCPServer
+from src.core.secure_command_executor import SecureCommandExecutor, CommandCategory
+from src.core.command_sanitizer import CommandSanitizer, sanitize_command_input
 
-logger = logging.getLogger(__name__)
+from src.core.error_handler import (
+    handle_errors,
+    async_handle_errors,
+    log_error,
+    ServiceUnavailableError,
+    ExternalServiceError,
+    ValidationError,
+    ConfigurationError,
+    CircuitBreakerError
+)
 
-# Security whitelist for allowed commands
-COMMAND_WHITELIST = {
-    'git', 'make', 'docker', 'docker-compose', 'kubectl', 'terraform',
-    'npm', 'yarn', 'python', 'pip', 'pytest', 'cargo', 'rustc', 'helm',
-    'aws', 'az', 'gcloud', 'ansible', 'vagrant', 'packer', 'vault'
-}
-
-# Dangerous command patterns to block
-DANGEROUS_PATTERNS = [
-    r'rm\s+-rf\s+/', r'dd\s+if=', r'mkfs', r'format\s+c:',
-    r':(){ :|:& };:', r'> /dev/sda', r'wget.*\|.*sh', r'curl.*\|.*sh'
+__all__ = [
+    "CircuitBreaker",
+    "InfrastructureCommanderMCP",
+    "with_retry"
 ]
 
-# Resource limits for subprocess execution
-RESOURCE_LIMITS = {
-    resource.RLIMIT_CPU: (300, 600),      # CPU time in seconds
-    resource.RLIMIT_AS: (2 * 1024**3, 4 * 1024**3),  # Virtual memory
-    resource.RLIMIT_NPROC: (100, 200),    # Number of processes
-    resource.RLIMIT_NOFILE: (1024, 2048), # Number of open files
-}
+
+logger = logging.getLogger(__name__)
 
 
 class CircuitBreaker:
@@ -131,14 +127,68 @@ class InfrastructureCommanderMCP(MCPServer):
         self.deployment_state: Dict[str, Any] = {}
         self.metrics: Dict[str, List[float]] = defaultdict(list)
         self._setup_security()
+        
+        # Initialize secure command executor
+        self.command_executor = SecureCommandExecutor(
+            working_directory=self.working_directory,
+            max_output_size=10 * 1024 * 1024,  # 10MB
+            enable_sandbox=True,
+            audit_log_path=Path(tempfile.gettempdir()) / 'infrastructure_commander_audit.log'
+        )
+        
+        # Add infrastructure-specific commands to whitelist
+        self._setup_infrastructure_commands()
     
     def _setup_security(self):
         """Initialize security configurations."""
-        self.command_validator = re.compile(
-            '|'.join(DANGEROUS_PATTERNS),
-            re.IGNORECASE
-        )
         self.audit_log = Path(tempfile.gettempdir()) / 'infrastructure_commander_audit.log'
+    
+    def _setup_infrastructure_commands(self):
+        """Add infrastructure-specific commands to the executor whitelist."""
+        # Add vault for secret management
+        self.command_executor.add_to_whitelist(
+            'vault',
+            CommandCategory.INFRASTRUCTURE,
+            allowed_args=['status', 'read', 'list', 'token', 'login'],
+            dangerous_args=['delete', 'destroy'],
+            max_args=10
+        )
+        
+        # Add packer for image building
+        self.command_executor.add_to_whitelist(
+            'packer',
+            CommandCategory.INFRASTRUCTURE,
+            allowed_args=['build', 'validate', 'fmt', 'inspect'],
+            dangerous_args=[],
+            max_args=15
+        )
+        
+        # Add AWS CLI
+        self.command_executor.add_to_whitelist(
+            'aws',
+            CommandCategory.INFRASTRUCTURE,
+            allowed_args=['s3', 'ec2', 'ecs', 'eks', 'iam', 'cloudformation'],
+            dangerous_args=['delete', 'terminate'],
+            max_args=20
+        )
+        
+        # Add Azure CLI
+        self.command_executor.add_to_whitelist(
+            'az',
+            CommandCategory.INFRASTRUCTURE,
+            allowed_args=['account', 'group', 'vm', 'aks', 'storage'],
+            dangerous_args=['delete'],
+            max_args=20
+        )
+        
+        # Add GCloud CLI
+        self.command_executor.add_to_whitelist(
+            'gcloud',
+            CommandCategory.INFRASTRUCTURE,
+            allowed_args=['compute', 'container', 'storage', 'iam'],
+            dangerous_args=['delete'],
+            max_args=20
+        )
     
     def get_server_info(self) -> MCPServerInfo:
         """Get Infrastructure Commander server information."""
@@ -390,29 +440,6 @@ class InfrastructureCommanderMCP(MCPServer):
             logger.error(f"Tool {tool_name} failed: {e}")
             raise
     
-    def _validate_command(self, command: str) -> Tuple[bool, Optional[str]]:
-        """Validate command for security."""
-        # Check for dangerous patterns
-        if self.command_validator.search(command):
-            return False, "Command contains dangerous patterns"
-        
-        # Extract base command
-        parts = shlex.split(command)
-        if not parts:
-            return False, "Empty command"
-        
-        base_cmd = Path(parts[0]).name
-        
-        # Check whitelist
-        if base_cmd not in COMMAND_WHITELIST:
-            return False, f"Command '{base_cmd}' not in whitelist"
-        
-        return True, None
-    
-    def _apply_resource_limits(self):
-        """Apply resource limits to subprocess."""
-        for resource_type, (soft, hard) in RESOURCE_LIMITS.items():
-            resource.setrlimit(resource_type, (soft, hard))
     
     @with_retry(max_attempts=3)
     async def _execute_command(
@@ -422,65 +449,51 @@ class InfrastructureCommanderMCP(MCPServer):
         timeout: int = 300,
         environment: Optional[Dict[str, str]] = None
     ) -> Dict[str, Any]:
-        """Execute command with security and monitoring."""
-        # Validate command
-        valid, error = self._validate_command(command)
-        if not valid:
-            raise MCPError(-32000, f"Security validation failed: {error}")
-        
-        work_dir = Path(working_directory) if working_directory else self.working_directory
-        
-        # Prepare environment
-        env = os.environ.copy()
-        if environment:
-            env.update(environment)
-        
-        logger.info(f"Executing secured command: {command} in {work_dir}")
-        
+        """Execute command with security and monitoring using secure executor."""
         try:
-            # Parse command into safe argument list
-            command_parts = shlex.split(command)
-            
-            # Create subprocess with resource limits - NO SHELL=True for security
-            process = await asyncio.create_subprocess_exec(
-                *command_parts,
-                cwd=work_dir,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env,
-                preexec_fn=self._apply_resource_limits
+            # Sanitize inputs
+            sanitized = sanitize_command_input(
+                command=command,
+                working_directory=working_directory,
+                environment=environment
             )
             
-            # Execute with timeout
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=timeout
+            # Execute command using secure executor
+            result = await self.command_executor.execute_async(
+                command=command,
+                working_directory=sanitized.get('working_directory', working_directory),
+                environment=sanitized.get('environment', environment),
+                timeout=float(timeout),
+                user=os.environ.get("USER", "infrastructure_commander"),
+                context={
+                    "tool": "execute_command",
+                    "mcp_server": "infrastructure_commander"
+                }
             )
             
-            result = {
-                "command": command,
-                "working_directory": str(work_dir),
-                "exit_code": process.returncode,
-                "stdout": stdout.decode('utf-8'),
-                "stderr": stderr.decode('utf-8'),
-                "success": process.returncode == 0,
+            # Convert result to expected format
+            execution_result = {
+                "command": result.command,
+                "working_directory": result.working_directory,
+                "exit_code": result.exit_code,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "success": result.success,
                 "execution_time": time.time(),
-                "pid": process.pid
+                "truncated": result.truncated
             }
             
             # Record in history
-            self.command_history.append(result)
+            self.command_history.append(execution_result)
             
-            return result
+            # Log metrics
+            self._record_metrics("execute_command", result.execution_time, result.success)
             
-        except asyncio.TimeoutError:
-            # Kill process on timeout
-            if 'process' in locals():
-                process.terminate()
-                await asyncio.sleep(1)
-                if process.returncode is None:
-                    process.kill()
-            raise MCPError(-32000, f"Command timed out after {timeout} seconds")
+            return execution_result
+            
+        except Exception as e:
+            logger.error(f"Command execution failed: {e}")
+            raise MCPError(-32000, f"Command execution failed: {str(e)}")
     
     async def _make_command(
         self,
@@ -488,26 +501,32 @@ class InfrastructureCommanderMCP(MCPServer):
         args: Optional[str] = None,
         parallel: bool = True
     ) -> Dict[str, Any]:
-        """Execute Make with dependency tracking."""
+        """Execute Make with dependency tracking using secure executor."""
+        # Sanitize target
+        sanitized_target = CommandSanitizer.sanitize_identifier(target, allow_dash=True)
+        
         cmd_parts = ["make"]
         
         if parallel:
             cmd_parts.append(f"-j{os.cpu_count()}")
         
-        cmd_parts.append(target)
+        cmd_parts.append(sanitized_target)
         
         if args:
-            cmd_parts.append(args)
+            # Sanitize additional arguments
+            sanitized_args = CommandSanitizer.sanitize_command_args([args])
+            cmd_parts.extend(sanitized_args)
         
         command = " ".join(cmd_parts)
         
         # Track dependencies
-        deps_cmd = f"make -n {target}"
+        deps_cmd = f"make -n {sanitized_target}"
         deps_result = await self._execute_command(deps_cmd)
         
         # Execute actual command
         result = await self._execute_command(command)
-        result["dependencies"] = deps_result.get("stdout", "").split('\n')
+        result["dependencies"] = deps_result.get("stdout", "").split('
+')
         
         return result
     
@@ -518,14 +537,23 @@ class InfrastructureCommanderMCP(MCPServer):
         mode: str = "0644",
         backup: bool = True
     ) -> Dict[str, Any]:
-        """Write file with backup and validation."""
-        path = Path(file_path)
-        
-        # Security check - prevent writing outside project
+        """Write file with backup and validation using secure path sanitization."""
+        # Sanitize file path
         try:
-            path.resolve().relative_to(self.working_directory)
-        except ValueError:
-            raise MCPError(-32000, "Cannot write files outside project directory")
+            sanitized_path = CommandSanitizer.sanitize_path(
+                file_path,
+                base_dir=self.working_directory,
+                allow_relative=True,
+                must_exist=False,
+                allow_symlinks=False
+            )
+            path = Path(sanitized_path)
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid file path: {str(e)}")
+        
+        # Validate file permissions mode
+        if not re.match(r'^0?[0-7]{3,4}$', mode):
+            raise MCPError(-32000, f"Invalid file mode: {mode}")
         
         # Backup existing file
         backup_path = None
@@ -563,17 +591,33 @@ class InfrastructureCommanderMCP(MCPServer):
         build_args: Optional[Dict[str, str]] = None,
         scan_vulnerabilities: bool = True
     ) -> Dict[str, Any]:
-        """Build Docker image with security scanning."""
-        # Validate Dockerfile exists
-        if not Path(dockerfile_path).exists():
-            raise MCPError(-32000, f"Dockerfile not found: {dockerfile_path}")
+        """Build Docker image with security scanning using secure executor."""
+        # Sanitize and validate Dockerfile path
+        try:
+            sanitized_dockerfile = CommandSanitizer.sanitize_path(
+                dockerfile_path,
+                base_dir=self.working_directory,
+                allow_relative=True,
+                must_exist=True,
+                allow_symlinks=False
+            )
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid Dockerfile path: {str(e)}")
+        
+        # Sanitize image tag
+        try:
+            sanitized_image = CommandSanitizer.sanitize_docker_image(image_tag)
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid image tag: {str(e)}")
         
         # Build command
-        cmd_parts = ["docker", "build", "-f", dockerfile_path, "-t", image_tag]
+        cmd_parts = ["docker", "build", "-f", sanitized_dockerfile, "-t", sanitized_image]
         
         if build_args:
             for key, value in build_args.items():
-                cmd_parts.extend(["--build-arg", f"{key}={value}"])
+                # Sanitize build arg name and value
+                san_key, san_value = CommandSanitizer.sanitize_environment_var(key, value)
+                cmd_parts.extend(["--build-arg", f"{san_key}={san_value}"])
         
         cmd_parts.append(".")
         
@@ -582,7 +626,7 @@ class InfrastructureCommanderMCP(MCPServer):
         
         if result["success"] and scan_vulnerabilities:
             # Scan for vulnerabilities
-            scan_cmd = f"docker scan {image_tag} --json"
+            scan_cmd = f"docker scan {sanitized_image} --json"
             scan_result = await self._execute_command(scan_cmd)
             
             try:
@@ -600,29 +644,43 @@ class InfrastructureCommanderMCP(MCPServer):
         dry_run: bool = True,
         wait_ready: bool = True
     ) -> Dict[str, Any]:
-        """Deploy K8s manifests with validation."""
-        # Validate manifest
-        if not Path(manifest_path).exists():
-            raise MCPError(-32000, f"Manifest not found: {manifest_path}")
+        """Deploy K8s manifests with validation using secure executor."""
+        # Sanitize and validate manifest path
+        try:
+            sanitized_manifest = CommandSanitizer.sanitize_path(
+                manifest_path,
+                base_dir=self.working_directory,
+                allow_relative=True,
+                must_exist=True,
+                allow_symlinks=False
+            )
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid manifest path: {str(e)}")
+        
+        # Sanitize namespace
+        try:
+            sanitized_namespace = CommandSanitizer.sanitize_k8s_name(namespace, kind="namespace")
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid namespace: {str(e)}")
         
         # Dry run first
         if dry_run:
-            dry_cmd = f"kubectl apply -f {manifest_path} -n {namespace} --dry-run=client"
+            dry_cmd = f"kubectl apply -f {sanitized_manifest} -n {sanitized_namespace} --dry-run=client"
             dry_result = await self._execute_command(dry_cmd)
             if not dry_result["success"]:
                 raise MCPError(-32000, f"Dry run failed: {dry_result['stderr']}")
         
         # Store current state for rollback
-        rollback_cmd = f"kubectl get -f {manifest_path} -n {namespace} -o yaml"
+        rollback_cmd = f"kubectl get -f {sanitized_manifest} -n {sanitized_namespace} -o yaml"
         rollback_state = await self._execute_command(rollback_cmd)
         
         # Apply manifest
-        apply_cmd = f"kubectl apply -f {manifest_path} -n {namespace}"
+        apply_cmd = f"kubectl apply -f {sanitized_manifest} -n {sanitized_namespace}"
         result = await self._execute_command(apply_cmd)
         
         if result["success"] and wait_ready:
             # Wait for resources to be ready
-            wait_cmd = f"kubectl wait --for=condition=ready -f {manifest_path} -n {namespace} --timeout=300s"
+            wait_cmd = f"kubectl wait --for=condition=ready -f {sanitized_manifest} -n {sanitized_namespace} --timeout=300s"
             wait_result = await self._execute_command(wait_cmd)
             result["ready"] = wait_result["success"]
         
@@ -637,14 +695,22 @@ class InfrastructureCommanderMCP(MCPServer):
         target: Optional[str] = None,
         estimate_cost: bool = True
     ) -> Dict[str, Any]:
-        """Plan Terraform changes with cost estimation."""
-        # Validate working directory
-        if not Path(working_dir).exists():
-            raise MCPError(-32000, f"Terraform directory not found: {working_dir}")
+        """Plan Terraform changes with cost estimation using secure executor."""
+        # Sanitize and validate working directory
+        try:
+            sanitized_work_dir = CommandSanitizer.sanitize_path(
+                working_dir,
+                base_dir=self.working_directory,
+                allow_relative=True,
+                must_exist=True,
+                allow_symlinks=False
+            )
+        except Exception as e:
+            raise MCPError(-32000, f"Invalid Terraform directory: {str(e)}")
         
         # Initialize terraform
         init_cmd = "terraform init"
-        init_result = await self._execute_command(init_cmd, working_dir)
+        init_result = await self._execute_command(init_cmd, sanitized_work_dir)
         if not init_result["success"]:
             raise MCPError(-32000, f"Terraform init failed: {init_result['stderr']}")
         
@@ -652,18 +718,31 @@ class InfrastructureCommanderMCP(MCPServer):
         cmd_parts = ["terraform", "plan", "-out=tfplan"]
         
         if var_file:
-            cmd_parts.extend(["-var-file", var_file])
+            # Sanitize var file path
+            try:
+                sanitized_var_file = CommandSanitizer.sanitize_path(
+                    var_file,
+                    base_dir=Path(sanitized_work_dir),
+                    allow_relative=True,
+                    must_exist=True,
+                    allow_symlinks=False
+                )
+                cmd_parts.extend(["-var-file", sanitized_var_file])
+            except Exception as e:
+                raise MCPError(-32000, f"Invalid var file: {str(e)}")
         
         if target:
-            cmd_parts.extend(["-target", target])
+            # Sanitize target resource
+            sanitized_target = CommandSanitizer.escape_for_shell(target)
+            cmd_parts.extend(["-target", sanitized_target])
         
         # Execute plan
-        result = await self._execute_command(" ".join(cmd_parts), working_dir)
+        result = await self._execute_command(" ".join(cmd_parts), sanitized_work_dir)
         
         if result["success"] and estimate_cost:
             # Show plan with cost estimation
             show_cmd = "terraform show -json tfplan"
-            show_result = await self._execute_command(show_cmd, working_dir)
+            show_result = await self._execute_command(show_cmd, sanitized_work_dir)
             
             try:
                 plan_data = json.loads(show_result.get("stdout", "{}"))
@@ -684,7 +763,8 @@ class InfrastructureCommanderMCP(MCPServer):
             "pid": os.getpid()
         }
         with open(self.audit_log, 'a') as f:
-            f.write(json.dumps(entry) + '\n')
+            f.write(json.dumps(entry) + '
+')
     
     def _record_metrics(self, tool_name: str, execution_time: float, success: bool):
         """Record execution metrics."""

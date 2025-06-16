@@ -1,0 +1,1695 @@
+# Security Chapter Extract
+Book: Razvan Beuran - Cybersecurity Education and Training (2025, Springer Nature Singapore) - libgen.li
+Chapter: 2015 - In this context, I would also like to mention Prof. Ken-ichi Chinen, who has been my main collaborator at the Cyber Range Organization and Design chair at JAIST. Many of the ideas presented in this book were born through the stimulating discussions I had with them.
+In addition, I cannot forget all the students in my lab at JAIST who contributed to the many research projects whose accomplishments laid the foundation for this book. They are listed next in chronological order of their study period: Cuong Pham, Dat Thanh Tang, Takuya Inoue, Jidong Wang, Zheyu Tan, Min Zhao, Liangwen Yuan, Zhe Zhang, Youmeizi Zeng, Zhenguo Hu, Tan Duy Le, Sian En Ooi, Quyen Van Nguyen, and Thanh Phuong Huynh Nguyen. Thank you all!
+Furthermore, several Chinen lab students, such as Fumikazu Awa, Masanori Sunagawa and Gen Komatsu, as well as minor research project or internship students, such as Muhammad Harith bin Noor Azam, Chunqi Du, Lei Jiang, Kien Chi Vu, Wataru Mishima, Yuichiro Sakamoto, and Yoshiki Makino, have made important contributions to our research projects, and I am also very grateful to them.
+Last but not least, I would like to wholeheartedly thank Assoc. Prof. Jan Vykopal, Prof. Herve Debar, and Prof. Youki Kadobayashi, who have been so kind as to review this manuscript. The insightful comments and suggestions they have provided have helped me significantly improve the book.
+Security Relevance Score: 9
+Word Count: 1176
+Extracted: 2025-06-13 23:41:15
+
+---
+
+In this context, I would also like to mention Prof. Ken-ichi Chinen, who has been my main collaborator at the Cyber Range Organization and Design chair at JAIST. Many of the ideas presented in this book were born through the stimulating discussions I had with them.
+In addition, I cannot forget all the students in my lab at JAIST who contributed to the many research projects whose accomplishments laid the foundation for this book. They are listed next in chronological order of their study period: Cuong Pham, Dat Thanh Tang, Takuya Inoue, Jidong Wang, Zheyu Tan, Min Zhao, Liangwen Yuan, Zhe Zhang, Youmeizi Zeng, Zhenguo Hu, Tan Duy Le, Sian En Ooi, Quyen Van Nguyen, and Thanh Phuong Huynh Nguyen. Thank you all!
+Furthermore, several Chinen lab students, such as Fumikazu Awa, Masanori Sunagawa and Gen Komatsu, as well as minor research project or internship students, such as Muhammad Harith bin Noor Azam, Chunqi Du, Lei Jiang, Kien Chi Vu, Wataru Mishima, Yuichiro Sakamoto, and Yoshiki Makino, have made important contributions to our research projects, and I am also very grateful to them.
+Last but not least, I would like to wholeheartedly thank Assoc. Prof. Jan Vykopal, Prof. Herve Debar, and Prof. Youki Kadobayashi, who have been so kind as to review this manuscript. The insightful comments and suggestions they have provided have helped me significantly improve the book.
+
+
+
+
+Contents
+
+
+
+
+
+1 Introduction
+
+1
+
+
+
+
+1.​1 Background and Motivation
+
+1
+
+
+
+
+
+1.​2 Book Outline
+
+2
+
+
+
+
+
+1.​3 Existing Literature
+
+3
+
+
+
+
+
+1.​4 Key Contributions
+
+4
+
+
+
+
+
+1.​5 Intended Audience
+
+4
+
+
+
+
+
+References
+
+5
+
+
+
+
+
+Part I Cybersecurity Education and Training Methodologies
+
+
+
+
+2 Cybersecurity Education and Training
+
+9
+
+
+
+
+2.​1 Education Versus Training
+
+9
+
+
+
+
+2.​1.​1 Term Connotations
+
+9
+
+
+
+
+
+2.​1.​2 Education and Training for Cybersecurity
+
+10
+
+
+
+
+
+
+2.​2 Cybersecurity Training Categories
+
+11
+
+
+
+
+2.​2.​1 Technical Cybersecurity Training
+
+12
+
+
+
+
+
+2.​2.​2 Cybersecurity Awareness Training
+
+14
+
+
+
+
+
+2.​2.​3 Training Category Comparison
+
+16
+
+
+
+
+
+
+References
+
+18
+
+
+
+
+
+
+3 Technical Cybersecurity Training
+
+19
+
+
+
+
+3.​1 Technical Cybersecurity Training Taxonomy
+
+19
+
+
+
+
+3.​1.​1 Training Purpose
+
+19
+
+
+
+
+
+3.​1.​2 Training Approach
+
+21
+
+
+
+
+
+3.​1.​3 Training Characteristics
+
+24
+
+
+
+
+
+3.​1.​4 Theoretical Training
+
+26
+
+
+
+
+
+
+3.​2 Cybersecurity Skill Overview
+
+27
+
+
+
+
+3.​2.​1 Workforce and Skill Frameworks
+
+27
+
+
+
+
+
+3.​2.​2 Cybersecurity Skill Analysis
+
+31
+
+
+
+
+
+
+3.​3 Training Effectiveness
+
+33
+
+
+
+
+3.​3.​1 Effectiveness Requirements
+
+33
+
+
+
+
+
+3.​3.​2 Necessary Implementation Features
+
+34
+
+
+
+
+
+
+3.​4 Case Study:​ Hardening Project
+
+35
+
+
+
+
+3.​4.​1 Program Overview
+
+35
+
+
+
+
+
+3.​4.​2 Spin-Off Programs
+
+37
+
+
+
+
+
+3.​4.​3 Taxonomy-Based Analysis
+
+37
+
+
+
+
+
+
+References
+
+39
+
+
+
+
+
+
+4 Attack Training
+
+41
+
+
+
+
+4.​1 Attack Training Overview
+
+41
+
+
+
+
+4.​1.​1 Overall Methodology
+
+41
+
+
+
+
+
+4.​1.​2 Approach Interdependency
+
+42
+
+
+
+
+
+
+4.​2 Attack Training Types
+
+43
+
+
+
+
+4.​2.​1 Fundamental Attack Training
+
+43
+
+
+
+
+
+4.​2.​2 Pentesting Training
+
+47
+
+
+
+
+
+
+4.​3 Related Information
+
+52
+
+
+
+
+4.​3.​1 Attack Knowledge Bases
+
+52
+
+
+
+
+
+4.​3.​2 Security Testing Guidelines
+
+64
+
+
+
+
+
+4.​3.​3 Attack Training Tools
+
+65
+
+
+
+
+
+4.​3.​4 Attack Training Platforms
+
+66
+
+
+
+
+
+
+4.​4 Discussion
+
+68
+
+
+
+
+4.​4.​1 Main Advantages
+
+68
+
+
+
+
+
+4.​4.​2 Potential Issues
+
+70
+
+
+
+
+
+
+References
+
+71
+
+
+
+
+
+
+5 Forensics Training
+
+73
+
+
+
+
+5.​1 Forensics Training Overview
+
+73
+
+
+
+
+5.​1.​1 Overall Methodology
+
+74
+
+
+
+
+
+5.​1.​2 Approach Interdependency
+
+74
+
+
+
+
+
+
+5.​2 Forensics Training Types
+
+75
+
+
+
+
+5.​2.​1 Fundamental Forensics Training
+
+76
+
+
+
+
+
+5.​2.​2 Forensic Methodology Training
+
+81
+
+
+
+
+
+
+5.​3 Related Information
+
+85
+
+
+
+
+5.​3.​1 Forensic Knowledge Bases
+
+85
+
+
+
+
+
+5.​3.​2 Forensic Methodology Guidelines
+
+86
+
+
+
+
+
+5.​3.​3 Forensics Training Tools
+
+89
+
+
+
+
+
+5.​3.​4 Forensics Training Platforms
+
+92
+
+
+
+
+
+
+5.​4 Discussion
+
+92
+
+
+
+
+5.​4.​1 Main Advantages
+
+92
+
+
+
+
+
+5.​4.​2 Potential Issues
+
+93
+
+
+
+
+
+
+References
+
+95
+
+
+
+
+
+
+6 Defense Training
+
+97
+
+
+
+
+6.​1 Defense Training Overview
+
+97
+
+
+
+
+6.​1.​1 Overall Methodology
+
+97
+
+
+
+
+
+6.​1.​2 Approach Interdependency
+
+98
+
+
+
+
+
+
+6.​2 Defense Training Types
+
+99
+
+
+
+
+6.​2.​1 Fundamental Defense Training
+
+100
+
+
+
+
+
+6.​2.​2 Defense Methodology Training
+
+108
+
+
+
+
+
+
+6.​3 Related Information
+
+111
+
+
+
+
+6.​3.​1 Defense Knowledge Bases
+
+111
+
+
+
+
+
+6.​3.​2 Defense Methodology Guidelines
+
+118
+
+
+
+
+
+6.​3.​3 Defense Training Tools
+
+123
+
+
+
+
+
+6.​3.​4 Defense Training Platforms
+
+126
+
+
+
+
+
+
+6.​4 Discussion
+
+127
+
+
+
+
+6.​4.​1 Main Advantages
+
+127
+
+
+
+
+
+6.​4.​2 Potential Issues
+
+129
+
+
+
+
+
+
+References
+
+130
+
+
+
+
+
+
+7 IoT Security Training
+
+133
+
+
+
+
+7.​1 IoT Security Training Challenges
+
+133
+
+
+
+
+7.​1.​1 IoT Device Diversity
+
+134
+
+
+
+
+
+7.​1.​2 IoT Device Risks
+
+135
+
+
+
+
+
+7.​1.​3 Developer Issues
+
+136
+
+
+
+
+
+7.​1.​4 End User Issues
+
+137
+
+
+
+
+
+
+7.​2 IoT Security Training Approaches
+
+139
+
+
+
+
+7.​2.​1 Hands-On Training
+
+139
+
+
+
+
+
+7.​2.​2 Theoretical Training
+
+141
+
+
+
+
+
+7.​2.​3 Approach Comparison
+
+142
+
+
+
+
+
+
+7.​3 Case Study:​ IoTrain-Sim and IoTrain-Lab
+
+144
+
+
+
+
+7.​3.​1 IoTrain-Sim
+
+144
+
+
+
+
+
+7.​3.​2 IoTrain-Lab
+
+147
+
+
+
+
+
+7.​3.​3 System Comparison
+
+149
+
+
+
+
+
+
+References
+
+151
+
+
+
+
+
+
+8 Cybersecurity Awareness Training
+
+153
+
+
+
+
+8.​1 Cybersecurity Literacy
+
+153
+
+
+
+
+
+8.​2 Cybersecurity Awareness Training Approaches
+
+154
+
+
+
+
+8.​2.​1 Reading Materials
+
+154
+
+
+
+
+
+8.​2.​2 Training Videos
+
+155
+
+
+
+
+
+8.​2.​3 E-Learning
+
+156
+
+
+
+
+
+8.​2.​4 Simulation
+
+158
+
+
+
+
+
+8.​2.​5 Gamification
+
+159
+
+
+
+
+
+8.​2.​6 Approach Comparison
+
+161
+
+
+
+
+
+
+8.​3 Case Study:​ CyATP
+
+163
+
+
+
+
+8.​3.​1 CyATP Overview
+
+164
+
+
+
+
+
+8.​3.​2 Concept Map Based Learning
+
+164
+
+
+
+
+
+8.​3.​3 Content Generation
+
+166
+
+
+
+
+
+8.​3.​4 Crossword Puzzle Quiz
+
+168
+
+
+
+
+
+
+References
+
+169
+
+
+
+
+
+
+Part II Cybersecurity Training Platforms
+
+
+
+
+9 Cybersecurity Training Platform Overview
+
+173
+
+
+
+
+9.​1 Training Platform Model
+
+173
+
+
+
+
+9.​1.​1 Model Outline
+
+173
+
+
+
+
+
+9.​1.​2 Component Overview
+
+176
+
+
+
+
+
+
+9.​2 Training Content
+
+179
+
+
+
+
+9.​2.​1 Training Content Types
+
+180
+
+
+
+
+
+9.​2.​2 Content Type Comparison
+
+182
+
+
+
+
+
+9.​2.​3 Education Aspects
+
+184
+
+
+
+
+
+
+9.​3 Training Environment
+
+186
+
+
+
+
+9.​3.​1 Training Environment Types
+
+186
+
+
+
+
+
+9.​3.​2 Environment Type Comparison
+
+190
+
+
+
+
+
+
+References
+
+191
+
+
+
+
+
+
+10 Capture the Flag Platforms
+
+193
+
+
+
+
+10.​1 CTF Platform Overview
+
+193
+
+
+
+
+10.​1.​1 Jeopardy-Style CTF
+
+194
+
+
+
+
+
+10.​1.​2 Attack-Defend CTF
+
+195
+
+
+
+
+
+10.​1.​3 CTF-Type Comparison
+
+196
+
+
+
+
+
+
+10.​2 Online CTF Platforms
+
+198
+
+
+
+
+10.​2.​1 Jeopardy-Style Platforms
+
+198
+
+
+
+
+
+10.​2.​2 Hybrid Platforms
+
+201
+
+
+
+
+
+10.​2.​3 Online Platform Comparison
+
+203
+
+
+
+
+
+
+10.​3 Open-Source CTF Platforms
+
+206
+
+
+
+
+10.​3.​1 Jeopardy-Style Platforms
+
+206
+
+
+
+
+
+10.​3.​2 Hybrid Platforms
+
+210
+
+
+
+
+
+10.​3.​3 Open-Source Platform Comparison
+
+214
+
+
+
+
+
+
+10.​4 Discussion
+
+216
+
+
+
+
+10.​4.​1 Potential Issues
+
+216
+
+
+
+
+
+10.​4.​2 Additional Resources
+
+218
+
+
+
+
+
+
+References
+
+218
+
+
+
+
+
+
+11 Cyber Ranges
+
+221
+
+
+
+
+11.​1 Cyber Range Overview
+
+221
+
+
+
+
+11.​1.​1 Cyber Range Significance
+
+222
+
+
+
+
+
+11.​1.​2 Cyber Range Categories
+
+222
+
+
+
+
+
+
+11.​2 General Cyber Ranges
+
+223
+
+
+
+
+11.​2.​1 Government Cyber Ranges
+
+223
+
+
+
+
+
+11.​2.​2 Private-Sector Cyber Ranges
+
+228
+
+
+
+
+
+11.​2.​3 Academia Cyber Ranges
+
+237
+
+
+
+
+
+11.​2.​4 General Range Comparison
+
+238
+
+
+
+
+
+
+11.​3 Specialized Cyber Ranges
+
+242
+
+
+
+
+11.​3.​1 IoT Cyber Ranges
+
+243
+
+
+
+
+
+11.​3.​2 ICS/​SCADA Cyber Ranges
+
+245
+
+
+
+
+
+11.​3.​3 Critical Infrastructure Cyber Ranges
+
+247
+
+
+
+
+
+11.​3.​4 IoMT and Healthcare Cyber Ranges
+
+249
+
+
+
+
+
+11.​3.​5 Specialized Range Comparison
+
+250
+
+
+
+
+
+
+11.​4 Discussion
+
+255
+
+
+
+
+11.​4.​1 General Cyber Ranges
+
+255
+
+
+
+
+
+11.​4.​2 Specialized Cyber Ranges
+
+256
+
+
+
+
+
+11.​4.​3 Overall Recommendations
+
+256
+
+
+
+
+
+
+References
+
+257
+
+
+
+
+
+
+12 Detailed Case Study:​ CyTrONE
+
+261
+
+
+
+
+12.​1 Motivation and Target
+
+261
+
+
+
+
+
+12.​2 Framework Overview
+
+262
+
+
+
+
+12.​2.​1 CyTrONE Architecture
+
+262
+
+
+
+
+
+12.​2.​2 Training Platform Model Mapping
+
+267
+
+
+
+
+
+
+12.​3 CyTrONE Training Content
+
+268
+
+
+
+
+12.​3.​1 Training Content Representation
+
+269
+
+
+
+
+
+12.​3.​2 Training Content Examples
+
+273
+
+
+
+
+
+
+12.​4 CyTrONE Training Environment
+
+277
+
+
+
+
+12.​4.​1 Cyber Range Description
+
+277
+
+
+
+
+
+12.​4.​2 Cyber Range Examples
+
+283
+
+
+
+
+
+
+12.​5 Lessons Learned
+
+288
+
+
+
+
+12.​5.​1 Modular Architecture
+
+289
+
+
+
+
+
+12.​5.​2 Moodle LMS Reliance
+
+290
+
+
+
+
+
+12.​5.​3 YAML Representation
+
+291
+
+
+
+
+
+12.​5.​4 Other Concerns
+
+293
+
+
+
+
+
+
+References
+
+294
+
+
+
+
+
+
+13 Training Platform Capability Assessment
+
+295
+
+
+
+
+13.​1 Capability Assessment Overview
+
+295
+
+
+
+
+13.​1.​1 Motivation and Background
+
+295
+
+
+
+
+
+13.​1.​2 Cybersecurity Training Platform Stakeholders
+
+296
+
+
+
+
+
+13.​1.​3 Capability Assessment Perspectives
+
+297
+
+
+
+
+
+
+13.​2 Capability Assessment Methodology
+
+298
+
+
+
+
+13.​2.​1 Methodology Outline
+
+298
+
+
+
+
+
+13.​2.​2 Capability Assessment Criteria
+
+299
+
+
+
+
+
+13.​2.​3 Assessment Procedure
+
+303
+
+
+
+
+
+
+13.​3 CyTrONE Capability Assessment
+
+305
+
+
+
+
+13.​3.​1 Training Content Representation
+
+305
+
+
+
+
+
+13.​3.​2 Network Environment Management
+
+307
+
+
+
+
+
+13.​3.​3 Training Activity Facilitation
+
+308
+
+
+
+
+
+
+13.​4 Capability Assessment Applications
+
+308
+
+
+
+
+13.​4.​1 For Developers
+
+309
+
+
+
+
+
+13.​4.​2 For Organizers
+
+309
+
+
+
+
+
+13.​4.​3 For Trainees
+
+313
+
+
+
+
+
+
+References
+
+313
+
+
+
+
+
+
+14 Conclusion
+
+315
+
+
+
+
+14.​1 Book Summary
+
+315
+
+
+
+
+14.​1.​1 Part I:​ Training Methodologies
+
+315
+
+
+
+
+
+14.​1.​2 Part II:​ Training Platforms
+
+316
+
+
+
+
+
+
+14.​2 Key Takeaways
+
+317
+
+
+
+
+
+14.​3 Toward the Future
+
+318
+
+
+
+
+14.​3.​1 Cybersecurity Training Prospects
+
+318
+
+
+
+
+
+14.​3.​2 Cybersecurity Training in the Age of AI
+
+320
+
+
+
+
+
+14.​3.​3 From Cybersecurity to Trustworthiness
+
+322
+
+
+
+
+
+
+References
+
+323
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© The Author(s), under exclusive license to Springer Nature Singapore Pte Ltd. 2025
+R. Beuran
+
+Cybersecurity Education and Training
+
+
+https://doi.org/10.1007/978-981-96-0555-2_1

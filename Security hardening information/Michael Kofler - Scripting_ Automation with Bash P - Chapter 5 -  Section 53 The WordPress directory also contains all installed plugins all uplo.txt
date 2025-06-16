@@ -1,0 +1,26 @@
+# Security Chapter Extract
+Book: Michael Kofler - Scripting_ Automation with Bash, PowerShell, and Python (2024, Rheinwerk Publishing) - libgen.li
+Chapter: 5 - , Section 5.3). The WordPress directory also contains all installed plugins, all uploaded images, and so on. As a rule, the file created using tar is much larger than the MySQL backup.
+The last line of the script copies the backups, which are only stored locally for the time being, to a second computer. Thus, all backup files are redundantly located in two different places.
+# Sample file lamp-backup.shBACKUPDIR=/localbackupDB=wpDBUSER=wpbackupuserWPDIR=/var/www/html/wordpressSSH=user@otherhost:wp-backup/# MySQL-Backupweekday=$(date +%u)dbfile=$BACKUPDIR/wp-db-$weekday.sql.gzmysqlopt='--single-transaction'mysqldump -u $DBUSER $mysqlopt $DB | gzip -c > $dbfile# backup of the WordPress installation including plugins and uploadshtmlfile=$BACKUPDIR/wp-html-$weekday.tar.gztar czf $htmlfile -C $WPDIR .# backup of the /etc directoryetcfile=$BACKUPDIR/etc-$weekday.tar.gztar czf $etcfile -C /etc .# copy backup files to a second computerscp $dbfile $htmlfile $etcfile $SSH 
+After you have executed the script manually, you still need to take care of the automated call. You can design the required line in /etc/crontab based on the following pattern: 
+# in /etc/crontab# run script every night at 3:00 am with root privileges00 3 * * * root /path/to/lamp-backup.sh 
+Once you have set up the backup system, you should observe it for a few days. Does the automatic cron call work? A common cause of errors is that cron jobs often have a different PATH setting than the root account in which you ran your tests. This possibility is especially true if you use commands in the script that were manually installed off the usual paths. For such commands, you may need to specify the full path.
+Be sure you also test if you can restore a WordPress installation from the backup files on another computer or in a virtual machine. What’s the use of the nicest scripts if you don’t realize until disaster strikes that the backup is incomplete for some reason?
+Security Relevance Score: 2
+Word Count: 357
+Extracted: 2025-06-13 23:41:06
+
+---
+
+, Section 5.3). The WordPress directory also contains all installed plugins, all uploaded images, and so on. As a rule, the file created using tar is much larger than the MySQL backup.
+The last line of the script copies the backups, which are only stored locally for the time being, to a second computer. Thus, all backup files are redundantly located in two different places.
+# Sample file lamp-backup.shBACKUPDIR=/localbackupDB=wpDBUSER=wpbackupuserWPDIR=/var/www/html/wordpressSSH=user@otherhost:wp-backup/# MySQL-Backupweekday=$(date +%u)dbfile=$BACKUPDIR/wp-db-$weekday.sql.gzmysqlopt='--single-transaction'mysqldump -u $DBUSER $mysqlopt $DB | gzip -c > $dbfile# backup of the WordPress installation including plugins and uploadshtmlfile=$BACKUPDIR/wp-html-$weekday.tar.gztar czf $htmlfile -C $WPDIR .# backup of the /etc directoryetcfile=$BACKUPDIR/etc-$weekday.tar.gztar czf $etcfile -C /etc .# copy backup files to a second computerscp $dbfile $htmlfile $etcfile $SSH 
+After you have executed the script manually, you still need to take care of the automated call. You can design the required line in /etc/crontab based on the following pattern: 
+# in /etc/crontab# run script every night at 3:00 am with root privileges00 3 * * * root /path/to/lamp-backup.sh 
+Once you have set up the backup system, you should observe it for a few days. Does the automatic cron call work? A common cause of errors is that cron jobs often have a different PATH setting than the root account in which you ran your tests. This possibility is especially true if you use commands in the script that were manually installed off the usual paths. For such commands, you may need to specify the full path.
+Be sure you also test if you can restore a WordPress installation from the backup files on another computer or in a virtual machine. What’s the use of the nicest scripts if you don’t realize until disaster strikes that the backup is incomplete for some reason?
+
+Extension: Uploading Encrypted Backups to Amazon Web Services (AWS)
+Keeping backup files on external computers is often less secure than on the local server with regard to their accessibility by attackers. Thus, a good idea is to encrypt backup files before uploading them to other hosts.
+I’ll show you how to encrypt files and then use Simple Storage Service (S3), Amazon’s cloud storage service, as a storage location in

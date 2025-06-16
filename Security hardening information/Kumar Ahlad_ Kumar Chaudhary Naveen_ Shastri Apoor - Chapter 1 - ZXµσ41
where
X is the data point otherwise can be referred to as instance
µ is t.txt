@@ -1,0 +1,26 @@
+# Security Chapter Extract
+Book: Kumar, Ahlad_ Kumar Chaudhary, Naveen_ Shastri, Apoorva S._ Sing - Digital Defence_ Harnessing the Power of Artificial Intelligence for Cybersecurity and Digital Forensics (2025, CRC Press) - libgen.li
+Chapter: 1 - Z=X−µσ(4.1)
+where:
+X is the data point, otherwise can be referred to as instance
+µ is the mean
+σ is the standard deviation
+We initially considered using Min-Max normalization to standardize the data. However, due to the presence of outliers in our dataset, we decided against this technique. The dataset is a time-series, meaning it is captured over time. In such datasets, certain data points should not be part of the training sample. Using Min-Max normalization would have been problematic because outliers would disproportionately affect the data distribution by skewing the minimum and maximum values.
+Using this Z-score normalization technique, we normalized the whole instances in the dataset. This improves the performance of the model, making sure that the data points are all on the same scale, that is, it prevents a single data point from dominating the model’s learning process due to its magnitude. The choice of this particular normalization technique is centered on the need to avoid the model’s sensitivity to outliers.
+Security Relevance Score: 2
+Word Count: 253
+Extracted: 2025-06-13 23:40:52
+
+---
+
+Z=X−µσ(4.1)
+where:
+X is the data point, otherwise can be referred to as instance
+µ is the mean
+σ is the standard deviation
+We initially considered using Min-Max normalization to standardize the data. However, due to the presence of outliers in our dataset, we decided against this technique. The dataset is a time-series, meaning it is captured over time. In such datasets, certain data points should not be part of the training sample. Using Min-Max normalization would have been problematic because outliers would disproportionately affect the data distribution by skewing the minimum and maximum values.
+Using this Z-score normalization technique, we normalized the whole instances in the dataset. This improves the performance of the model, making sure that the data points are all on the same scale, that is, it prevents a single data point from dominating the model’s learning process due to its magnitude. The choice of this particular normalization technique is centered on the need to avoid the model’s sensitivity to outliers.
+
+
+4.5.1.2 Model Training
+The training algorithms we used for this model are Random Forest Classifier, Stacked long short-term memory (LSTM), one-dimensional convolutional neural network (1D CNN), and DL Hybrid Model architecture which comprises of 1D CNN and an LSTM layer. These algorithms were used for both imbalanced and balanced datasets. The same architectural parameters were used for both save in the case of the Random Forest Classifier for the imbalanced data where we used GridSearchCV. We split out dataset into train, test, and validation sets in the ratio 80:10:
