@@ -491,7 +491,7 @@ async def test_azure_devops_security(auditor: SecurityAuditor):
     
     # Test 3: Token exposure in logs
     print("  [-] Testing credential exposure...")
-    test_token = "test_pat_token_12345"
+    test_token = os.environ.get("AUTH_TOKEN", "test-token-placeholder")
     server = AzureDevOpsMCPServer(personal_access_token=test_token)
     headers = server._get_auth_headers()
     # Check if token would be logged

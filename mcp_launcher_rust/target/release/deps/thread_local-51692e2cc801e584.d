@@ -1,0 +1,10 @@
+/home/louranicas/projects/claude-optimized-deployment/mcp_launcher_rust/target/release/deps/libthread_local-51692e2cc801e584.rmeta: /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/lib.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/cached.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/thread_id.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/unreachable.rs
+
+/home/louranicas/projects/claude-optimized-deployment/mcp_launcher_rust/target/release/deps/libthread_local-51692e2cc801e584.rlib: /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/lib.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/cached.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/thread_id.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/unreachable.rs
+
+/home/louranicas/projects/claude-optimized-deployment/mcp_launcher_rust/target/release/deps/thread_local-51692e2cc801e584.d: /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/lib.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/cached.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/thread_id.rs /home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/unreachable.rs
+
+/home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/lib.rs:
+/home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/cached.rs:
+/home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/thread_id.rs:
+/home/louranicas/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thread_local-1.1.8/src/unreachable.rs:

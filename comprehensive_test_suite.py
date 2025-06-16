@@ -79,6 +79,13 @@ class ComprehensiveTestSuite:
             ]),
             ("API", "src.api", [
                 "src.api.circuit_breaker_api"
+            ]),
+            ("Synthex Search Engine", "src.synthex", [
+                "src.synthex.engine",
+                "src.synthex.agents",
+                "src.synthex.config",
+                "src.synthex.security",
+                "src.synthex.secrets"
             ])
         ]
 
@@ -115,8 +122,15 @@ class ComprehensiveTestSuite:
             
             module = importlib.import_module(module_name)
             return True, f"Successfully imported {module_name}"
+        except ImportError as e:
+            # Provide more detailed error for missing dependencies
+            error_msg = str(e)
+            if "No module named" in error_msg:
+                missing_module = error_msg.split("'")[1]
+                return False, f"Failed to import {module_name}: Missing dependency '{missing_module}'"
+            return False, f"Failed to import {module_name}: {error_msg}"
         except Exception as e:
-            return False, f"Failed to import {module_name}: {str(e)}"
+            return False, f"Failed to import {module_name}: {type(e).__name__}: {str(e)}"
 
     def test_module_functionality(self, module_category: str, base_module: str, submodules: List[str]) -> Dict[str, Any]:
         """Test a module category with all its submodules"""
@@ -225,6 +239,18 @@ class ComprehensiveTestSuite:
             "partial": partial,
             "success_rate": f"{(passed/total)*100:.1f}%" if total > 0 else "0%"
         }
+        
+        # Collect all missing dependencies
+        missing_deps = set()
+        for module_result in self.test_results["modules"].values():
+            for error in module_result.get("errors", []):
+                if "Missing dependency" in error:
+                    dep = error.split("'")[-2]
+                    missing_deps.add(dep)
+        
+        if missing_deps:
+            self.test_results["summary"]["missing_dependencies"] = list(missing_deps)
+            self.test_results["summary"]["install_command"] = f"pip install {' '.join(missing_deps)}"
 
     def generate_report(self) -> str:
         """Generate a detailed test report"""
@@ -267,6 +293,16 @@ class ComprehensiveTestSuite:
         report.append(f"Failed: {summary.get('failed', 0)}")
         report.append(f"Partial: {summary.get('partial', 0)}")
         report.append(f"Success Rate: {summary.get('success_rate', '0%')}")
+        
+        # Missing dependencies recommendation
+        if summary.get('missing_dependencies'):
+            report.append("\nMISSING DEPENDENCIES:")
+            report.append("-" * 40)
+            report.append("The following dependencies are required but not installed:")
+            for dep in summary['missing_dependencies']:
+                report.append(f"  - {dep}")
+            report.append(f"\nTo install missing dependencies, run:")
+            report.append(f"  {summary['install_command']}")
         
         return "\n".join(report)
 

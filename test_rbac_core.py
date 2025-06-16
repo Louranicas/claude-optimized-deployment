@@ -91,7 +91,7 @@ async def test_core_components():
     user = User.create(
         username="testuser",
         email="test@example.com",
-        password="SecurePass123!"
+        password = os.environ.get("PASSWORD", "test-password-placeholder")
     )
     print(f"✅ Created user: {user.username} ({user.id})")
     

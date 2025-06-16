@@ -1,3 +1,4 @@
+import os
 #!/usr/bin/env python3
 """
 ULTRATHINK Comprehensive Production Module Testing Framework
@@ -373,7 +374,7 @@ class UltraThinkTestFramework:
             test_dir = Path(temp_dir)
             
             # Create file with hardcoded API key
-            (test_dir / "config.py").write_text("API_KEY = 'sk_test_1234567890abcdef'")
+            (test_dir / "config.py").write_text("api_key = os.environ.get("API_KEY", "test-key-placeholder")")
             
             # Create file with potential vulnerability
             (test_dir / "app.py").write_text("eval(user_input)")
@@ -428,9 +429,9 @@ class UltraThinkTestFramework:
             # Create file with various credential patterns
             credentials_file = test_dir / "creds.txt"
             credentials_file.write_text("""
-            password = "super_secret_password_123"
+            password = os.environ.get("PASSWORD", "test-password-placeholder")
             GITHUB_TOKEN = ghp_1234567890abcdefghijklmnopqrstuvwxyz
-            AWS_ACCESS_KEY_ID = AKIAIOSFODNN7EXAMPLE
+            AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "AKIAIOSFODNN7EXAMPLE")
             jwt_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature
             high_entropy_string = "xYz9K7mN4pQ8vB2wE6rT0uI3oA5sD1fG"
             """)

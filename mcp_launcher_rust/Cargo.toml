@@ -1,0 +1,18 @@
+[package]
+name = "mcp_launcher_rust"
+version = "1.0.0"
+edition = "2021"
+authors = ["CODE Team"]
+description = "Bulletproof MCP Server Launcher in Pure Rust"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full", "process", "signal"] }
+dotenv = "0.15"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[[example]]
+name = "mcp_v2_demo"
+path = "examples/mcp_v2_demo.rs"

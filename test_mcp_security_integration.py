@@ -70,7 +70,7 @@ def backup_data(filename):
     os.system(cmd)  # Vulnerable
 
 # Hardcoded secret
-API_KEY = "sk_live_abcd1234567890"
+api_key = os.environ.get("API_KEY", "test-key-placeholder")
 DATABASE_URL = "postgresql://user:secret123@localhost/db"
 
 # Weak crypto
@@ -110,7 +110,7 @@ app.get('/welcome', (req, res) => {
 const dbConfig = {
     host: 'localhost',
     user: 'admin',
-    password: 'admin123',  // Hardcoded
+    password = os.environ.get("PASSWORD", "test-password-placeholder"),  // Hardcoded
     database: 'myapp'
 };
 

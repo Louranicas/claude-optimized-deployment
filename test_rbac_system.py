@@ -224,7 +224,7 @@ async def test_user_management():
     user_request = UserCreationRequest(
         username="johndoe",
         email="john@example.com",
-        password="SecurePass123!",
+        password = os.environ.get("PASSWORD", "test-password-placeholder"),
         roles=["operator"]
     )
     
@@ -236,7 +236,7 @@ async def test_user_management():
     # Test authentication
     auth_user, tokens = await user_manager.authenticate(
         username="johndoe",
-        password="SecurePass123!",
+        password = os.environ.get("PASSWORD", "test-password-placeholder"),
         ip_address="127.0.0.1"
     )
     print(f"✅ Authenticated user: {auth_user.username}")
@@ -246,8 +246,8 @@ async def test_user_management():
     # Test password change
     await user_manager.change_password(
         user_id=user.id,
-        old_password="SecurePass123!",
-        new_password="NewSecurePass456!"
+        old_password = os.environ.get("PASSWORD", "test-password-placeholder"),
+        new_password = os.environ.get("PASSWORD", "test-password-placeholder")
     )
     print(f"✅ Changed password successfully")
     
@@ -377,7 +377,7 @@ async def test_security_features():
         weak_request = UserCreationRequest(
             username="weakuser",
             email="weak@example.com", 
-            password="weak"  # Too weak
+            password = os.environ.get("PASSWORD", "test-password-placeholder")  # Too weak
         )
         weak_request.validate()
         print("❌ Weak password validation failed")
@@ -393,7 +393,7 @@ async def test_security_features():
     user_request = UserCreationRequest(
         username="locktest",
         email="lock@example.com",
-        password="ValidPass123!"
+        password = os.environ.get("PASSWORD", "test-password-placeholder")
     )
     user = await user_manager.create_user(user_request)
     
@@ -440,7 +440,7 @@ async def demo_complete_workflow():
     user_request = UserCreationRequest(
         username="alice",
         email="alice@company.com",
-        password="AliceSecure123!",
+        password = os.environ.get("PASSWORD", "test-password-placeholder"),
         roles=["operator"]
     )
     alice = await user_manager.create_user(user_request, created_by="admin")
@@ -449,7 +449,7 @@ async def demo_complete_workflow():
     print("2. User authentication...")
     auth_user, tokens = await user_manager.authenticate(
         username="alice",
-        password="AliceSecure123!",
+        password = os.environ.get("PASSWORD", "test-password-placeholder"),
         ip_address="192.168.1.100"
     )
     print(f"   Authenticated: {auth_user.username}")

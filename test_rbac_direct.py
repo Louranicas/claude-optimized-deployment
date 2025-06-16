@@ -129,7 +129,7 @@ async def test_rbac_system():
     user = User.create(
         username="alice_operator",
         email="alice@company.com",
-        password="SecurePassword123!"
+        password = os.environ.get("PASSWORD", "test-password-placeholder")
     )
     print(f"✅ Created user: {user.username} ({user.id})")
     

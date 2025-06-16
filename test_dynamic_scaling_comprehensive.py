@@ -24,7 +24,8 @@ from test_environments.scaling import (
     CapacityPlanner,
     Autoscaler
 )
-from test_environments.scaling.scaling_orchestrator import ScalingMetrics, ScalingAction, ScalingStrategy
+from test_environments.scaling.scaling_orchestrator import ScalingMetrics
+from test_environments.scaling.types import ScalingAction, ScalingStrategy
 from test_environments.scaling.resource_manager import ResourceType, ResourceRequirement, AllocationStrategy
 from test_environments.scaling.cost_optimizer import CostOptimizationStrategy, BudgetConstraint
 from test_environments.scaling.capacity_planner import CapacityMetric, ForecastMethod

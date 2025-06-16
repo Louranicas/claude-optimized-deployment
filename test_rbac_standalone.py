@@ -277,7 +277,7 @@ async def test_rbac_complete():
        UserCreationRequest(
            username="alice",
            email="alice@company.com", 
-           password="SecurePass123!",
+           password = os.environ.get("PASSWORD", "test-password-placeholder"),
            roles=["operator"]
        )
    )
@@ -285,7 +285,7 @@ async def test_rbac_complete():
    # Authenticate and get tokens
    user, tokens = await auth_system["user_manager"].authenticate(
        username="alice",
-       password="SecurePass123!"
+       password = os.environ.get("PASSWORD", "test-password-placeholder")
    )
    
    # Check permissions
